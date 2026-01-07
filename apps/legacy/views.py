@@ -3,6 +3,7 @@
 from django.shortcuts import render, redirect
 
 from apps.profiles.models import Profile
+from apps.recipes.models import RecipeFavorite, RecipeViewHistory
 
 
 def profile_selector(request):
@@ -27,12 +28,28 @@ def home(request):
         del request.session['profile_id']
         return redirect('legacy:profile_selector')
 
+    # Get favorites for this profile
+    favorites = RecipeFavorite.objects.filter(
+        profile=profile
+    ).select_related('recipe').order_by('-created_at')[:12]
+
+    # Get recently viewed for this profile
+    history = RecipeViewHistory.objects.filter(
+        profile=profile
+    ).select_related('recipe').order_by('-viewed_at')[:6]
+
+    # Build favorite recipe IDs set for checking
+    favorite_recipe_ids = set(f.recipe_id for f in favorites)
+
     return render(request, 'legacy/home.html', {
         'profile': {
             'id': profile.id,
             'name': profile.name,
             'avatar_color': profile.avatar_color,
         },
+        'favorites': favorites,
+        'history': history,
+        'favorite_recipe_ids': favorite_recipe_ids,
     })
 
 

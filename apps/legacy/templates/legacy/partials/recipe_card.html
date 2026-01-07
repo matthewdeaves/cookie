@@ -1,0 +1,64 @@
+{% comment %}
+Recipe card partial for legacy frontend.
+Expects: recipe (Recipe model), is_favorite (bool), show_favorite_btn (bool)
+{% endcomment %}
+{% load legacy_tags %}
+
+<div class="recipe-card" data-recipe-id="{{ recipe.id }}">
+    <!-- Image -->
+    <div class="recipe-card-image">
+        {% if recipe.image %}
+        <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}" loading="lazy">
+        {% elif recipe.image_url %}
+        <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}" loading="lazy">
+        {% else %}
+        <div class="recipe-card-no-image">
+            <span>No image</span>
+        </div>
+        {% endif %}
+
+        {% if show_favorite_btn %}
+        <!-- Favorite button -->
+        <button
+            type="button"
+            class="recipe-card-favorite{% if is_favorite %} active{% endif %}"
+            data-recipe-id="{{ recipe.id }}"
+            aria-label="{% if is_favorite %}Remove from favorites{% else %}Add to favorites{% endif %}"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="{% if is_favorite %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+        </button>
+        {% endif %}
+
+        {% if recipe.is_remix %}
+        <!-- Remix badge -->
+        <div class="recipe-card-badge">Remix</div>
+        {% endif %}
+    </div>
+
+    <!-- Content -->
+    <div class="recipe-card-content">
+        <h3 class="recipe-card-title">{{ recipe.title }}</h3>
+        <div class="recipe-card-meta">
+            <span class="recipe-card-source">{{ recipe.host }}</span>
+            {% if recipe.total_time %}
+            <span class="recipe-card-time">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                {{ recipe.total_time|format_time }}
+            </span>
+            {% endif %}
+            {% if recipe.rating %}
+            <span class="recipe-card-rating">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                {{ recipe.rating|floatformat:1 }}
+            </span>
+            {% endif %}
+        </div>
+    </div>
+</div>

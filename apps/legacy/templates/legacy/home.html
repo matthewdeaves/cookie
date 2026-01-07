@@ -1,5 +1,5 @@
 {% extends 'legacy/base.html' %}
-{% load static %}
+{% load static legacy_tags %}
 
 {% block title %}Cookie - Home{% endblock %}
 
@@ -16,26 +16,97 @@
     </header>
 
     <div class="container container-wide p-4">
-        <!-- Search bar placeholder -->
-        <div class="search-input-wrapper mb-6">
-            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <input
-                type="text"
-                id="search-input"
-                class="input search-input"
-                placeholder="Search recipes or paste URL..."
-            >
+        <!-- Search bar -->
+        <form id="search-form" action="{% url 'legacy:search' %}" method="get" class="mb-6">
+            <div class="search-input-wrapper">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input
+                    type="text"
+                    id="search-input"
+                    name="q"
+                    class="input search-input"
+                    placeholder="Search recipes or paste URL..."
+                >
+            </div>
+        </form>
+
+        <!-- Tab toggle (Favorites/Discover) -->
+        <div class="flex justify-center mb-6">
+            <div class="tab-toggle">
+                <button type="button" class="tab-toggle-btn active" data-tab="favorites">
+                    My Favorites
+                </button>
+                <button type="button" class="tab-toggle-btn" data-tab="discover">
+                    Discover
+                </button>
+            </div>
         </div>
 
-        <!-- Content placeholder - will be expanded in Session B -->
-        <div class="text-center" style="padding: 3rem 0; color: var(--muted-foreground);">
-            <p>Home screen content coming in Session B</p>
-            <p style="margin-top: 1rem;">
-                <a href="/legacy/" style="color: var(--primary);">Switch profile</a>
-            </p>
+        <!-- Favorites Tab Content -->
+        <div id="tab-favorites" class="tab-content">
+            {% if history %}
+            <!-- Recently Viewed -->
+            <section class="section">
+                <h2 class="section-title">Recently Viewed</h2>
+                <div class="recipe-grid">
+                    {% for item in history %}
+                    {% with recipe=item.recipe is_favorite=item.recipe.id|in_list:favorite_recipe_ids show_favorite_btn=False %}
+                    {% include 'legacy/partials/recipe_card.html' %}
+                    {% endwith %}
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            <!-- Favorites -->
+            <section class="section">
+                <h2 class="section-title">My Favorite Recipes</h2>
+                {% if favorites %}
+                <div class="recipe-grid">
+                    {% for favorite in favorites %}
+                    {% with recipe=favorite.recipe is_favorite=True show_favorite_btn=True %}
+                    {% include 'legacy/partials/recipe_card.html' %}
+                    {% endwith %}
+                    {% endfor %}
+                </div>
+                {% else %}
+                <!-- Empty state -->
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </div>
+                    <h3 class="empty-state-title">No favorites yet</h3>
+                    <p class="empty-state-text">Search for recipes and add them to your favorites</p>
+                    <button type="button" id="discover-btn" class="btn btn-primary">
+                        Discover Recipes
+                    </button>
+                </div>
+                {% endif %}
+            </section>
+        </div>
+
+        <!-- Discover Tab Content -->
+        <div id="tab-discover" class="tab-content hidden">
+            <!-- Placeholder for AI recommendations -->
+            <div class="empty-state">
+                <div class="empty-state-icon sparkle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                        <path d="M5 3v4"></path>
+                        <path d="M19 17v4"></path>
+                        <path d="M3 5h4"></path>
+                        <path d="M17 19h4"></path>
+                    </svg>
+                </div>
+                <h3 class="empty-state-title">AI Recommendations Coming Soon</h3>
+                <p class="empty-state-text">Personalized recipe suggestions will appear here</p>
+            </div>
         </div>
     </div>
 </div>
