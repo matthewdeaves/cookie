@@ -24,7 +24,7 @@
 - [x] 6.3 React: Play mode with smart timers
 - [x] 6.4 React: Favorites screen
 - [x] 6.5 React: Collections screens (list, detail, create)
-- [ ] 6.6 Write tests for timer logic and collections API
+- [x] 6.6 Write tests for timer logic and collections API
 
 ---
 
