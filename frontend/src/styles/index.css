@@ -1,0 +1,20 @@
+@import './tailwind.css';
+@import './theme.css';
+
+/* Responsive viewport optimization
+   Optimized for iPad (1024x768) but fully responsive
+*/
+body {
+  max-width: 1024px;
+  min-height: 768px;
+  margin: 0 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Main app container */
+#root {
+  max-width: 1024px;
+  min-height: 768px;
+  width: 100%;
+}

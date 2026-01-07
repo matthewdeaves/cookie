@@ -26,6 +26,8 @@ usage() {
     echo "  exec <cmd>     Execute command in web container"
     echo "  migrate        Run database migrations"
     echo "  makemigrations Create new migrations"
+    echo "  npm <cmd>      Run npm command in frontend container"
+    echo "  frontend-logs  View frontend logs"
     echo "  status         Show container status"
     echo ""
     echo "Examples:"
@@ -84,6 +86,13 @@ case "${1:-}" in
         shift
         echo -e "${GREEN}Creating migrations...${NC}"
         docker compose exec web python manage.py makemigrations "$@"
+        ;;
+    npm)
+        shift
+        docker compose exec frontend npm "$@"
+        ;;
+    frontend-logs)
+        docker compose logs -f frontend
         ;;
     status)
         docker compose ps
