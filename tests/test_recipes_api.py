@@ -32,7 +32,14 @@ def sample_recipe(db):
 
 
 @pytest.fixture
-def multiple_recipes(db):
+def test_profile(db):
+    """Create a profile for testing remix visibility."""
+    from apps.profiles.models import Profile
+    return Profile.objects.create(name='Test User', avatar_color='#123456')
+
+
+@pytest.fixture
+def multiple_recipes(db, test_profile):
     """Create multiple recipes for list/filter testing."""
     from apps.recipes.models import Recipe
     recipes = []
@@ -55,6 +62,7 @@ def multiple_recipes(db):
         host='cookie.local',
         title='My Remix Recipe',
         is_remix=True,
+        remix_profile=test_profile,  # Assign remix to test profile
     ))
     return recipes
 
@@ -86,8 +94,11 @@ class TestListRecipes:
         assert len(data) == 2
         assert all(r['host'] == 'allrecipes.com' for r in data)
 
-    def test_list_recipes_filter_by_remix(self, client, multiple_recipes):
-        """Test filtering recipes by is_remix."""
+    def test_list_recipes_filter_by_remix(self, client, multiple_recipes, test_profile):
+        """Test filtering recipes by is_remix (requires profile for visibility)."""
+        # Select the profile that owns the remix
+        client.post(f'/api/profiles/{test_profile.id}/select/')
+
         response = client.get('/api/recipes/?is_remix=true')
         assert response.status_code == 200
         data = response.json()
@@ -104,7 +115,8 @@ class TestListRecipes:
         assert all(r['is_remix'] is False for r in data)
 
     def test_list_recipes_pagination(self, client, multiple_recipes):
-        """Test pagination with limit and offset."""
+        """Test pagination with limit and offset (without profile, only non-remixes visible)."""
+        # Without profile selected, only 3 non-remix recipes are visible
         response = client.get('/api/recipes/?limit=2&offset=0')
         assert response.status_code == 200
         data = response.json()
@@ -113,7 +125,7 @@ class TestListRecipes:
         response = client.get('/api/recipes/?limit=2&offset=2')
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 2
+        assert len(data) == 1  # Only 3 recipes visible without profile
 
 
 @pytest.mark.django_db

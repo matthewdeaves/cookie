@@ -1,0 +1,113 @@
+{
+  "version": "1.0.0",
+  "figma_source": "Cookie Recipe App Design/src/styles/theme.css",
+
+  "react_target": "frontend/src/styles/theme.css",
+  "legacy_target": "legacy/static/legacy/css/base.css",
+
+  "variables": {
+    "--background": {
+      "react": "--background",
+      "legacy": "--background-color"
+    },
+    "--foreground": {
+      "react": "--foreground",
+      "legacy": "--text-color"
+    },
+    "--card": {
+      "react": "--card",
+      "legacy": "--card-bg"
+    },
+    "--card-foreground": {
+      "react": "--card-foreground",
+      "legacy": null
+    },
+    "--popover": {
+      "react": "--popover",
+      "legacy": null
+    },
+    "--popover-foreground": {
+      "react": "--popover-foreground",
+      "legacy": null
+    },
+    "--primary": {
+      "react": "--primary",
+      "legacy": "--primary-color"
+    },
+    "--primary-foreground": {
+      "react": "--primary-foreground",
+      "legacy": null
+    },
+    "--secondary": {
+      "react": "--secondary",
+      "legacy": "--secondary-bg"
+    },
+    "--secondary-foreground": {
+      "react": "--secondary-foreground",
+      "legacy": null
+    },
+    "--muted": {
+      "react": "--muted",
+      "legacy": "--muted-bg"
+    },
+    "--muted-foreground": {
+      "react": "--muted-foreground",
+      "legacy": "--muted-text"
+    },
+    "--accent": {
+      "react": "--accent",
+      "legacy": "--accent-color"
+    },
+    "--accent-foreground": {
+      "react": "--accent-foreground",
+      "legacy": null
+    },
+    "--destructive": {
+      "react": "--destructive",
+      "legacy": "--error-color"
+    },
+    "--destructive-foreground": {
+      "react": "--destructive-foreground",
+      "legacy": null
+    },
+    "--border": {
+      "react": "--border",
+      "legacy": "--border-color"
+    },
+    "--input": {
+      "react": "--input",
+      "legacy": null
+    },
+    "--input-background": {
+      "react": "--input-background",
+      "legacy": "--input-bg"
+    },
+    "--switch-background": {
+      "react": "--switch-background",
+      "legacy": null
+    },
+    "--ring": {
+      "react": "--ring",
+      "legacy": "--focus-ring"
+    },
+    "--star": {
+      "react": "--star",
+      "legacy": "--star-color"
+    },
+    "--radius": {
+      "react": "--radius",
+      "legacy": "--border-radius"
+    },
+    "--font-size": {
+      "react": "--font-size",
+      "legacy": "--base-font-size"
+    }
+  },
+
+  "dark_mode": {
+    "strategy": "css_class",
+    "class_name": ".dark",
+    "legacy_support": false,
+    "note": "Legacy uses light theme only - dark values ignored"
+  }
+}

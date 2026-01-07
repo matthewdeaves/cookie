@@ -5,8 +5,11 @@ Recipe API endpoints.
 from typing import List, Optional
 
 from asgiref.sync import sync_to_async
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from ninja import Router, Schema
+
+from apps.profiles.utils import get_current_profile_or_none
 
 from .models import Recipe
 from .services.scraper import RecipeScraper, FetchError, ParseError
@@ -134,8 +137,17 @@ def list_recipes(
     - **is_remix**: Filter by remix status
     - **limit**: Number of recipes to return (default 50)
     - **offset**: Offset for pagination
+
+    Remixes are only visible to the profile that created them.
     """
+    profile = get_current_profile_or_none(request)
     qs = Recipe.objects.all().order_by('-scraped_at')
+
+    # Filter remix visibility: non-remixes OR remixes owned by current profile
+    if profile:
+        qs = qs.filter(Q(is_remix=False) | Q(remix_profile=profile))
+    else:
+        qs = qs.filter(is_remix=False)
 
     if host:
         qs = qs.filter(host=host)
@@ -203,14 +215,36 @@ async def search_recipes(
 
 @router.get('/{recipe_id}/', response={200: RecipeOut, 404: ErrorOut})
 def get_recipe(request, recipe_id: int):
-    """Get a recipe by ID."""
+    """
+    Get a recipe by ID.
+
+    Remixes are only visible to the profile that created them.
+    """
     recipe = get_object_or_404(Recipe, id=recipe_id)
+
+    # Check remix visibility
+    if recipe.is_remix:
+        profile = get_current_profile_or_none(request)
+        if not profile or recipe.remix_profile_id != profile.id:
+            return 404, {'detail': 'Recipe not found'}
+
     return recipe
 
 
 @router.delete('/{recipe_id}/', response={204: None, 404: ErrorOut})
 def delete_recipe(request, recipe_id: int):
-    """Delete a recipe by ID."""
+    """
+    Delete a recipe by ID.
+
+    Remixes can only be deleted by the profile that created them.
+    """
     recipe = get_object_or_404(Recipe, id=recipe_id)
+
+    # Check remix visibility
+    if recipe.is_remix:
+        profile = get_current_profile_or_none(request)
+        if not profile or recipe.remix_profile_id != profile.id:
+            return 404, {'detail': 'Recipe not found'}
+
     recipe.delete()
     return 204, None

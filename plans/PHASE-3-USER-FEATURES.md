@@ -20,9 +20,9 @@
 - [x] 3.1 RecipeFavorite model and API
 - [x] 3.2 RecipeCollection model and API
 - [x] 3.3 RecipeViewHistory model and API
-- [ ] 3.4 Profile-based data isolation
-- [ ] 3.5 Figma theme sync tooling (`bin/figma-sync-theme`)
-- [ ] 3.6 Write pytest tests for favorites, collections, and profile isolation
+- [x] 3.4 Profile-based data isolation
+- [x] 3.5 Figma theme sync tooling (`bin/figma-sync-theme`)
+- [x] 3.6 Write pytest tests for favorites, collections, and profile isolation
 
 ---
 
@@ -188,14 +188,14 @@ Key mappings:
 ## Checkpoint (End of Phase)
 
 ```
-[ ] POST /api/favorites/ - adds recipe to current profile's favorites
-[ ] GET /api/favorites/ - returns only current profile's favorites
-[ ] Collection CRUD - create, list, update, delete all work
-[ ] Add recipe to collection - appears in collection detail
-[ ] GET /api/history/ - returns up to 6 recent recipes
-[ ] Switch profiles - favorites/collections change accordingly
-[ ] ./bin/figma-sync-theme --dry-run - shows expected changes
-[ ] pytest - all isolation tests pass
+[x] POST /api/favorites/ - adds recipe to current profile's favorites
+[x] GET /api/favorites/ - returns only current profile's favorites
+[x] Collection CRUD - create, list, update, delete all work
+[x] Add recipe to collection - appears in collection detail
+[x] GET /api/history/ - returns up to 6 recent recipes
+[x] Switch profiles - favorites/collections change accordingly
+[x] ./bin/figma-sync-theme --dry-run - shows expected changes
+[x] pytest - all isolation tests pass (129 tests passing)
 ```
 
 ---

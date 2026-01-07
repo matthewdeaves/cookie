@@ -1,0 +1,128 @@
+#!/usr/bin/env python3
+"""
+Figma Theme Sync Tool
+
+Synchronizes CSS variables from the Figma export to both React and Legacy frontends.
+
+Usage:
+    ./bin/figma-sync-theme              # Sync to both frontends
+    ./bin/figma-sync-theme --dry-run    # Show what would change
+    ./bin/figma-sync-theme --react-only # Sync to React only
+    ./bin/figma-sync-theme --legacy-only # Sync to Legacy only
+"""
+
+import argparse
+import sys
+from pathlib import Path
+
+# Add project root to path
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from tooling.lib import ThemeSyncer
+
+
+def format_change(change):
+    """Format a single change for display."""
+    if change.action == 'skip':
+        return f"  [SKIP] {change.variable} ({change.reason})"
+    elif change.action == 'add':
+        return f"  [ADD] {change.variable}: {change.new_value}"
+    else:
+        if change.old_value:
+            return f"  [UPDATE] {change.variable}: {change.old_value} -> {change.new_value}"
+        else:
+            return f"  [UPDATE] {change.variable}: {change.new_value}"
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Sync Figma theme to React and Legacy frontends'
+    )
+    parser.add_argument(
+        '--dry-run',
+        action='store_true',
+        help='Show what would change without making changes'
+    )
+    parser.add_argument(
+        '--react-only',
+        action='store_true',
+        help='Only sync to React frontend'
+    )
+    parser.add_argument(
+        '--legacy-only',
+        action='store_true',
+        help='Only sync to Legacy frontend'
+    )
+    args = parser.parse_args()
+
+    syncer = ThemeSyncer(PROJECT_ROOT)
+
+    # Check that Figma source exists
+    if not syncer.figma_path.exists():
+        print(f"Error: Figma theme not found at {syncer.figma_path}")
+        print("Make sure the Figma export is in the expected location.")
+        sys.exit(1)
+
+    print("Figma Theme Sync")
+    print("=" * 50)
+    print()
+
+    if args.dry_run:
+        print("DRY RUN - No changes will be made")
+        print()
+
+    result = syncer.sync(
+        dry_run=args.dry_run,
+        react_only=args.react_only,
+        legacy_only=args.legacy_only,
+    )
+
+    changes = result['changes']
+
+    # Display React changes
+    if not args.legacy_only:
+        print(f"React ({syncer.react_path.relative_to(PROJECT_ROOT)}):")
+        react_changes = [c for c in changes['react'] if c.action != 'skip']
+        if react_changes:
+            for change in react_changes:
+                print(format_change(change))
+        else:
+            print("  [NO CHANGES]")
+        print()
+
+    # Display Legacy changes
+    if not args.react_only:
+        print(f"Legacy ({syncer.legacy_path.relative_to(PROJECT_ROOT)}):")
+        legacy_updates = [c for c in changes['legacy'] if c.action != 'skip']
+        legacy_skipped = [c for c in changes['legacy'] if c.action == 'skip']
+
+        if legacy_updates:
+            for change in legacy_updates:
+                print(format_change(change))
+        else:
+            print("  [NO CHANGES]")
+
+        if legacy_skipped:
+            print(f"  [SKIP] {len(legacy_skipped)} variables (no legacy mapping)")
+        print()
+
+    # Summary
+    summary = changes['summary']
+    total_updates = summary['react_updates'] + summary['legacy_updates']
+    total_skipped = summary['react_skipped'] + summary['legacy_skipped']
+
+    print("-" * 50)
+    print(f"Summary: {total_updates} updates, {total_skipped} skipped")
+
+    if args.dry_run and total_updates > 0:
+        print()
+        print("Run without --dry-run to apply changes.")
+
+    if not args.dry_run and total_updates > 0:
+        print()
+        print("Theme sync complete!")
+
+
+if __name__ == '__main__':
+    main()
