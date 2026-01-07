@@ -62,7 +62,8 @@ plans/
 ├── PHASE-3-USER-FEATURES.md       # Favorites, collections, history
 ├── PHASE-4-5-FRONTENDS-FOUNDATION.md   # Both UIs: profile, home, search
 ├── PHASE-6-7-RECIPE-DETAIL-PLAYMODE.md # Detail, play mode, collections UI
-├── PHASE-8-AI-INTEGRATION.md      # All 10 AI features
+├── PHASE-8A-AI-INFRASTRUCTURE.md  # OpenRouter service, prompts, settings UI
+├── PHASE-8B-AI-FEATURES.md        # All 10 AI feature integrations
 └── PHASE-9-POLISH.md              # Settings, testing, polish
 ```
 
@@ -150,22 +151,41 @@ Then:
 
 **Checkpoint:** Play mode works with timers on both interfaces.
 
-### Phase 8: AI Integration
+### Phase 8A: AI Infrastructure
 
-**Goal:** All 10 AI features working
+**Goal:** OpenRouter service and prompt management working
 
 ```bash
 /clear
-"Read plans/PHASE-8-AI-INTEGRATION.md. Let's implement the OpenRouter service first."
+"Read plans/PHASE-8A-AI-INFRASTRUCTURE.md. Let's implement the OpenRouter service."
 ```
 
-Work through AI features one at a time:
-1. OpenRouter service
-2. Recipe remix
+Work through infrastructure tasks:
+1. OpenRouter service with configurable models
+2. AIPrompt model with 10 default prompts
+3. Response schema validation
+4. Settings UI for prompt editing (both interfaces)
+
+**Checkpoint:** Can test API key; all 10 prompts editable in Settings.
+
+### Phase 8B: AI Features
+
+**Goal:** All 10 AI features integrated
+
+```bash
+/clear
+"Read plans/PHASE-8B-AI-FEATURES.md. Let's implement recipe remix first."
+```
+
+Work through features one at a time:
+1. Recipe remix (both interfaces)
+2. Serving adjustment
 3. Tips generation
-4. Discover features
-5. Timer naming
-6. Etc.
+4. Discover suggestions
+5. Search ranking
+6. Timer naming
+7. Remix suggestions
+8. Selector repair
 
 **Checkpoint:** All AI features work with valid API key; hidden without key.
 
@@ -337,7 +357,8 @@ If Claude is adding features not in the plan:
 | 3 | User Features | Favorites + Collections + Theme Sync |
 | 4-5 | Frontend Foundation | Both UIs: Profile, Home, Search |
 | 6-7 | Recipe Detail | Detail + Play Mode + Collections UI |
-| 8 | AI Integration | All 10 AI Features |
+| 8A | AI Infrastructure | OpenRouter + Prompts + Settings UI |
+| 8B | AI Features | All 10 AI Feature Integrations |
 | 9 | Polish | Settings + Testing |
 
 ### Key Commands
