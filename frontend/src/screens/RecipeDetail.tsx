@@ -5,7 +5,6 @@ import {
   Clock,
   Heart,
   PlayCircle,
-  FolderPlus,
   Sparkles,
   ChevronDown,
   ChevronUp,
@@ -19,6 +18,7 @@ import {
   type Settings,
 } from '../api/client'
 import { cn } from '../lib/utils'
+import AddToCollectionDropdown from '../components/AddToCollectionDropdown'
 
 interface RecipeDetailProps {
   recipeId: number
@@ -26,6 +26,7 @@ interface RecipeDetailProps {
   onBack: () => void
   onFavoriteToggle: (recipe: RecipeDetailType) => void
   onStartCooking: (recipe: RecipeDetailType) => void
+  onAddToNewCollection: (recipeId: number) => void
 }
 
 type Tab = 'ingredients' | 'instructions' | 'nutrition' | 'tips'
@@ -36,6 +37,7 @@ export default function RecipeDetail({
   onBack,
   onFavoriteToggle,
   onStartCooking,
+  onAddToNewCollection,
 }: RecipeDetailProps) {
   const [recipe, setRecipe] = useState<RecipeDetailType | null>(null)
   const [settings, setSettings] = useState<Settings | null>(null)
@@ -168,13 +170,10 @@ export default function RecipeDetail({
           >
             <Heart className={cn('h-5 w-5', isFavorite && 'fill-current')} />
           </button>
-          <button
-            onClick={() => toast.info('Collections coming in Phase 6 Session C')}
-            className="rounded-full bg-black/40 p-2 text-white backdrop-blur-sm transition-colors hover:text-primary"
-            title="Add to collection"
-          >
-            <FolderPlus className="h-5 w-5" />
-          </button>
+          <AddToCollectionDropdown
+            recipeId={recipeId}
+            onCreateNew={() => onAddToNewCollection(recipeId)}
+          />
           <button
             onClick={() => toast.info('Remix coming in Phase 8')}
             className="rounded-full bg-black/40 p-2 text-white backdrop-blur-sm transition-colors hover:text-primary"

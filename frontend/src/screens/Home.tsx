@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Moon, Sun, LogOut, Search, Sparkles } from 'lucide-react'
+import { Moon, Sun, LogOut, Search, Sparkles, Heart, FolderOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   api,
@@ -18,6 +18,8 @@ interface HomeProps {
   onLogout: () => void
   onSearch: (query: string) => void
   onRecipeClick: (recipeId: number) => void
+  onFavoritesClick: () => void
+  onCollectionsClick: () => void
 }
 
 type Tab = 'favorites' | 'discover'
@@ -29,6 +31,8 @@ export default function Home({
   onLogout,
   onSearch,
   onRecipeClick,
+  onFavoritesClick,
+  onCollectionsClick,
 }: HomeProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<Tab>('favorites')
@@ -87,6 +91,24 @@ export default function Home({
         <h1 className="text-xl font-medium text-primary">Cookie</h1>
 
         <div className="flex items-center gap-3">
+          {/* Favorites */}
+          <button
+            onClick={onFavoritesClick}
+            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-accent"
+            aria-label="View favorites"
+          >
+            <Heart className="h-5 w-5" />
+          </button>
+
+          {/* Collections */}
+          <button
+            onClick={onCollectionsClick}
+            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
+            aria-label="View collections"
+          >
+            <FolderOpen className="h-5 w-5" />
+          </button>
+
           {/* Theme toggle */}
           <button
             onClick={onThemeToggle}

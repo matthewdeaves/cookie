@@ -75,6 +75,35 @@ export interface HistoryItem {
   viewed_at: string
 }
 
+export interface Collection {
+  id: number
+  name: string
+  description: string
+  recipe_count: number
+  created_at: string
+  updated_at: string
+}
+
+export interface CollectionItem {
+  recipe: Recipe
+  order: number
+  added_at: string
+}
+
+export interface CollectionDetail {
+  id: number
+  name: string
+  description: string
+  recipes: CollectionItem[]
+  created_at: string
+  updated_at: string
+}
+
+export interface CollectionInput {
+  name: string
+  description?: string
+}
+
 export interface SearchResult {
   url: string
   title: string
@@ -180,6 +209,40 @@ export const api = {
 
     clear: () =>
       request<null>('/history/', {
+        method: 'DELETE',
+      }),
+  },
+
+  collections: {
+    list: () => request<Collection[]>('/collections/'),
+
+    get: (id: number) => request<CollectionDetail>(`/collections/${id}/`),
+
+    create: (data: CollectionInput) =>
+      request<Collection>('/collections/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    update: (id: number, data: CollectionInput) =>
+      request<Collection>(`/collections/${id}/`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+
+    delete: (id: number) =>
+      request<null>(`/collections/${id}/`, {
+        method: 'DELETE',
+      }),
+
+    addRecipe: (collectionId: number, recipeId: number) =>
+      request<CollectionItem>(`/collections/${collectionId}/recipes/`, {
+        method: 'POST',
+        body: JSON.stringify({ recipe_id: recipeId }),
+      }),
+
+    removeRecipe: (collectionId: number, recipeId: number) =>
+      request<null>(`/collections/${collectionId}/recipes/${recipeId}/`, {
         method: 'DELETE',
       }),
   },

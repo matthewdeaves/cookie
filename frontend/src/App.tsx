@@ -5,9 +5,20 @@ import Home from './screens/Home'
 import Search from './screens/Search'
 import RecipeDetail from './screens/RecipeDetail'
 import PlayMode from './screens/PlayMode'
+import Favorites from './screens/Favorites'
+import Collections from './screens/Collections'
+import CollectionDetail from './screens/CollectionDetail'
 import { api, type Profile, type RecipeDetail as RecipeDetailType } from './api/client'
 
-type Screen = 'profile-selector' | 'home' | 'search' | 'recipe-detail' | 'play-mode'
+type Screen =
+  | 'profile-selector'
+  | 'home'
+  | 'search'
+  | 'recipe-detail'
+  | 'play-mode'
+  | 'favorites'
+  | 'collections'
+  | 'collection-detail'
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('profile-selector')
@@ -17,6 +28,9 @@ function App() {
   const [selectedRecipeId, setSelectedRecipeId] = useState<number | null>(null)
   const [playModeRecipe, setPlayModeRecipe] = useState<RecipeDetailType | null>(null)
   const [favoriteRecipeIds, setFavoriteRecipeIds] = useState<Set<number>>(new Set())
+  const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null)
+  const [pendingRecipeForCollection, setPendingRecipeForCollection] = useState<number | null>(null)
+  const [previousScreen, setPreviousScreen] = useState<Screen>('home')
 
   // Apply theme class to document
   useEffect(() => {
@@ -160,6 +174,65 @@ function App() {
     setCurrentScreen('recipe-detail')
   }
 
+  const handleFavoritesClick = () => {
+    setCurrentScreen('favorites')
+  }
+
+  const handleFavoritesBack = () => {
+    setCurrentScreen('home')
+  }
+
+  const handleCollectionsClick = () => {
+    setPreviousScreen(currentScreen)
+    setCurrentScreen('collections')
+  }
+
+  const handleCollectionsBack = () => {
+    setPendingRecipeForCollection(null)
+    setCurrentScreen(previousScreen)
+  }
+
+  const handleCollectionClick = (collectionId: number) => {
+    setSelectedCollectionId(collectionId)
+    setPendingRecipeForCollection(null)
+    setCurrentScreen('collection-detail')
+  }
+
+  const handleCollectionDetailBack = () => {
+    setSelectedCollectionId(null)
+    setCurrentScreen('collections')
+  }
+
+  const handleCollectionDelete = () => {
+    setSelectedCollectionId(null)
+    setCurrentScreen('collections')
+  }
+
+  const handleAddToNewCollection = (recipeId: number) => {
+    setPendingRecipeForCollection(recipeId)
+    setPreviousScreen('recipe-detail')
+    setCurrentScreen('collections')
+  }
+
+  const handleRecipeClickFromCollection = async (recipeId: number) => {
+    try {
+      await api.history.record(recipeId)
+    } catch (error) {
+      console.error('Failed to record history:', error)
+    }
+    setSelectedRecipeId(recipeId)
+    setCurrentScreen('recipe-detail')
+  }
+
+  const handleRecipeDetailBackFromCollection = () => {
+    setSelectedRecipeId(null)
+    if (selectedCollectionId) {
+      setCurrentScreen('collection-detail')
+    } else {
+      setCurrentScreen(searchQuery ? 'search' : 'home')
+    }
+  }
+
   return (
     <>
       <Toaster position="top-center" richColors />
@@ -174,6 +247,8 @@ function App() {
           onLogout={handleLogout}
           onSearch={handleSearch}
           onRecipeClick={handleRecipeClick}
+          onFavoritesClick={handleFavoritesClick}
+          onCollectionsClick={handleCollectionsClick}
         />
       )}
       {currentScreen === 'search' && (
@@ -187,13 +262,35 @@ function App() {
         <RecipeDetail
           recipeId={selectedRecipeId}
           isFavorite={favoriteRecipeIds.has(selectedRecipeId)}
-          onBack={handleRecipeDetailBack}
+          onBack={selectedCollectionId ? handleRecipeDetailBackFromCollection : handleRecipeDetailBack}
           onFavoriteToggle={handleFavoriteToggle}
           onStartCooking={handleStartCooking}
+          onAddToNewCollection={handleAddToNewCollection}
         />
       )}
       {currentScreen === 'play-mode' && playModeRecipe && (
         <PlayMode recipe={playModeRecipe} onExit={handleExitPlayMode} />
+      )}
+      {currentScreen === 'favorites' && (
+        <Favorites
+          onBack={handleFavoritesBack}
+          onRecipeClick={handleRecipeClick}
+        />
+      )}
+      {currentScreen === 'collections' && (
+        <Collections
+          onBack={handleCollectionsBack}
+          onCollectionClick={handleCollectionClick}
+          pendingRecipeId={pendingRecipeForCollection}
+        />
+      )}
+      {currentScreen === 'collection-detail' && selectedCollectionId && (
+        <CollectionDetail
+          collectionId={selectedCollectionId}
+          onBack={handleCollectionDetailBack}
+          onRecipeClick={handleRecipeClickFromCollection}
+          onDelete={handleCollectionDelete}
+        />
       )}
     </>
   )

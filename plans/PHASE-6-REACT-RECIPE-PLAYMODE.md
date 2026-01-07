@@ -19,11 +19,11 @@
 
 ## Tasks
 
-- [ ] 6.1 React: Recipe detail screen with tabs (Ingredients, Instructions, Nutrition, Tips)
-- [ ] 6.2 React: Serving adjustment UI (AI-powered, hidden without API key)
-- [ ] 6.3 React: Play mode with smart timers
-- [ ] 6.4 React: Favorites screen
-- [ ] 6.5 React: Collections screens (list, detail, create)
+- [x] 6.1 React: Recipe detail screen with tabs (Ingredients, Instructions, Nutrition, Tips)
+- [x] 6.2 React: Serving adjustment UI (AI-powered, hidden without API key)
+- [x] 6.3 React: Play mode with smart timers
+- [x] 6.4 React: Favorites screen
+- [x] 6.5 React: Collections screens (list, detail, create)
 - [ ] 6.6 Write tests for timer logic and collections API
 
 ---
