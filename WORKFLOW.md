@@ -14,6 +14,7 @@
 5. [Testing Workflow](#5-testing-workflow)
 6. [Troubleshooting](#6-troubleshooting)
 7. [Best Practices](#7-best-practices)
+8. [QA Workflow](#8-qa-workflow)
 
 ---
 
@@ -66,7 +67,8 @@ plans/
 ├── PHASE-7-LEGACY-RECIPE-PLAYMODE.md   # Legacy: detail, play mode, collections
 ├── PHASE-8A-AI-INFRASTRUCTURE.md   # OpenRouter service, prompts, settings UI
 ├── PHASE-8B-AI-FEATURES.md         # All 10 AI feature integrations
-└── PHASE-9-POLISH.md               # Settings, testing, polish
+├── PHASE-9-POLISH.md               # Settings, testing, polish
+└── QA-TESTING.md                   # Manual testing issues and fixes
 ```
 
 ### Reference Documents (As Needed)
@@ -380,6 +382,48 @@ If Claude is adding features not in the plan:
 - **Don't mix unrelated work** - Use separate sessions
 - **Don't ignore failing tests** - Fix before proceeding
 - **Don't add features not in plan** - Avoid scope creep
+
+---
+
+## 8. QA Workflow
+
+### When Manual Testing is Needed
+
+After completing frontend phases (5, 6, 7), you'll need manual testing on target devices. QA sessions follow the same pattern as implementation sessions but add a **research phase** before fixing.
+
+### QA Document
+
+QA issues are tracked in `plans/QA-TESTING.md`:
+- **Issue Log** - Central tracking table (ID, summary, status, session)
+- **Session Scope** - Groups related issues into focused sessions
+- **Session Plans** - Research findings + tasks + verification for each issue
+
+### Running QA Sessions
+
+**Research phase** (understand before fixing):
+```bash
+/clear
+"Read plans/QA-TESTING.md and research QA-B. Investigate how the existing codebase handles this. Check the Modern frontend pattern and Figma design intent."
+```
+
+**Fix phase** (implement the solution):
+```bash
+/clear
+"Read plans/QA-TESTING.md and implement QA-B. Follow the tasks defined in the session plan."
+```
+
+### QA Workflow Cycle
+
+1. **Test & Log** - Manual test on device, record issues with ID/summary/screenshots
+2. **Research** - Investigate existing code patterns before defining fixes
+3. **Fix** - Implement in focused session using `/clear`
+4. **Verify** - Test fix on target device before marking complete
+
+### Why Research Matters
+
+Without researching existing patterns first, fixes may technically work but violate codebase architecture (e.g., adding a bottom nav when the app uses a header bar). The research phase ensures fixes fit the established patterns.
+
+---
 
 ### Example Session Flow
 

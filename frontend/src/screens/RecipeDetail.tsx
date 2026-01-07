@@ -352,7 +352,7 @@ function IngredientsTab({ recipe }: { recipe: RecipeDetailType }) {
                   key={index}
                   className="flex items-start gap-3 text-foreground"
                 >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
                     {index + 1}
                   </span>
                   <span>{ingredient}</span>
@@ -369,7 +369,7 @@ function IngredientsTab({ recipe }: { recipe: RecipeDetailType }) {
     <ol className="space-y-2">
       {recipe.ingredients.map((ingredient, index) => (
         <li key={index} className="flex items-start gap-3 text-foreground">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
             {index + 1}
           </span>
           <span>{ingredient}</span>

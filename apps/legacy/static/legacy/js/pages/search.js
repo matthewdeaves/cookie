@@ -338,13 +338,13 @@ Cookie.pages.search = (function() {
                 return;
             }
 
-            // Success - show toast and redirect to recipe
+            // Success - show toast and redirect to recipe detail
             Cookie.toast.success('Recipe imported!');
 
-            // Redirect to recipe detail (will be implemented in Phase 7)
-            // For now, redirect to home
+            // Redirect to recipe detail page
+            // The detail page will record the view in history
             setTimeout(function() {
-                window.location.href = '/legacy/home/';
+                window.location.href = '/legacy/recipe/' + response.id + '/';
             }, 1000);
         });
     }
