@@ -92,7 +92,8 @@
 - **Cookie 1 reference:** `/home/matt/cookie` (research only, no code copying)
 - **recipe-scrapers:** `/home/matt/recipe-scrapers`
 - **curl_cffi:** `/home/matt/curl_cffi`
-- **Planning doc:** `/home/matt/cookie2/PLANNING.md`
+- **Phase plans:** `/home/matt/cookie2/plans/` (modular, per-phase)
+- **Workflow guide:** `/home/matt/cookie2/WORKFLOW.md`
 
 ## Quick Reference
 
