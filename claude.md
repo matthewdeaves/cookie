@@ -89,7 +89,6 @@
 ## File Locations
 
 - **Figma export:** `/home/matt/cookie/Cookie Recipe App Design/`
-- **Cookie 1 reference:** `/home/matt/cookie1_old` (research only, no code copying)
 - **recipe-scrapers:** `/home/matt/recipe-scrapers`
 - **curl_cffi:** `/home/matt/curl_cffi`
 - **Phase plans:** `/home/matt/cookie/plans/` (10 focused phase files)

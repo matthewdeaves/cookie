@@ -3,7 +3,6 @@
 > **Created:** 2026-01-06
 > **Purpose:** Comprehensive planning document for Cookie 2 - a from-scratch rewrite of the Cookie Recipe App
 > **Figma Source:** `/home/matt/cookie/Cookie Recipe App Design`
-> **Cookie 1 Reference:** `/home/matt/cookie1_old` (for research only - no code to be copied)
 > **Library References:** (for documentation/understanding only - install from PyPI)
 > - recipe-scrapers: `/home/matt/recipe-scrapers` → `pip install recipe-scrapers`
 > - curl_cffi: `/home/matt/curl_cffi` → `pip install curl_cffi`
