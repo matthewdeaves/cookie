@@ -1,0 +1,340 @@
+{% extends 'legacy/base.html' %}
+{% load static legacy_tags %}
+
+{% block title %}{{ recipe.title }} - Cookie{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'legacy/css/recipe-detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="screen" data-page="recipe-detail" data-recipe-id="{{ recipe.id }}">
+    <!-- Hero Image -->
+    <div class="hero">
+        {% if recipe.image %}
+        <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}" class="hero-image">
+        {% elif recipe.image_url %}
+        <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}" class="hero-image">
+        {% else %}
+        <div class="hero-placeholder">
+            <span>No image</span>
+        </div>
+        {% endif %}
+
+        <!-- Gradient overlay -->
+        <div class="hero-gradient"></div>
+
+        <!-- Back button -->
+        <button type="button" id="back-btn" class="hero-back">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m15 18-6-6 6-6"></path>
+            </svg>
+        </button>
+
+        <!-- Title and rating overlay -->
+        <div class="hero-content">
+            <h1 class="hero-title">{{ recipe.title }}</h1>
+            <div class="hero-meta">
+                {% if recipe.rating %}
+                <span class="hero-rating">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    {{ recipe.rating|floatformat:1 }}
+                    {% if recipe.rating_count %}
+                    <span class="hero-rating-count">({{ recipe.rating_count }})</span>
+                    {% endif %}
+                </span>
+                {% endif %}
+                <span class="hero-host">{{ recipe.host }}</span>
+            </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="hero-actions">
+            <button
+                type="button"
+                id="favorite-btn"
+                class="hero-action-btn{% if is_favorite %} active{% endif %}"
+                data-recipe-id="{{ recipe.id }}"
+                title="{% if is_favorite %}Remove from favorites{% else %}Add to favorites{% endif %}"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="{% if is_favorite %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+            </button>
+            <button
+                type="button"
+                id="collection-btn"
+                class="hero-action-btn"
+                title="Add to collection"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5v14M5 12h14"></path>
+                </svg>
+            </button>
+            <button
+                type="button"
+                id="cook-btn"
+                class="cook-btn"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polygon points="10 8 16 12 10 16 10 8"></polygon>
+                </svg>
+                Cook!
+            </button>
+        </div>
+    </div>
+
+    <!-- Recipe Details (collapsible) -->
+    <div class="meta-section">
+        <button type="button" id="meta-toggle" class="meta-toggle">
+            <span class="meta-toggle-text">Recipe Details</span>
+            <svg id="meta-chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m18 15-6-6-6 6"></path>
+            </svg>
+        </button>
+
+        <div id="meta-content" class="meta-content">
+            <div class="meta-items">
+                {% if recipe.prep_time %}
+                <div class="meta-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span class="meta-label">Prep:</span>
+                    <span class="meta-value">{{ recipe.prep_time|format_time }}</span>
+                </div>
+                {% endif %}
+
+                {% if recipe.cook_time %}
+                <div class="meta-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span class="meta-label">Cook:</span>
+                    <span class="meta-value">{{ recipe.cook_time|format_time }}</span>
+                </div>
+                {% endif %}
+
+                {% if recipe.total_time %}
+                <div class="meta-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span class="meta-label">Total:</span>
+                    <span class="meta-value">{{ recipe.total_time|format_time }}</span>
+                </div>
+                {% endif %}
+
+                <!-- Serving Adjustment - only show if AI available and servings present -->
+                {% if ai_available and recipe.servings %}
+                {% include 'legacy/partials/serving_adjuster.html' %}
+                {% elif recipe.servings %}
+                <div class="meta-item">
+                    <span class="meta-label">Servings:</span>
+                    <span class="meta-value">{{ recipe.servings }}</span>
+                </div>
+                {% elif recipe.yields %}
+                <div class="meta-item">
+                    <span class="meta-label">Yields:</span>
+                    <span class="meta-value">{{ recipe.yields }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-section">
+        <div class="tabs">
+            <button type="button" class="tab active" data-tab="ingredients">
+                Ingredients
+            </button>
+            <button type="button" class="tab" data-tab="instructions">
+                Instructions
+            </button>
+            <button type="button" class="tab" data-tab="nutrition">
+                Nutrition
+            </button>
+            <button type="button" class="tab" data-tab="tips">
+                Tips
+            </button>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-contents">
+        <!-- Ingredients Tab -->
+        <div id="tab-ingredients" class="tab-content">
+            {% if has_ingredient_groups %}
+            {% for group in recipe.ingredient_groups %}
+            <div class="ingredient-group">
+                {% if group.purpose %}
+                <h3 class="ingredient-group-title">{{ group.purpose }}</h3>
+                {% endif %}
+                <ol class="ingredient-list">
+                    {% for ingredient in group.ingredients %}
+                    <li class="ingredient-item">
+                        <span class="ingredient-number">{{ forloop.counter }}</span>
+                        <span class="ingredient-text">{{ ingredient }}</span>
+                    </li>
+                    {% endfor %}
+                </ol>
+            </div>
+            {% endfor %}
+            {% else %}
+            <ol class="ingredient-list">
+                {% for ingredient in recipe.ingredients %}
+                <li class="ingredient-item">
+                    <span class="ingredient-number">{{ forloop.counter }}</span>
+                    <span class="ingredient-text">{{ ingredient }}</span>
+                </li>
+                {% empty %}
+                <li class="empty-text">No ingredients listed for this recipe.</li>
+                {% endfor %}
+            </ol>
+            {% endif %}
+        </div>
+
+        <!-- Instructions Tab -->
+        <div id="tab-instructions" class="tab-content hidden">
+            {% if instructions %}
+            <ol class="instruction-list">
+                {% for step in instructions %}
+                <li class="instruction-item">
+                    <span class="instruction-number">{{ forloop.counter }}</span>
+                    <p class="instruction-text">{{ step }}</p>
+                </li>
+                {% endfor %}
+            </ol>
+            {% else %}
+            <p class="empty-text">No instructions available for this recipe.</p>
+            {% endif %}
+        </div>
+
+        <!-- Nutrition Tab -->
+        <div id="tab-nutrition" class="tab-content hidden">
+            {% if recipe.nutrition %}
+            {% if recipe.servings %}
+            <p class="nutrition-note">Per {{ recipe.servings }} serving{{ recipe.servings|pluralize }}</p>
+            {% endif %}
+            <div class="nutrition-grid">
+                {% for key, value in recipe.nutrition.items %}
+                <div class="nutrition-item">
+                    <span class="nutrition-label">{{ key }}</span>
+                    <span class="nutrition-value">{{ value }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="empty-text">No nutrition information available for this recipe.</p>
+            {% endif %}
+        </div>
+
+        <!-- Tips Tab -->
+        <div id="tab-tips" class="tab-content hidden">
+            {% if recipe.ai_tips %}
+            <ol class="tips-list">
+                {% for tip in recipe.ai_tips %}
+                <li class="tip-item">
+                    <span class="tip-number">{{ forloop.counter }}</span>
+                    <p class="tip-text">{{ tip }}</p>
+                </li>
+                {% endfor %}
+            </ol>
+            {% else %}
+            <div class="tips-empty">
+                <div class="tips-empty-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                        <path d="M5 3v4"></path>
+                        <path d="M19 17v4"></path>
+                        <path d="M3 5h4"></path>
+                        <path d="M17 19h4"></path>
+                    </svg>
+                </div>
+                <p class="tips-empty-title">No cooking tips yet</p>
+                {% if ai_available %}
+                <p class="tips-empty-text">Tips will be generated when you start cooking</p>
+                {% else %}
+                <p class="tips-empty-text">Configure an API key in settings to enable AI-generated tips</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Collection Modal -->
+    <div id="collection-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Add to Collection</h2>
+                <button type="button" id="modal-close" class="modal-close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                {% if collections %}
+                <div class="collection-list">
+                    {% for collection in collections %}
+                    <button type="button" class="collection-option" data-collection-id="{{ collection.id }}">
+                        {{ collection.name }}
+                    </button>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="modal-empty">No collections yet</p>
+                {% endif %}
+                <button type="button" id="create-collection-btn" class="btn btn-secondary w-full mt-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14"></path>
+                    </svg>
+                    Create New Collection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Collection Modal -->
+    <div id="create-collection-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Create Collection</h2>
+                <button type="button" id="create-modal-close" class="modal-close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="create-collection-form">
+                    <label for="collection-name" class="input-label">Collection Name</label>
+                    <input
+                        type="text"
+                        id="collection-name"
+                        class="input"
+                        placeholder="e.g., Weeknight Dinners"
+                        required
+                    >
+                    <button type="submit" class="btn btn-primary w-full mt-4">
+                        Create & Add Recipe
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'legacy/js/pages/detail.js' %}"></script>
+{% endblock %}

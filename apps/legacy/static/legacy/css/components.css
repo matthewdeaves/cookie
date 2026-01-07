@@ -384,12 +384,15 @@
 /* Recipe Card */
 .recipe-card {
     position: relative;
+    display: block;
     background-color: var(--card);
     border-radius: 0.5rem;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     -webkit-transition: box-shadow 0.15s ease;
     transition: box-shadow 0.15s ease;
+    text-decoration: none;
+    color: inherit;
 }
 
 .recipe-card:hover {

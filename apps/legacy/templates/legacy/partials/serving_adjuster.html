@@ -1,0 +1,31 @@
+{% comment %}
+Serving adjuster partial for legacy frontend.
+Only rendered when AI is available and recipe has servings.
+Expects: recipe.servings (int)
+{% endcomment %}
+
+<div class="meta-item serving-adjuster" data-original-servings="{{ recipe.servings }}">
+    <span class="meta-label">Servings:</span>
+    <div class="serving-controls">
+        <button
+            type="button"
+            class="serving-btn serving-decrease"
+            aria-label="Decrease servings"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14"></path>
+            </svg>
+        </button>
+        <span class="serving-value">{{ recipe.servings }}</span>
+        <button
+            type="button"
+            class="serving-btn serving-increase"
+            aria-label="Increase servings"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14"></path>
+                <path d="M5 12h14"></path>
+            </svg>
+        </button>
+    </div>
+</div>
