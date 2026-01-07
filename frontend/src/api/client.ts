@@ -1,5 +1,9 @@
 const API_BASE = '/api'
 
+export interface Settings {
+  ai_available: boolean
+}
+
 export interface Profile {
   id: number
   name: string
@@ -25,6 +29,40 @@ export interface Recipe {
   rating: number | null
   is_remix: boolean
   scraped_at: string
+}
+
+export interface IngredientGroup {
+  purpose: string
+  ingredients: string[]
+}
+
+export interface RecipeDetail extends Recipe {
+  source_url: string | null
+  canonical_url: string
+  site_name: string
+  author: string
+  description: string
+  ingredients: string[]
+  ingredient_groups: IngredientGroup[]
+  instructions: string[]
+  instructions_text: string
+  prep_time: number | null
+  cook_time: number | null
+  yields: string
+  servings: number | null
+  category: string
+  cuisine: string
+  cooking_method: string
+  keywords: string[]
+  dietary_restrictions: string[]
+  equipment: string[]
+  nutrition: Record<string, string>
+  rating_count: number | null
+  language: string
+  links: string[]
+  ai_tips: string[]
+  remix_profile_id: number | null
+  updated_at: string
 }
 
 export interface Favorite {
@@ -83,6 +121,10 @@ async function request<T>(
 }
 
 export const api = {
+  settings: {
+    get: () => request<Settings>('/settings/'),
+  },
+
   profiles: {
     list: () => request<Profile[]>('/profiles/'),
 
@@ -143,6 +185,8 @@ export const api = {
   },
 
   recipes: {
+    get: (id: number) => request<RecipeDetail>(`/recipes/${id}/`),
+
     search: (query: string, sources?: string, page: number = 1) => {
       const params = new URLSearchParams({ q: query, page: String(page) })
       if (sources) params.append('sources', sources)
@@ -150,7 +194,7 @@ export const api = {
     },
 
     scrape: (url: string) =>
-      request<Recipe>('/recipes/scrape/', {
+      request<RecipeDetail>('/recipes/scrape/', {
         method: 'POST',
         body: JSON.stringify({ url }),
       }),

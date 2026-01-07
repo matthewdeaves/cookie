@@ -17,6 +17,7 @@ interface HomeProps {
   onThemeToggle: () => void
   onLogout: () => void
   onSearch: (query: string) => void
+  onRecipeClick: (recipeId: number) => void
 }
 
 type Tab = 'favorites' | 'discover'
@@ -27,6 +28,7 @@ export default function Home({
   onThemeToggle,
   onLogout,
   onSearch,
+  onRecipeClick,
 }: HomeProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<Tab>('favorites')
@@ -180,6 +182,7 @@ export default function Home({
                         key={item.recipe.id}
                         recipe={item.recipe}
                         isFavorite={favoriteRecipeIds.has(item.recipe.id)}
+                        onClick={() => onRecipeClick(item.recipe.id)}
                       />
                     ))}
                   </div>
@@ -199,6 +202,7 @@ export default function Home({
                         recipe={favorite.recipe}
                         isFavorite
                         onFavoriteToggle={handleRemoveFavorite}
+                        onClick={() => onRecipeClick(favorite.recipe.id)}
                       />
                     ))}
                   </div>
