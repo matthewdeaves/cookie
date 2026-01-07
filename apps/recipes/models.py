@@ -107,3 +107,92 @@ class SearchSource(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class RecipeFavorite(models.Model):
+    """User's favorite recipes, scoped to profile."""
+
+    profile = models.ForeignKey(
+        'profiles.Profile',
+        on_delete=models.CASCADE,
+        related_name='favorites',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='favorited_by',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['profile', 'recipe']
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.profile.name} - {self.recipe.title}"
+
+
+class RecipeCollection(models.Model):
+    """User-created collection of recipes, scoped to profile."""
+
+    profile = models.ForeignKey(
+        'profiles.Profile',
+        on_delete=models.CASCADE,
+        related_name='collections',
+    )
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['profile', 'name']
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"{self.profile.name} - {self.name}"
+
+
+class RecipeCollectionItem(models.Model):
+    """A recipe within a collection."""
+
+    collection = models.ForeignKey(
+        RecipeCollection,
+        on_delete=models.CASCADE,
+        related_name='items',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+    )
+    order = models.PositiveIntegerField(default=0)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['collection', 'recipe']
+        ordering = ['order', '-added_at']
+
+    def __str__(self):
+        return f"{self.collection.name} - {self.recipe.title}"
+
+
+class RecipeViewHistory(models.Model):
+    """Tracks recently viewed recipes, scoped to profile."""
+
+    profile = models.ForeignKey(
+        'profiles.Profile',
+        on_delete=models.CASCADE,
+        related_name='view_history',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+    )
+    viewed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['profile', 'recipe']
+        ordering = ['-viewed_at']
+
+    def __str__(self):
+        return f"{self.profile.name} viewed {self.recipe.title}"

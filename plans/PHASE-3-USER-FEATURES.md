@@ -17,9 +17,9 @@
 
 ## Tasks
 
-- [ ] 3.1 RecipeFavorite model and API
-- [ ] 3.2 RecipeCollection model and API
-- [ ] 3.3 RecipeViewHistory model and API
+- [x] 3.1 RecipeFavorite model and API
+- [x] 3.2 RecipeCollection model and API
+- [x] 3.3 RecipeViewHistory model and API
 - [ ] 3.4 Profile-based data isolation
 - [ ] 3.5 Figma theme sync tooling (`bin/figma-sync-theme`)
 - [ ] 3.6 Write pytest tests for favorites, collections, and profile isolation
