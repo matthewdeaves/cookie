@@ -136,7 +136,7 @@ Build the Figma theme sync tool now so it's ready before frontend development.
 ### Directory Structure
 
 ```
-cookie2/
+cookie/
 ├── bin/
 │   └── figma-sync-theme    # Sync theme.css to both frontends
 └── tooling/

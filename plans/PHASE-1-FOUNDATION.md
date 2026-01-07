@@ -86,8 +86,8 @@ POST   /api/profiles/{id}/select/  # Set as current profile (session)
 ## Directory Structure
 
 ```
-cookie2/
-├── cookie2/                    # Django project config
+cookie/
+├── cookie/                     # Django project config
 │   ├── settings.py             # Single settings file
 │   ├── urls.py
 │   └── wsgi.py

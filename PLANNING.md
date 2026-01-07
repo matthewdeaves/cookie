@@ -2,8 +2,8 @@
 
 > **Created:** 2026-01-06
 > **Purpose:** Comprehensive planning document for Cookie 2 - a from-scratch rewrite of the Cookie Recipe App
-> **Figma Source:** `/home/matt/cookie2/Cookie Recipe App Design`
-> **Cookie 1 Reference:** `/home/matt/cookie` (for research only - no code to be copied)
+> **Figma Source:** `/home/matt/cookie/Cookie Recipe App Design`
+> **Cookie 1 Reference:** `/home/matt/cookie1_old` (for research only - no code to be copied)
 > **Library References:** (for documentation/understanding only - install from PyPI)
 > - recipe-scrapers: `/home/matt/recipe-scrapers` → `pip install recipe-scrapers`
 > - curl_cffi: `/home/matt/curl_cffi` → `pip install curl_cffi`
@@ -779,8 +779,8 @@ POST   /api/sources/{host}/suggest-selector/  # AI suggests CSS selector for bro
 ### Directory Structure (Single Environment)
 
 ```
-cookie2/
-├── cookie2/                        # Django project config
+cookie/
+├── cookie/                         # Django project config
 │   ├── settings.py                 # Single settings file (no dev/prod split)
 │   ├── urls.py
 │   └── wsgi.py
@@ -1681,7 +1681,7 @@ def extract_time_from_step(step_text: str) -> Optional[int]:
 
 ### CRITICAL: Figma is the Source of Truth
 
-The Figma export in `/home/matt/cookie2/Cookie Recipe App Design/` defines the design. When updated:
+The Figma export in `/home/matt/cookie/Cookie Recipe App Design/` defines the design. When updated:
 
 1. **Fresh exports replace the entire directory** - Don't merge, replace completely
 2. **Design changes are authoritative** - If Figma says it, the app does it
@@ -1694,7 +1694,7 @@ The Figma export in `/home/matt/cookie2/Cookie Recipe App Design/` defines the d
         │
         ▼
 2. Export via Figma Make (replaces entire directory):
-   /home/matt/cookie2/Cookie Recipe App Design/
+   /home/matt/cookie/Cookie Recipe App Design/
         │
         ▼
 3. Tell Claude Code to update Cookie 2
@@ -1804,7 +1804,7 @@ Tools to make AI feature development, testing, and debugging easier.
 ### Directory Structure
 
 ```
-cookie2/
+cookie/
 ├── bin/
 │   ├── ai-prompt-test      # Test prompts in isolation
 │   ├── ai-context-preview  # Preview context sent to AI

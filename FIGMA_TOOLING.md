@@ -2,7 +2,7 @@
 
 > **Created:** 2026-01-07
 > **Purpose:** Deterministic tooling for syncing Figma exports to Cookie 2 codebase
-> **Figma Export Location:** `/home/matt/cookie2/Cookie Recipe App Design/`
+> **Figma Export Location:** `/home/matt/cookie/Cookie Recipe App Design/`
 > **When to Build:** Theme sync in Phase 3 (before frontends); diff/validate in Phase 5+ (after frontends exist)
 
 ---
@@ -50,7 +50,7 @@ Build deterministic tooling that:
 ### Directory Structure
 
 ```
-cookie2/
+cookie/
 ├── bin/
 │   ├── figma-diff          # Compare Figma export to current code
 │   ├── figma-sync-theme    # Sync theme.css to both frontends
@@ -432,7 +432,7 @@ Compares the current Figma export to the previous export (or to current implemen
 ```json
 {
   "generated_at": "2026-01-07T14:30:00Z",
-  "figma_export_path": "/home/matt/cookie2/Cookie Recipe App Design",
+  "figma_export_path": "/home/matt/cookie/Cookie Recipe App Design",
   "comparison_base": "previous_export",
 
   "summary": {
