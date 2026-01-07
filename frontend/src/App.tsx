@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react'
-import { Toaster } from 'sonner'
+import { Toaster, toast } from 'sonner'
 import ProfileSelector from './screens/ProfileSelector'
 import Home from './screens/Home'
+import Search from './screens/Search'
 import { api, type Profile } from './api/client'
 
-type Screen = 'profile-selector' | 'home'
+type Screen = 'profile-selector' | 'home' | 'search'
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('profile-selector')
   const [currentProfile, setCurrentProfile] = useState<Profile | null>(null)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [searchQuery, setSearchQuery] = useState('')
 
   // Apply theme class to document
   useEffect(() => {
@@ -61,8 +63,26 @@ function App() {
   }
 
   const handleSearch = (query: string) => {
-    // Search screen will be implemented in Session C
-    console.log('Search:', query)
+    setSearchQuery(query)
+    setCurrentScreen('search')
+  }
+
+  const handleSearchBack = () => {
+    setCurrentScreen('home')
+    setSearchQuery('')
+  }
+
+  const handleImport = async (url: string) => {
+    try {
+      const recipe = await api.recipes.scrape(url)
+      toast.success(`Imported: ${recipe.title}`)
+      setCurrentScreen('home')
+      setSearchQuery('')
+    } catch (error) {
+      console.error('Failed to import recipe:', error)
+      toast.error('Failed to import recipe. Please check the URL.')
+      throw error
+    }
   }
 
   return (
@@ -78,6 +98,13 @@ function App() {
           onThemeToggle={handleThemeToggle}
           onLogout={handleLogout}
           onSearch={handleSearch}
+        />
+      )}
+      {currentScreen === 'search' && (
+        <Search
+          query={searchQuery}
+          onBack={handleSearchBack}
+          onImport={handleImport}
         />
       )}
     </>

@@ -25,8 +25,8 @@
 - [x] 4.5 React: Favorites/Discover toggle
 - [x] 4.6 React: Basic recipe card component
 - [x] 4.7 React: Dark/light theme toggle
-- [ ] 4.8 React: Search results with source filters and pagination
-- [ ] 4.9 Write tests for profile and search API integration
+- [x] 4.8 React: Search results with source filters and pagination
+- [x] 4.9 Write tests for profile and search API integration
 
 ---
 
