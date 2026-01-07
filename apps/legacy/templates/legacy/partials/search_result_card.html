@@ -1,0 +1,33 @@
+{% comment %}
+Search result card partial for legacy frontend.
+Expects: result (dict with url, title, host, image_url, description)
+{% endcomment %}
+
+<div class="search-result-card" data-url="{{ result.url }}">
+    <!-- Image -->
+    <div class="search-result-image">
+        {% if result.image_url %}
+        <img src="{{ result.image_url }}" alt="{{ result.title }}" loading="lazy">
+        {% else %}
+        <div class="search-result-no-image">
+            <span>No image</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Content -->
+    <div class="search-result-content">
+        <h3 class="search-result-title">{{ result.title }}</h3>
+        <p class="search-result-host">{{ result.host }}</p>
+        {% if result.description %}
+        <p class="search-result-description">{{ result.description }}</p>
+        {% endif %}
+        <button
+            type="button"
+            class="search-result-import btn-import"
+            data-url="{{ result.url }}"
+        >
+            Import
+        </button>
+    </div>
+</div>

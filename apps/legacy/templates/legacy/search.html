@@ -19,16 +19,80 @@
 
     <div class="container container-wide p-4">
         <!-- Search query display -->
-        <p style="color: var(--muted-foreground); margin-bottom: 1rem;">
-            Results for: <strong style="color: var(--foreground);">{{ query }}</strong>
-        </p>
+        <div class="search-header mb-4">
+            <h1 class="search-title" id="search-title">
+                {% if is_url %}
+                Import Recipe
+                {% else %}
+                Search: "{{ query }}"
+                {% endif %}
+            </h1>
+            <p class="search-count" id="search-count"></p>
+        </div>
 
-        <!-- Content placeholder - will be expanded in Session C -->
-        <div class="text-center" style="padding: 3rem 0; color: var(--muted-foreground);">
-            <p>Search results coming in Session C</p>
+        <!-- URL Import Card (shown when query is a URL) -->
+        {% if is_url %}
+        <div class="url-import-card" id="url-import-card">
+            <div class="url-import-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+            </div>
+            <div class="url-import-content">
+                <h2 class="url-import-title">Import Recipe from URL</h2>
+                <p class="url-import-url">{{ query }}</p>
+                <button type="button" id="import-url-btn" class="btn btn-primary" data-url="{{ query }}">
+                    Import Recipe
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Source filter chips (populated via JS) -->
+        {% if not is_url %}
+        <div class="source-filters mb-4" id="source-filters"></div>
+        {% endif %}
+
+        <!-- Loading indicator -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <span>Searching...</span>
+        </div>
+
+        <!-- Results grid -->
+        <div id="results-grid" class="results-grid hidden"></div>
+
+        <!-- Empty state -->
+        <div id="empty-state" class="empty-state hidden">
+            <div class="empty-state-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </div>
+            <h3 class="empty-state-title">No recipes found</h3>
+            <p class="empty-state-text">Try a different search term</p>
+        </div>
+
+        <!-- Load more / End of results -->
+        <div id="pagination" class="pagination hidden">
+            <button type="button" id="load-more-btn" class="btn btn-secondary">
+                Load More
+            </button>
+        </div>
+
+        <div id="end-of-results" class="end-of-results hidden">
+            <p>End of results</p>
         </div>
     </div>
 </div>
+
+<!-- Store query for JS -->
+<script>
+    window.searchQuery = "{{ query|escapejs }}";
+    window.isUrlSearch = {{ is_url|yesno:"true,false" }};
+</script>
 {% endblock %}
 
 {% block extra_js %}

@@ -66,6 +66,9 @@ def search(request):
         return redirect('legacy:profile_selector')
 
     query = request.GET.get('q', '')
+    # Detect if query is a URL
+    is_url = query.strip().startswith('http://') or query.strip().startswith('https://')
+
     return render(request, 'legacy/search.html', {
         'profile': {
             'id': profile.id,
@@ -73,4 +76,5 @@ def search(request):
             'avatar_color': profile.avatar_color,
         },
         'query': query,
+        'is_url': is_url,
     })

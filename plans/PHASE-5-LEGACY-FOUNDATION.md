@@ -18,15 +18,15 @@
 
 ## Tasks
 
-- [ ] 5.1 Legacy: Base template and CSS (light theme only)
-- [ ] 5.2 Legacy: ES5 JavaScript modules (ajax, state, router)
-- [ ] 5.3 Legacy: Profile selector screen
-- [ ] 5.4 Legacy: Home screen with search bar
-- [ ] 5.5 Legacy: Favorites/Discover toggle
-- [ ] 5.6 Legacy: Recipe card partial
-- [ ] 5.7 Legacy: Search results with source filters
-- [ ] 5.8 Write tests for Legacy Django views and template rendering
-- [ ] 5.9 Manual testing on iOS 9 simulator/device
+- [x] 5.1 Legacy: Base template and CSS (light theme only)
+- [x] 5.2 Legacy: ES5 JavaScript modules (ajax, state, router)
+- [x] 5.3 Legacy: Profile selector screen
+- [x] 5.4 Legacy: Home screen with search bar
+- [x] 5.5 Legacy: Favorites/Discover toggle
+- [x] 5.6 Legacy: Recipe card partial
+- [x] 5.7 Legacy: Search results with source filters
+- [x] 5.8 Write tests for Legacy Django views and template rendering
+- [x] 5.9 Manual testing on iOS 9 simulator/device
 
 ---
 
@@ -217,14 +217,14 @@ if (!Element.prototype.matches) {
 ## Checkpoint (End of Phase)
 
 ```
-[ ] http://localhost/legacy/ - Profile selector loads
-[ ] Create/select profile - works same as React
-[ ] Home screen - renders correctly (light theme)
-[ ] Search - returns results with source filters
-[ ] Recipe cards - display images and metadata
-[ ] iOS 9 simulator - no JavaScript errors in console
-[ ] Touch targets - all buttons at least 44px
-[ ] pytest - Django view tests pass
+[x] http://localhost/legacy/ - Profile selector loads
+[x] Create/select profile - works same as React
+[x] Home screen - renders correctly (light theme)
+[x] Search - returns results with source filters
+[x] Recipe cards - display images and metadata
+[x] iOS 9 simulator - no JavaScript errors in console
+[x] Touch targets - all buttons at least 44px
+[x] pytest - Django view tests pass (157 tests)
 ```
 
 ---
