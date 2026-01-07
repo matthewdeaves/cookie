@@ -156,6 +156,22 @@ From Figma:
 
 ---
 
+## Checkpoint (End of Phase)
+
+```
+[ ] http://localhost/ - Profile selector loads
+[ ] Create new profile - appears in selector
+[ ] Select profile - redirects to home screen
+[ ] Home screen - search bar and Favorites/Discover toggle visible
+[ ] Search "cookies" - results display as recipe cards
+[ ] Source filter chips - clicking filters results
+[ ] Dark/light toggle - theme changes immediately
+[ ] Refresh page - theme preference persisted
+[ ] npm test - all React tests pass
+```
+
+---
+
 ## Testing Notes
 
 ```python

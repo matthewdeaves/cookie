@@ -323,6 +323,23 @@ document.addEventListener('touchstart', function() {}, { passive: true });
 
 ---
 
+## Checkpoint (End of Phase)
+
+```
+[ ] Recipe detail - all tabs render on iOS 9
+[ ] Serving adjuster - shows/hides correctly
+[ ] Play mode - step navigation works
+[ ] CRITICAL: Timer countdown works on iOS 9
+[ ] CRITICAL: Multiple timers run simultaneously on iOS 9
+[ ] Timer completion - alert/notification appears
+[ ] Time detection - suggestions appear for timed steps
+[ ] Favorites - add/remove works
+[ ] Collections - CRUD works
+[ ] iOS 9 Safari console - no JavaScript errors
+```
+
+---
+
 ## Testing Checklist
 
 ### Manual Testing on iOS 9

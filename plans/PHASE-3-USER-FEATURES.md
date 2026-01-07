@@ -185,6 +185,21 @@ Key mappings:
 
 ---
 
+## Checkpoint (End of Phase)
+
+```
+[ ] POST /api/favorites/ - adds recipe to current profile's favorites
+[ ] GET /api/favorites/ - returns only current profile's favorites
+[ ] Collection CRUD - create, list, update, delete all work
+[ ] Add recipe to collection - appears in collection detail
+[ ] GET /api/history/ - returns up to 6 recent recipes
+[ ] Switch profiles - favorites/collections change accordingly
+[ ] ./bin/figma-sync-theme --dry-run - shows expected changes
+[ ] pytest - all isolation tests pass
+```
+
+---
+
 ## Testing Notes
 
 ```python

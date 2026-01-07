@@ -401,6 +401,25 @@ const showAIFeatures = settings.ai_available;
 
 ---
 
+## Checkpoint (End of Phase)
+
+```
+[ ] Remix button - shows 6 AI suggestions + custom input
+[ ] Create remix - new Recipe with is_remix=True, host="user-generated"
+[ ] Remix visibility - only visible to creating profile
+[ ] Serving adjustment - scales ingredients via AI
+[ ] Tips tab - shows 3-5 AI-generated tips
+[ ] Discover feed - shows suggestions from favorites/seasonal/new types
+[ ] New user discover - only seasonal suggestions (no favorites)
+[ ] Search ranking - results reordered by AI relevance
+[ ] Timer naming - generates label like "Bake until golden"
+[ ] Selector repair - suggests new selector for broken source
+[ ] Remove API key - ALL AI features hidden (no buttons visible)
+[ ] pytest - all AI feature tests pass
+```
+
+---
+
 ## Testing Notes
 
 ```python

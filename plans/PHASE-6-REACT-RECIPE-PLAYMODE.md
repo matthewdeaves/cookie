@@ -227,6 +227,25 @@ frontend/src/
 
 ---
 
+## Checkpoint (End of Phase)
+
+```
+[ ] Recipe detail - all 4 tabs display (Ingredients, Instructions, Nutrition, Tips)
+[ ] Serving adjuster - visible with API key + servings, hidden otherwise
+[ ] Unit toggle - switches metric/imperial, persists on refresh
+[ ] Play mode - step navigation works (prev/next)
+[ ] Add +5min timer - countdown starts
+[ ] Run 2+ timers simultaneously - all decrement correctly
+[ ] Timer completes - notification + sound triggered
+[ ] Step with "bake 15 minutes" - timer suggestion appears
+[ ] Favorites screen - shows favorited recipes
+[ ] Create collection - appears in collections list
+[ ] Add recipe to collection from detail page - works
+[ ] npm test - timer and collections tests pass
+```
+
+---
+
 ## Testing Notes
 
 ```typescript

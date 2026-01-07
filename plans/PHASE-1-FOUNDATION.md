@@ -116,6 +116,20 @@ cookie2/
 
 ---
 
+## Checkpoint (End of Phase)
+
+```
+[ ] docker compose up - stack starts without errors
+[ ] curl http://localhost/api/profiles/ - returns empty list or profiles
+[ ] Create profile via POST - returns 201
+[ ] Get/Update/Delete profile - all return expected status codes
+[ ] Device detection test - iOS 9 user agent routes to legacy
+[ ] pytest - all tests pass
+[ ] Code change triggers hot reload
+```
+
+---
+
 ## Notes
 
 - Single environment (no dev/prod split)

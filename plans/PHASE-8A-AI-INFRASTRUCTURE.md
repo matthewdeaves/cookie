@@ -314,6 +314,23 @@ def seed_prompts(apps, schema_editor):
 
 ---
 
+## Checkpoint (End of Phase)
+
+```
+[ ] GET /api/settings/prompts/ - returns all 10 prompts
+[ ] AIPrompt.objects.count() == 10 in Django shell
+[ ] POST /api/settings/test-api-key/ with valid key - returns success
+[ ] POST /api/settings/test-api-key/ with invalid key - returns error
+[ ] GET /api/settings/ai-status/ without key - returns available: false
+[ ] React Settings > AI Prompts - shows all 10 prompts
+[ ] Edit prompt in React - saves and persists
+[ ] Legacy Settings > AI Prompts - same functionality works
+[ ] Schema validation test - malformed response raises error
+[ ] pytest - OpenRouter and validation tests pass
+```
+
+---
+
 ## Testing Notes
 
 ```python

@@ -335,6 +335,24 @@ def test_rate_limiting()
 
 ---
 
+## Checkpoint (End of Phase)
+
+```
+[ ] Settings General tab - profile management, API key, about section
+[ ] Settings AI Prompts tab - all 10 prompts editable
+[ ] Settings Sources tab - enable/disable 15 sources
+[ ] Settings Selectors tab - edit and test CSS selectors
+[ ] API error - toast notification with clear message
+[ ] Loading state - skeleton/spinner shown during fetch
+[ ] Toast on success - "Recipe saved" etc. appears
+[ ] pytest - ALL tests pass (unit + integration)
+[ ] Chrome/Firefox/Safari/Edge - React interface works
+[ ] iOS 9 iPad - Legacy interface fully functional
+[ ] Browser console - no errors in production
+```
+
+---
+
 ## Final Checklist
 
 - [ ] All phases complete

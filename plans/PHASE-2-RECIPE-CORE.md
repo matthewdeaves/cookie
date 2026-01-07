@@ -255,6 +255,20 @@ class RecipeSearch:
 
 ---
 
+## Checkpoint (End of Phase)
+
+```
+[ ] POST /api/recipes/scrape/ with allrecipes.com URL - recipe created
+[ ] Recipe image saved to local storage (check media folder)
+[ ] Recipe has title, ingredients, instructions populated
+[ ] GET /api/recipes/search/?q=cookies - returns results from multiple sites
+[ ] Search with source filter - returns only from specified source
+[ ] Scrape same URL twice - two different recipe records exist
+[ ] pytest - all scraper and search tests pass
+```
+
+---
+
 ## Testing Notes
 
 Use pytest with Django test client:

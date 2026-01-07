@@ -12,7 +12,7 @@
 |---------|-------|-------|
 | A | 5.1-5.3 | Legacy setup + profile selector |
 | B | 5.4-5.6 | Home screen + recipe cards |
-| C | 5.7-5.8 | Search + iOS 9 testing |
+| C | 5.7-5.9 | Search + tests + iOS 9 testing |
 
 ---
 
@@ -25,7 +25,8 @@
 - [ ] 5.5 Legacy: Favorites/Discover toggle
 - [ ] 5.6 Legacy: Recipe card partial
 - [ ] 5.7 Legacy: Search results with source filters
-- [ ] 5.8 Manual testing on iOS 9 simulator/device
+- [ ] 5.8 Write tests for Legacy Django views and template rendering
+- [ ] 5.9 Manual testing on iOS 9 simulator/device
 
 ---
 
@@ -213,7 +214,50 @@ if (!Element.prototype.matches) {
 
 ---
 
+## Checkpoint (End of Phase)
+
+```
+[ ] http://localhost/legacy/ - Profile selector loads
+[ ] Create/select profile - works same as React
+[ ] Home screen - renders correctly (light theme)
+[ ] Search - returns results with source filters
+[ ] Recipe cards - display images and metadata
+[ ] iOS 9 simulator - no JavaScript errors in console
+[ ] Touch targets - all buttons at least 44px
+[ ] pytest - Django view tests pass
+```
+
+---
+
 ## Testing Notes
+
+### Automated Tests
+
+```python
+def test_legacy_profile_selector_renders():
+    response = client.get('/legacy/')
+    assert response.status_code == 200
+    assert 'Who\'s cooking today?' in response.content.decode()
+
+def test_legacy_home_renders_with_profile():
+    client.post('/api/profiles/1/select/')
+    response = client.get('/legacy/home/')
+    assert response.status_code == 200
+    assert 'Search recipes' in response.content.decode()
+
+def test_legacy_search_renders_results():
+    response = client.get('/legacy/search/?q=cookies')
+    assert response.status_code == 200
+    # Verify template includes recipe cards partial
+    assert 'recipe-card' in response.content.decode()
+
+def test_legacy_redirects_without_profile():
+    # Clear session
+    response = client.get('/legacy/home/')
+    assert response.status_code == 302  # Redirect to profile selector
+```
+
+### Manual Testing
 
 Test on:
 - iOS 9 iPad (simulator or real device)
