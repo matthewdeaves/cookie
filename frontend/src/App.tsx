@@ -4,9 +4,10 @@ import ProfileSelector from './screens/ProfileSelector'
 import Home from './screens/Home'
 import Search from './screens/Search'
 import RecipeDetail from './screens/RecipeDetail'
+import PlayMode from './screens/PlayMode'
 import { api, type Profile, type RecipeDetail as RecipeDetailType } from './api/client'
 
-type Screen = 'profile-selector' | 'home' | 'search' | 'recipe-detail'
+type Screen = 'profile-selector' | 'home' | 'search' | 'recipe-detail' | 'play-mode'
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('profile-selector')
@@ -14,6 +15,7 @@ function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedRecipeId, setSelectedRecipeId] = useState<number | null>(null)
+  const [playModeRecipe, setPlayModeRecipe] = useState<RecipeDetailType | null>(null)
   const [favoriteRecipeIds, setFavoriteRecipeIds] = useState<Set<number>>(new Set())
 
   // Apply theme class to document
@@ -148,9 +150,14 @@ function App() {
     }
   }
 
-  const handleStartCooking = (_recipe: RecipeDetailType) => {
-    // TODO: Navigate to play mode in Phase 6 Session B
-    toast.info('Play mode coming in Phase 6 Session B')
+  const handleStartCooking = (recipe: RecipeDetailType) => {
+    setPlayModeRecipe(recipe)
+    setCurrentScreen('play-mode')
+  }
+
+  const handleExitPlayMode = () => {
+    setPlayModeRecipe(null)
+    setCurrentScreen('recipe-detail')
   }
 
   return (
@@ -184,6 +191,9 @@ function App() {
           onFavoriteToggle={handleFavoriteToggle}
           onStartCooking={handleStartCooking}
         />
+      )}
+      {currentScreen === 'play-mode' && playModeRecipe && (
+        <PlayMode recipe={playModeRecipe} onExit={handleExitPlayMode} />
       )}
     </>
   )
