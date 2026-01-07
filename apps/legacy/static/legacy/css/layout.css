@@ -185,6 +185,19 @@
     height: 1.5rem;
 }
 
+.header-right {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+}
+
+/* Text muted */
+.text-muted {
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+}
+
 /* Profile grid */
 .profile-grid {
     display: -webkit-flex;

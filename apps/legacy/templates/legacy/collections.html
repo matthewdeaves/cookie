@@ -1,0 +1,123 @@
+{% extends 'legacy/base.html' %}
+{% load static legacy_tags %}
+
+{% block title %}Collections - Cookie{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'legacy/css/collections.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="screen" data-page="collections">
+    <!-- Header with back button -->
+    <header class="header">
+        <a href="{% url 'legacy:home' %}" class="header-back">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </a>
+        <span class="header-title">Collections</span>
+        <div class="header-right">
+            <button type="button" id="create-collection-btn" class="btn btn-ghost">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <div class="container container-wide p-4">
+        {% if collections %}
+        <!-- Collections list -->
+        <div class="collection-list">
+            {% for collection in collections %}
+            <a href="{% url 'legacy:collection_detail' collection.id %}" class="collection-card" data-collection-id="{{ collection.id }}">
+                <!-- Cover image (first recipe image or placeholder) -->
+                <div class="collection-card-image">
+                    {% with first_item=collection.items.first %}
+                    {% if first_item and first_item.recipe.image %}
+                    <img src="{{ first_item.recipe.image.url }}" alt="{{ collection.name }}" loading="lazy">
+                    {% elif first_item and first_item.recipe.image_url %}
+                    <img src="{{ first_item.recipe.image_url }}" alt="{{ collection.name }}" loading="lazy">
+                    {% else %}
+                    <div class="collection-card-placeholder">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="collection-card-content">
+                    <h3 class="collection-card-title">{{ collection.name }}</h3>
+                    <p class="collection-card-count">{{ collection.items.count }} recipe{{ collection.items.count|pluralize }}</p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty state -->
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+            </div>
+            <h3 class="empty-state-title">No collections yet</h3>
+            <p class="empty-state-text">Create collections to organize your favorite recipes</p>
+            <button type="button" id="create-first-btn" class="btn btn-primary">Create Collection</button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Create collection modal -->
+    <div id="create-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Create Collection</h2>
+                <button type="button" class="modal-close" aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form id="create-form" class="modal-body">
+                <div class="form-group">
+                    <label for="collection-name" class="form-label">Name</label>
+                    <input
+                        type="text"
+                        id="collection-name"
+                        name="name"
+                        class="input"
+                        placeholder="e.g., Weeknight Dinners"
+                        required
+                        maxlength="100"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="collection-desc" class="form-label">Description (optional)</label>
+                    <textarea
+                        id="collection-desc"
+                        name="description"
+                        class="input textarea"
+                        placeholder="What's this collection for?"
+                        rows="3"
+                    ></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="create-submit">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'legacy/js/pages/collections.js' %}"></script>
+{% endblock %}

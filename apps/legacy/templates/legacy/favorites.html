@@ -1,0 +1,55 @@
+{% extends 'legacy/base.html' %}
+{% load static legacy_tags %}
+
+{% block title %}Favorites - Cookie{% endblock %}
+
+{% block content %}
+<div class="screen" data-page="favorites">
+    <!-- Header with back button -->
+    <header class="header">
+        <a href="{% url 'legacy:home' %}" class="header-back">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </a>
+        <span class="header-title">Favorites</span>
+        <div class="header-right">
+            <div class="avatar avatar-md" style="background-color: {{ profile.avatar_color }};">
+                {{ profile.name|slice:":1"|upper }}
+            </div>
+        </div>
+    </header>
+
+    <div class="container container-wide p-4">
+        {% if favorites %}
+        <!-- Recipe count -->
+        <p class="text-muted mb-4">{{ favorites|length }} recipe{{ favorites|length|pluralize }}</p>
+
+        <!-- Recipe grid -->
+        <div class="recipe-grid">
+            {% for favorite in favorites %}
+            {% with recipe=favorite.recipe is_favorite=True show_favorite_btn=True %}
+            {% include 'legacy/partials/recipe_card.html' %}
+            {% endwith %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty state -->
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+            </div>
+            <h3 class="empty-state-title">No favorites yet</h3>
+            <p class="empty-state-text">Save recipes you love to find them easily later</p>
+            <a href="{% url 'legacy:home' %}" class="btn btn-primary">Discover Recipes</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'legacy/js/pages/favorites.js' %}"></script>
+{% endblock %}

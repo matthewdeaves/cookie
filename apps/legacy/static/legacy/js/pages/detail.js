@@ -304,7 +304,7 @@ Cookie.pages.detail = (function() {
      * Add recipe to collection
      */
     function addToCollection(collectionId) {
-        Cookie.ajax.post('/api/collections/' + collectionId + '/items/', { recipe_id: recipeId }, function(err) {
+        Cookie.ajax.post('/api/collections/' + collectionId + '/recipes/', { recipe_id: recipeId }, function(err) {
             if (err) {
                 if (err.message && err.message.indexOf('already') !== -1) {
                     Cookie.toast.error('Recipe already in collection');
@@ -340,7 +340,7 @@ Cookie.pages.detail = (function() {
             }
 
             // Add recipe to new collection
-            Cookie.ajax.post('/api/collections/' + collection.id + '/items/', { recipe_id: recipeId }, function(err2) {
+            Cookie.ajax.post('/api/collections/' + collection.id + '/recipes/', { recipe_id: recipeId }, function(err2) {
                 if (err2) {
                     Cookie.toast.error('Collection created but failed to add recipe');
                     closeCreateCollectionModal();

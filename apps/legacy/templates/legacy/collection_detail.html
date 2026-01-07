@@ -1,0 +1,104 @@
+{% extends 'legacy/base.html' %}
+{% load static legacy_tags %}
+
+{% block title %}{{ collection.name }} - Cookie{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'legacy/css/collections.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="screen" data-page="collection-detail" data-collection-id="{{ collection.id }}">
+    <!-- Header with back button -->
+    <header class="header">
+        <a href="{% url 'legacy:collections' %}" class="header-back">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </a>
+        <span class="header-title">{{ collection.name }}</span>
+        <div class="header-right">
+            <button type="button" id="delete-collection-btn" class="btn btn-ghost btn-danger-text" aria-label="Delete collection">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <div class="container container-wide p-4">
+        {% if collection.description %}
+        <p class="collection-description mb-4">{{ collection.description }}</p>
+        {% endif %}
+
+        {% if items %}
+        <!-- Recipe count -->
+        <p class="text-muted mb-4">{{ items|length }} recipe{{ items|length|pluralize }}</p>
+
+        <!-- Recipe grid with remove buttons -->
+        <div class="recipe-grid">
+            {% for item in items %}
+            {% with recipe=item.recipe is_favorite=recipe.id|in_list:favorite_recipe_ids show_favorite_btn=False %}
+            <div class="recipe-card-wrapper" data-recipe-id="{{ recipe.id }}">
+                {% include 'legacy/partials/recipe_card.html' %}
+                <button
+                    type="button"
+                    class="remove-recipe-btn"
+                    data-recipe-id="{{ recipe.id }}"
+                    aria-label="Remove from collection"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            {% endwith %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty state -->
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+            </div>
+            <h3 class="empty-state-title">No recipes in this collection</h3>
+            <p class="empty-state-text">Add recipes from the recipe detail page</p>
+            <a href="{% url 'legacy:home' %}" class="btn btn-primary">Browse Recipes</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Delete confirmation modal -->
+    <div id="delete-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Delete Collection</h2>
+                <button type="button" class="modal-close" aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete "{{ collection.name }}"? This cannot be undone.</p>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'legacy/js/pages/collection-detail.js' %}"></script>
+{% endblock %}

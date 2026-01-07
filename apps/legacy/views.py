@@ -6,8 +6,8 @@ from apps.core.models import AppSettings
 from apps.profiles.models import Profile
 from apps.recipes.models import (
     Recipe,
-    RecipeFavorite,
     RecipeCollection,
+    RecipeFavorite,
     RecipeViewHistory,
 )
 
@@ -181,4 +181,95 @@ def play_mode(request, recipe_id):
         'recipe': recipe,
         'instructions': instructions,
         'instructions_json': instructions,  # For JavaScript
+    })
+
+
+def favorites(request):
+    """Favorites screen - shows all favorited recipes."""
+    profile_id = request.session.get('profile_id')
+    if not profile_id:
+        return redirect('legacy:profile_selector')
+
+    try:
+        profile = Profile.objects.get(id=profile_id)
+    except Profile.DoesNotExist:
+        del request.session['profile_id']
+        return redirect('legacy:profile_selector')
+
+    # Get all favorites for this profile
+    favorites = RecipeFavorite.objects.filter(
+        profile=profile
+    ).select_related('recipe').order_by('-created_at')
+
+    return render(request, 'legacy/favorites.html', {
+        'profile': {
+            'id': profile.id,
+            'name': profile.name,
+            'avatar_color': profile.avatar_color,
+        },
+        'favorites': favorites,
+    })
+
+
+def collections(request):
+    """Collections list screen."""
+    profile_id = request.session.get('profile_id')
+    if not profile_id:
+        return redirect('legacy:profile_selector')
+
+    try:
+        profile = Profile.objects.get(id=profile_id)
+    except Profile.DoesNotExist:
+        del request.session['profile_id']
+        return redirect('legacy:profile_selector')
+
+    # Get all collections for this profile
+    collections = RecipeCollection.objects.filter(
+        profile=profile
+    ).prefetch_related('items__recipe').order_by('-updated_at')
+
+    return render(request, 'legacy/collections.html', {
+        'profile': {
+            'id': profile.id,
+            'name': profile.name,
+            'avatar_color': profile.avatar_color,
+        },
+        'collections': collections,
+    })
+
+
+def collection_detail(request, collection_id):
+    """Collection detail screen - shows recipes in a collection."""
+    profile_id = request.session.get('profile_id')
+    if not profile_id:
+        return redirect('legacy:profile_selector')
+
+    try:
+        profile = Profile.objects.get(id=profile_id)
+    except Profile.DoesNotExist:
+        del request.session['profile_id']
+        return redirect('legacy:profile_selector')
+
+    # Get the collection (must belong to this profile)
+    collection = get_object_or_404(
+        RecipeCollection, id=collection_id, profile=profile
+    )
+
+    # Get all items in this collection
+    items = collection.items.select_related('recipe').order_by('order', '-added_at')
+
+    # Build set of favorite recipe IDs for display
+    favorite_recipe_ids = set(
+        RecipeFavorite.objects.filter(profile=profile).values_list('recipe_id', flat=True)
+    )
+
+    return render(request, 'legacy/collection_detail.html', {
+        'profile': {
+            'id': profile.id,
+            'name': profile.name,
+            'avatar_color': profile.avatar_color,
+        },
+        'collection': collection,
+        'items': items,
+        'favorite_recipe_ids': favorite_recipe_ids,
     })
