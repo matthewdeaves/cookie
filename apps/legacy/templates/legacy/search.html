@@ -1,0 +1,36 @@
+{% extends 'legacy/base.html' %}
+{% load static %}
+
+{% block title %}Cookie - Search{% endblock %}
+
+{% block content %}
+<div class="screen" data-page="search">
+    <!-- Header -->
+    <header class="header">
+        <button type="button" id="back-btn" class="header-back">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </button>
+        <span class="header-title">Search</span>
+        <div style="width: 44px;"></div>
+    </header>
+
+    <div class="container container-wide p-4">
+        <!-- Search query display -->
+        <p style="color: var(--muted-foreground); margin-bottom: 1rem;">
+            Results for: <strong style="color: var(--foreground);">{{ query }}</strong>
+        </p>
+
+        <!-- Content placeholder - will be expanded in Session C -->
+        <div class="text-center" style="padding: 3rem 0; color: var(--muted-foreground);">
+            <p>Search results coming in Session C</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'legacy/js/pages/search.js' %}"></script>
+{% endblock %}

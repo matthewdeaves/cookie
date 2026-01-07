@@ -1,0 +1,78 @@
+{% extends 'legacy/base.html' %}
+{% load static %}
+
+{% block title %}Cookie - Who's Cooking?{% endblock %}
+
+{% block content %}
+<div class="screen screen-centered" data-page="profileSelector">
+    <div class="container text-center">
+        <!-- Title -->
+        <h1 class="mb-2">Cookie</h1>
+        <p class="mb-10">Who's cooking today?</p>
+
+        <!-- Profile grid -->
+        <div id="profile-grid" class="profile-grid mb-8">
+            {% for profile in profiles %}
+            <button type="button" class="profile-btn" data-profile-id="{{ profile.id }}" data-profile-name="{{ profile.name }}">
+                <div class="avatar avatar-xl" style="background-color: {{ profile.avatar_color }}">
+                    {{ profile.name|slice:":1"|upper }}
+                </div>
+                <span class="profile-btn-name">{{ profile.name }}</span>
+            </button>
+            {% endfor %}
+
+            <!-- Add profile button -->
+            <div class="flex flex-col items-center">
+                <button type="button" id="add-profile-btn" class="add-profile-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+                <span class="profile-btn-name mt-2" style="color: var(--muted-foreground);">Add Profile</span>
+            </div>
+        </div>
+
+        <!-- Create profile form (hidden by default) -->
+        <div id="create-form" class="card hidden">
+            <h2 class="mb-4">Create Profile</h2>
+            <form id="profile-form">
+                <div class="mb-4">
+                    <input
+                        type="text"
+                        id="profile-name"
+                        class="input"
+                        placeholder="Enter your name"
+                        maxlength="20"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <!-- Color picker -->
+                <div class="mb-6">
+                    <label class="mb-2" style="display: block; font-size: 0.875rem; color: var(--muted-foreground);">
+                        Choose a color
+                    </label>
+                    <div id="color-picker" class="flex flex-wrap justify-center" style="margin: -0.25rem;">
+                        <!-- Colors will be populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-3">
+                    <button type="button" id="cancel-btn" class="btn btn-secondary flex-1">
+                        Cancel
+                    </button>
+                    <button type="submit" id="create-btn" class="btn btn-primary flex-1" disabled>
+                        Create
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'legacy/js/pages/profile-selector.js' %}"></script>
+{% endblock %}

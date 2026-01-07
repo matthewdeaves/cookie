@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>{% block title %}Cookie{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'legacy/css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'legacy/css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'legacy/css/layout.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Toast container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    {% block content %}{% endblock %}
+
+    <script src="{% static 'legacy/js/polyfills.js' %}"></script>
+    <script src="{% static 'legacy/js/ajax.js' %}"></script>
+    <script src="{% static 'legacy/js/state.js' %}"></script>
+    <script src="{% static 'legacy/js/toast.js' %}"></script>
+    <script src="{% static 'legacy/js/app.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

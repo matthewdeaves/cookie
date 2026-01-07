@@ -1,6 +1,6 @@
 """URL configuration for cookie project."""
 
-from django.urls import path
+from django.urls import path, include
 from ninja import NinjaAPI
 
 from apps.profiles.api import router as profiles_router
@@ -26,4 +26,5 @@ def health(request):
 
 urlpatterns = [
     path('api/', api.urls),
+    path('legacy/', include('apps.legacy.urls')),
 ]

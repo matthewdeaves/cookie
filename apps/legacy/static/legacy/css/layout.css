@@ -1,0 +1,273 @@
+/* Cookie Legacy - Layout Styles */
+
+/* Flexbox utilities (with -webkit prefixes for iOS 9) */
+.flex {
+    display: -webkit-flex;
+    display: flex;
+}
+
+.flex-col {
+    -webkit-flex-direction: column;
+    flex-direction: column;
+}
+
+.flex-wrap {
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+}
+
+.flex-1 {
+    -webkit-flex: 1;
+    flex: 1;
+}
+
+.items-center {
+    -webkit-align-items: center;
+    align-items: center;
+}
+
+.items-start {
+    -webkit-align-items: flex-start;
+    align-items: flex-start;
+}
+
+.justify-center {
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+.justify-between {
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+}
+
+/* Gap utilities (using margin fallback for iOS 9) */
+.gap-2 > * + * {
+    margin-left: 0.5rem;
+}
+
+.gap-3 > * + * {
+    margin-left: 0.75rem;
+}
+
+.gap-4 > * + * {
+    margin-left: 1rem;
+}
+
+.gap-6 > * + * {
+    margin-left: 1.5rem;
+}
+
+/* Vertical gap */
+.gap-y-2 > * + * {
+    margin-top: 0.5rem;
+}
+
+.gap-y-4 > * + * {
+    margin-top: 1rem;
+}
+
+.gap-y-6 > * + * {
+    margin-top: 1.5rem;
+}
+
+/* Full screen layout */
+.screen {
+    min-height: 100vh;
+    background-color: var(--background);
+}
+
+.screen-centered {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+/* Container */
+.container {
+    width: 100%;
+    max-width: 28rem;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.container-wide {
+    max-width: 48rem;
+}
+
+/* Text alignment */
+.text-center {
+    text-align: center;
+}
+
+.text-left {
+    text-align: left;
+}
+
+/* Spacing utilities */
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-8 { margin-top: 2rem; }
+.mt-10 { margin-top: 2.5rem; }
+
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+
+.ml-2 { margin-left: 0.5rem; }
+.ml-4 { margin-left: 1rem; }
+
+.mr-2 { margin-right: 0.5rem; }
+.mr-4 { margin-right: 1rem; }
+
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+
+/* Width utilities */
+.w-full { width: 100%; }
+
+/* Header */
+.header {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    padding: 1rem;
+    background-color: var(--background);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.header-back {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    background: none;
+    border: none;
+    color: var(--foreground);
+    cursor: pointer;
+    padding: 0.5rem;
+    margin-left: -0.5rem;
+    border-radius: 0.5rem;
+}
+
+.header-back:hover {
+    background-color: var(--secondary);
+}
+
+.header-back svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+/* Profile grid */
+.profile-grid {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    -webkit-justify-content: center;
+    justify-content: center;
+    margin: -0.75rem;
+}
+
+.profile-grid > * {
+    margin: 0.75rem;
+}
+
+/* Recipe card grid */
+.recipe-grid {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    margin: -0.5rem;
+}
+
+.recipe-grid > * {
+    width: calc(50% - 1rem);
+    margin: 0.5rem;
+}
+
+/* Source filter chips */
+.source-chips {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    margin: -0.25rem;
+}
+
+.source-chips > * {
+    margin: 0.25rem;
+}
+
+/* Modal overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal {
+    background-color: var(--card);
+    border-radius: 0.75rem;
+    width: 100%;
+    max-width: 24rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Hidden */
+.hidden {
+    display: none !important;
+}
+
+/* Section divider */
+.section {
+    padding: 1.5rem 0;
+}
+
+.section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 1rem;
+}

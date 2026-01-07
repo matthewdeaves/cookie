@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     'apps.core',
     'apps.profiles',
     'apps.recipes',
+    'apps.legacy',
 ]
 
 MIDDLEWARE = [

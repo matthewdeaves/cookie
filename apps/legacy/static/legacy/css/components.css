@@ -1,0 +1,382 @@
+/* Cookie Legacy - Component Styles */
+
+/* Buttons */
+.btn {
+    display: -webkit-inline-flex;
+    display: inline-flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    padding: 0.625rem 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    -webkit-transition: background-color 0.15s ease, transform 0.1s ease;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+    min-height: 44px;
+}
+
+.btn:active {
+    -webkit-transform: scale(0.98);
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.btn-primary:hover {
+    background-color: #5e7f53;
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+    border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+    background-color: var(--muted);
+}
+
+.btn-ghost {
+    background-color: transparent;
+    color: var(--foreground);
+}
+
+.btn-ghost:hover {
+    background-color: var(--secondary);
+}
+
+/* Form Inputs */
+.input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--foreground);
+    background-color: var(--input-background);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    -webkit-transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    min-height: 44px;
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px rgba(107, 142, 95, 0.2);
+}
+
+.input::placeholder {
+    color: var(--muted-foreground);
+}
+
+/* Search Input */
+.search-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.search-input {
+    padding-left: 2.75rem;
+    padding-right: 2.75rem;
+}
+
+.search-icon {
+    position: absolute;
+    left: 0.875rem;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--muted-foreground);
+    pointer-events: none;
+}
+
+.search-clear {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+    width: 2rem;
+    height: 2rem;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.search-clear:hover {
+    background-color: var(--secondary);
+}
+
+/* Cards */
+.card {
+    background-color: var(--card);
+    border-radius: 0.75rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+}
+
+/* Avatar */
+.avatar {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 500;
+    color: white;
+    text-transform: uppercase;
+}
+
+.avatar-xl {
+    width: 5rem;
+    height: 5rem;
+    font-size: 1.5rem;
+}
+
+.avatar-lg {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.125rem;
+}
+
+.avatar-md {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+}
+
+.avatar-sm {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.875rem;
+}
+
+/* Profile button (clickable avatar) */
+.profile-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    gap: 0.5rem;
+    -webkit-transition: transform 0.15s ease;
+    transition: transform 0.15s ease;
+    min-height: auto;
+    min-width: auto;
+}
+
+.profile-btn:hover .avatar {
+    -webkit-transform: scale(1.05);
+    transform: scale(1.05);
+}
+
+.profile-btn-name {
+    font-size: 0.875rem;
+    color: var(--foreground);
+}
+
+/* Add profile button */
+.add-profile-btn {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 50%;
+    border: 2px dashed var(--muted-foreground);
+    background: transparent;
+    cursor: pointer;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    opacity: 0.4;
+    -webkit-transition: opacity 0.15s ease, border-color 0.15s ease;
+    transition: opacity 0.15s ease, border-color 0.15s ease;
+    min-height: auto;
+    min-width: auto;
+}
+
+.add-profile-btn:hover {
+    opacity: 1;
+    border-color: var(--primary);
+}
+
+.add-profile-btn svg {
+    width: 2rem;
+    height: 2rem;
+    color: var(--muted-foreground);
+}
+
+.add-profile-btn:hover svg {
+    color: var(--primary);
+}
+
+/* Chips/Badges */
+.chip {
+    display: -webkit-inline-flex;
+    display: inline-flex;
+    -webkit-align-items: center;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    -webkit-transition: background-color 0.15s ease;
+    transition: background-color 0.15s ease;
+    min-height: 32px;
+}
+
+.chip:hover {
+    background-color: var(--muted);
+}
+
+.chip.active {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    border-color: var(--primary);
+}
+
+/* Color picker swatch */
+.color-swatch {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    -webkit-transition: transform 0.15s ease;
+    transition: transform 0.15s ease;
+    min-height: auto;
+    min-width: auto;
+}
+
+.color-swatch:hover {
+    -webkit-transform: scale(1.1);
+    transform: scale(1.1);
+}
+
+.color-swatch.selected {
+    box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ring);
+}
+
+/* Tab toggle (Favorites/Discover) */
+.tab-toggle {
+    display: -webkit-flex;
+    display: flex;
+    background-color: var(--secondary);
+    border-radius: 0.5rem;
+    padding: 0.25rem;
+}
+
+.tab-toggle-btn {
+    -webkit-flex: 1;
+    flex: 1;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+    border-radius: 0.375rem;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    -webkit-transition: background-color 0.15s ease, color 0.15s ease;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tab-toggle-btn.active {
+    background-color: var(--card);
+    color: var(--foreground);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Toast notifications */
+.toast-container {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+    z-index: 1000;
+    width: calc(100% - 2rem);
+    max-width: 400px;
+}
+
+.toast {
+    padding: 0.875rem 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    -webkit-animation: toast-in 0.3s ease;
+    animation: toast-in 0.3s ease;
+}
+
+.toast-success {
+    background-color: var(--primary);
+    color: white;
+}
+
+.toast-error {
+    background-color: var(--destructive);
+    color: white;
+}
+
+@-webkit-keyframes toast-in {
+    from {
+        opacity: 0;
+        -webkit-transform: translateY(-1rem);
+        transform: translateY(-1rem);
+    }
+    to {
+        opacity: 1;
+        -webkit-transform: translateY(0);
+        transform: translateY(0);
+    }
+}
+
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(-1rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

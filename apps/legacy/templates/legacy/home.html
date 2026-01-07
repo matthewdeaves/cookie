@@ -1,0 +1,46 @@
+{% extends 'legacy/base.html' %}
+{% load static %}
+
+{% block title %}Cookie - Home{% endblock %}
+
+{% block content %}
+<div class="screen" data-page="home">
+    <!-- Header -->
+    <header class="header">
+        <span class="header-title">Cookie</span>
+        <div class="flex items-center gap-3">
+            <button type="button" id="logout-btn" class="avatar avatar-md" style="background-color: {{ profile.avatar_color }}; min-height: auto; min-width: auto;">
+                {{ profile.name|slice:":1"|upper }}
+            </button>
+        </div>
+    </header>
+
+    <div class="container container-wide p-4">
+        <!-- Search bar placeholder -->
+        <div class="search-input-wrapper mb-6">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+                type="text"
+                id="search-input"
+                class="input search-input"
+                placeholder="Search recipes or paste URL..."
+            >
+        </div>
+
+        <!-- Content placeholder - will be expanded in Session B -->
+        <div class="text-center" style="padding: 3rem 0; color: var(--muted-foreground);">
+            <p>Home screen content coming in Session B</p>
+            <p style="margin-top: 1rem;">
+                <a href="/legacy/" style="color: var(--primary);">Switch profile</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'legacy/js/pages/home.js' %}"></script>
+{% endblock %}
