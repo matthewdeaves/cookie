@@ -92,8 +92,23 @@
 - **Cookie 1 reference:** `/home/matt/cookie` (research only, no code copying)
 - **recipe-scrapers:** `/home/matt/recipe-scrapers`
 - **curl_cffi:** `/home/matt/curl_cffi`
-- **Phase plans:** `/home/matt/cookie2/plans/` (modular, per-phase; Phase 8 split into 8A/8B)
+- **Phase plans:** `/home/matt/cookie2/plans/` (10 focused phase files)
 - **Workflow guide:** `/home/matt/cookie2/WORKFLOW.md`
+
+### Phase Files
+
+| Phase | File | Focus |
+|-------|------|-------|
+| 1 | `PHASE-1-FOUNDATION.md` | Django + Docker + Profiles |
+| 2 | `PHASE-2-RECIPE-CORE.md` | Scraping + Search |
+| 3 | `PHASE-3-USER-FEATURES.md` | Favorites + Collections |
+| 4 | `PHASE-4-REACT-FOUNDATION.md` | React: Profile, Home, Search |
+| 5 | `PHASE-5-LEGACY-FOUNDATION.md` | Legacy: Profile, Home, Search |
+| 6 | `PHASE-6-REACT-RECIPE-PLAYMODE.md` | React: Detail + Play Mode |
+| 7 | `PHASE-7-LEGACY-RECIPE-PLAYMODE.md` | Legacy: Detail + Play Mode |
+| 8A | `PHASE-8A-AI-INFRASTRUCTURE.md` | OpenRouter + Prompts |
+| 8B | `PHASE-8B-AI-FEATURES.md` | All 10 AI Features |
+| 9 | `PHASE-9-POLISH.md` | Settings + Testing |
 
 ## Quick Reference
 

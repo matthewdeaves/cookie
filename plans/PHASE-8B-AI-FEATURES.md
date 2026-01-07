@@ -6,6 +6,18 @@
 
 ---
 
+## Session Scope
+
+| Session | Tasks | Focus |
+|---------|-------|-------|
+| A | 8B.1-8B.2 | Recipe remix (both interfaces) |
+| B | 8B.3-8B.4 | Serving adjustment + tips generation |
+| C | 8B.5-8B.6 | Discover feed + search ranking |
+| D | 8B.7-8B.8 | Timer naming + remix suggestions |
+| E | 8B.9-8B.10 | Selector repair + tests |
+
+---
+
 ## Tasks
 
 - [ ] 8B.1 React: Recipe remix feature with AI suggestions modal
@@ -17,6 +29,7 @@
 - [ ] 8B.7 Timer naming
 - [ ] 8B.8 Remix suggestions (contextual prompts per recipe)
 - [ ] 8B.9 Selector repair (AI-powered auto-fix for broken sources)
+- [ ] 8B.10 Write tests for all AI features and fallback behavior
 
 ---
 

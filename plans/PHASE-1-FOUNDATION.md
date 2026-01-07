@@ -5,6 +5,16 @@
 
 ---
 
+## Session Scope
+
+| Session | Tasks | Focus |
+|---------|-------|-------|
+| A | 1.1-1.3 | Django + Docker + nginx setup |
+| B | 1.4-1.6 | Models + API + middleware |
+| C | 1.7-1.9 | Routing + scripts + tests |
+
+---
+
 ## Tasks
 
 - [ ] 1.1 Django project setup with single `settings.py`
@@ -15,6 +25,7 @@
 - [ ] 1.6 Device detection middleware
 - [ ] 1.7 Basic URL routing
 - [ ] 1.8 Helper script (`bin/dev`)
+- [ ] 1.9 Write pytest tests for Profile API and device detection
 
 ---
 

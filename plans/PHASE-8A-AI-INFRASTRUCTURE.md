@@ -1,8 +1,17 @@
 # Phase 8A: AI Infrastructure & Settings
 
 > **Goal:** OpenRouter integration and AI prompt management working
-> **Prerequisite:** Phase 6-7 complete
+> **Prerequisite:** Phase 7 complete
 > **Deliverable:** AI service ready for feature integration, prompts editable in Settings
+
+---
+
+## Session Scope
+
+| Session | Tasks | Focus |
+|---------|-------|-------|
+| A | 8A.1-8A.3 | OpenRouter service + prompts + validation |
+| B | 8A.4-8A.6 | Settings UI (both interfaces) + tests |
 
 ---
 
@@ -13,6 +22,7 @@
 - [ ] 8A.3 AI response schema validation
 - [ ] 8A.4 React: AI Prompts settings UI (all 10 editable)
 - [ ] 8A.5 Legacy: AI Prompts settings UI
+- [ ] 8A.6 Write tests for OpenRouter service and schema validation
 
 ---
 

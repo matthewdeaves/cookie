@@ -6,6 +6,17 @@
 
 ---
 
+## Session Scope
+
+| Session | Tasks | Focus |
+|---------|-------|-------|
+| A | 2.1-2.2 | Recipe + SearchSource models |
+| B | 2.3-2.4 | Scraper service + image download |
+| C | 2.5-2.6 | API endpoints + search service |
+| D | 2.7-2.8 | Search API + tests |
+
+---
+
 ## Tasks
 
 - [ ] 2.1 Recipe model with full recipe-scrapers fields
@@ -15,6 +26,7 @@
 - [ ] 2.5 Recipe API endpoints (scrape, list, detail, delete)
 - [ ] 2.6 Async multi-site search service
 - [ ] 2.7 Search API endpoint with source filtering
+- [ ] 2.8 Write pytest tests for scraper and search services
 
 ---
 

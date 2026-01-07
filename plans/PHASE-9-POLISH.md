@@ -1,8 +1,18 @@
 # Phase 9: Settings & Polish
 
 > **Goal:** Production-ready application
-> **Prerequisite:** Phase 8 complete
+> **Prerequisite:** Phase 8B complete
 > **Deliverable:** Complete, tested, polished application
+
+---
+
+## Session Scope
+
+| Session | Tasks | Focus |
+|---------|-------|-------|
+| A | 9.1-9.2 | Settings screens (both interfaces) |
+| B | 9.3-9.5 | Error handling + loading + toasts |
+| C | 9.6-9.7 | Final testing + verification |
 
 ---
 

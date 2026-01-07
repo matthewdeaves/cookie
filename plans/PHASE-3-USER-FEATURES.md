@@ -6,6 +6,15 @@
 
 ---
 
+## Session Scope
+
+| Session | Tasks | Focus |
+|---------|-------|-------|
+| A | 3.1-3.3 | Favorites, Collections, History models |
+| B | 3.4-3.6 | Data isolation + theme sync + tests |
+
+---
+
 ## Tasks
 
 - [ ] 3.1 RecipeFavorite model and API
@@ -13,6 +22,7 @@
 - [ ] 3.3 RecipeViewHistory model and API
 - [ ] 3.4 Profile-based data isolation
 - [ ] 3.5 Figma theme sync tooling (`bin/figma-sync-theme`)
+- [ ] 3.6 Write pytest tests for favorites, collections, and profile isolation
 
 ---
 
