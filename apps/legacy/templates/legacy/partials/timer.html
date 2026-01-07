@@ -1,0 +1,24 @@
+{% comment %}
+Individual timer widget partial.
+This is a template that gets cloned by JavaScript to create timer instances.
+{% endcomment %}
+
+<div class="timer-widget" id="timer-template" style="display: none;">
+    <div class="timer-info">
+        <span class="timer-label"></span>
+        <span class="timer-time">0:00</span>
+    </div>
+    <div class="timer-progress">
+        <div class="timer-progress-bar"></div>
+    </div>
+    <div class="timer-actions">
+        <button type="button" class="timer-toggle btn-timer">Start</button>
+        <button type="button" class="timer-reset btn-timer-secondary">Reset</button>
+        <button type="button" class="timer-delete btn-timer-danger">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+            </svg>
+        </button>
+    </div>
+</div>

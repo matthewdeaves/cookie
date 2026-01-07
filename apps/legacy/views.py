@@ -146,3 +146,39 @@ def recipe_detail(request, recipe_id):
         'has_ingredient_groups': has_ingredient_groups,
         'instructions': instructions,
     })
+
+
+def play_mode(request, recipe_id):
+    """Play mode / cooking mode screen."""
+    profile_id = request.session.get('profile_id')
+    if not profile_id:
+        return redirect('legacy:profile_selector')
+
+    try:
+        profile = Profile.objects.get(id=profile_id)
+    except Profile.DoesNotExist:
+        del request.session['profile_id']
+        return redirect('legacy:profile_selector')
+
+    # Get the recipe
+    recipe = get_object_or_404(Recipe, id=recipe_id)
+
+    # Check remix visibility
+    if recipe.is_remix and recipe.remix_profile_id != profile.id:
+        return redirect('legacy:home')
+
+    # Prepare instructions
+    instructions = recipe.instructions
+    if not instructions and recipe.instructions_text:
+        instructions = [s.strip() for s in recipe.instructions_text.split('\n') if s.strip()]
+
+    return render(request, 'legacy/play_mode.html', {
+        'profile': {
+            'id': profile.id,
+            'name': profile.name,
+            'avatar_color': profile.avatar_color,
+        },
+        'recipe': recipe,
+        'instructions': instructions,
+        'instructions_json': instructions,  # For JavaScript
+    })

@@ -1,0 +1,57 @@
+{% comment %}
+Timer panel partial for play mode.
+This panel contains quick timer buttons, detected time suggestions, and active timers list.
+{% endcomment %}
+
+<div class="timer-panel" id="timer-panel">
+    <!-- Header -->
+    <button type="button" class="timer-panel-toggle" id="timer-panel-toggle">
+        <div class="timer-panel-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>Timers</span>
+            <span class="timer-count" id="timer-count"></span>
+        </div>
+        <svg class="timer-chevron" id="timer-chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 9 6 6 6-6"></path>
+        </svg>
+    </button>
+
+    <!-- Panel content -->
+    <div class="timer-panel-content" id="timer-panel-content">
+        <!-- Quick timer buttons -->
+        <div class="quick-timers">
+            <button type="button" class="quick-timer-btn" data-duration="300" data-label="5 min">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5v14M5 12h14"></path>
+                </svg>
+                5 min
+            </button>
+            <button type="button" class="quick-timer-btn" data-duration="600" data-label="10 min">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5v14M5 12h14"></path>
+                </svg>
+                10 min
+            </button>
+            <button type="button" class="quick-timer-btn" data-duration="900" data-label="15 min">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5v14M5 12h14"></path>
+                </svg>
+                15 min
+            </button>
+        </div>
+
+        <!-- Detected time suggestions (populated by JavaScript) -->
+        <div class="detected-times" id="detected-times" style="display: none;">
+            <p class="detected-times-label">Detected in this step:</p>
+            <div class="detected-times-btns" id="detected-times-btns"></div>
+        </div>
+
+        <!-- Timer list -->
+        <div class="timer-list" id="timer-list">
+            <p class="timer-list-empty" id="timer-list-empty">No active timers. Add one above!</p>
+        </div>
+    </div>
+</div>

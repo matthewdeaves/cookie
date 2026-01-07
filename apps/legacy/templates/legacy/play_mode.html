@@ -1,0 +1,102 @@
+{% extends 'legacy/base.html' %}
+{% load static %}
+
+{% block title %}Cooking: {{ recipe.title }} - Cookie{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'legacy/css/play-mode.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="play-mode" data-page="play-mode" data-recipe-id="{{ recipe.id }}">
+    {% if instructions %}
+    <!-- Header with progress -->
+    <div class="play-header">
+        <!-- Progress bar -->
+        <div class="progress-track">
+            <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+        </div>
+
+        <!-- Header content -->
+        <div class="play-header-content">
+            <div class="play-header-info">
+                <h1 class="play-title">{{ recipe.title }}</h1>
+                <p class="play-step-counter">
+                    Step <span id="current-step">1</span> of <span id="total-steps">{{ instructions|length }}</span>
+                </p>
+            </div>
+
+            <a href="{% url 'legacy:recipe_detail' recipe.id %}" class="play-exit-btn" id="exit-btn" title="Exit play mode">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main content area -->
+    <div class="play-main">
+        <!-- Instruction display -->
+        <div class="instruction-area">
+            <div class="instruction-content">
+                <!-- Step number -->
+                <div class="step-number" id="step-number">1</div>
+
+                <!-- Instruction text -->
+                <p class="instruction-text" id="instruction-text">
+                    {{ instructions.0 }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Navigation buttons -->
+        <div class="play-nav">
+            <button type="button" id="prev-btn" class="nav-btn nav-btn-prev" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m15 18-6-6 6-6"></path>
+                </svg>
+                Previous
+            </button>
+
+            <!-- Step indicators (hidden on mobile) -->
+            <div class="step-indicators" id="step-indicators">
+                {% for step in instructions %}
+                <button type="button" class="step-dot{% if forloop.first %} active{% endif %}" data-step="{{ forloop.counter0 }}"></button>
+                {% endfor %}
+            </div>
+
+            <button type="button" id="next-btn" class="nav-btn nav-btn-next{% if instructions|length <= 1 %} disabled{% endif %}">
+                Next
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m9 18 6-6-6-6"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Timer panel -->
+        {% include 'legacy/partials/timer_panel.html' %}
+    </div>
+
+    {% else %}
+    <!-- No instructions state -->
+    <div class="play-empty">
+        <p class="play-empty-text">No instructions available for this recipe.</p>
+        <a href="{% url 'legacy:recipe_detail' recipe.id %}" class="btn btn-primary">
+            Exit
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Pass instructions to JavaScript -->
+<script>
+    var RECIPE_INSTRUCTIONS = {{ instructions_json|safe }};
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'legacy/js/timer.js' %}"></script>
+<script src="{% static 'legacy/js/time-detect.js' %}"></script>
+<script src="{% static 'legacy/js/pages/play.js' %}"></script>
+{% endblock %}
