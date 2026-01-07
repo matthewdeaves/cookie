@@ -18,13 +18,13 @@
 
 ## Tasks
 
-- [ ] 4.1 Vite/React project setup with Tailwind v4, theme.css from Figma
-- [ ] 4.2 React: API client with fetch
-- [ ] 4.3 React: Profile selector screen
-- [ ] 4.4 React: Home screen with search bar
-- [ ] 4.5 React: Favorites/Discover toggle
-- [ ] 4.6 React: Basic recipe card component
-- [ ] 4.7 React: Dark/light theme toggle
+- [x] 4.1 Vite/React project setup with Tailwind v4, theme.css from Figma
+- [x] 4.2 React: API client with fetch
+- [x] 4.3 React: Profile selector screen
+- [x] 4.4 React: Home screen with search bar
+- [x] 4.5 React: Favorites/Discover toggle
+- [x] 4.6 React: Basic recipe card component
+- [x] 4.7 React: Dark/light theme toggle
 - [ ] 4.8 React: Search results with source filters and pagination
 - [ ] 4.9 Write tests for profile and search API integration
 

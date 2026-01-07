@@ -60,6 +60,11 @@ function App() {
     setCurrentScreen('profile-selector')
   }
 
+  const handleSearch = (query: string) => {
+    // Search screen will be implemented in Session C
+    console.log('Search:', query)
+  }
+
   return (
     <>
       <Toaster position="top-center" richColors />
@@ -72,6 +77,7 @@ function App() {
           theme={theme}
           onThemeToggle={handleThemeToggle}
           onLogout={handleLogout}
+          onSearch={handleSearch}
         />
       )}
     </>

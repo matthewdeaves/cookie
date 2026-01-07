@@ -15,6 +15,44 @@ export interface ProfileInput {
   unit_preference?: string
 }
 
+export interface Recipe {
+  id: number
+  title: string
+  host: string
+  image_url: string
+  image: string | null
+  total_time: number | null
+  rating: number | null
+  is_remix: boolean
+  scraped_at: string
+}
+
+export interface Favorite {
+  recipe: Recipe
+  created_at: string
+}
+
+export interface HistoryItem {
+  recipe: Recipe
+  viewed_at: string
+}
+
+export interface SearchResult {
+  url: string
+  title: string
+  host: string
+  image_url: string
+  description: string
+}
+
+export interface SearchResponse {
+  results: SearchResult[]
+  total: number
+  page: number
+  has_more: boolean
+  sites: Record<string, number>
+}
+
 async function request<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -70,6 +108,51 @@ export const api = {
     select: (id: number) =>
       request<Profile>(`/profiles/${id}/select/`, {
         method: 'POST',
+      }),
+  },
+
+  favorites: {
+    list: () => request<Favorite[]>('/favorites/'),
+
+    add: (recipeId: number) =>
+      request<Favorite>('/favorites/', {
+        method: 'POST',
+        body: JSON.stringify({ recipe_id: recipeId }),
+      }),
+
+    remove: (recipeId: number) =>
+      request<null>(`/favorites/${recipeId}/`, {
+        method: 'DELETE',
+      }),
+  },
+
+  history: {
+    list: (limit: number = 6) =>
+      request<HistoryItem[]>(`/history/?limit=${limit}`),
+
+    record: (recipeId: number) =>
+      request<HistoryItem>('/history/', {
+        method: 'POST',
+        body: JSON.stringify({ recipe_id: recipeId }),
+      }),
+
+    clear: () =>
+      request<null>('/history/', {
+        method: 'DELETE',
+      }),
+  },
+
+  recipes: {
+    search: (query: string, sources?: string, page: number = 1) => {
+      const params = new URLSearchParams({ q: query, page: String(page) })
+      if (sources) params.append('sources', sources)
+      return request<SearchResponse>(`/recipes/search/?${params}`)
+    },
+
+    scrape: (url: string) =>
+      request<Recipe>('/recipes/scrape/', {
+        method: 'POST',
+        body: JSON.stringify({ url }),
       }),
   },
 }
