@@ -233,11 +233,12 @@ Cookie Recipe App Design/  # Figma export (reference during frontend phases)
 ```
 
 **Sessions:**
-- A: Recipe remix (both interfaces)
-- B: Serving adjustment + tips generation
-- C: Discover feed + search ranking
-- D: Timer naming + remix suggestions
-- E: Selector repair + tests
+- A: Recipe remix: Backend API + React UI
+- B: Recipe remix: Legacy UI
+- C: Serving adjustment + tips generation
+- D: Discover feed + search ranking
+- E: Timer naming + remix suggestions
+- F: Selector repair + tests
 
 **Checkpoint:** All AI features work with valid API key; hidden without key.
 

@@ -10,11 +10,13 @@
 
 | Session | Tasks | Focus |
 |---------|-------|-------|
-| A | 8B.1-8B.2 | Recipe remix (both interfaces) |
-| B | 8B.3-8B.4 | Serving adjustment + tips generation |
-| C | 8B.5-8B.6 | Discover feed + search ranking |
-| D | 8B.7-8B.8 | Timer naming + remix suggestions |
-| E | 8B.9-8B.10 | Selector repair + tests |
+| A | 8B.1 | Recipe remix: Backend API + React UI |
+| | ✓ | Verify: Remix creates recipe with `is_remix=True` |
+| B | 8B.2 | Recipe remix: Legacy UI |
+| C | 8B.3-8B.4 | Serving adjustment + tips generation |
+| D | 8B.5-8B.6 | Discover feed + search ranking |
+| E | 8B.7-8B.8 | Timer naming + remix suggestions |
+| F | 8B.9-8B.10 | Selector repair + tests |
 
 ---
 

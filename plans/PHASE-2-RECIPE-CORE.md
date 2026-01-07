@@ -11,8 +11,11 @@
 | Session | Tasks | Focus |
 |---------|-------|-------|
 | A | 2.1-2.2 | Recipe + SearchSource models |
+| | ✓ | Verify: `pytest tests/test_models.py` passes |
 | B | 2.3-2.4 | Scraper service + image download |
+| | ✓ | Verify: Can scrape one recipe from allrecipes.com |
 | C | 2.5-2.6 | API endpoints + search service |
+| | ✓ | Verify: `curl /api/recipes/` returns 200 |
 | D | 2.7-2.8 | Search API + tests |
 
 ---
@@ -287,4 +290,35 @@ async def test_multi_site_search():
     results = await RecipeSearch().search('chocolate chip cookies')
     assert results['total'] > 0
     assert len(results['sites']) > 1
+```
+
+---
+
+## Troubleshooting
+
+### Scraper Issues
+
+| Problem | Likely Cause | Solution |
+|---------|--------------|----------|
+| **Empty response / 403** | Site blocking request | Try different browser profile (`safari184`, `firefox133`) |
+| **Missing fields** | Site doesn't provide all data | OK to leave nullable fields empty; recipe-scrapers handles gracefully |
+| **Image download fails** | CDN blocking or timeout | Store `image_url` without local copy; retry later |
+| **recipe-scrapers exception** | Unsupported site structure | Check if site is in supported list; log error and skip |
+
+### Search Issues
+
+| Problem | Likely Cause | Solution |
+|---------|--------------|----------|
+| **No results from site** | CSS selector outdated | Mark source `needs_attention=True`; Phase 8B adds AI repair |
+| **Rate limited (429)** | Too many requests | Increase `RATE_LIMIT_DELAY`; reduce `MAX_CONCURRENT` |
+| **Search hangs** | One site unresponsive | Ensure timeout is set (30s); use `asyncio.wait_for` |
+
+### General Debugging
+
+```bash
+# Test scraper in isolation
+python -c "from apps.recipes.services.scraper import RecipeScraper; import asyncio; asyncio.run(RecipeScraper().scrape_url('https://...'))"
+
+# Check which sites are failing
+curl http://localhost/api/sources/ | jq '.[] | select(.needs_attention==true)'
 ```
