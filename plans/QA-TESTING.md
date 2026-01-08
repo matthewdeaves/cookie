@@ -13,7 +13,7 @@
 | QA-002 | No way to view all imported recipes | Legacy + Modern | Verified | QA-B |
 | QA-003 | Numbered list styling inconsistent | Legacy + Modern | Verified | QA-C |
 | QA-004 | Back button returns to Play Mode after closing it | Legacy | Verified | QA-D |
-| QA-005 | No "View All Recipes" link on home page | Legacy + Modern | Fixed | QA-E |
+| QA-005 | No "View All Recipes" link on home page | Legacy + Modern | Verified | QA-E |
 | QA-006 | Insufficient spacing between list number and text | Legacy | New | QA-F |
 
 ### Status Key
@@ -312,7 +312,7 @@ _Browser history API solution:_
 
 **Issue:** QA-005 - No "View All Recipes" link on home page
 **Affects:** Legacy + Modern
-**Status:** Fixed
+**Status:** Verified
 
 **Problem:**
 The home page has limits on how many recipes are displayed:
@@ -375,10 +375,10 @@ _Modern:_
 - `frontend/src/App.tsx` - Added screen type, handlers, routing
 
 **Verification:**
-- [ ] "View All" link visible on home page when recipes exist
-- [ ] Clicking link shows all imported recipes
-- [ ] Works on Legacy (iPad 3 / iOS 9)
-- [ ] Works on Modern (desktop browser)
+- [x] "View All" link visible on home page when recipes exist
+- [x] Clicking link shows all imported recipes
+- [x] Works on Legacy (iPad 3 / iOS 9)
+- [x] Works on Modern (desktop browser)
 
 ---
 
