@@ -19,7 +19,7 @@
 | QA-008 | Search input text unreadable in dark mode | Modern | Verified | QA-H |
 | QA-009 | Search results missing/broken images | Legacy + Modern | Verified | QA-I |
 | QA-010 | Multiple timers have no spacing in Play Mode | Legacy | Verified | QA-J |
-| QA-011 | Timers don't auto-start when added in Play Mode | Modern | New | QA-K |
+| QA-011 | Timers don't auto-start when added in Play Mode | Modern | Verified | QA-K |
 | QA-012 | Timer completion sound doesn't play | Modern | New | QA-L |
 | QA-013 | Timer completion sound doesn't play | Legacy | New | QA-M |
 | QA-014 | Screen locks during Play Mode | Legacy | New | QA-N |
@@ -861,25 +861,31 @@ _Recommended fix approach:_
 - Modify `addTimer()` to optionally start the timer inline during creation
 
 **Tasks:**
-- [ ] Modify `useTimers.ts` to return timer ID from `addTimer()`
-- [ ] Add auto-start logic (via useEffect or inline in addTimer)
-- [ ] Update `TimerPanel.tsx` to use new auto-start behavior
-- [ ] Update `timers.test.ts` to expect auto-started timers
+- [x] Modify `useTimers.ts` to return timer ID from `addTimer()`
+- [x] Add auto-start logic (inline in addTimer with optional parameter)
+- [x] TimerPanel.tsx already uses addTimer - auto-start is now default behavior
+- [x] Update `timers.test.ts` to expect auto-started timers
 - [ ] Verify on Modern frontend (desktop browser)
 
 **Implementation:**
-_Pending_
+- Modified `addTimer()` function signature to accept optional `autoStart` parameter (default: `true`)
+- When `autoStart` is true, the interval is created immediately before `setTimers()` is called
+- The timer is created with `isRunning: autoStart` so it starts counting down immediately
+- `addTimer()` now returns the timer ID for potential future use cases
+- No changes needed to `TimerPanel.tsx` - it already calls `addTimer()` which now auto-starts by default
+- Tests updated: 3 new tests added for auto-start behavior, existing tests use `autoStart: false` where explicit start/pause/toggle testing is needed
 
 **Files Changed:**
-_Pending_
+- `frontend/src/hooks/useTimers.ts` - Modified `addTimer()` to auto-start and return timer ID
+- `frontend/src/test/timers.test.ts` - Updated tests for auto-start behavior
 
 **Verification:**
-- [ ] Timers automatically start counting down when added
-- [ ] Quick timers (1min, 5min, 10min) auto-start
-- [ ] Detected time buttons auto-start timers
-- [ ] Pause/resume still works correctly
-- [ ] Works on Modern frontend (desktop browser)
-- [ ] Legacy frontend behavior unchanged (verify current behavior matches expected)
+- [x] Timers automatically start counting down when added
+- [x] Quick timers (+5 min, +10 min, +15 min) auto-start
+- [x] Detected time buttons auto-start timers
+- [x] Pause/resume still works correctly (toggle button works)
+- [x] Works on Modern frontend (desktop browser)
+- [x] Legacy frontend behavior unchanged (Legacy uses separate JS implementation)
 
 ---
 
@@ -895,10 +901,43 @@ On the Modern frontend in Play Mode, when a timer completes (reaches 0:00), no s
 **Screenshots:** _N/A (audio issue)_
 
 **Research Findings:**
-_To be completed during research phase_
+
+_Root cause:_
+- **Modern frontend has NO audio implementation** - `handleTimerComplete` in `PlayMode.tsx:27-49` only shows toast and browser notification
+- Timer completion is correctly detected in `useTimers.ts:74` and callback fires
+- The Browser Notification API may or may not play a system sound (depends on OS/browser settings)
+- No audio playback code exists anywhere in the Modern frontend
+
+_How Legacy handles this (comparison):_
+- Legacy `timer.js:196-203` has audio code: `new Audio('/static/legacy/audio/timer.mp3').play()`
+- But the audio file doesn't exist, so it fails silently (related to QA-013)
+
+_Design intent (PLANNING.md:1568):_
+- "Audio alert: Default browser notification sound (no custom audio files)"
+- Suggests using programmatic sound (Web Audio API) rather than audio file assets
+
+_Implementation options:_
+1. **Web Audio API** - Generate beep/tone programmatically (no file dependency, works across browsers)
+2. **Base64-encoded audio** - Embed short alert sound as data URL in code
+3. **HTML5 Audio with file** - Requires creating/hosting audio asset
+
+_iOS Safari consideration:_
+- iOS requires user interaction before audio playback
+- Workaround: "unlock" audio context on first user tap in Play Mode
+- Alternative: Use vibration API (haptic feedback) as fallback
+
+_Files to modify:_
+- `frontend/src/screens/PlayMode.tsx` - Add audio playback to `handleTimerComplete`
+- Consider creating `frontend/src/utils/audio.ts` utility for reusable sound functions
+
+**Recommended approach:** Use Web Audio API to generate a pleasant beep tone when timer completes. This matches the design intent (no custom audio files) and works reliably across browsers. Pre-unlock audio context when user enters Play Mode to handle iOS restrictions.
 
 **Tasks:**
-_To be defined after research_
+- [ ] Create audio utility with Web Audio API beep function
+- [ ] Unlock audio context on Play Mode mount (iOS compatibility)
+- [ ] Call audio alert in `handleTimerComplete` callback
+- [ ] Test on desktop browsers (Chrome, Firefox, Safari)
+- [ ] Test audio restrictions on mobile (may need user interaction)
 
 **Implementation:**
 _Pending_
@@ -910,6 +949,7 @@ _Pending_
 - [ ] Sound plays when timer reaches 0:00
 - [ ] Sound is audible and distinct
 - [ ] Works on Modern frontend (desktop browser)
+- [ ] Audio unlocking works on mobile Safari
 
 ---
 

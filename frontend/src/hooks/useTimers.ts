@@ -10,7 +10,7 @@ export interface Timer {
 
 export interface UseTimersReturn {
   timers: Timer[]
-  addTimer: (label: string, duration: number) => void
+  addTimer: (label: string, duration: number, autoStart?: boolean) => string
   startTimer: (id: string) => void
   pauseTimer: (id: string) => void
   resetTimer: (id: string) => void
@@ -37,8 +37,35 @@ export function useTimers(onTimerComplete?: (timer: Timer) => void): UseTimersRe
     }
   }, [])
 
-  const addTimer = useCallback((label: string, duration: number) => {
+  const addTimer = useCallback((label: string, duration: number, autoStart: boolean = true): string => {
     const id = crypto.randomUUID()
+
+    // If autoStart, set up the interval immediately (before setTimers completes)
+    if (autoStart) {
+      const intervalId = window.setInterval(() => {
+        setTimers((prev) =>
+          prev.map((timer) => {
+            if (timer.id !== id) return timer
+            if (!timer.isRunning) return timer
+
+            const newRemaining = timer.remaining - 1
+
+            if (newRemaining <= 0) {
+              // Timer completed
+              clearInterval(intervalsRef.current.get(id))
+              intervalsRef.current.delete(id)
+              onCompleteRef.current?.({ ...timer, remaining: 0, isRunning: false })
+              return { ...timer, remaining: 0, isRunning: false }
+            }
+
+            return { ...timer, remaining: newRemaining }
+          })
+        )
+      }, 1000)
+
+      intervalsRef.current.set(id, intervalId)
+    }
+
     setTimers((prev) => [
       ...prev,
       {
@@ -46,9 +73,11 @@ export function useTimers(onTimerComplete?: (timer: Timer) => void): UseTimersRe
         label,
         duration,
         remaining: duration,
-        isRunning: false,
+        isRunning: autoStart,
       },
     ])
+
+    return id
   }, [])
 
   const startTimer = useCallback((id: string) => {

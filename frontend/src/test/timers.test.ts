@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { renderHook, act, waitFor } from '@testing-library/react'
+import { renderHook, act } from '@testing-library/react'
 import { useTimers, detectTimes, formatTimerDisplay } from '../hooks/useTimers'
 
 // Mock crypto.randomUUID
@@ -86,7 +86,7 @@ describe('useTimers', () => {
     vi.useRealTimers()
   })
 
-  it('adds timer with correct initial state', () => {
+  it('adds timer and auto-starts by default', () => {
     const { result } = renderHook(() => useTimers())
 
     act(() => {
@@ -97,17 +97,44 @@ describe('useTimers', () => {
     expect(result.current.timers[0].label).toBe('Test Timer')
     expect(result.current.timers[0].duration).toBe(300)
     expect(result.current.timers[0].remaining).toBe(300)
+    expect(result.current.timers[0].isRunning).toBe(true)
+  })
+
+  it('adds timer without auto-start when specified', () => {
+    const { result } = renderHook(() => useTimers())
+
+    act(() => {
+      result.current.addTimer('Test Timer', 300, false)
+    })
+
+    expect(result.current.timers).toHaveLength(1)
+    expect(result.current.timers[0].label).toBe('Test Timer')
+    expect(result.current.timers[0].duration).toBe(300)
+    expect(result.current.timers[0].remaining).toBe(300)
     expect(result.current.timers[0].isRunning).toBe(false)
+  })
+
+  it('returns timer id from addTimer', () => {
+    const { result } = renderHook(() => useTimers())
+
+    let timerId: string = ''
+    act(() => {
+      timerId = result.current.addTimer('Test Timer', 300)
+    })
+
+    expect(timerId).toBeTruthy()
+    expect(result.current.timers[0].id).toBe(timerId)
   })
 
   it('starts and pauses timer', () => {
     const { result } = renderHook(() => useTimers())
 
     act(() => {
-      result.current.addTimer('Test', 300)
+      result.current.addTimer('Test', 300, false)
     })
 
     const timerId = result.current.timers[0].id
+    expect(result.current.timers[0].isRunning).toBe(false)
 
     act(() => {
       result.current.startTimer(timerId)
@@ -126,10 +153,11 @@ describe('useTimers', () => {
     const { result } = renderHook(() => useTimers())
 
     act(() => {
-      result.current.addTimer('Test', 300)
+      result.current.addTimer('Test', 300, false)
     })
 
     const timerId = result.current.timers[0].id
+    expect(result.current.timers[0].isRunning).toBe(false)
 
     // Toggle on
     act(() => {
@@ -148,7 +176,7 @@ describe('useTimers', () => {
     const { result } = renderHook(() => useTimers())
 
     act(() => {
-      result.current.addTimer('Test', 300)
+      result.current.addTimer('Test', 300, false)
     })
 
     const timerId = result.current.timers[0].id
