@@ -25,7 +25,8 @@
 | QA-014 | Screen locks during Play Mode | Legacy | New | QA-N |
 | QA-015 | No "View All" link for Favorites section | Legacy + Modern | Verified | QA-O |
 | QA-016 | Back button after import goes to home instead of search results | Modern | Verified | QA-P |
-| QA-017 | Frontend build fails - test files missing cached_image_url | Modern | New | QA-Q |
+| QA-017 | Frontend build fails - test files missing cached_image_url | Modern | Verified | QA-Q |
+| QA-018 | Frontend build - tsconfig permission denied errors | Modern | Won't Fix | QA-R |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -92,6 +93,7 @@ After research is complete and tasks are defined:
 | QA-O | QA-015 | View All link for Favorites |
 | QA-P | QA-016 | Modern back button after import |
 | QA-Q | QA-017 | Fix frontend test file type errors |
+| QA-R | QA-018 | Fix tsconfig permission errors |
 
 ---
 
@@ -1261,15 +1263,52 @@ When QA-009 added image caching, the `SearchResult` interface in `api/client.ts`
 - [ ] Verify `npm run test` passes
 
 **Implementation:**
-_Pending_
+- Added `cached_image_url: null` to all 5 mock SearchResult objects in `components.test.tsx`
+- Lines 164, 165, 183, 247, 263
 
 **Files Changed:**
-- `frontend/src/test/components.test.tsx` - Add `cached_image_url` to mock data
+- `frontend/src/test/components.test.tsx` - Added `cached_image_url: null` to mock data
 
 **Verification:**
-- [ ] `npm run build` succeeds
-- [ ] `npm run test` passes
-- [ ] No TypeScript errors
+- [x] No TypeScript type errors (TS2741 resolved)
+- [x] `npm run build` succeeds (in Docker)
+- [x] `npm run test` passes (65 tests in Docker)
+
+---
+
+### QA-R: Fix tsconfig Permission Errors
+
+**Issue:** QA-018 - Frontend build - tsconfig permission denied errors
+**Affects:** Modern
+**Status:** New
+
+**Problem:**
+The frontend build fails with permission errors when TypeScript tries to write build info files:
+```
+error TS5033: Could not write file '.../node_modules/.tmp/tsconfig.app.tsbuildinfo': EACCES
+error TS5033: Could not write file '.../node_modules/.tmp/tsconfig.node.tsbuildinfo': EACCES
+```
+
+**Root Cause:**
+Docker containers run as root, creating files owned by root in mounted volumes. When running npm/pytest on host as non-root user, permission denied errors occur for:
+- `/home/matt/cookie/frontend/node_modules/.vite/`
+- `/home/matt/cookie/frontend/node_modules/.tmp/`
+- `/home/matt/cookie/.pytest_cache/`
+
+**Resolution:**
+This is a non-issue when following rule #31: "ALWAYS run tests in Docker". Tests and builds work correctly inside Docker containers. Host permission issues only affect local development outside Docker.
+
+**One-off fix for host permissions:**
+```bash
+sudo chown -R matt:matt /home/matt/cookie/frontend/node_modules/.vite /home/matt/cookie/frontend/node_modules/.tmp /home/matt/cookie/.pytest_cache
+```
+
+**Status:** Won't Fix (work in Docker instead)
+
+**Verification:**
+- [x] `docker compose exec frontend npm run build` succeeds
+- [x] `docker compose exec frontend npm test` passes (65 tests)
+- [x] `docker compose exec web python -m pytest` passes (241 tests)
 
 ---
 

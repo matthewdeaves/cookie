@@ -84,7 +84,12 @@
 
 30. **Testing framework** - pytest for all tests (unit + integration). Use Django's test client for API tests.
 
-31. **Selector AI fallback** - When a search source's CSS selector fails, AI analyzes the HTML and suggests a new selector. Auto-updates the source setting on success.
+31. **ALWAYS run tests in Docker** - Never run tests on the host. Docker is the canonical environment.
+    - Backend: `docker compose exec web python -m pytest`
+    - Frontend: `docker compose exec frontend npm test` (runs and exits)
+    - Frontend watch mode: `docker compose exec frontend npm run test:watch`
+
+32. **Selector AI fallback** - When a search source's CSS selector fails, AI analyzes the HTML and suggests a new selector. Auto-updates the source setting on success.
 
 ## File Locations
 

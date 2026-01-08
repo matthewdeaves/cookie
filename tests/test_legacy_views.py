@@ -442,7 +442,7 @@ class TestLegacyRecipeDetail:
 
         response = client.get(f'/legacy/recipe/{recipe.id}/')
         content = response.content.decode()
-        assert 'calories' in content
+        assert 'Calories' in content  # format_nutrition_key capitalizes
         assert '200' in content
 
     def test_recipe_detail_records_view_history(self, client):
