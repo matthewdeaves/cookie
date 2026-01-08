@@ -1756,3 +1756,187 @@ Areas not yet tested on iOS 9:
 - [x] Search dark mode input - QA-008 verified
 - [x] Import flow navigation - QA-002, QA-016 verified
 - [ ] Build/tests passing - QA-017 pending
+
+### AI Features (Phase 8B)
+- [ ] Recipe Remix - Modern frontend
+- [ ] Recipe Remix - Legacy frontend (iOS 9)
+- [ ] Remix button visibility (hidden without API key)
+- [ ] Remix per-profile visibility
+
+---
+
+## Recipe Remix Manual QA
+
+> **Feature:** Recipe Remix (Phase 8B Sessions A+B)
+> **Prerequisite:** API key configured (AI available)
+> **Affects:** Modern + Legacy
+
+### Test Environment Setup
+
+Before testing, verify:
+```bash
+# Check AI is available
+curl -s http://localhost/api/ai/status
+# Should return: {"available": true, ...}
+```
+
+### Test Scenarios
+
+#### Scenario 1: Remix Button Visibility
+
+**Test 1.1: Button shows when AI available**
+- [ ] Modern: Navigate to any recipe detail page
+- [ ] Modern: Verify sparkles icon button visible near favorite/collection buttons
+- [ ] Legacy: Navigate to any recipe detail page
+- [ ] Legacy: Verify sparkles icon button visible near favorite/collection buttons
+
+**Test 1.2: Button hidden when AI unavailable**
+- [ ] Remove API key (Settings > AI > clear key)
+- [ ] Modern: Navigate to recipe detail - remix button should NOT appear
+- [ ] Legacy: Navigate to recipe detail - remix button should NOT appear
+- [ ] Restore API key after testing
+
+#### Scenario 2: Remix Modal (Modern)
+
+**Test 2.1: Open modal**
+- [ ] Click remix button (sparkles icon)
+- [ ] Modal appears with "Remix This Recipe" header
+- [ ] Loading spinner shows while fetching suggestions
+
+**Test 2.2: Suggestions load**
+- [ ] 6 suggestion chips appear after loading
+- [ ] Suggestions are contextual to the recipe (mention ingredients/cuisine)
+- [ ] Chips are clickable
+
+**Test 2.3: Suggestion selection**
+- [ ] Click a suggestion chip - it highlights (selected state)
+- [ ] Click same chip again - deselects
+- [ ] Click different chip - previous deselects, new one selects
+- [ ] "Create Remix" button enables when chip selected
+
+**Test 2.4: Custom input**
+- [ ] Type in "Or describe your own remix" input
+- [ ] Any selected chip deselects when typing
+- [ ] "Create Remix" button enables with text input
+- [ ] Clear input - button disables (unless chip selected)
+
+**Test 2.5: Create remix**
+- [ ] Select a suggestion OR type custom modification
+- [ ] Click "Create Remix"
+- [ ] Button shows loading state ("Creating Remix...")
+- [ ] Modal closes on success
+- [ ] Toast shows "Created [recipe title]"
+- [ ] Navigate to new recipe (should auto-navigate)
+
+**Test 2.6: Verify created remix**
+- [ ] Recipe title reflects the modification
+- [ ] Recipe shows "user-generated" as source
+- [ ] Ingredients list is modified appropriately
+- [ ] Instructions are modified appropriately
+- [ ] Recipe appears in Recently Viewed
+
+#### Scenario 3: Remix Modal (Legacy / iOS 9)
+
+**Test 3.1: Open modal**
+- [ ] Tap remix button (sparkles icon)
+- [ ] Modal appears with "Remix This Recipe" header
+- [ ] Loading spinner shows while fetching suggestions
+
+**Test 3.2: Suggestions load**
+- [ ] 6 suggestion chips appear after loading
+- [ ] Chips display correctly (no layout issues)
+- [ ] Touch targets are adequate (44px minimum)
+
+**Test 3.3: Suggestion selection**
+- [ ] Tap a suggestion chip - it highlights
+- [ ] Tap same chip again - deselects
+- [ ] Tap different chip - previous deselects, new one selects
+
+**Test 3.4: Custom input**
+- [ ] Type in custom input field
+- [ ] Keyboard appears and doesn't obscure modal
+- [ ] Any selected chip deselects when typing
+
+**Test 3.5: Create remix**
+- [ ] Select a suggestion OR type custom modification
+- [ ] Tap "Create Remix"
+- [ ] Button shows loading state
+- [ ] Modal closes on success
+- [ ] Toast notification appears
+- [ ] Navigate to new recipe
+
+**Test 3.6: Modal dismiss**
+- [ ] Tap X button - modal closes
+- [ ] Tap outside modal - modal closes
+- [ ] Escape key (if keyboard connected) - modal closes
+
+#### Scenario 4: Per-Profile Visibility
+
+**Test 4.1: Remix only visible to creator**
+- [ ] As Profile A: Create a remix
+- [ ] Note the remix title
+- [ ] Switch to Profile B (different profile)
+- [ ] Search or browse - remix should NOT appear
+- [ ] Check Recently Viewed - remix should NOT appear
+- [ ] Switch back to Profile A
+- [ ] Remix should appear in Recently Viewed
+
+**Test 4.2: Original recipe visible to all**
+- [ ] The original recipe (that was remixed) should still be visible to all profiles
+
+#### Scenario 5: Error Handling
+
+**Test 5.1: API error during suggestions**
+- [ ] Temporarily break API key
+- [ ] Open remix modal
+- [ ] Should show error message (not crash)
+- [ ] Toast shows "Failed to load suggestions"
+
+**Test 5.2: API error during creation**
+- [ ] Start remix creation
+- [ ] If API fails, should show error toast
+- [ ] Modal should remain open (not lose user's selection)
+- [ ] Can retry after fixing issue
+
+### Issue Log Template
+
+If issues are found, log them using this format:
+
+```
+### QA-0XX: [Brief description]
+
+**Found:** [Date] ([Device/Browser])
+**Affects:** Modern / Legacy / Both
+
+**Problem:**
+[Detailed description of the issue]
+
+**Steps to reproduce:**
+1. ...
+2. ...
+3. ...
+
+**Expected behavior:**
+[What should happen]
+
+**Actual behavior:**
+[What actually happens]
+
+**Screenshots:** [filename if applicable]
+```
+
+### Testing Checklist Summary
+
+| Test | Modern | Legacy |
+|------|--------|--------|
+| Remix button visible (AI on) | [ ] | [ ] |
+| Remix button hidden (AI off) | [ ] | [ ] |
+| Modal opens | [ ] | [ ] |
+| 6 suggestions load | [ ] | [ ] |
+| Chip selection works | [ ] | [ ] |
+| Custom input works | [ ] | [ ] |
+| Create remix succeeds | [ ] | [ ] |
+| Loading states show | [ ] | [ ] |
+| Toast notifications | [ ] | [ ] |
+| Per-profile visibility | [ ] | [ ] |
+| Error handling | [ ] | [ ] |
