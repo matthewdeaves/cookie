@@ -61,6 +61,7 @@
   --destructive-foreground: #ffffff;
   --border: rgba(181, 171, 159, 0.2);
   --input: rgba(181, 171, 159, 0.15);
+  --input-background: #3d3531;
   --ring: #8aa879;
   --star: #e68a5f;
   --font-weight-medium: 500;

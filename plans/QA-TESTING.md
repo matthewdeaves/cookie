@@ -16,8 +16,14 @@
 | QA-005 | No "View All Recipes" link on home page | Legacy + Modern | Verified | QA-E |
 | QA-006 | Recipe detail layout/spacing issues (iOS 9 gap) | Legacy | Verified | QA-F |
 | QA-007 | Button icons off-center (Safari flexbox bug) | Legacy | Verified | QA-G |
-| QA-008 | Search input text unreadable in dark mode | Modern | New | QA-H |
+| QA-008 | Search input text unreadable in dark mode | Modern | Verified | QA-H |
 | QA-009 | Search results missing/broken images | Legacy + Modern | Verified | QA-I |
+| QA-010 | Multiple timers have no spacing in Play Mode | Legacy | New | QA-J |
+| QA-011 | Timers don't auto-start when added in Play Mode | Modern | New | QA-K |
+| QA-012 | Timer completion sound doesn't play | Modern | New | QA-L |
+| QA-013 | Timer completion sound doesn't play | Legacy | New | QA-M |
+| QA-014 | Screen locks during Play Mode | Legacy | New | QA-N |
+| QA-015 | No "View All" link for Favorites section | Legacy + Modern | New | QA-O |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -76,6 +82,12 @@ After research is complete and tasks are defined:
 | QA-G | QA-007 | Button icons off-center (Safari) |
 | QA-H | QA-008 | Search input dark mode styling |
 | QA-I | QA-009 | Search results image loading |
+| QA-J | QA-010 | Play Mode timer spacing |
+| QA-K | QA-011 | Timer auto-start behavior (Modern) |
+| QA-L | QA-012 | Timer completion sound (Modern) |
+| QA-M | QA-013 | Timer completion sound (Legacy) |
+| QA-N | QA-014 | Screen wake lock (Legacy) |
+| QA-O | QA-015 | View All link for Favorites |
 
 ---
 
@@ -586,27 +598,46 @@ Since SVGs are inline by default, `text-align: center` on the button may help as
 
 **Issue:** QA-008 - Search input text unreadable in dark mode
 **Affects:** Modern
-**Status:** New
+**Status:** Verified
 
 **Problem:**
 On the Modern frontend, when dark mode is enabled, the text typed into the search input field is not readable - appears to be white text on a white or light background.
 
 **Research Findings:**
 
-_To investigate:_
-- Check search input styling in Home.tsx or related components
-- Verify CSS variables are being applied correctly for dark mode
-- Check if input has hardcoded colors instead of theme variables
+_Root cause:_
+- Search input in `Home.tsx:160` uses `bg-input-background` and `text-foreground` classes
+- Light mode: `--input-background: #f4ede6;` (beige) defined correctly
+- Dark mode: `--input-background` was **missing** from CSS variables
+- Result: Dark mode fell back to light mode's beige background
+- Text color: `--foreground: #f5ebe0;` (light beige)
+- Background: `#f4ede6` (also light beige from light mode fallback)
+- Outcome: Light text on light background = unreadable
+
+_Solution:_
+- Added `--input-background: #3d3531;` to dark mode CSS variables in `theme.css:64`
+- Color matches dark mode `--secondary` for consistency
+- Now dark mode has: light text (`#f5ebe0`) on dark background (`#3d3531`) = readable
 
 **Tasks:**
-- [ ] Research search input styling in Modern frontend
-- [ ] Identify cause of color mismatch in dark mode
-- [ ] Fix input text/background colors to use proper theme variables
-- [ ] Verify fix works in both light and dark modes
+- [x] Research search input styling in Modern frontend
+- [x] Identify cause of color mismatch in dark mode (missing CSS variable)
+- [x] Fix input text/background colors to use proper theme variables
+- [x] Verify fix works in both light and dark modes
 
-**Files to Investigate:**
-- `frontend/src/screens/Home.tsx` - Search input component
-- `frontend/src/index.css` - Global styles and CSS variables
+**Implementation:**
+- Added `--input-background: #3d3531;` to `.dark` section in `theme.css`
+- Used color consistent with dark mode secondary color
+- No changes needed to `Home.tsx` - already using correct classes
+
+**Files Changed:**
+- `frontend/src/styles/theme.css:64` - Added `--input-background` for dark mode
+
+**Verification:**
+- [x] Search input readable in light mode
+- [x] Search input readable in dark mode
+- [x] Placeholder text visible in both modes
+- [x] Focus ring visible in both modes
 
 ---
 
@@ -685,6 +716,239 @@ All sessions completed successfully. See `plans/QA-009.md` for detailed implemen
 - ✅ iOS 9 Legacy: "Load More" pagination works correctly
 - ✅ Modern browsers: High-quality cached images
 - ✅ Performance: Optimized DOM queries, immediate polling shutdown
+
+---
+
+### QA-J: Play Mode Timer Spacing
+
+**Issue:** QA-010 - Multiple timers have no spacing in Play Mode
+**Affects:** Legacy
+**Status:** New
+
+**Problem:**
+When a recipe has more than one timer in Play Mode, the timers are stacked vertically with no space between them. They appear to be sitting directly on top of each other, making them difficult to distinguish and interact with.
+
+**Screenshots:** _To be added during testing_
+
+**Research Findings:**
+
+_Root cause: iOS 9 Safari does not support CSS `gap` for flexbox_
+
+Same as QA-006, the play mode CSS uses `gap:` property without proper fallbacks for iOS 9 Safari. Flexbox `gap` support was added in Safari 14.1 (iOS 14.5).
+
+_Current vs Modern comparison:_
+
+| Element | Legacy CSS | Modern (Tailwind) | Purpose |
+|---------|------------|-------------------|---------|
+| `.timer-list` | `gap: 0.5rem` (8px) | `space-y-2` (8px) | Timer widgets stacking |
+| `.nav-btn` | `gap: 0.5rem` | `gap-2` | Prev/Next button icons |
+| `.step-indicators` | `gap: 0.375rem` | `gap-1.5` | Step dots |
+| `.timer-panel-title` | `gap: 0.5rem` | `gap-2` | Timer header icons/text |
+| `.quick-timers` | `gap: 0.5rem` | `gap-2` | Quick timer buttons wrap |
+| `.quick-timer-btn` | `gap: 0.25rem` | `gap-1` | Button icon/text |
+| `.detected-times-btns` | `gap: 0.5rem` | `gap-2` | Detected time buttons wrap |
+| `.detected-time-btn` | `gap: 0.25rem` | `gap-1` | Button icon/text |
+| `.timer-actions` | `gap: 0.5rem` | `gap-2` | Timer control buttons |
+
+Modern frontend uses Tailwind's `space-y-*` utility which adds `margin-top` to children (not `gap`), so it works correctly on all browsers including iOS 9.
+
+_Specific issues found in `play-mode.css`:_
+
+1. **`.timer-list`** (line 377-387): Has `gap: 0.5rem` with NO fallback - **THIS IS THE REPORTED ISSUE**
+2. **`.nav-btn`** (line 164-179): Has `gap: 0.5rem` with NO fallback
+3. **`.step-indicators`** (line 206-218): Has `gap: 0.375rem` with NO fallback
+4. **`.timer-panel-title`** (line 271-283): Has `gap: 0.5rem` with NO fallback
+5. **`.quick-timers`** (line 305-312): Has `gap: 0.5rem` with NO fallback
+6. **`.quick-timer-btn`** (line 314-334): Has `gap: 0.25rem` with NO fallback
+7. **`.detected-times-btns`** (line 347-353): Has `gap: 0.5rem` with NO fallback
+8. **`.detected-time-btn`** (line 355-375): Has `gap: 0.25rem` with NO fallback
+9. **`.timer-actions`** (line 465-469): Has `gap: 0.5rem` with NO fallback
+
+_Solution (same as QA-006):_
+- Add `> * + *` margin fallbacks for all elements using `gap:` in play-mode.css
+- For flex-row: Use `margin-left` on subsequent children
+- For flex-column: Use `margin-top` on subsequent children
+- For flex-wrap: May need negative margin on container + margin on all items
+
+**Tasks:**
+- [ ] Add `> * + *` margin fallbacks for all 9 elements using `gap:` in play-mode.css
+- [ ] For `.timer-list` (flex-column): Add `> * + * { margin-top: 0.5rem; }`
+- [ ] For flex-row elements: Add `> * + * { margin-left: [gap-value]; }`
+- [ ] For flex-wrap elements (`.quick-timers`, `.detected-times-btns`): Use negative margin pattern
+- [ ] Test timer spacing on iPad 3 / iOS 9
+- [ ] Verify all play mode UI elements have proper spacing
+
+**Implementation:**
+_Pending_
+
+**Files Changed:**
+_Pending_
+
+**Verification:**
+- [ ] Multiple timers have visible spacing between them
+- [ ] Touch targets remain accessible (44px minimum)
+- [ ] Works on iPad 3 / iOS 9
+- [ ] Modern frontend behavior unchanged (if applicable)
+
+---
+
+### QA-K: Timer Auto-Start Behavior
+
+**Issue:** QA-011 - Timers don't auto-start when added in Play Mode
+**Affects:** Modern
+**Status:** New
+
+**Problem:**
+On the Modern frontend in Play Mode, when a user adds a timer, it does not automatically start counting down. The user must manually start the timer after adding it. Expected behavior is for timers to start automatically when added.
+
+**Screenshots:** _To be added during testing_
+
+**Research Findings:**
+_To be completed during research phase_
+
+**Tasks:**
+_To be defined after research_
+
+**Implementation:**
+_Pending_
+
+**Files Changed:**
+_Pending_
+
+**Verification:**
+- [ ] Timers automatically start counting down when added
+- [ ] Works on Modern frontend (desktop browser)
+- [ ] Legacy frontend behavior unchanged (verify current behavior matches expected)
+
+---
+
+### QA-L: Timer Completion Sound
+
+**Issue:** QA-012 - Timer completion sound doesn't play
+**Affects:** Modern
+**Status:** New
+
+**Problem:**
+On the Modern frontend in Play Mode, when a timer completes (reaches 0:00), no sound is played to alert the user. This is a critical issue for cooking, as users may be away from the device or focused on other tasks when the timer completes.
+
+**Screenshots:** _N/A (audio issue)_
+
+**Research Findings:**
+_To be completed during research phase_
+
+**Tasks:**
+_To be defined after research_
+
+**Implementation:**
+_Pending_
+
+**Files Changed:**
+_Pending_
+
+**Verification:**
+- [ ] Sound plays when timer reaches 0:00
+- [ ] Sound is audible and distinct
+- [ ] Works on Modern frontend (desktop browser)
+
+---
+
+### QA-M: Timer Completion Sound (Legacy)
+
+**Issue:** QA-013 - Timer completion sound doesn't play
+**Affects:** Legacy
+**Status:** New
+
+**Problem:**
+On the Legacy frontend (iPad 3 / iOS 9) in Play Mode, when a timer completes (reaches 0:00), no sound is played to alert the user. This is a critical issue for cooking, as users may be away from the device or focused on other tasks when the timer completes.
+
+**Screenshots:** _N/A (audio issue)_
+
+**Research Findings:**
+_To be completed during research phase_
+
+**Tasks:**
+_To be defined after research_
+
+**Implementation:**
+_Pending_
+
+**Files Changed:**
+_Pending_
+
+**Verification:**
+- [ ] Sound plays when timer reaches 0:00
+- [ ] Sound is audible and distinct
+- [ ] Works on iPad 3 / iOS 9
+- [ ] ES5/iOS 9 audio API compatibility
+
+**Related:** QA-012 (same issue on Modern frontend) - likely same root cause affecting both frontends
+
+---
+
+### QA-N: Screen Wake Lock
+
+**Issue:** QA-014 - Screen locks during Play Mode
+**Affects:** Legacy
+**Status:** New
+
+**Problem:**
+On the Legacy frontend (iPad 3 / iOS 9) in Play Mode, the iPad screen locks after the device's auto-lock timeout (typically 2-5 minutes). When cooking, users are often away from the device or not actively touching the screen, and the screen locking interrupts their workflow - they must unlock the device to check timers or view instructions.
+
+**Screenshots:** _N/A (behavioral issue)_
+
+**Research Findings:**
+_To be completed during research phase_
+
+**Tasks:**
+_To be defined after research_
+
+**Implementation:**
+_Pending_
+
+**Files Changed:**
+_Pending_
+
+**Verification:**
+- [ ] Screen stays awake while in Play Mode
+- [ ] Screen returns to normal auto-lock behavior when exiting Play Mode
+- [ ] Works on iPad 3 / iOS 9
+- [ ] Modern frontend behavior (should also implement if possible)
+
+**Note:** This may require the Screen Wake Lock API or a workaround (e.g., playing a silent video loop). iOS 9 Safari may have limited support for wake lock functionality. Need to research available options for older iOS versions.
+
+---
+
+### QA-O: View All Link for Favorites
+
+**Issue:** QA-015 - No "View All" link for Favorites section
+**Affects:** Legacy + Modern
+**Status:** New
+
+**Problem:**
+On the home page, the "Recently Viewed" section has a "View All" link that navigates to a dedicated page showing all recipes. However, the "Favorites" section (displayed below Recently Viewed) does not have a similar "View All" link. This creates an inconsistent UX pattern and makes it unclear to users that they can view all their favorites.
+
+**Screenshots:** _To be added during testing_
+
+**Research Findings:**
+_To be completed during research phase_
+
+**Tasks:**
+_To be defined after research_
+
+**Implementation:**
+_Pending_
+
+**Files Changed:**
+_Pending_
+
+**Verification:**
+- [ ] "View All" link appears in Favorites section header on home page
+- [ ] Link shows favorite count (e.g., "View All (12)")
+- [ ] Clicking link navigates to existing Favorites page
+- [ ] Works on Legacy (iPad 3 / iOS 9)
+- [ ] Works on Modern (desktop browser)
+
+**Note:** This should be simpler than QA-005 since the Favorites page already exists. We just need to add the section header with the "View All" link to match the Recently Viewed pattern.
 
 ---
 
@@ -807,10 +1071,13 @@ Related to QA-006 (CSS gap fallbacks) - same class of iOS 9 CSS compatibility is
 
 **Found:** 2026-01-08 (Modern frontend)
 **Reporter:** Matt
+**Fixed:** 2026-01-08
 
 On the Modern frontend with dark mode enabled, the search input field has a text color issue. When the user types into the search box, the text is not readable - appearing as white or light text on a white or light background.
 
-This is likely caused by the input element not properly inheriting dark mode CSS variables, or having hardcoded light-mode colors.
+**Root cause:** The `--input-background` CSS variable was missing from the dark mode theme definition in `theme.css`. The input was falling back to the light mode background color (`#f4ede6` beige) while using dark mode text color (`#f5ebe0` light beige), resulting in light-on-light text.
+
+**Fix:** Added `--input-background: #3d3531;` to the `.dark` section in `theme.css`, matching the dark mode secondary color for consistency.
 
 ---
 
@@ -827,6 +1094,108 @@ When searching for recipes (e.g. "chicken"), image loading behaves differently b
 This suggests external image URLs are failing to load on Legacy (iOS 9 Safari) while working on Modern browsers. Could be CORS, mixed content, or user-agent related.
 
 **Screenshots:** `shots/ipad.PNG` (Legacy), `shots/firefox.png` (Modern)
+
+---
+
+### QA-010: Multiple timers have no spacing in Play Mode
+
+**Found:** 2026-01-08 (iPad 3 / iOS 9)
+**Reporter:** Matt
+
+When viewing Play Mode on a recipe that has more than one timer, the timer elements are stacked vertically with no visible spacing between them. The timers appear to be sitting directly on top of each other, making them visually cluttered and difficult to distinguish.
+
+**Root Cause:** Likely related to iOS 9's lack of support for CSS `gap` property in flexbox, similar to QA-006. The timer container probably uses `gap:` without a margin-based fallback for older Safari versions.
+
+**Expected behavior:** Timers should have adequate vertical spacing (likely 1rem/16px) between them to create visual separation and improve usability.
+
+Related to QA-006 (CSS gap fallbacks) - same class of iOS 9 CSS compatibility issues.
+
+---
+
+### QA-011: Timers don't auto-start when added in Play Mode
+
+**Found:** 2026-01-08 (Modern frontend)
+**Reporter:** Matt
+
+On the Modern frontend in Play Mode, when a user adds a timer from the instructions, it appears in the timer list but does not automatically start counting down. The user must manually tap the start button to begin the countdown.
+
+**Expected behavior:** When a timer is added in Play Mode, it should automatically start counting down without requiring an additional user action. This provides a smoother cooking experience where users can add a timer and immediately continue with the recipe.
+
+**Root Cause:** _To be investigated during research phase_
+
+---
+
+### QA-012: Timer completion sound doesn't play
+
+**Found:** 2026-01-08 (Modern frontend)
+**Reporter:** Matt
+
+On the Modern frontend in Play Mode, when a timer completes and reaches 0:00, no audio notification is played to alert the user. This is a critical usability issue for a cooking timer, as users may not be looking at the screen when the timer finishes.
+
+**Expected behavior:** When a timer completes, an audible sound/alert should play to notify the user that the timer has finished. The sound should be distinct and loud enough to be heard from a reasonable distance (e.g., across the kitchen).
+
+**Root Cause:** _To be investigated during research phase_
+
+**Related:** QA-013 - same issue affects Legacy frontend
+
+---
+
+### QA-013: Timer completion sound doesn't play (Legacy)
+
+**Found:** 2026-01-08 (iPad 3 / iOS 9)
+**Reporter:** Matt
+
+On the Legacy frontend in Play Mode (iPad 3 / iOS 9), when a timer completes and reaches 0:00, no audio notification is played to alert the user. This is a critical usability issue for a cooking timer, as users may not be looking at the screen when the timer finishes.
+
+**Expected behavior:** When a timer completes, an audible sound/alert should play to notify the user that the timer has finished. The sound should be distinct and loud enough to be heard from a reasonable distance (e.g., across the kitchen).
+
+**Root Cause:** _To be investigated during research phase_
+
+**Related:** QA-012 - same issue affects Modern frontend, suggesting a shared root cause (possibly missing audio file, broken audio API integration, or user interaction requirement for audio playback)
+
+**Note:** iOS Safari has strict autoplay policies that may require user interaction before audio can play. Need to investigate if this is blocking timer completion sounds.
+
+---
+
+### QA-014: Screen locks during Play Mode
+
+**Found:** 2026-01-08 (iPad 3 / iOS 9)
+**Reporter:** Matt
+
+On the Legacy frontend in Play Mode (iPad 3 / iOS 9), the device follows its normal auto-lock behavior and the screen locks after the configured timeout period. For cooking use cases, this is problematic because users are often not actively interacting with the device while following recipe steps, monitoring timers, or working with ingredients.
+
+**Expected behavior:** While in Play Mode, the screen should remain on and not auto-lock. When the user exits Play Mode, normal auto-lock behavior should resume.
+
+**Root Cause:** _To be investigated during research phase_
+
+**Implementation notes:**
+- The Screen Wake Lock API is the modern solution, but iOS 9 Safari likely doesn't support it
+- Common workaround: Play a silent/hidden video in a loop to prevent screen lock
+- Need to ensure wake lock is released when exiting Play Mode
+- Should also implement for Modern frontend if possible
+
+**Related:** This would significantly improve the cooking experience alongside fixing the timer issues (QA-010, QA-011, QA-012, QA-013)
+
+---
+
+### QA-015: No "View All" link for Favorites section
+
+**Found:** 2026-01-08 (Legacy + Modern)
+**Reporter:** Matt
+
+On the home page, the "Recently Viewed" section includes a "View All" link in the section header that shows the total count and navigates to the All Recipes page. The "Favorites" section below it does not have this same pattern - it shows favorite recipes but has no "View All" link in the header.
+
+**Expected behavior:** The Favorites section should have a section header with a "View All ({count})" link that navigates to the existing Favorites page, matching the pattern established by Recently Viewed in QA-005.
+
+**Root Cause:** Simple omission - the section header pattern wasn't applied to Favorites when it was added to Recently Viewed.
+
+**Implementation notes:**
+- Favorites page already exists at `/legacy/favorites/` and Modern has Favorites screen
+- Just need to add the `.section-header` with `.section-link` (Legacy) or equivalent (Modern)
+- Should follow the same pattern as QA-005 implementation
+- Need to pass `favorites_count` to the home template/component
+
+**Related:** QA-005 - this follows the same pattern established for Recently Viewed
 
 ---
 
@@ -855,8 +1224,8 @@ This suggests external image URLs are failing to load on Legacy (iOS 9 Safari) w
 Areas not yet tested on iOS 9:
 - [ ] Recipe detail page (all tabs)
 - [x] Play mode navigation (QA-004 logged)
-- [ ] Timer functionality (CRITICAL)
-- [ ] Multiple simultaneous timers
+- [ ] Timer functionality (CRITICAL) - In progress
+- [x] Multiple simultaneous timers (QA-010 logged - spacing issue)
 - [ ] Favorites add/remove
 - [ ] Collections CRUD
 - [ ] Serving adjustment UI
