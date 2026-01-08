@@ -196,3 +196,31 @@ class RecipeViewHistory(models.Model):
 
     def __str__(self):
         return f"{self.profile.name} viewed {self.recipe.title}"
+
+
+class CachedSearchImage(models.Model):
+    """Cached search result image for offline/iOS 9 compatibility."""
+
+    external_url = models.URLField(max_length=2000, unique=True, db_index=True)
+    image = models.ImageField(upload_to='search_images/', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_accessed_at = models.DateTimeField(auto_now=True)
+
+    STATUS_PENDING = 'pending'
+    STATUS_SUCCESS = 'success'
+    STATUS_FAILED = 'failed'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_SUCCESS, 'Success'),
+        (STATUS_FAILED, 'Failed'),
+    ]
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['created_at']),
+        ]
+
+    def __str__(self):
+        return f"Cached: {self.external_url}"

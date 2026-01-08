@@ -81,7 +81,7 @@ Cookie 2 is a recipe management application that allows users to:
 
 - **PlaySession model** - Play mode is now stateless, browser-only
 - **RecipeStep model** - Instructions stored as JSON array (recipe-scrapers format)
-- **Image proxy** - Images downloaded and stored locally at scrape time
+- **Image proxy** - Images downloaded and cached at search time, stored permanently at scrape/import time (two-tier: search cache + recipe storage)
 - **RecipeEnhancement for scaling** - Serving adjustment is computed on-the-fly, not persisted
 
 ### Added New
@@ -91,7 +91,7 @@ Cookie 2 is a recipe management application that allows users to:
 - **Discover AI suggestions** - AI generates search terms; results shown from running those searches
 - **AI Prompts settings tab** - Edit all 10 prompts without code changes
 - **15 curated search sources** - Most popular recipe sites with on/off toggles
-- **Image storage** - Scrape and store images locally, no proxy needed
+- **Image storage** - Two-tier: search results cached immediately (30-day TTL), recipes stored permanently at import
 - **Single environment** - Dev environment with hot reload using production-grade nginx
 - **Async scraping** - Parallel requests with curl_cffi AsyncSession for faster search
 - **AI Timer Naming** - AI generates descriptive labels for timers based on step content

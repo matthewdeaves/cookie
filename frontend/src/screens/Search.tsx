@@ -250,13 +250,16 @@ function SearchResultCard({
   onImport,
   importing,
 }: SearchResultCardProps) {
+  // Prefer cached image, fallback to external
+  const imageUrl = result.cached_image_url || result.image_url
+
   return (
     <div className="group overflow-hidden rounded-lg bg-card shadow-sm transition-all hover:shadow-md">
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-        {result.image_url ? (
+        {imageUrl ? (
           <img
-            src={result.image_url}
+            src={imageUrl}
             alt={result.title}
             className="h-full w-full object-cover transition-transform group-hover:scale-105"
           />

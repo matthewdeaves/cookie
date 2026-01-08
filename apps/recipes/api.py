@@ -2,6 +2,7 @@
 Recipe API endpoints.
 """
 
+import asyncio
 from typing import List, Optional
 
 from asgiref.sync import sync_to_async
@@ -12,6 +13,7 @@ from ninja import Router, Schema
 from apps.profiles.utils import get_current_profile_or_none
 
 from .models import Recipe
+from .services.image_cache import SearchImageCache
 from .services.scraper import RecipeScraper, FetchError, ParseError
 from .services.search import RecipeSearch
 
@@ -107,7 +109,8 @@ class SearchResultOut(Schema):
     url: str
     title: str
     host: str
-    image_url: str
+    image_url: str  # External URL (fallback)
+    cached_image_url: Optional[str] = None  # Local cached URL
     description: str
 
 
@@ -195,6 +198,7 @@ async def search_recipes(
     - **per_page**: Results per page (default 20)
 
     Returns recipe URLs from enabled search sources.
+    Uses cached images when available for iOS 9 compatibility.
     Use the scrape endpoint to save a recipe from the results.
     """
     source_list = None
@@ -208,7 +212,71 @@ async def search_recipes(
         page=page,
         per_page=per_page,
     )
+
+    # Extract image URLs from search results
+    image_urls = [r['image_url'] for r in results['results'] if r.get('image_url')]
+
+    # Look up already-cached images
+    image_cache = SearchImageCache()
+    cached_urls = await image_cache.get_cached_urls_batch(image_urls)
+
+    # Add cached_image_url to results
+    for result in results['results']:
+        external_url = result.get('image_url', '')
+        result['cached_image_url'] = cached_urls.get(external_url)
+
+    # Cache uncached images in background thread (fire-and-forget)
+    uncached_urls = [url for url in image_urls if url not in cached_urls]
+    if uncached_urls:
+        import threading
+        import asyncio
+
+        def cache_in_background():
+            """Run async cache_images in a new event loop (thread-safe)."""
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(image_cache.cache_images(uncached_urls))
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Background image caching failed: {e}")
+            finally:
+                loop.close()
+
+        # Start background thread (daemon=True so it doesn't block shutdown)
+        thread = threading.Thread(target=cache_in_background, daemon=True)
+        thread.start()
+
     return results
+
+
+@router.get('/cache/health/', response={200: dict})
+def cache_health(request):
+    """
+    Health check endpoint for image cache monitoring.
+
+    Returns cache statistics and status for monitoring the background
+    image caching system. Use this to verify caching is working correctly
+    and to track cache hit rates.
+    """
+    from apps.recipes.models import CachedSearchImage
+
+    total = CachedSearchImage.objects.count()
+    success = CachedSearchImage.objects.filter(status=CachedSearchImage.STATUS_SUCCESS).count()
+    pending = CachedSearchImage.objects.filter(status=CachedSearchImage.STATUS_PENDING).count()
+    failed = CachedSearchImage.objects.filter(status=CachedSearchImage.STATUS_FAILED).count()
+
+    return {
+        'status': 'healthy',
+        'cache_stats': {
+            'total': total,
+            'success': success,
+            'pending': pending,
+            'failed': failed,
+            'success_rate': f"{(success/total*100):.1f}%" if total > 0 else "N/A"
+        }
+    }
 
 
 # Dynamic routes with {recipe_id} must come last

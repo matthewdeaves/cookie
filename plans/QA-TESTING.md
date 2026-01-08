@@ -16,6 +16,8 @@
 | QA-005 | No "View All Recipes" link on home page | Legacy + Modern | Verified | QA-E |
 | QA-006 | Recipe detail layout/spacing issues (iOS 9 gap) | Legacy | Verified | QA-F |
 | QA-007 | Button icons off-center (Safari flexbox bug) | Legacy | Verified | QA-G |
+| QA-008 | Search input text unreadable in dark mode | Modern | New | QA-H |
+| QA-009 | Search results missing/broken images | Legacy + Modern | Verified | QA-I |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -72,6 +74,8 @@ After research is complete and tasks are defined:
 | QA-E | QA-005 | View All Recipes link |
 | QA-F | QA-006 | Recipe detail layout/spacing (iOS 9) |
 | QA-G | QA-007 | Button icons off-center (Safari) |
+| QA-H | QA-008 | Search input dark mode styling |
+| QA-I | QA-009 | Search results image loading |
 
 ---
 
@@ -578,6 +582,112 @@ Since SVGs are inline by default, `text-align: center` on the button may help as
 
 ---
 
+### QA-H: Search Input Dark Mode Styling
+
+**Issue:** QA-008 - Search input text unreadable in dark mode
+**Affects:** Modern
+**Status:** New
+
+**Problem:**
+On the Modern frontend, when dark mode is enabled, the text typed into the search input field is not readable - appears to be white text on a white or light background.
+
+**Research Findings:**
+
+_To investigate:_
+- Check search input styling in Home.tsx or related components
+- Verify CSS variables are being applied correctly for dark mode
+- Check if input has hardcoded colors instead of theme variables
+
+**Tasks:**
+- [ ] Research search input styling in Modern frontend
+- [ ] Identify cause of color mismatch in dark mode
+- [ ] Fix input text/background colors to use proper theme variables
+- [ ] Verify fix works in both light and dark modes
+
+**Files to Investigate:**
+- `frontend/src/screens/Home.tsx` - Search input component
+- `frontend/src/index.css` - Global styles and CSS variables
+
+---
+
+### QA-I: Search Results Image Loading
+
+**Issue:** QA-009 - Search results missing/broken images
+**Affects:** Legacy + Modern
+**Status:** Verified
+
+**Problem:**
+When searching for recipes (e.g. "chicken"), some recipe cards display broken/missing images:
+
+1. **Legacy (iPad/iOS 9):** Some recipes show white/blank boxes where images should be. These same recipes have working images on Modern frontend. Other recipes correctly show "No image" placeholder.
+
+2. **Modern:** Some recipes have working images, others show "No Image" placeholder. The "No Image" cases appear consistent between frontends.
+
+**Screenshots:** `shots/ipad.PNG`, `shots/firefox.png`
+
+**Observed behavior:**
+- "Chicken Makhani" - Image works on Modern, white box on Legacy
+- "Chicken Arroz Caldo" - Image works on Modern, white box on Legacy
+- "Garlic Chicken Fried" - Image works on Modern, white box on Legacy
+- "Recipes" (bbc.co.uk) - "No image" on both frontends
+- "In Season" (bbc.co.uk) - "No image" on both frontends
+- "Occasions" (bbc.co.uk) - "No image" on both frontends
+
+**Research Findings:**
+
+_Root cause:_
+- iOS 9 Safari cannot load external image URLs from third-party recipe sites due to CORS and security restrictions
+- External URLs work reliably on Modern browsers (Chrome, Firefox) but fail silently on Legacy
+- Failed images render as white/blank boxes (not broken image icons)
+- When source sites provide no image URL, both frontends correctly show "No image" placeholder
+
+_Solution approach:_
+- **Two-tier storage strategy:** Cache search result images to the server immediately (fire-and-forget)
+- Search API returns local `cached_image_url` when available, external `image_url` as fallback
+- When user imports a recipe, scraper reuses cached image (avoids re-download)
+- Cleanup removes unused cache entries after 30 days (keeps actively used images)
+- Recipe images stored permanently in `media/recipe_images/`, separate from cache
+
+_Why this fixes the issue:_
+- Legacy gets images from local server storage (no CORS/security issues)
+- Modern continues to use external URLs (faster, no server storage overhead)
+- Both frontends gracefully fall back to external URLs during initial cache period
+- Actively used images persist indefinitely (updated `last_accessed_at` prevents cleanup)
+
+_Files to modify:_
+- Model: `apps/recipes/models.py` - Add CachedSearchImage
+- Service: `apps/recipes/services/image_cache.py` (new) - Image caching logic
+- API: `apps/recipes/api.py` - Return cached_image_url in search results
+- Scraper: `apps/recipes/services/scraper.py` - Reuse cached images on import
+- Frontend: Legacy + Modern search result cards - Prefer cached images
+
+_Implementation plan:_
+See `plans/QA-009.md` for 4-session implementation breakdown with code snippets, test scenarios, and rollback strategy.
+
+**Tasks:**
+Follow the 10-session implementation plan in `plans/QA-009.md`:
+- [x] Session 1: Create CachedSearchImage model + image_cache.py service
+- [x] Session 2: Integrate caching in API + scraper
+- [x] Session 3: Update Legacy + Modern frontend templates/components
+- [x] Session 4: Create cleanup command + update documentation
+- [x] Session 5: Performance fix (threading-based background caching)
+- [x] Session 6: Image quality improvement (JPEG quality 92)
+- [x] Session 7: Production configuration (Gunicorn, monitoring)
+- [x] Session 8: Progressive image loading with spinners
+- [x] Session 9: Fix "Load More" polling (multi-page tracking)
+- [x] Session 10: Performance optimizations (DOM queries, early shutdown)
+
+**Implementation Complete:**
+All sessions completed successfully. See `plans/QA-009.md` for detailed implementation notes, critical bug fixes, and verification results.
+
+**Verification Confirmed:**
+- ✅ iOS 9 Legacy: Images load progressively with spinners
+- ✅ iOS 9 Legacy: "Load More" pagination works correctly
+- ✅ Modern browsers: High-quality cached images
+- ✅ Performance: Optimized DOM queries, immediate polling shutdown
+
+---
+
 ## Issue Details
 
 ### QA-001: Navigation bar missing menu links
@@ -690,6 +800,33 @@ The icons are still contained within the circles but are noticeably off-center, 
 **Root Cause:** Safari ignores `align-items` and `justify-content` when the flex container is a `<button>` element. This is a documented bug in the [flexbugs repository](https://github.com/philipwalton/flexbugs/issues/236).
 
 Related to QA-006 (CSS gap fallbacks) - same class of iOS 9 CSS compatibility issues.
+
+---
+
+### QA-008: Search input text unreadable in dark mode
+
+**Found:** 2026-01-08 (Modern frontend)
+**Reporter:** Matt
+
+On the Modern frontend with dark mode enabled, the search input field has a text color issue. When the user types into the search box, the text is not readable - appearing as white or light text on a white or light background.
+
+This is likely caused by the input element not properly inheriting dark mode CSS variables, or having hardcoded light-mode colors.
+
+---
+
+### QA-009: Search results missing/broken images
+
+**Found:** 2026-01-08 (iPad 3 / iOS 9 + Modern Firefox)
+**Reporter:** Matt
+
+When searching for recipes (e.g. "chicken"), image loading behaves differently between frontends:
+
+- **Modern frontend:** Most recipe images load correctly, some show "No Image" placeholder
+- **Legacy frontend:** Same recipes that have working images on Modern show as white/blank boxes on Legacy. Recipes with no images correctly show "No image" placeholder on both.
+
+This suggests external image URLs are failing to load on Legacy (iOS 9 Safari) while working on Modern browsers. Could be CORS, mixed content, or user-agent related.
+
+**Screenshots:** `shots/ipad.PNG` (Legacy), `shots/firefox.png` (Modern)
 
 ---
 

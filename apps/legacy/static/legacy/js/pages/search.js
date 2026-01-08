@@ -21,6 +21,16 @@ Cookie.pages.search = (function() {
         importing: null
     };
 
+    // Image polling state (progressive loading)
+    var imagePollingState = {
+        isPolling: false,
+        pendingUrls: {},  // Map of recipe_url -> {image_url, needs_cache}
+        pollInterval: null,
+        pollStartTime: null,
+        currentQuery: null,
+        loadedPages: []  // Track all pages that have been loaded
+    };
+
     // DOM elements
     var elements = {
         loading: null,
@@ -151,7 +161,14 @@ Cookie.pages.search = (function() {
                 return;
             }
 
+            var previousCount = state.results.length;
+
             if (reset) {
+                // Stop previous polling
+                stopImagePolling();
+                imagePollingState.pendingUrls = {};
+                imagePollingState.loadedPages = [];
+
                 state.results = response.results;
                 state.sites = response.sites;
                 renderSourceFilters();
@@ -163,8 +180,11 @@ Cookie.pages.search = (function() {
             state.total = response.total;
             state.hasMore = response.has_more;
 
-            renderResults(reset);
+            renderResults(reset, previousCount);
             updateSearchCount();
+
+            // Start image polling for uncached images
+            startImagePolling(response.results, state.query, page);
         });
     }
 
@@ -233,7 +253,7 @@ Cookie.pages.search = (function() {
     /**
      * Render search results
      */
-    function renderResults(reset) {
+    function renderResults(reset, previousCount) {
         hideElement(elements.loading);
 
         if (state.results.length === 0) {
@@ -249,13 +269,17 @@ Cookie.pages.search = (function() {
 
         // Render cards
         var html = '';
-        for (var i = 0; i < state.results.length; i++) {
-            html += renderSearchResultCard(state.results[i]);
-        }
-
         if (reset) {
+            // Render all results
+            for (var i = 0; i < state.results.length; i++) {
+                html += renderSearchResultCard(state.results[i]);
+            }
             elements.resultsGrid.innerHTML = html;
         } else {
+            // Only render NEW results (from previousCount onwards)
+            for (var i = previousCount; i < state.results.length; i++) {
+                html += renderSearchResultCard(state.results[i]);
+            }
             elements.resultsGrid.innerHTML += html;
         }
 
@@ -278,8 +302,10 @@ Cookie.pages.search = (function() {
      */
     function renderSearchResultCard(result) {
         var imageHtml = '';
-        if (result.image_url) {
-            imageHtml = '<img src="' + escapeHtml(result.image_url) + '" alt="' + escapeHtml(result.title) + '" loading="lazy">';
+        // Prefer cached image, fallback to external URL
+        var imageUrl = result.cached_image_url || result.image_url;
+        if (imageUrl) {
+            imageHtml = '<img src="' + escapeHtml(imageUrl) + '" alt="' + escapeHtml(result.title) + '" loading="lazy">';
         } else {
             imageHtml = '<div class="search-result-no-image"><span>No image</span></div>';
         }
@@ -383,6 +409,168 @@ Cookie.pages.search = (function() {
     function hideElement(el) {
         if (el) {
             el.classList.add('hidden');
+        }
+    }
+
+    /**
+     * Helper: Escape CSS selector
+     * Escapes special characters for use in CSS attribute selectors
+     */
+    function escapeSelector(str) {
+        if (!str) return '';
+        // Escape all special CSS characters: !"#$%&'()*+,./:;<=>?@[\]^`{|}~
+        // Keep alphanumeric, hyphen, and underscore unescaped
+        return str.replace(/([!"#$%&'()*+,.\/:;<=>?@\[\\\]^`{|}~])/g, '\\$1');
+    }
+
+    /**
+     * Start image polling for progressive loading
+     */
+    function startImagePolling(results, query, page) {
+        // Track which images need caching
+        for (var i = 0; i < results.length; i++) {
+            var result = results[i];
+            if (result.image_url && !result.cached_image_url) {
+                imagePollingState.pendingUrls[result.url] = {
+                    imageUrl: result.image_url,
+                    needsCache: true
+                };
+
+                // Show loading spinner on image placeholder
+                showImageLoadingSpinner(result.url);
+            }
+        }
+
+        // Add page to loaded pages if not already tracked
+        if (imagePollingState.loadedPages.indexOf(page) === -1) {
+            imagePollingState.loadedPages.push(page);
+        }
+
+        // Start polling if not already running
+        var hasPending = Object.keys(imagePollingState.pendingUrls).length > 0;
+        if (!imagePollingState.isPolling && hasPending) {
+            imagePollingState.isPolling = true;
+            imagePollingState.pollStartTime = Date.now();
+            imagePollingState.currentQuery = query;
+
+            pollForCachedImages();
+        }
+        // If polling already running, extend the duration for new images
+        else if (imagePollingState.isPolling && hasPending) {
+            // Reset timer to give new images time to cache
+            imagePollingState.pollStartTime = Date.now();
+        }
+    }
+
+    /**
+     * Poll for cached images
+     */
+    function pollForCachedImages() {
+        var MAX_POLL_DURATION = 20000; // 20 seconds
+        var POLL_INTERVAL = 4000; // 4 seconds
+
+        imagePollingState.pollInterval = setInterval(function() {
+            var elapsed = Date.now() - imagePollingState.pollStartTime;
+            var hasPendingImages = Object.keys(imagePollingState.pendingUrls).length > 0;
+
+            // Stop conditions
+            if (elapsed > MAX_POLL_DURATION || !hasPendingImages) {
+                stopImagePolling();
+                return;
+            }
+
+            // Poll ALL loaded pages to detect cached images
+            for (var i = 0; i < imagePollingState.loadedPages.length; i++) {
+                var page = imagePollingState.loadedPages[i];
+                var url = '/api/recipes/search/?q=' + encodeURIComponent(imagePollingState.currentQuery);
+                url += '&page=' + page;
+                if (state.selectedSource) {
+                    url += '&sources=' + encodeURIComponent(state.selectedSource);
+                }
+
+                Cookie.ajax.get(url, function(error, response) {
+                    if (!error && response && response.results) {
+                        updateCachedImages(response.results);
+                    }
+                });
+            }
+        }, POLL_INTERVAL);
+    }
+
+    /**
+     * Update cached images in displayed results
+     */
+    function updateCachedImages(results) {
+        for (var i = 0; i < results.length; i++) {
+            var result = results[i];
+
+            // Early exit if URL not pending (optimization: skip DOM query)
+            if (!imagePollingState.pendingUrls[result.url]) {
+                continue;
+            }
+
+            // Check if this result has a pending image that's now cached
+            if (result.cached_image_url) {
+                var card = document.querySelector('[data-url="' + escapeSelector(result.url) + '"]');
+                if (card) {
+                    var imgContainer = card.querySelector('.search-result-image');
+                    if (imgContainer) {
+                        // Replace loading spinner with actual image
+                        imgContainer.innerHTML = '<img src="' + escapeHtml(result.cached_image_url) +
+                                                '" alt="' + escapeHtml(result.title) + '" loading="lazy">';
+                    }
+                }
+
+                // Remove from pending list
+                delete imagePollingState.pendingUrls[result.url];
+            }
+        }
+
+        // Stop polling immediately if all images cached (optimization: no waiting for next interval)
+        if (Object.keys(imagePollingState.pendingUrls).length === 0) {
+            stopImagePolling();
+        }
+    }
+
+    /**
+     * Stop image polling
+     */
+    function stopImagePolling() {
+        if (imagePollingState.pollInterval) {
+            clearInterval(imagePollingState.pollInterval);
+            imagePollingState.pollInterval = null;
+            imagePollingState.isPolling = false;
+
+            // Hide any remaining loading spinners
+            hideAllLoadingSpinners();
+        }
+    }
+
+    /**
+     * Show loading spinner for image
+     */
+    function showImageLoadingSpinner(recipeUrl) {
+        var card = document.querySelector('[data-url="' + escapeSelector(recipeUrl) + '"]');
+        if (card) {
+            var imgContainer = card.querySelector('.search-result-image');
+            if (imgContainer) {
+                var existingImg = imgContainer.querySelector('img');
+                // Show spinner if no img exists, OR if img is using external URL (not cached)
+                if (!existingImg || (existingImg && !existingImg.src.includes('/media/search_images/'))) {
+                    imgContainer.innerHTML = '<div class="image-loading-spinner"></div>';
+                }
+            }
+        }
+    }
+
+    /**
+     * Hide all loading spinners
+     */
+    function hideAllLoadingSpinners() {
+        var spinners = document.querySelectorAll('.image-loading-spinner');
+        for (var i = 0; i < spinners.length; i++) {
+            // Replace with "No image" placeholder
+            spinners[i].parentElement.innerHTML = '<div class="search-result-no-image"><span>No image</span></div>';
         }
     }
 

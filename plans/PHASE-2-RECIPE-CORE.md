@@ -26,6 +26,10 @@
 - [ ] 2.2 SearchSource model with 15 curated sites (data migration)
 - [ ] 2.3 Async scraper service with curl_cffi
 - [ ] 2.4 Image download and local storage
+  - **Note:** QA-009 adds search result image caching (separate from recipe images)
+  - Recipe images: Permanent storage in `media/recipe_images/`
+  - Search cache: Temporary storage in `media/search_images/` (30-day TTL)
+  - See QA-TESTING.md QA-009 for search caching implementation
 - [ ] 2.5 Recipe API endpoints (scrape, list, detail, delete)
 - [ ] 2.6 Async multi-site search service
 - [ ] 2.7 Search API endpoint with source filtering

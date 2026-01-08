@@ -16,4 +16,5 @@ RUN mkdir -p /app/staticfiles
 EXPOSE 8000
 
 # Run gunicorn with auto-reload for development
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--reload", "--workers", "1", "cookie.wsgi:application"]
+# --threads 2: Allows concurrent requests and background threading
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--reload", "--workers", "2", "--threads", "2", "cookie.wsgi:application"]

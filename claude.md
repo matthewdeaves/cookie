@@ -54,7 +54,7 @@
 
 15. **Full recipe-scrapers support** - Database schema supports ALL fields from the library (ingredient_groups, equipment, dietary_restrictions, etc.)
 
-16. **Images stored locally** - Download and store images at scrape time, no proxy
+16. **Images stored locally** - Two-tier storage: (1) Search results cached immediately for iOS 9 compatibility, (2) Recipe images downloaded at import/scrape time and stored permanently. Search cache has 30-day TTL (cleanup via `cleanup_search_images` command), recipe images permanent.
 
 17. **Serving adjustment not persisted** - Computed on-the-fly via AI, original recipe data stays pristine. AI-only, no frontend math fallback.
 
@@ -135,3 +135,114 @@
 | Play mode state? | Stateless, browser-only |
 | Testing framework? | pytest |
 | Selector failure fallback? | AI suggests new selector |
+
+## Image Cache Monitoring
+
+The image caching system (QA-009) uses background threading to cache search result images for iOS 9 compatibility. Monitor system health and performance using these tools:
+
+### Health Check Endpoint
+
+Check cache status and statistics:
+```bash
+curl http://localhost/api/recipes/cache/health/
+```
+
+Returns:
+```json
+{
+  "status": "healthy",
+  "cache_stats": {
+    "total": 50,
+    "success": 48,
+    "pending": 0,
+    "failed": 2,
+    "success_rate": "96.0%"
+  }
+}
+```
+
+### Background Thread Activity
+
+View logs for background caching operations:
+```bash
+docker compose logs -f web | grep "Cached image from"
+docker compose logs -f web | grep "Background image caching"
+```
+
+### Database Queries
+
+Check cache statistics directly:
+```bash
+docker compose exec -T web python manage.py shell
+```
+
+```python
+from apps.recipes.models import CachedSearchImage
+CachedSearchImage.objects.filter(status='success').count()
+CachedSearchImage.objects.filter(status='failed').count()
+CachedSearchImage.objects.filter(status='pending').count()
+```
+
+### Performance Metrics
+
+Monitor search API response time:
+```bash
+time curl "http://localhost/api/recipes/search/?q=chicken"
+# Expected: 2-4 seconds (search + fire-and-forget caching)
+# Images appear on refresh/subsequent searches
+```
+
+### Cleanup Automation
+
+Run weekly cleanup to remove old cached images (30+ days):
+```bash
+# Dry run to preview deletions
+docker compose exec -T web python manage.py cleanup_search_images --days=30 --dry-run
+
+# Actually delete old images
+docker compose exec -T web python manage.py cleanup_search_images --days=30
+```
+
+Add to crontab for weekly automation:
+```bash
+# Run weekly on Sunday at 2am
+0 2 * * 0 cd /path/to/cookie && docker compose exec -T web python manage.py cleanup_search_images --days=30
+```
+
+### Image Quality Settings
+
+- **Format**: All images converted to JPEG for iOS 9 compatibility (no WebP support)
+- **Quality**: JPEG quality=92 for high-DPI displays (Retina, 4K)
+- **File sizes**: Average 50-100KB per image
+- **Storage**: Two-tier system
+  - Search cache: `media/search_images/` (30-day TTL)
+  - Recipe images: `media/recipe_images/` (permanent)
+
+### Production Configuration
+
+Gunicorn configured with threading support for background caching:
+```bash
+# Dockerfile CMD
+gunicorn --bind 0.0.0.0:8000 --reload --workers 2 --threads 2 cookie.wsgi:application
+```
+
+- **Workers**: 2 processes to handle concurrent requests
+- **Threads**: 2 threads per worker for background threading
+- **Worker class**: sync (default, compatible with threading.Thread)
+
+### Troubleshooting
+
+**Images not appearing:**
+1. Check health endpoint for failed caches
+2. Verify background threads are running (check logs)
+3. Check media directory permissions: `ls -l media/search_images/`
+
+**High failure rate:**
+1. Check logs for HTTP errors: `docker compose logs web | grep "Failed to cache"`
+2. Verify curl_cffi is working: Test scraping manually
+3. Check network connectivity to external recipe sites
+
+**Slow performance:**
+1. Verify threading is enabled (check Gunicorn config)
+2. Check for pending caches: May indicate thread backlog
+3. Monitor CPU/memory usage during searches

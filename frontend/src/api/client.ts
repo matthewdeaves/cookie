@@ -109,6 +109,7 @@ export interface SearchResult {
   title: string
   host: string
   image_url: string
+  cached_image_url: string | null
   description: string
 }
 

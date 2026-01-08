@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django.utils import timezone
 from curl_cffi.requests import AsyncSession
 from recipe_scrapers import scrape_html
 
@@ -70,10 +71,37 @@ class RecipeScraper:
         # Parse recipe data
         data = self._parse_recipe(html, url)
 
-        # Download image if available
+        # Check for cached search image first, then download if needed
         image_file = None
         if data.get('image_url'):
-            image_file = await self._download_image(data['image_url'])
+            # Try to reuse cached image from search results
+            from apps.recipes.models import CachedSearchImage
+
+            try:
+                cached = await sync_to_async(
+                    CachedSearchImage.objects.get
+                )(
+                    external_url=data['image_url'],
+                    status=CachedSearchImage.STATUS_SUCCESS
+                )
+
+                if cached.image:
+                    # Reuse cached image file
+                    with cached.image.open('rb') as f:
+                        image_file = ContentFile(f.read())
+
+                    # Update access time to prevent cleanup
+                    cached.last_accessed_at = timezone.now()
+                    await sync_to_async(cached.save)(update_fields=['last_accessed_at'])
+
+                    logger.info(f"Reused cached image for {data['image_url']}")
+
+            except CachedSearchImage.DoesNotExist:
+                pass
+
+            # If no cache, download as normal
+            if not image_file:
+                image_file = await self._download_image(data['image_url'])
 
         # Create recipe record
         recipe = Recipe(

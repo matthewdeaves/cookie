@@ -6,7 +6,9 @@ Expects: result (dict with url, title, host, image_url, description)
 <div class="search-result-card" data-url="{{ result.url }}">
     <!-- Image -->
     <div class="search-result-image">
-        {% if result.image_url %}
+        {% if result.cached_image_url %}
+        <img src="{{ result.cached_image_url }}" alt="{{ result.title }}" loading="lazy">
+        {% elif result.image_url %}
         <img src="{{ result.image_url }}" alt="{{ result.title }}" loading="lazy">
         {% else %}
         <div class="search-result-no-image">
