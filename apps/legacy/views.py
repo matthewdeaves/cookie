@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 
 from apps.core.models import AppSettings
 from apps.profiles.models import Profile
+from apps.ai.models import AIPrompt
 from apps.recipes.models import (
     Recipe,
     RecipeCollection,
@@ -311,4 +312,42 @@ def collection_detail(request, collection_id):
         'collection': collection,
         'items': items,
         'favorite_recipe_ids': favorite_recipe_ids,
+    })
+
+
+def settings(request):
+    """Settings screen - AI prompts configuration."""
+    profile_id = request.session.get('profile_id')
+    if not profile_id:
+        return redirect('legacy:profile_selector')
+
+    try:
+        profile = Profile.objects.get(id=profile_id)
+    except Profile.DoesNotExist:
+        del request.session['profile_id']
+        return redirect('legacy:profile_selector')
+
+    # Get app settings
+    app_settings = AppSettings.get()
+    ai_available = bool(app_settings.openrouter_api_key)
+
+    # Get all AI prompts
+    prompts = list(AIPrompt.objects.all().order_by('name'))
+
+    # Get available models
+    models = [
+        {'id': model_id, 'name': model_name}
+        for model_id, model_name in AIPrompt.AVAILABLE_MODELS
+    ]
+
+    return render(request, 'legacy/settings.html', {
+        'profile': {
+            'id': profile.id,
+            'name': profile.name,
+            'avatar_color': profile.avatar_color,
+        },
+        'ai_available': ai_available,
+        'default_model': app_settings.default_ai_model,
+        'prompts': prompts,
+        'models': models,
     })

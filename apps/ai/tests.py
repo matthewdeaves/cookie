@@ -1,9 +1,16 @@
 """Tests for the AI app."""
 
 import pytest
+from unittest.mock import Mock, patch, MagicMock
 from django.test import TestCase
 
+from apps.core.models import AppSettings
 from .models import AIPrompt
+from .services.openrouter import (
+    OpenRouterService,
+    AIUnavailableError,
+    AIResponseError,
+)
 from .services.validator import AIResponseValidator, ValidationError
 
 
@@ -201,3 +208,194 @@ class AIAPITests(TestCase):
             content_type='application/json'
         )
         assert response.status_code == 400
+
+
+class OpenRouterServiceTests(TestCase):
+    """Tests for the OpenRouter service."""
+
+    def test_init_requires_api_key(self):
+        """Test that service requires an API key."""
+        # Clear the API key from settings
+        settings = AppSettings.get()
+        settings.openrouter_api_key = ''
+        settings.save()
+
+        with pytest.raises(AIUnavailableError) as exc_info:
+            OpenRouterService()
+        assert 'not configured' in str(exc_info.value)
+
+    def test_init_with_explicit_key(self):
+        """Test initializing with an explicit API key."""
+        service = OpenRouterService(api_key='test-key-123')
+        assert service.api_key == 'test-key-123'
+
+    def test_is_available_without_key(self):
+        """Test is_available returns False without API key."""
+        settings = AppSettings.get()
+        settings.openrouter_api_key = ''
+        settings.save()
+
+        assert OpenRouterService.is_available() is False
+
+    def test_is_available_with_key(self):
+        """Test is_available returns True with API key."""
+        settings = AppSettings.get()
+        settings.openrouter_api_key = 'test-key-123'
+        settings.save()
+
+        assert OpenRouterService.is_available() is True
+
+    @patch('apps.ai.services.openrouter.OpenRouter')
+    def test_complete_success(self, mock_openrouter_class):
+        """Test successful completion request."""
+        # Setup mock
+        mock_client = MagicMock()
+        mock_openrouter_class.return_value.__enter__ = Mock(return_value=mock_client)
+        mock_openrouter_class.return_value.__exit__ = Mock(return_value=False)
+
+        mock_response = Mock()
+        mock_response.choices = [Mock(message=Mock(content='{"status": "ok"}'))]
+        mock_client.chat.send.return_value = mock_response
+
+        # Test
+        service = OpenRouterService(api_key='test-key')
+        result = service.complete(
+            system_prompt='Test system',
+            user_prompt='Test user',
+            json_response=True,
+        )
+
+        assert result == {'status': 'ok'}
+        mock_client.chat.send.assert_called_once()
+
+    @patch('apps.ai.services.openrouter.OpenRouter')
+    def test_complete_handles_code_block_json(self, mock_openrouter_class):
+        """Test completion handles JSON wrapped in code blocks."""
+        mock_client = MagicMock()
+        mock_openrouter_class.return_value.__enter__ = Mock(return_value=mock_client)
+        mock_openrouter_class.return_value.__exit__ = Mock(return_value=False)
+
+        mock_response = Mock()
+        mock_response.choices = [Mock(message=Mock(
+            content='```json\n{"title": "Test Recipe"}\n```'
+        ))]
+        mock_client.chat.send.return_value = mock_response
+
+        service = OpenRouterService(api_key='test-key')
+        result = service.complete(
+            system_prompt='Test',
+            user_prompt='Test',
+            json_response=True,
+        )
+
+        assert result == {'title': 'Test Recipe'}
+
+    @patch('apps.ai.services.openrouter.OpenRouter')
+    def test_complete_invalid_json(self, mock_openrouter_class):
+        """Test completion raises error for invalid JSON."""
+        mock_client = MagicMock()
+        mock_openrouter_class.return_value.__enter__ = Mock(return_value=mock_client)
+        mock_openrouter_class.return_value.__exit__ = Mock(return_value=False)
+
+        mock_response = Mock()
+        mock_response.choices = [Mock(message=Mock(content='not valid json'))]
+        mock_client.chat.send.return_value = mock_response
+
+        service = OpenRouterService(api_key='test-key')
+        with pytest.raises(AIResponseError) as exc_info:
+            service.complete(
+                system_prompt='Test',
+                user_prompt='Test',
+                json_response=True,
+            )
+        assert 'Invalid JSON' in str(exc_info.value)
+
+    @patch('apps.ai.services.openrouter.OpenRouter')
+    def test_complete_no_choices(self, mock_openrouter_class):
+        """Test completion raises error when no choices returned."""
+        mock_client = MagicMock()
+        mock_openrouter_class.return_value.__enter__ = Mock(return_value=mock_client)
+        mock_openrouter_class.return_value.__exit__ = Mock(return_value=False)
+
+        mock_response = Mock()
+        mock_response.choices = []
+        mock_client.chat.send.return_value = mock_response
+
+        service = OpenRouterService(api_key='test-key')
+        with pytest.raises(AIResponseError) as exc_info:
+            service.complete(
+                system_prompt='Test',
+                user_prompt='Test',
+            )
+        assert 'No choices' in str(exc_info.value)
+
+    @patch('apps.ai.services.openrouter.OpenRouter')
+    def test_complete_raw_text_response(self, mock_openrouter_class):
+        """Test completion with json_response=False returns raw content."""
+        mock_client = MagicMock()
+        mock_openrouter_class.return_value.__enter__ = Mock(return_value=mock_client)
+        mock_openrouter_class.return_value.__exit__ = Mock(return_value=False)
+
+        mock_response = Mock()
+        mock_response.choices = [Mock(message=Mock(content='Hello, world!'))]
+        mock_client.chat.send.return_value = mock_response
+
+        service = OpenRouterService(api_key='test-key')
+        result = service.complete(
+            system_prompt='Test',
+            user_prompt='Test',
+            json_response=False,
+        )
+
+        assert result == {'content': 'Hello, world!'}
+
+    @patch('apps.ai.services.openrouter.OpenRouter')
+    def test_test_connection_success(self, mock_openrouter_class):
+        """Test successful connection test."""
+        mock_client = MagicMock()
+        mock_openrouter_class.return_value.__enter__ = Mock(return_value=mock_client)
+        mock_openrouter_class.return_value.__exit__ = Mock(return_value=False)
+
+        mock_response = Mock()
+        mock_response.choices = [Mock(message=Mock(content='{"status": "ok"}'))]
+        mock_client.chat.send.return_value = mock_response
+
+        success, message = OpenRouterService.test_connection('test-key')
+        assert success is True
+        assert message == 'Connection successful'
+
+    def test_test_connection_no_key(self):
+        """Test connection test with empty key."""
+        success, message = OpenRouterService.test_connection('')
+        assert success is False
+        assert 'not provided' in message or 'not configured' in message
+
+
+@pytest.mark.asyncio
+class OpenRouterServiceAsyncTests(TestCase):
+    """Async tests for the OpenRouter service."""
+
+    @patch('apps.ai.services.openrouter.OpenRouter')
+    async def test_complete_async_success(self, mock_openrouter_class):
+        """Test successful async completion request."""
+        from unittest.mock import AsyncMock
+
+        mock_response = Mock()
+        mock_response.choices = [Mock(message=Mock(content='{"result": "success"}'))]
+
+        # Create a mock client with async context manager support
+        mock_client = MagicMock()
+        mock_client.chat.send_async = AsyncMock(return_value=mock_response)
+
+        # Mock the async context manager
+        mock_openrouter_class.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_openrouter_class.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        service = OpenRouterService(api_key='test-key')
+        result = await service.complete_async(
+            system_prompt='Test',
+            user_prompt='Test',
+            json_response=True,
+        )
+
+        assert result == {'result': 'success'}

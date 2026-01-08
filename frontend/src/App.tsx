@@ -9,6 +9,7 @@ import Favorites from './screens/Favorites'
 import AllRecipes from './screens/AllRecipes'
 import Collections from './screens/Collections'
 import CollectionDetail from './screens/CollectionDetail'
+import Settings from './screens/Settings'
 import { api, type Profile, type RecipeDetail as RecipeDetailType } from './api/client'
 
 type Screen =
@@ -21,6 +22,7 @@ type Screen =
   | 'all-recipes'
   | 'collections'
   | 'collection-detail'
+  | 'settings'
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('profile-selector')
@@ -223,6 +225,14 @@ function App() {
     setCurrentScreen('collections')
   }
 
+  const handleSettingsClick = () => {
+    setCurrentScreen('settings')
+  }
+
+  const handleSettingsBack = () => {
+    setCurrentScreen('home')
+  }
+
   const handleAddToNewCollection = (recipeId: number) => {
     setPendingRecipeForCollection(recipeId)
     setPreviousScreen('recipe-detail')
@@ -265,6 +275,7 @@ function App() {
           onFavoritesClick={handleFavoritesClick}
           onAllRecipesClick={handleAllRecipesClick}
           onCollectionsClick={handleCollectionsClick}
+          onSettingsClick={handleSettingsClick}
         />
       )}
       {currentScreen === 'search' && (
@@ -313,6 +324,9 @@ function App() {
           onRecipeClick={handleRecipeClickFromCollection}
           onDelete={handleCollectionDelete}
         />
+      )}
+      {currentScreen === 'settings' && (
+        <Settings onBack={handleSettingsBack} />
       )}
     </>
   )

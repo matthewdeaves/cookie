@@ -20,9 +20,9 @@
 - [x] 8A.1 OpenRouter service with configurable models
 - [x] 8A.2 AIPrompt model with 10 default prompts (data migration)
 - [x] 8A.3 AI response schema validation
-- [ ] 8A.4 React: AI Prompts settings UI (all 10 editable)
-- [ ] 8A.5 Legacy: AI Prompts settings UI
-- [ ] 8A.6 Write tests for OpenRouter service and schema validation
+- [x] 8A.4 React: AI Prompts settings UI (all 10 editable)
+- [x] 8A.5 Legacy: AI Prompts settings UI
+- [x] 8A.6 Write tests for OpenRouter service and schema validation
 
 ---
 
@@ -317,16 +317,16 @@ def seed_prompts(apps, schema_editor):
 ## Checkpoint (End of Phase)
 
 ```
-[ ] GET /api/settings/prompts/ - returns all 10 prompts
-[ ] AIPrompt.objects.count() == 10 in Django shell
-[ ] POST /api/settings/test-api-key/ with valid key - returns success
-[ ] POST /api/settings/test-api-key/ with invalid key - returns error
-[ ] GET /api/settings/ai-status/ without key - returns available: false
-[ ] React Settings > AI Prompts - shows all 10 prompts
-[ ] Edit prompt in React - saves and persists
-[ ] Legacy Settings > AI Prompts - same functionality works
-[ ] Schema validation test - malformed response raises error
-[ ] pytest - OpenRouter and validation tests pass
+[x] GET /api/settings/prompts/ - returns all 10 prompts
+[x] AIPrompt.objects.count() == 10 in Django shell
+[x] POST /api/settings/test-api-key/ with valid key - returns success
+[x] POST /api/settings/test-api-key/ with invalid key - returns error
+[x] GET /api/settings/ai-status/ without key - returns available: false
+[x] React Settings > AI Prompts - shows all 10 prompts
+[x] Edit prompt in React - saves and persists
+[x] Legacy Settings > AI Prompts - same functionality works
+[x] Schema validation test - malformed response raises error
+[x] pytest - OpenRouter and validation tests pass
 ```
 
 ---

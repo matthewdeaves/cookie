@@ -4,6 +4,43 @@ export interface Settings {
   ai_available: boolean
 }
 
+export interface AIStatus {
+  available: boolean
+  default_model: string
+}
+
+export interface AIModel {
+  id: string
+  name: string
+}
+
+export interface AIPrompt {
+  prompt_type: string
+  name: string
+  description: string
+  system_prompt: string
+  user_prompt_template: string
+  model: string
+  is_active: boolean
+}
+
+export interface AIPromptUpdate {
+  system_prompt?: string
+  user_prompt_template?: string
+  model?: string
+  is_active?: boolean
+}
+
+export interface TestApiKeyResponse {
+  success: boolean
+  message: string
+}
+
+export interface SaveApiKeyResponse {
+  success: boolean
+  message: string
+}
+
 export interface Profile {
   id: number
   name: string
@@ -153,6 +190,36 @@ async function request<T>(
 export const api = {
   settings: {
     get: () => request<Settings>('/settings/'),
+  },
+
+  ai: {
+    status: () => request<AIStatus>('/ai/status'),
+
+    testApiKey: (apiKey: string) =>
+      request<TestApiKeyResponse>('/ai/test-api-key', {
+        method: 'POST',
+        body: JSON.stringify({ api_key: apiKey }),
+      }),
+
+    saveApiKey: (apiKey: string) =>
+      request<SaveApiKeyResponse>('/ai/save-api-key', {
+        method: 'POST',
+        body: JSON.stringify({ api_key: apiKey }),
+      }),
+
+    models: () => request<AIModel[]>('/ai/models'),
+
+    prompts: {
+      list: () => request<AIPrompt[]>('/ai/prompts'),
+
+      get: (promptType: string) => request<AIPrompt>(`/ai/prompts/${promptType}`),
+
+      update: (promptType: string, data: AIPromptUpdate) =>
+        request<AIPrompt>(`/ai/prompts/${promptType}`, {
+          method: 'PUT',
+          body: JSON.stringify(data),
+        }),
+    },
   },
 
   profiles: {

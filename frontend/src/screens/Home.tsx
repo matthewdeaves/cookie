@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Moon, Sun, LogOut, Search, Sparkles, Heart, FolderOpen } from 'lucide-react'
+import { Moon, Sun, LogOut, Search, Sparkles, Heart, FolderOpen, Settings } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   api,
@@ -21,6 +21,7 @@ interface HomeProps {
   onFavoritesClick: () => void
   onAllRecipesClick: () => void
   onCollectionsClick: () => void
+  onSettingsClick: () => void
 }
 
 type Tab = 'favorites' | 'discover'
@@ -35,6 +36,7 @@ export default function Home({
   onFavoritesClick,
   onAllRecipesClick,
   onCollectionsClick,
+  onSettingsClick,
 }: HomeProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<Tab>('favorites')
@@ -124,6 +126,15 @@ export default function Home({
             ) : (
               <Sun className="h-5 w-5" />
             )}
+          </button>
+
+          {/* Settings */}
+          <button
+            onClick={onSettingsClick}
+            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label="Settings"
+          >
+            <Settings className="h-5 w-5" />
           </button>
 
           {/* Profile avatar */}

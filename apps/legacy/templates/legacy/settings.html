@@ -1,0 +1,213 @@
+{% extends 'legacy/base.html' %}
+{% load static %}
+
+{% block title %}Cookie - Settings{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'legacy/css/settings.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="screen" data-page="settings">
+    <!-- Header -->
+    <header class="header">
+        <a href="{% url 'legacy:home' %}" class="header-back">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m12 19-7-7 7-7"></path>
+                <path d="M19 12H5"></path>
+            </svg>
+        </a>
+        <span class="header-title">Settings</span>
+        <div class="header-spacer"></div>
+    </header>
+
+    <div class="container container-wide p-4">
+        <!-- Tab toggle (API/Prompts) -->
+        <div class="flex justify-center mb-6">
+            <div class="tab-toggle">
+                <button type="button" class="tab-toggle-btn active" data-tab="api">
+                    API Settings
+                </button>
+                <button type="button" class="tab-toggle-btn" data-tab="prompts">
+                    AI Prompts
+                </button>
+            </div>
+        </div>
+
+        <!-- API Tab Content -->
+        <div id="tab-api" class="tab-content">
+            <div class="card">
+                <h2 class="settings-section-title">OpenRouter API</h2>
+
+                <!-- Status indicator -->
+                <div class="api-status mb-4">
+                    <span class="status-dot {% if ai_available %}status-connected{% else %}status-disconnected{% endif %}"></span>
+                    <span class="status-text">{% if ai_available %}Connected{% else %}Not configured{% endif %}</span>
+                </div>
+
+                {% if ai_available %}
+                <div class="api-info mb-4">
+                    <span class="api-info-label">Default model:</span>
+                    <span class="model-badge" id="current-model">{{ default_model }}</span>
+                </div>
+                {% endif %}
+
+                <!-- API Key input -->
+                <div class="form-group">
+                    <label for="api-key-input" class="form-label">
+                        {% if ai_available %}Update API Key{% else %}API Key{% endif %}
+                    </label>
+                    <input
+                        type="password"
+                        id="api-key-input"
+                        class="input"
+                        placeholder="sk-or-v1-..."
+                    >
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" id="test-key-btn" class="btn btn-secondary" disabled>
+                        <span class="btn-icon-wrapper">
+                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            <span id="test-key-text">Test Key</span>
+                        </span>
+                    </button>
+                    <button type="button" id="save-key-btn" class="btn btn-primary" disabled>
+                        <span class="btn-icon-wrapper">
+                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+                            </svg>
+                            <span id="save-key-text">Save Key</span>
+                        </span>
+                    </button>
+                </div>
+
+                <p class="api-help-text">
+                    Get your API key from
+                    <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" class="link">openrouter.ai/keys</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Prompts Tab Content -->
+        <div id="tab-prompts" class="tab-content hidden">
+            <!-- Info banner -->
+            <div class="info-banner mb-4">
+                <svg class="info-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 16v-4"></path>
+                    <path d="M12 8h.01"></path>
+                </svg>
+                <div>
+                    <strong>AI Prompts Configuration</strong>
+                    <p class="info-text">Customize the prompts used for AI features. Each prompt has a system prompt that sets the AI's behavior and a user prompt template with placeholders.</p>
+                </div>
+            </div>
+
+            {% if not ai_available %}
+            <div class="warning-banner mb-4">
+                <svg class="warning-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                    <path d="M12 9v4"></path>
+                    <path d="M12 17h.01"></path>
+                </svg>
+                <span>Configure your OpenRouter API key in the API Settings tab to enable AI features.</span>
+            </div>
+            {% endif %}
+
+            <!-- Prompt cards -->
+            {% for prompt in prompts %}
+            <div class="prompt-card" data-prompt-type="{{ prompt.prompt_type }}">
+                <div class="prompt-header">
+                    <div class="prompt-info">
+                        <h3 class="prompt-name">{{ prompt.name }}</h3>
+                        {% if not prompt.is_active %}
+                        <span class="prompt-disabled-badge">Disabled</span>
+                        {% endif %}
+                        <p class="prompt-description">{{ prompt.description }}</p>
+                        <span class="model-badge">{{ prompt.model }}</span>
+                    </div>
+                    <div class="prompt-actions">
+                        <button type="button" class="btn-expand" data-action="toggle-expand">
+                            <svg class="icon-expand" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m6 9 6 6 6-6"></path>
+                            </svg>
+                            <svg class="icon-collapse hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m18 15-6-6-6 6"></path>
+                            </svg>
+                        </button>
+                        <button type="button" class="btn btn-edit" data-action="edit">Edit</button>
+                    </div>
+                </div>
+
+                <!-- Expandable content (read-only view) -->
+                <div class="prompt-content hidden">
+                    <div class="form-group">
+                        <label class="form-label form-label-muted">System Prompt</label>
+                        <pre class="prompt-text">{{ prompt.system_prompt }}</pre>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label form-label-muted">User Prompt Template</label>
+                        <pre class="prompt-text">{{ prompt.user_prompt_template }}</pre>
+                    </div>
+                </div>
+
+                <!-- Edit form (hidden by default) -->
+                <div class="prompt-edit-form hidden">
+                    <div class="form-group">
+                        <label class="form-label">System Prompt</label>
+                        <textarea class="input textarea" rows="6" data-field="system_prompt">{{ prompt.system_prompt }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">User Prompt Template</label>
+                        <textarea class="input textarea" rows="4" data-field="user_prompt_template">{{ prompt.user_prompt_template }}</textarea>
+                        <p class="form-help">Use {'{placeholders}'} for dynamic content</p>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group form-group-flex">
+                            <label class="form-label">Model</label>
+                            <select class="input select" data-field="model">
+                                {% for model in models %}
+                                <option value="{{ model.id }}" {% if model.id == prompt.model %}selected{% endif %}>{{ model.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <button type="button" class="btn-status {% if prompt.is_active %}btn-status-active{% else %}btn-status-disabled{% endif %}" data-field="is_active" data-value="{% if prompt.is_active %}true{% else %}false{% endif %}">
+                                {% if prompt.is_active %}Active{% else %}Disabled{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" data-action="cancel">
+                            <span class="btn-icon-wrapper">
+                                <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 6 6 18"></path>
+                                    <path d="m6 6 12 12"></path>
+                                </svg>
+                                Cancel
+                            </span>
+                        </button>
+                        <button type="button" class="btn btn-primary" data-action="save">
+                            <span class="btn-icon-wrapper">
+                                <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                <span class="save-btn-text">Save Changes</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'legacy/js/pages/settings.js' %}"></script>
+{% endblock %}
