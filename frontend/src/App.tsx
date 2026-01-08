@@ -285,14 +285,16 @@ function App() {
           onImport={handleImport}
         />
       )}
-      {currentScreen === 'recipe-detail' && selectedRecipeId && (
+      {currentScreen === 'recipe-detail' && selectedRecipeId && currentProfile && (
         <RecipeDetail
           recipeId={selectedRecipeId}
+          profileId={currentProfile.id}
           isFavorite={favoriteRecipeIds.has(selectedRecipeId)}
           onBack={selectedCollectionId ? handleRecipeDetailBackFromCollection : handleRecipeDetailBack}
           onFavoriteToggle={handleFavoriteToggle}
           onStartCooking={handleStartCooking}
           onAddToNewCollection={handleAddToNewCollection}
+          onRemixCreated={handleRecipeClick}
         />
       )}
       {currentScreen === 'play-mode' && playModeRecipe && (

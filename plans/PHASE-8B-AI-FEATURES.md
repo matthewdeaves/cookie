@@ -22,14 +22,14 @@
 
 ## Tasks
 
-- [ ] 8B.1 React: Recipe remix feature with AI suggestions modal
-- [ ] 8B.2 Legacy: Recipe remix feature
+- [x] 8B.1 React: Recipe remix feature with AI suggestions modal
+- [x] 8B.2 Legacy: Recipe remix feature
 - [ ] 8B.3 Serving adjustment API (AI-only, not persisted)
 - [ ] 8B.4 Tips generation service (cached in ai_tips field)
 - [ ] 8B.5 Discover AI suggestions (3 types combined into feed)
 - [ ] 8B.6 Search result ranking
 - [ ] 8B.7 Timer naming
-- [ ] 8B.8 Remix suggestions (contextual prompts per recipe)
+- [x] 8B.8 Remix suggestions (contextual prompts per recipe)
 - [ ] 8B.9 Selector repair (AI-powered auto-fix for broken sources)
 - [ ] 8B.10 Write tests for all AI features and fallback behavior
 

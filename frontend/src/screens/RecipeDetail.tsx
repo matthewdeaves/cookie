@@ -19,25 +19,30 @@ import {
 } from '../api/client'
 import { cn } from '../lib/utils'
 import AddToCollectionDropdown from '../components/AddToCollectionDropdown'
+import RemixModal from '../components/RemixModal'
 
 interface RecipeDetailProps {
   recipeId: number
+  profileId: number
   isFavorite: boolean
   onBack: () => void
   onFavoriteToggle: (recipe: RecipeDetailType) => void
   onStartCooking: (recipe: RecipeDetailType) => void
   onAddToNewCollection: (recipeId: number) => void
+  onRemixCreated: (recipeId: number) => void
 }
 
 type Tab = 'ingredients' | 'instructions' | 'nutrition' | 'tips'
 
 export default function RecipeDetail({
   recipeId,
+  profileId,
   isFavorite,
   onBack,
   onFavoriteToggle,
   onStartCooking,
   onAddToNewCollection,
+  onRemixCreated,
 }: RecipeDetailProps) {
   const [recipe, setRecipe] = useState<RecipeDetailType | null>(null)
   const [settings, setSettings] = useState<Settings | null>(null)
@@ -45,6 +50,7 @@ export default function RecipeDetail({
   const [activeTab, setActiveTab] = useState<Tab>('ingredients')
   const [metaExpanded, setMetaExpanded] = useState(true)
   const [servings, setServings] = useState<number | null>(null)
+  const [showRemixModal, setShowRemixModal] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -174,13 +180,15 @@ export default function RecipeDetail({
             recipeId={recipeId}
             onCreateNew={() => onAddToNewCollection(recipeId)}
           />
-          <button
-            onClick={() => toast.info('Remix coming in Phase 8')}
-            className="rounded-full bg-black/40 p-2 text-white backdrop-blur-sm transition-colors hover:text-primary"
-            title="Remix recipe"
-          >
-            <Sparkles className="h-5 w-5" />
-          </button>
+          {settings?.ai_available && (
+            <button
+              onClick={() => setShowRemixModal(true)}
+              className="rounded-full bg-black/40 p-2 text-white backdrop-blur-sm transition-colors hover:text-primary"
+              title="Remix recipe"
+            >
+              <Sparkles className="h-5 w-5" />
+            </button>
+          )}
           <button
             onClick={() => onStartCooking(recipe)}
             className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
@@ -328,6 +336,15 @@ export default function RecipeDetail({
           <TipsTab recipe={recipe} aiAvailable={settings?.ai_available} />
         )}
       </div>
+
+      {/* Remix Modal */}
+      <RemixModal
+        recipe={recipe}
+        profileId={profileId}
+        isOpen={showRemixModal}
+        onClose={() => setShowRemixModal(false)}
+        onRemixCreated={onRemixCreated}
+      />
     </div>
   )
 }

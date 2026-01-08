@@ -7,9 +7,13 @@ from typing import List, Optional
 from ninja import Router, Schema
 
 from apps.core.models import AppSettings
+from apps.profiles.models import Profile
+from apps.recipes.models import Recipe
 
 from .models import AIPrompt
-from .services.openrouter import OpenRouterService, AIUnavailableError
+from .services.openrouter import OpenRouterService, AIUnavailableError, AIResponseError
+from .services.remix import get_remix_suggestions, create_remix
+from .services.validator import ValidationError
 
 router = Router(tags=['ai'])
 
@@ -159,3 +163,109 @@ def list_models(request):
         {'id': model_id, 'name': model_name}
         for model_id, model_name in AIPrompt.AVAILABLE_MODELS
     ]
+
+
+# Remix Schemas
+
+class RemixSuggestionsIn(Schema):
+    recipe_id: int
+
+
+class RemixSuggestionsOut(Schema):
+    suggestions: List[str]
+
+
+class CreateRemixIn(Schema):
+    recipe_id: int
+    modification: str
+    profile_id: int
+
+
+class RemixOut(Schema):
+    id: int
+    title: str
+    description: str
+    ingredients: List[str]
+    instructions: List[dict]
+    host: str
+    site_name: str
+    is_remix: bool
+    prep_time: Optional[int] = None
+    cook_time: Optional[int] = None
+    total_time: Optional[int] = None
+    yields: str = ''
+    servings: Optional[int] = None
+
+
+# Remix Endpoints
+
+@router.post('/remix-suggestions', response={200: RemixSuggestionsOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+def remix_suggestions(request, data: RemixSuggestionsIn):
+    """Get 6 AI-generated remix suggestions for a recipe."""
+    try:
+        suggestions = get_remix_suggestions(data.recipe_id)
+        return {'suggestions': suggestions}
+    except Recipe.DoesNotExist:
+        return 404, {
+            'error': 'not_found',
+            'message': f'Recipe {data.recipe_id} not found',
+        }
+    except AIUnavailableError as e:
+        return 503, {
+            'error': 'ai_unavailable',
+            'message': str(e),
+        }
+    except (AIResponseError, ValidationError) as e:
+        return 400, {
+            'error': 'ai_error',
+            'message': str(e),
+        }
+
+
+@router.post('/remix', response={200: RemixOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+def create_remix_endpoint(request, data: CreateRemixIn):
+    """Create a remixed recipe using AI."""
+    try:
+        profile = Profile.objects.get(id=data.profile_id)
+    except Profile.DoesNotExist:
+        return 404, {
+            'error': 'not_found',
+            'message': f'Profile {data.profile_id} not found',
+        }
+
+    try:
+        remix = create_remix(
+            recipe_id=data.recipe_id,
+            modification=data.modification,
+            profile=profile,
+        )
+        return {
+            'id': remix.id,
+            'title': remix.title,
+            'description': remix.description,
+            'ingredients': remix.ingredients,
+            'instructions': remix.instructions,
+            'host': remix.host,
+            'site_name': remix.site_name,
+            'is_remix': remix.is_remix,
+            'prep_time': remix.prep_time,
+            'cook_time': remix.cook_time,
+            'total_time': remix.total_time,
+            'yields': remix.yields,
+            'servings': remix.servings,
+        }
+    except Recipe.DoesNotExist:
+        return 404, {
+            'error': 'not_found',
+            'message': f'Recipe {data.recipe_id} not found',
+        }
+    except AIUnavailableError as e:
+        return 503, {
+            'error': 'ai_unavailable',
+            'message': str(e),
+        }
+    except (AIResponseError, ValidationError) as e:
+        return 400, {
+            'error': 'ai_error',
+            'message': str(e),
+        }

@@ -31,6 +31,26 @@ export interface AIPromptUpdate {
   is_active?: boolean
 }
 
+export interface RemixSuggestionsResponse {
+  suggestions: string[]
+}
+
+export interface RemixResponse {
+  id: number
+  title: string
+  description: string
+  ingredients: string[]
+  instructions: { text: string }[]
+  host: string
+  site_name: string
+  is_remix: boolean
+  prep_time: number | null
+  cook_time: number | null
+  total_time: number | null
+  yields: string
+  servings: number | null
+}
+
 export interface TestApiKeyResponse {
   success: boolean
   message: string
@@ -218,6 +238,24 @@ export const api = {
         request<AIPrompt>(`/ai/prompts/${promptType}`, {
           method: 'PUT',
           body: JSON.stringify(data),
+        }),
+    },
+
+    remix: {
+      getSuggestions: (recipeId: number) =>
+        request<RemixSuggestionsResponse>('/ai/remix-suggestions', {
+          method: 'POST',
+          body: JSON.stringify({ recipe_id: recipeId }),
+        }),
+
+      create: (recipeId: number, modification: string, profileId: number) =>
+        request<RemixResponse>('/ai/remix', {
+          method: 'POST',
+          body: JSON.stringify({
+            recipe_id: recipeId,
+            modification,
+            profile_id: profileId,
+          }),
         }),
     },
   },

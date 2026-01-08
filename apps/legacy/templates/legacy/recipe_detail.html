@@ -79,6 +79,24 @@
                     </svg>
                 </span>
             </button>
+            {% if ai_available %}
+            <button
+                type="button"
+                id="remix-btn"
+                class="hero-action-btn"
+                title="Remix recipe"
+            >
+                <span class="btn-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                        <path d="M5 3v4"></path>
+                        <path d="M19 17v4"></path>
+                        <path d="M3 5h4"></path>
+                        <path d="M17 19h4"></path>
+                    </svg>
+                </span>
+            </button>
+            {% endif %}
             <button
                 type="button"
                 id="cook-btn"
@@ -342,6 +360,71 @@
             </div>
         </div>
     </div>
+
+    {% if ai_available %}
+    <!-- Remix Modal -->
+    <div id="remix-modal" class="modal-overlay hidden" data-profile-id="{{ profile.id }}">
+        <div class="modal remix-modal">
+            <div class="modal-header">
+                <div class="modal-header-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                        <path d="M5 3v4"></path>
+                        <path d="M19 17v4"></path>
+                        <path d="M3 5h4"></path>
+                        <path d="M17 19h4"></path>
+                    </svg>
+                </div>
+                <h2 class="modal-title">Remix This Recipe</h2>
+                <button type="button" id="remix-modal-close" class="modal-close">
+                    <span class="btn-icon-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 6 6 18"></path>
+                            <path d="m6 6 12 12"></path>
+                        </svg>
+                    </span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="remix-description">Choose a modification or describe your own remix of "{{ recipe.title }}"</p>
+
+                <!-- AI Suggestions -->
+                <div class="remix-section">
+                    <h3 class="remix-section-title">Suggestions</h3>
+                    <div id="remix-suggestions" class="remix-suggestions">
+                        <div class="remix-loading">
+                            <div class="spinner"></div>
+                            <span>Generating suggestions...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Input -->
+                <div class="remix-section">
+                    <label for="remix-custom-input" class="remix-section-title">Or describe your own remix</label>
+                    <input
+                        type="text"
+                        id="remix-custom-input"
+                        class="input"
+                        placeholder="e.g., Make it gluten-free"
+                    >
+                </div>
+
+                <!-- Create Button -->
+                <button type="button" id="remix-create-btn" class="btn btn-primary w-full" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                        <path d="M5 3v4"></path>
+                        <path d="M19 17v4"></path>
+                        <path d="M3 5h4"></path>
+                        <path d="M17 19h4"></path>
+                    </svg>
+                    <span id="remix-btn-text">Create Remix</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
 
