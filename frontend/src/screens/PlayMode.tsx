@@ -5,6 +5,7 @@ import type { RecipeDetail } from '../api/client'
 import { useTimers } from '../hooks/useTimers'
 import TimerPanel from '../components/TimerPanel'
 import { cn } from '../lib/utils'
+import { unlockAudio, playTimerAlert } from '../lib/audio'
 
 interface PlayModeProps {
   recipe: RecipeDetail
@@ -27,21 +28,23 @@ export default function PlayMode({ recipe, onExit }: PlayModeProps) {
   // Timer completion handler
   const handleTimerComplete = useCallback(
     (timer: { label: string }) => {
+      // Play audio alert
+      playTimerAlert()
+
       // Show toast notification
       toast.success(`Timer complete: ${timer.label}`, {
         duration: 10000,
       })
 
-      // Play browser notification sound
+      // Show browser notification (may include system sound)
       try {
-        // Request notification permission and show notification
         if ('Notification' in window && Notification.permission === 'granted') {
           new Notification('Timer Complete!', {
             body: timer.label,
             icon: '/favicon.ico',
           })
         }
-      } catch (e) {
+      } catch {
         // Notification not supported or blocked
       }
     },
@@ -50,11 +53,14 @@ export default function PlayMode({ recipe, onExit }: PlayModeProps) {
 
   const timers = useTimers(handleTimerComplete)
 
-  // Request notification permission on mount
+  // Request notification permission and unlock audio on mount
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission()
     }
+    // Unlock audio for iOS (requires user interaction context)
+    // This works because entering Play Mode requires a button click
+    unlockAudio()
   }, [])
 
   const currentInstruction = instructions[currentStep] || ''

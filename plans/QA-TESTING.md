@@ -20,10 +20,11 @@
 | QA-009 | Search results missing/broken images | Legacy + Modern | Verified | QA-I |
 | QA-010 | Multiple timers have no spacing in Play Mode | Legacy | Verified | QA-J |
 | QA-011 | Timers don't auto-start when added in Play Mode | Modern | Verified | QA-K |
-| QA-012 | Timer completion sound doesn't play | Modern | New | QA-L |
-| QA-013 | Timer completion sound doesn't play | Legacy | New | QA-M |
+| QA-012 | Timer completion sound doesn't play | Modern | Verified | QA-L |
+| QA-013 | Timer completion sound doesn't play | Legacy | Fixed | QA-M |
 | QA-014 | Screen locks during Play Mode | Legacy | New | QA-N |
 | QA-015 | No "View All" link for Favorites section | Legacy + Modern | New | QA-O |
+| QA-016 | Back button after import goes to home instead of search results | Modern | New | QA-P |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -88,6 +89,7 @@ After research is complete and tasks are defined:
 | QA-M | QA-013 | Timer completion sound (Legacy) |
 | QA-N | QA-014 | Screen wake lock (Legacy) |
 | QA-O | QA-015 | View All link for Favorites |
+| QA-P | QA-016 | Modern back button after import |
 
 ---
 
@@ -893,7 +895,7 @@ _Recommended fix approach:_
 
 **Issue:** QA-012 - Timer completion sound doesn't play
 **Affects:** Modern
-**Status:** New
+**Status:** Verified
 
 **Problem:**
 On the Modern frontend in Play Mode, when a timer completes (reaches 0:00), no sound is played to alert the user. This is a critical issue for cooking, as users may be away from the device or focused on other tasks when the timer completes.
@@ -933,17 +935,26 @@ _Files to modify:_
 **Recommended approach:** Use Web Audio API to generate a pleasant beep tone when timer completes. This matches the design intent (no custom audio files) and works reliably across browsers. Pre-unlock audio context when user enters Play Mode to handle iOS restrictions.
 
 **Tasks:**
-- [ ] Create audio utility with Web Audio API beep function
-- [ ] Unlock audio context on Play Mode mount (iOS compatibility)
-- [ ] Call audio alert in `handleTimerComplete` callback
+- [x] Create audio utility with Web Audio API beep function
+- [x] Unlock audio context on Play Mode mount (iOS compatibility)
+- [x] Call audio alert in `handleTimerComplete` callback
 - [ ] Test on desktop browsers (Chrome, Firefox, Safari)
 - [ ] Test audio restrictions on mobile (may need user interaction)
 
 **Implementation:**
-_Pending_
+- Created `frontend/src/lib/audio.ts` with Web Audio API utility:
+  - `getAudioContext()` - Singleton AudioContext with webkitAudioContext fallback
+  - `unlockAudio()` - Plays silent buffer to unlock iOS audio restrictions
+  - `playTimerAlert()` - Plays pleasant three-tone beep (A5-A5-E5 pattern)
+  - `playTone()` - Low-level tone generator with smooth gain envelope
+- Updated `PlayMode.tsx` to:
+  - Import audio utilities
+  - Call `unlockAudio()` on component mount (useEffect)
+  - Call `playTimerAlert()` in `handleTimerComplete` callback
 
 **Files Changed:**
-_Pending_
+- `frontend/src/lib/audio.ts` - New file with Web Audio API utilities
+- `frontend/src/screens/PlayMode.tsx` - Added audio import and calls
 
 **Verification:**
 - [ ] Sound plays when timer reaches 0:00
@@ -957,7 +968,7 @@ _Pending_
 
 **Issue:** QA-013 - Timer completion sound doesn't play
 **Affects:** Legacy
-**Status:** New
+**Status:** Fixed
 
 **Problem:**
 On the Legacy frontend (iPad 3 / iOS 9) in Play Mode, when a timer completes (reaches 0:00), no sound is played to alert the user. This is a critical issue for cooking, as users may be away from the device or focused on other tasks when the timer completes.
@@ -965,16 +976,35 @@ On the Legacy frontend (iPad 3 / iOS 9) in Play Mode, when a timer completes (re
 **Screenshots:** _N/A (audio issue)_
 
 **Research Findings:**
-_To be completed during research phase_
+
+_Root cause:_
+- Legacy `timer.js:195-203` had `playSound()` function trying to load `/static/legacy/audio/timer.mp3`
+- The audio file did not exist, causing silent failure
+- iOS 9 requires user interaction before audio playback ("unlock")
+
+_Solution:_
+- Replace HTML5 Audio with Web Audio API (ES5 compatible)
+- Use `webkitAudioContext` fallback for iOS 9 Safari
+- Add `unlockAudio()` called from `requestPermission()` (which runs on Play Mode entry)
+- Generate beep tones programmatically (no audio file needed)
 
 **Tasks:**
-_To be defined after research_
+- [x] Add Web Audio API singleton and unlock function
+- [x] Add `playTone()` helper for generating beeps
+- [x] Replace `playSound()` with Web Audio API implementation
+- [x] Call `unlockAudio()` from `requestPermission()`
+- [x] Export `unlockAudio` in public API
+- [ ] Test on iPad 3 / iOS 9
 
 **Implementation:**
-_Pending_
+- Added audio context singleton with `webkitAudioContext` fallback
+- Added `unlockAudio()` - plays silent buffer to enable iOS audio
+- Added `playTone()` - generates sine wave with gain envelope
+- Updated `playSound()` - plays A5-A5-E5 three-tone beep pattern
+- Updated `requestPermission()` - also calls `unlockAudio()` for iOS
 
 **Files Changed:**
-_Pending_
+- `apps/legacy/static/legacy/js/timer.js` - Added Web Audio API beep functionality
 
 **Verification:**
 - [ ] Sound plays when timer reaches 0:00
@@ -982,7 +1012,7 @@ _Pending_
 - [ ] Works on iPad 3 / iOS 9
 - [ ] ES5/iOS 9 audio API compatibility
 
-**Related:** QA-012 (same issue on Modern frontend) - likely same root cause affecting both frontends
+**Related:** QA-012 (same issue on Modern frontend) - Fixed with same approach
 
 ---
 
@@ -1050,6 +1080,65 @@ _Pending_
 - [ ] Works on Modern (desktop browser)
 
 **Note:** This should be simpler than QA-005 since the Favorites page already exists. We just need to add the section header with the "View All" link to match the Recently Viewed pattern.
+
+---
+
+### QA-P: Modern Back Button After Import
+
+**Issue:** QA-016 - Back button after import goes to home instead of search results
+**Affects:** Modern
+**Status:** New
+
+**Problem:**
+On the modern frontend, after importing a search result:
+1. User searches for recipes (e.g., "chicken")
+2. User clicks "Import" on a search result
+3. User is taken to the recipe view page (correct)
+4. User clicks the in-page back button
+5. User is taken to home/search page instead of back to search results with their query (incorrect)
+
+**Expected behavior:** Back button should return user to the search results page with their previous search query intact.
+
+**Note:** This issue does NOT occur on Legacy frontend - back button correctly returns to search results.
+
+**Screenshots:** _To be added during testing_
+
+**Research Findings:**
+
+**Root Cause:** In `App.tsx`, the `handleImport()` function clears the search query (`setSearchQuery('')`) immediately after successful import. When `handleRecipeDetailBack()` is called, it evaluates `searchQuery ? 'search' : 'home'` - but since the query is now empty, it returns `'home'`.
+
+Key code in `App.tsx`:
+```typescript
+// handleImport() - line 123
+setSearchQuery('')  // <- BUG: Clears search query on import
+
+// handleRecipeDetailBack() - line 148
+setCurrentScreen(searchQuery ? 'search' : 'home')  // searchQuery is empty!
+```
+
+**Why Legacy Works:** Legacy uses browser history API (`window.history.back()`) which naturally preserves the page stack. Modern is a SPA that manages navigation internally via React state.
+
+**Solution:** Don't clear `searchQuery` on import. Also ensure `previousScreen` is set to `'search'` so back navigation knows where to return.
+
+**Tasks:**
+1. Remove `setSearchQuery('')` from `handleImport()` in `App.tsx` (line 123)
+2. Add `setPreviousScreen('search')` before navigating to recipe-detail in `handleImport()`
+3. Update `handleRecipeDetailBack()` to explicitly check for `previousScreen === 'search'`
+4. Consider moving search query clear to `handleSearchBack()` when user explicitly leaves search
+
+**Implementation:**
+_Pending_
+
+**Files Changed:**
+- `frontend/src/App.tsx` - Modify `handleImport()` and `handleRecipeDetailBack()`
+
+**Verification:**
+- [ ] Import recipe from search results
+- [ ] Click in-page back button on recipe view
+- [ ] Returns to search results page
+- [ ] Search query is preserved (same results displayed)
+- [ ] Works on Modern (desktop browser)
+- [ ] Legacy frontend still works correctly (no regression)
 
 ---
 
@@ -1297,6 +1386,30 @@ On the home page, the "Recently Viewed" section includes a "View All" link in th
 - Need to pass `favorites_count` to the home template/component
 
 **Related:** QA-005 - this follows the same pattern established for Recently Viewed
+
+---
+
+### QA-016: Back button after import goes to home instead of search results
+
+**Found:** 2026-01-08 (Modern)
+**Reporter:** Matt
+
+On the modern frontend, after importing a recipe from search results, clicking the in-page back button on the recipe view page navigates to home/search instead of returning to the search results with the previous query.
+
+**Steps to reproduce:**
+1. Go to Modern frontend search
+2. Search for a recipe (e.g., "chicken")
+3. Click "Import" on a search result
+4. Navigate to the imported recipe view page
+5. Click the in-page back button
+6. **Actual:** Returns to home/search page
+7. **Expected:** Returns to search results with "chicken" query preserved
+
+**Root Cause:** In `App.tsx`, the `handleImport()` function calls `setSearchQuery('')` after successful import (line 123). When `handleRecipeDetailBack()` evaluates `searchQuery ? 'search' : 'home'` (line 148), the query is empty so user is sent to home.
+
+**Why Legacy Works:** Legacy uses browser history API (`window.history.back()`) which naturally preserves the page stack. Modern is a SPA managing navigation via React state, which requires careful state management.
+
+**Fix:** Remove `setSearchQuery('')` from `handleImport()` and ensure `previousScreen` is set to `'search'` so back navigation works correctly.
 
 ---
 

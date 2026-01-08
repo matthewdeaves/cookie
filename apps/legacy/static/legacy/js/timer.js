@@ -10,6 +10,10 @@ Cookie.Timer = (function() {
     var timers = [];
     var nextId = 1;
 
+    // Audio context singleton for Web Audio API beeps
+    var audioContext = null;
+    var audioUnlocked = false;
+
     /**
      * Timer constructor
      * @param {string} label - Timer label
@@ -190,20 +194,101 @@ Cookie.Timer = (function() {
     }
 
     /**
-     * Play timer completion sound
+     * Get or create AudioContext singleton (iOS 9 compatible)
      */
-    function playSound() {
+    function getAudioContext() {
+        if (audioContext) {
+            return audioContext;
+        }
         try {
-            // Try HTML5 audio
-            var audio = new Audio('/static/legacy/audio/timer.mp3');
-            audio.play();
+            var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass) {
+                audioContext = new AudioContextClass();
+                return audioContext;
+            }
         } catch (e) {
-            // Silent fail - some browsers don't support this
+            // Web Audio API not supported
+        }
+        return null;
+    }
+
+    /**
+     * Unlock audio for iOS (must be called from user interaction)
+     */
+    function unlockAudio() {
+        if (audioUnlocked) {
+            return;
+        }
+        var ctx = getAudioContext();
+        if (!ctx) {
+            return;
+        }
+        // Resume suspended context
+        if (ctx.state === 'suspended' && ctx.resume) {
+            ctx.resume();
+        }
+        // Play silent buffer to unlock iOS audio
+        try {
+            var buffer = ctx.createBuffer(1, 1, 22050);
+            var source = ctx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(ctx.destination);
+            source.start(0);
+            audioUnlocked = true;
+        } catch (e) {
+            // Silent fail
         }
     }
 
     /**
-     * Request notification permission
+     * Play a single tone at specified frequency
+     */
+    function playTone(ctx, frequency, startTime, duration) {
+        var oscillator = ctx.createOscillator();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(frequency, startTime);
+
+        var gainNode = ctx.createGain();
+        gainNode.gain.setValueAtTime(0, startTime);
+        // Quick attack
+        gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.01);
+        // Sustain
+        gainNode.gain.setValueAtTime(0.3, startTime + duration - 0.05);
+        // Quick release (prevents click)
+        gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+    }
+
+    /**
+     * Play timer completion sound using Web Audio API
+     */
+    function playSound() {
+        var ctx = getAudioContext();
+        if (!ctx) {
+            return;
+        }
+        // Resume context if suspended
+        if (ctx.state === 'suspended' && ctx.resume) {
+            ctx.resume();
+        }
+        try {
+            var now = ctx.currentTime;
+            // Three-tone beep pattern: A5-A5-E5
+            playTone(ctx, 880, now, 0.15);        // A5
+            playTone(ctx, 880, now + 0.2, 0.15);  // A5
+            playTone(ctx, 660, now + 0.45, 0.25); // E5
+        } catch (e) {
+            // Silent fail
+        }
+    }
+
+    /**
+     * Request notification permission and unlock audio
      */
     function requestPermission() {
         if ('Notification' in window && Notification.permission === 'default') {
@@ -213,6 +298,8 @@ Cookie.Timer = (function() {
                 // Not supported
             }
         }
+        // Also unlock audio for iOS (called from user interaction context)
+        unlockAudio();
     }
 
     /**
@@ -315,6 +402,7 @@ Cookie.Timer = (function() {
         getRunningCount: getRunningCount,
         notify: notify,
         requestPermission: requestPermission,
+        unlockAudio: unlockAudio,
         formatDuration: formatDuration
     };
 })();
