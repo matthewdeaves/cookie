@@ -91,8 +91,12 @@ _The problem:_
 
 ---
 
-## QA-031: Scaled recipes need instruction step alignment
-**Status:** Open (Researched)
+## QA-031 + QA-032: Scaling Service v2 (Combined Implementation)
+
+> **Implementation Session:** These two issues are implemented together as they both modify the same files and share the same migration.
+
+### QA-031: Scaled recipes need instruction step alignment
+**Status:** Ready to Implement
 **Severity:** High
 **Component:** AI Scaling Service
 
@@ -103,124 +107,189 @@ When ingredients are scaled, the instruction steps are not updated to match. Thi
 - Scaled ingredients: "2 cups of flour (scaled from 1 cup)"
 - Instruction step still says: "Put 1 cup of flour in a bowl"
 
-**Research Findings:**
-
-_Current scaling service flow (`scaling.py`):_
-1. Get recipe, check cache (ServingAdjustment model)
-2. Format only `{ingredients}`, `{original_servings}`, `{new_servings}` for AI
-3. **Instructions are NOT included in the prompt**
-4. Validate response expects only `ingredients` and `notes` arrays
-5. Cache in ServingAdjustment (no instructions field)
-6. Return to frontend
-
-_Frontend display (`RecipeDetail.tsx`):_
-- `IngredientsTab` uses `scaledData?.ingredients || recipe.ingredients`
-- `InstructionsTab` ALWAYS uses `recipe.instructions` (never scaled)
-- No `scaledData` parameter passed to InstructionsTab
-
-_Database model (`models.py`):_
-```python
-class ServingAdjustment(models.Model):
-    ingredients = models.JSONField(default=list)
-    notes = models.JSONField(default=list)
-    # NO instructions field
-```
-
-_Validator schema (`validator.py:30-37`):_
-```python
-'serving_adjustment': {
-    'required': ['ingredients'],
-    'properties': {
-        'ingredients': {...},
-        'notes': {...},
-        # NO instructions property
-    },
-}
-```
-
-**Tasks:**
-- [ ] Add `instructions` field to ServingAdjustment model (migration)
-- [ ] Update serving_adjustment prompt to include `{instructions}` placeholder
-- [ ] Update prompt rules: "Update quantity references in steps to match scaled ingredients"
-- [ ] Update validator schema to include optional `instructions` array
-- [ ] Update `scaling.py` to pass instructions to AI and cache response
-- [ ] Update API schema (`ScaleOut`) to include instructions
-- [ ] Update frontend `ScaleResponse` type
-- [ ] Update `InstructionsTab` to accept and use `scaledData`
-- [ ] Test: "Add 1 cup flour" → "Add 2 cups flour" when doubled
-
-**Files to modify:**
-- `apps/recipes/models.py` - Add instructions field to ServingAdjustment
-- `apps/ai/migrations/` - New migration for prompt update
-- `apps/ai/services/validator.py` - Add instructions to schema
-- `apps/ai/services/scaling.py` - Include instructions in prompt and response
-- `apps/ai/api.py` - Update ScaleOut schema
-- `frontend/src/api/client.ts` - Update ScaleResponse type
-- `frontend/src/screens/RecipeDetail.tsx` - Pass scaledData to InstructionsTab
-
 ---
 
-## QA-032: Scaled recipes need cooking time adjustments
-**Status:** Open (Researched)
+### QA-032: Scaled recipes need cooking time adjustments
+**Status:** Ready to Implement
 **Severity:** Medium
 **Component:** AI Scaling Service
 
 **Description:**
-When recipes are scaled significantly (especially up), cooking times may need adjustment. Larger quantities often require longer cooking times, different temperatures, or technique modifications.
+When recipes are scaled significantly (especially up), cooking times may need adjustment. Larger quantities often require longer cooking times.
 
 **Example:**
 - Original: "Bake for 25 minutes" (for 4 servings)
 - Scaled to 12 servings: Still says "Bake for 25 minutes" but larger volume may need 35-40 minutes
 
-**Research Findings:**
+---
 
-_Current time storage (`models.py`):_
+### Combined Implementation Plan
+
+#### Task 1: Model Migration
+**File:** `apps/recipes/models.py` (lines 229-265)
+**New migration:** `apps/recipes/migrations/XXXX_serving_adjustment_instructions_times.py`
+
+Add fields to `ServingAdjustment`:
 ```python
-class Recipe(models.Model):
-    prep_time = models.PositiveIntegerField(null=True)   # minutes
-    cook_time = models.PositiveIntegerField(null=True)   # minutes
-    total_time = models.PositiveIntegerField(null=True)  # minutes
+instructions = models.JSONField(default=list)                           # QA-031
+prep_time_adjusted = models.PositiveIntegerField(null=True, blank=True) # QA-032
+cook_time_adjusted = models.PositiveIntegerField(null=True, blank=True) # QA-032
+total_time_adjusted = models.PositiveIntegerField(null=True, blank=True)# QA-032
 ```
 
-_Current scaling prompt (migration 0004):_
-- Mentions "Add notes about cooking time adjustments if scaling significantly"
-- But does NOT receive actual cooking times as context
-- Notes returned as strings, not structured time values
+#### Task 2: Validator Schema Update
+**File:** `apps/ai/services/validator.py` (lines 30-37)
 
-_Existing time parsing (`remix.py`):_
+Update `serving_adjustment` schema:
 ```python
-def _parse_time(time_str: str | None) -> int | None:
-    """Parse a time string like '30 minutes' into minutes."""
-    # Already implemented and working for remix service
+'serving_adjustment': {
+    'type': 'object',
+    'required': ['ingredients'],
+    'properties': {
+        'ingredients': {'type': 'array', 'items': {'type': 'string'}},
+        'instructions': {'type': 'array', 'items': {'type': 'string'}},  # NEW
+        'notes': {'type': 'array', 'items': {'type': 'string'}},
+        'prep_time': {'type': ['string', 'null']},   # NEW
+        'cook_time': {'type': ['string', 'null']},   # NEW
+        'total_time': {'type': ['string', 'null']},  # NEW
+    },
+},
 ```
 
-_ServingAdjustment model:_
-- No fields for adjusted times
-- Only stores `ingredients` and `notes`
+#### Task 3: Prompt Migration
+**New file:** `apps/ai/migrations/XXXX_update_serving_adjustment_v2.py`
 
-_Notes infrastructure:_
-- Working: notes cached in ServingAdjustment.notes
-- Displayed in TipsTab as "Scaling Notes" section
-- First note shown as toast notification
+Update system prompt to return:
+```json
+{
+  "ingredients": [...],
+  "instructions": [...],
+  "notes": [...],
+  "prep_time": "X minutes" or null,
+  "cook_time": "X minutes" or null,
+  "total_time": "X minutes" or null
+}
+```
 
-**Tasks:**
-- [ ] Add time fields to ServingAdjustment: `prep_time_adjusted`, `cook_time_adjusted`, `total_time_adjusted`
-- [ ] Update scaling prompt to include original times as context
-- [ ] Update prompt to return adjusted times (or null if unchanged)
-- [ ] Update validator schema for optional time fields
-- [ ] Reuse `_parse_time()` helper from remix.py (or extract to shared utils)
-- [ ] Update API response schema with adjusted times
-- [ ] Update frontend to display adjusted times with comparison to original
-- [ ] Test with significant scaling (2x, 3x) on baked goods
+Rules for instructions:
+- Copy all original instruction steps
+- Update any quantity references to match the scaled ingredients
+- Example: "Add 1 cup flour" becomes "Add 2 cups flour" when doubling
 
-**Files to modify:**
-- `apps/recipes/models.py` - Add time fields to ServingAdjustment
-- `apps/ai/migrations/` - Migration for model + prompt update
-- `apps/ai/services/validator.py` - Add time fields to schema
-- `apps/ai/services/scaling.py` - Pass times to AI, parse response
-- `apps/ai/api.py` - Update ScaleOut schema
-- `frontend/src/api/client.ts` - Update ScaleResponse type
-- `frontend/src/screens/RecipeDetail.tsx` - Display adjusted times
+Rules for cooking times:
+- Return null if scaling by less than 50% (times unchanged)
+- For significant scaling (50%+), estimate adjusted times
+
+User prompt template additions:
+```
+Instructions:
+{instructions}
+
+Cooking times:
+- Prep time: {prep_time}
+- Cook time: {cook_time}
+- Total time: {total_time}
+```
+
+#### Task 4: Scaling Service Update
+**File:** `apps/ai/services/scaling.py` (lines 66-103)
+
+1. Add `_parse_time()` helper (copy pattern from `remix.py:243-267`)
+2. Format prompt with instructions and times
+3. Parse response for new fields
+4. Cache all fields in ServingAdjustment
+5. Return new fields in response dict
+
+#### Task 5: API Schema Update
+**File:** `apps/ai/api.py` (lines 314-320)
+
+Update `ScaleOut`:
+```python
+class ScaleOut(Schema):
+    target_servings: int
+    original_servings: int
+    ingredients: List[str]
+    instructions: List[str] = []                    # NEW
+    notes: List[str]
+    prep_time_adjusted: Optional[int] = None        # NEW
+    cook_time_adjusted: Optional[int] = None        # NEW
+    total_time_adjusted: Optional[int] = None       # NEW
+    nutrition: Optional[NutritionOut] = None
+    cached: bool
+```
+
+#### Task 6: Frontend Type Update
+**File:** `frontend/src/api/client.ts` (lines 59-66)
+
+Update `ScaleResponse`:
+```typescript
+export interface ScaleResponse {
+  target_servings: number
+  original_servings: number
+  ingredients: string[]
+  instructions: string[]                // NEW
+  notes: string[]
+  prep_time_adjusted: number | null     // NEW
+  cook_time_adjusted: number | null     // NEW
+  total_time_adjusted: number | null    // NEW
+  nutrition: NutritionValues | null
+  cached: boolean
+}
+```
+
+#### Task 7: Frontend InstructionsTab Update
+**File:** `frontend/src/screens/RecipeDetail.tsx`
+
+1. Update `InstructionsTab` to accept `scaledData` prop
+2. Use `scaledData?.instructions` when available
+3. Pass `scaledData` when rendering InstructionsTab
+
+#### Task 8: Frontend Time Display Update
+**File:** `frontend/src/screens/RecipeDetail.tsx` (lines 270-300)
+
+Show adjusted times with "(was X min)" comparison when scaled.
+
+---
+
+### Files Changed Summary
+
+| File | Changes |
+|------|---------|
+| `apps/recipes/models.py` | Add 4 fields to ServingAdjustment |
+| `apps/recipes/migrations/XXXX_*.py` | New migration for model fields |
+| `apps/ai/migrations/XXXX_*.py` | New migration for prompt update |
+| `apps/ai/services/validator.py` | Add instructions + time fields to schema |
+| `apps/ai/services/scaling.py` | Include instructions/times in prompt, parse response, cache |
+| `apps/ai/api.py` | Add fields to ScaleOut schema |
+| `frontend/src/api/client.ts` | Add fields to ScaleResponse type |
+| `frontend/src/screens/RecipeDetail.tsx` | Pass scaledData to InstructionsTab, show adjusted times |
+
+---
+
+### Verification
+
+1. Run migrations:
+   ```bash
+   docker compose exec web python manage.py makemigrations recipes ai
+   docker compose exec web python manage.py migrate
+   ```
+
+2. Run tests:
+   ```bash
+   docker compose exec web python -m pytest apps/ai/tests/ -v
+   docker compose exec frontend npm test
+   ```
+
+3. Manual testing:
+   - Open a recipe with steps mentioning quantities (e.g., "Add 1 cup flour")
+   - Scale from 4 servings to 8 servings (2x)
+   - Verify:
+     - [ ] Ingredients show scaled quantities
+     - [ ] Instructions tab shows updated quantity references
+     - [ ] Cooking times show adjusted values (if significantly scaled)
+     - [ ] Times show "(was X min)" comparison when adjusted
+   - Scale back to original servings
+   - Verify instructions and times return to original
 
 ---
 
@@ -362,7 +431,9 @@ _Verification:_
 |-------|-------|----------|--------|
 | QA-029 | Ingredient quantities need AI tidying | Medium | Researched |
 | QA-030 | Nutrition tab serving label is ambiguous | Low | Fixed |
-| QA-031 | Scaled recipes need instruction step alignment | High | Researched |
-| QA-032 | Scaled recipes need cooking time adjustments | Medium | Researched |
+| **QA-031** | Scaled recipes need instruction step alignment | **High** | **Ready to Implement** |
+| **QA-032** | Scaled recipes need cooking time adjustments | Medium | **Ready to Implement** |
 | QA-033 | Tips should generate automatically and adjust for scaling | Medium | Researched |
 | QA-034 | AI prompts must be in migrations and visible in settings | Low | Fixed |
+
+> **Note:** QA-031 and QA-032 are implemented together as "Scaling Service v2" since they share the same files and migration.
