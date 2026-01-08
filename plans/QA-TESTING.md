@@ -24,7 +24,8 @@
 | QA-013 | Timer completion sound doesn't play | Legacy | Verified | QA-M |
 | QA-014 | Screen locks during Play Mode | Legacy | New | QA-N |
 | QA-015 | No "View All" link for Favorites section | Legacy + Modern | Verified | QA-O |
-| QA-016 | Back button after import goes to home instead of search results | Modern | New | QA-P |
+| QA-016 | Back button after import goes to home instead of search results | Modern | Verified | QA-P |
+| QA-017 | Frontend build fails - test files missing cached_image_url | Modern | New | QA-Q |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -90,6 +91,7 @@ After research is complete and tasks are defined:
 | QA-N | QA-014 | Screen wake lock (Legacy) |
 | QA-O | QA-015 | View All link for Favorites |
 | QA-P | QA-016 | Modern back button after import |
+| QA-Q | QA-017 | Fix frontend test file type errors |
 
 ---
 
@@ -1176,7 +1178,7 @@ _Modern:_
 
 **Issue:** QA-016 - Back button after import goes to home instead of search results
 **Affects:** Modern
-**Status:** New
+**Status:** Verified
 
 **Problem:**
 On the modern frontend, after importing a search result:
@@ -1210,24 +1212,64 @@ setCurrentScreen(searchQuery ? 'search' : 'home')  // searchQuery is empty!
 **Solution:** Don't clear `searchQuery` on import. Also ensure `previousScreen` is set to `'search'` so back navigation knows where to return.
 
 **Tasks:**
-1. Remove `setSearchQuery('')` from `handleImport()` in `App.tsx` (line 123)
-2. Add `setPreviousScreen('search')` before navigating to recipe-detail in `handleImport()`
-3. Update `handleRecipeDetailBack()` to explicitly check for `previousScreen === 'search'`
-4. Consider moving search query clear to `handleSearchBack()` when user explicitly leaves search
+- [x] Remove `setSearchQuery('')` from `handleImport()` in `App.tsx`
+- [x] Add `setPreviousScreen('search')` before navigating to recipe-detail in `handleImport()`
+- [x] Update `handleRecipeDetailBack()` to explicitly check for `previousScreen === 'search'`
+- [x] Search query is already cleared in `handleSearchBack()` when user explicitly leaves search
+
+**Implementation:**
+- Modified `handleImport()` (App.tsx:114-129):
+  - Removed `setSearchQuery('')` call that was clearing the search context
+  - Added `setPreviousScreen('search')` to explicitly track where user came from
+- Modified `handleRecipeDetailBack()` (App.tsx:142-150):
+  - Added `'search'` to the explicit previousScreen check
+  - Simplified fallback to just `'home'` since we now explicitly handle search
+
+**Files Changed:**
+- `frontend/src/App.tsx` - Modified `handleImport()` and `handleRecipeDetailBack()`
+
+**Verification:**
+- [x] Import recipe from search results
+- [x] Click in-page back button on recipe view
+- [x] Returns to search results page
+- [x] Search query is preserved (same results displayed)
+- [x] Works on Modern (desktop browser)
+- [x] Legacy frontend still works correctly (no regression)
+
+---
+
+### QA-Q: Fix Frontend Test File Type Errors
+
+**Issue:** QA-017 - Frontend build fails - test files missing cached_image_url
+**Affects:** Modern
+**Status:** New
+
+**Problem:**
+The frontend TypeScript build fails with type errors in test files. The `SearchResult` type was updated in QA-009 to include `cached_image_url`, but the test file mock data was not updated to match.
+
+**Build Error:**
+```
+src/test/components.test.tsx(164,9): error TS2741: Property 'cached_image_url' is missing in type '{ url: string; title: string; host: string; image_url: string; description: string; }' but required in type 'SearchResult'.
+```
+
+**Root Cause:**
+When QA-009 added image caching, the `SearchResult` interface in `api/client.ts` was updated to include `cached_image_url`. The test files in `src/test/components.test.tsx` have mock `SearchResult` objects that are now missing this required property.
+
+**Tasks:**
+- [ ] Update mock SearchResult objects in `components.test.tsx` to include `cached_image_url`
+- [ ] Verify `npm run build` completes without errors
+- [ ] Verify `npm run test` passes
 
 **Implementation:**
 _Pending_
 
 **Files Changed:**
-- `frontend/src/App.tsx` - Modify `handleImport()` and `handleRecipeDetailBack()`
+- `frontend/src/test/components.test.tsx` - Add `cached_image_url` to mock data
 
 **Verification:**
-- [ ] Import recipe from search results
-- [ ] Click in-page back button on recipe view
-- [ ] Returns to search results page
-- [ ] Search query is preserved (same results displayed)
-- [ ] Works on Modern (desktop browser)
-- [ ] Legacy frontend still works correctly (no regression)
+- [ ] `npm run build` succeeds
+- [ ] `npm run test` passes
+- [ ] No TypeScript errors
 
 ---
 
@@ -1499,6 +1541,28 @@ On the modern frontend, after importing a recipe from search results, clicking t
 **Why Legacy Works:** Legacy uses browser history API (`window.history.back()`) which naturally preserves the page stack. Modern is a SPA managing navigation via React state, which requires careful state management.
 
 **Fix:** Remove `setSearchQuery('')` from `handleImport()` and ensure `previousScreen` is set to `'search'` so back navigation works correctly.
+
+---
+
+### QA-017: Frontend build fails - test files missing cached_image_url
+
+**Found:** 2026-01-08 (Modern)
+**Reporter:** Matt
+
+The frontend TypeScript build (`npm run build`) fails with multiple type errors in `src/test/components.test.tsx`. The errors all relate to mock `SearchResult` objects missing the `cached_image_url` property.
+
+This is a regression from QA-009 (image caching feature). When the `SearchResult` interface was updated to include `cached_image_url`, the test file mock data was not updated to match.
+
+**Error output:**
+```
+src/test/components.test.tsx(164,9): error TS2741: Property 'cached_image_url' is missing in type...
+src/test/components.test.tsx(165,9): error TS2741: Property 'cached_image_url' is missing in type...
+src/test/components.test.tsx(183,17): error TS2741: Property 'cached_image_url' is missing in type...
+src/test/components.test.tsx(247,17): error TS2741: Property 'cached_image_url' is missing in type...
+src/test/components.test.tsx(263,17): error TS2741: Property 'cached_image_url' is missing in type...
+```
+
+**Fix:** Add `cached_image_url: null` (or appropriate test value) to all mock SearchResult objects in the test file.
 
 ---
 

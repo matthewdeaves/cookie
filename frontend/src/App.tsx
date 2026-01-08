@@ -117,10 +117,10 @@ function App() {
       toast.success(`Imported: ${recipe.title}`)
       // Record in history
       await api.history.record(recipe.id)
-      // Navigate to recipe detail
+      // Navigate to recipe detail (preserve search context for back navigation)
+      setPreviousScreen('search')
       setSelectedRecipeId(recipe.id)
       setCurrentScreen('recipe-detail')
-      setSearchQuery('')
     } catch (error) {
       console.error('Failed to import recipe:', error)
       toast.error('Failed to import recipe. Please check the URL.')
@@ -142,10 +142,10 @@ function App() {
   const handleRecipeDetailBack = () => {
     setSelectedRecipeId(null)
     // Go back to previous screen
-    if (previousScreen === 'all-recipes' || previousScreen === 'favorites') {
+    if (previousScreen === 'search' || previousScreen === 'all-recipes' || previousScreen === 'favorites') {
       setCurrentScreen(previousScreen)
     } else {
-      setCurrentScreen(searchQuery ? 'search' : 'home')
+      setCurrentScreen('home')
     }
   }
 
