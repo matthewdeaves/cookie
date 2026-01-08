@@ -1589,10 +1589,22 @@ src/test/components.test.tsx(263,17): error TS2741: Property 'cached_image_url' 
 ## Pending Tests
 
 Areas not yet tested on iOS 9:
-- [ ] Recipe detail page (all tabs)
-- [x] Play mode navigation (QA-004 logged)
-- [ ] Timer functionality (CRITICAL) - In progress
-- [x] Multiple simultaneous timers (QA-010 logged - spacing issue)
-- [ ] Favorites add/remove
+- [x] Recipe detail page (styling/layout) - QA-003, QA-006, QA-007 verified
+- [ ] Recipe detail page (functional: tabs switching, content display)
+- [x] Play mode navigation - QA-004 verified
+- [x] Timer functionality - QA-010, QA-011, QA-012, QA-013 verified
+  - [x] Timer spacing (QA-010)
+  - [x] Timer auto-start (QA-011)
+  - [x] Timer completion sound - Modern (QA-012)
+  - [x] Timer completion sound - Legacy (QA-013)
+  - [ ] Screen wake lock during Play Mode (QA-014 - pending)
+- [x] Multiple simultaneous timers - QA-010 verified
+- [x] Favorites View All link - QA-015 verified
+- [ ] Favorites add/remove (functional testing)
 - [ ] Collections CRUD
-- [ ] Serving adjustment UI
+- [x] Serving adjustment button centering - QA-007 verified
+- [ ] Serving adjustment (functional: increment/decrement works)
+- [x] Search image loading - QA-009 verified
+- [x] Search dark mode input - QA-008 verified
+- [x] Import flow navigation - QA-002, QA-016 verified
+- [ ] Build/tests passing - QA-017 pending
