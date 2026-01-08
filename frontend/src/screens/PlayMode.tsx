@@ -3,6 +3,7 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import type { RecipeDetail } from '../api/client'
 import { useTimers } from '../hooks/useTimers'
+import { useWakeLock } from '../hooks/useWakeLock'
 import TimerPanel from '../components/TimerPanel'
 import { cn } from '../lib/utils'
 import { unlockAudio, playTimerAlert } from '../lib/audio'
@@ -52,6 +53,9 @@ export default function PlayMode({ recipe, onExit }: PlayModeProps) {
   )
 
   const timers = useTimers(handleTimerComplete)
+
+  // Keep screen awake during Play Mode
+  useWakeLock()
 
   // Request notification permission and unlock audio on mount
   useEffect(() => {

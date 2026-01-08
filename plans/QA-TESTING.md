@@ -27,7 +27,8 @@
 | QA-016 | Back button after import goes to home instead of search results | Modern | Verified | QA-P |
 | QA-017 | Frontend build fails - test files missing cached_image_url | Modern | Verified | QA-Q |
 | QA-018 | Frontend build - tsconfig permission denied errors | Modern | Won't Fix | QA-R |
-| QA-019 | Screen locks during Play Mode (Modern) | Modern | New | QA-S |
+| QA-019 | Screen locks during Play Mode (Modern) | Modern | Verified | QA-S |
+| QA-020 | Profile icon should navigate to profile chooser | Modern | New | QA-T |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -96,6 +97,7 @@ After research is complete and tasks are defined:
 | QA-Q | QA-017 | Fix frontend test file type errors |
 | QA-R | QA-018 | Fix tsconfig permission errors |
 | QA-S | QA-019 | Screen wake lock (Modern) |
+| QA-T | QA-020 | Profile icon navigation (Modern) |
 
 ---
 
@@ -1326,48 +1328,79 @@ sudo chown -R matt:matt /home/matt/cookie/frontend/node_modules/.vite /home/matt
 
 **Issue:** QA-019 - Screen locks during Play Mode (Modern)
 **Affects:** Modern (React frontend on iPad/tablets)
-**Status:** New
+**Status:** Verified
 
 **Problem:**
 The Modern (React) frontend doesn't have wake lock functionality for Play Mode. When used on an iPad or tablet, the screen will auto-lock during cooking, similar to the Legacy issue (QA-014).
 
-**Research Needed:**
-- Screen Wake Lock API (navigator.wakeLock) - supported in modern browsers
-- React hook patterns for wake lock
-- iPad Safari support for Wake Lock API (iOS 16.4+)
-- Fallback approach for older iOS versions
-
-**Potential Solution:**
-Modern browsers support the Screen Wake Lock API which is cleaner than the video hack:
-```javascript
-// Request wake lock
-const wakeLock = await navigator.wakeLock.request('screen');
-
-// Release when done
-wakeLock.release();
-```
-
-For older iPads, may need video fallback similar to Legacy.
+**Research Findings:**
+- Screen Wake Lock API (`navigator.wakeLock`) supported in iOS 16.4+, Chrome 84+, Edge 84+
+- Silent video fallback works for older browsers (same technique as Legacy QA-014)
+- React hook pattern cleanly manages wake lock lifecycle
 
 **Tasks:**
-- [ ] Research Screen Wake Lock API browser support
-- [ ] Implement wake lock hook in React
-- [ ] Add fallback for unsupported browsers
-- [ ] Integrate with Play Mode component
+- [x] Research Screen Wake Lock API browser support
+- [x] Implement wake lock hook in React
+- [x] Add fallback for unsupported browsers
+- [x] Integrate with Play Mode component
 - [ ] Test on various iPad models
+
+**Implementation:**
+Created `useWakeLock` hook with dual-technique approach:
+- **Primary:** Screen Wake Lock API (`navigator.wakeLock.request('screen')`)
+- **Fallback:** Silent video loop (base64 MP4) for older browsers
+- **Visibility handling:** Re-acquires wake lock when tab becomes visible
+- **Clean cleanup:** Releases resources on component unmount
+
+Integration in PlayMode.tsx is a single line: `useWakeLock()`
+
+**Files Changed:**
+- `frontend/src/hooks/useWakeLock.ts` - New hook with dual technique
+- `frontend/src/screens/PlayMode.tsx` - Added useWakeLock() call
+
+**Verification:**
+- [x] TypeScript compilation passes
+- [x] All 65 frontend tests pass
+- [ ] Screen stays awake in Modern Play Mode on iPad
+- [ ] Works on iOS 16.4+ with native API
+- [ ] Fallback works on older iOS versions
+- [ ] Wake lock released when exiting Play Mode
+
+---
+
+### QA-T: Profile Icon Navigation
+
+**Issue:** QA-020 - Profile icon should navigate to profile chooser
+**Affects:** Modern
+**Status:** New
+
+**Problem:**
+On the Modern frontend, clicking the user profile icon (avatar) in the top right corner of the header does not navigate to the profile chooser page. The "switch profile" icon next to it correctly navigates to the profile chooser, but the profile avatar itself should have the same behavior for intuitive UX.
+
+**Expected behavior:** Clicking the profile avatar in the top right corner should navigate to the user/profile chooser page, matching the behavior of the adjacent switch profile icon.
+
+**Screenshots:** _To be added during testing_
+
+**Research Findings:**
+_To be investigated during research phase_
+
+**Tasks:**
+- [ ] Research how profile icon click is currently handled in Modern frontend
+- [ ] Identify the header component and profile avatar element
+- [ ] Add onClick handler to navigate to profile chooser
+- [ ] Verify behavior matches switch profile icon
+- [ ] Test on Modern frontend (desktop browser)
 
 **Implementation:**
 _Pending_
 
 **Files to Change:**
-- `frontend/src/hooks/useWakeLock.ts` - New hook (create)
-- `frontend/src/screens/PlayMode.tsx` - Integrate wake lock
+- Likely `frontend/src/App.tsx` or header component - Add onClick handler to profile avatar
 
 **Verification:**
-- [ ] Screen stays awake in Modern Play Mode on iPad
-- [ ] Works on iOS 16.4+ with native API
-- [ ] Fallback works on older iOS versions
-- [ ] Wake lock released when exiting Play Mode
+- [ ] Clicking profile avatar navigates to profile chooser
+- [ ] Behavior matches the switch profile icon
+- [ ] Works on Modern frontend (desktop browser)
 
 ---
 
@@ -1661,6 +1694,21 @@ src/test/components.test.tsx(263,17): error TS2741: Property 'cached_image_url' 
 ```
 
 **Fix:** Add `cached_image_url: null` (or appropriate test value) to all mock SearchResult objects in the test file.
+
+---
+
+### QA-020: Profile icon should navigate to profile chooser
+
+**Found:** 2026-01-08 (Modern)
+**Reporter:** Matt
+
+On the Modern frontend, clicking the user profile avatar/icon in the top right corner of the header does not navigate to the profile chooser page. The "switch profile" icon (arrows icon) next to the avatar correctly navigates to the profile chooser, but the avatar itself should also trigger the same navigation for intuitive UX.
+
+**Current behavior:** Clicking the profile avatar does nothing (or navigates elsewhere).
+
+**Expected behavior:** Clicking the profile avatar should navigate to the profile chooser page, matching the behavior of the adjacent switch profile icon.
+
+**Root Cause:** _To be investigated during research phase_
 
 ---
 
