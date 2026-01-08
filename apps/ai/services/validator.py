@@ -92,6 +92,21 @@ RESPONSE_SCHEMAS = {
             'confidence': {'type': 'number'},
         },
     },
+    'nutrition_estimate': {
+        'type': 'object',
+        'required': ['calories'],
+        'properties': {
+            'calories': {'type': 'string'},
+            'carbohydrateContent': {'type': 'string'},
+            'proteinContent': {'type': 'string'},
+            'fatContent': {'type': 'string'},
+            'saturatedFatContent': {'type': 'string'},
+            'unsaturatedFatContent': {'type': 'string'},
+            'cholesterolContent': {'type': 'string'},
+            'sodiumContent': {'type': 'string'},
+            'fiberContent': {'type': 'string'},
+        },
+    },
 }
 
 

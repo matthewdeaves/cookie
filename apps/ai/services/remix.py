@@ -155,7 +155,89 @@ def create_remix(
 
     logger.info(f'Created remix {remix.id} from recipe {original.id} for profile {profile.id}')
 
+    # Estimate nutrition if original has nutrition data
+    if original.nutrition:
+        try:
+            nutrition = estimate_nutrition(
+                original=original,
+                new_ingredients=validated['ingredients'],
+                new_servings=servings or 1,
+                modification=modification,
+            )
+            remix.nutrition = nutrition
+            remix.save(update_fields=['nutrition'])
+            logger.info(f'Added nutrition estimate to remix {remix.id}')
+        except Exception as e:
+            # Nutrition estimation is non-critical, log and continue
+            logger.warning(f'Failed to estimate nutrition for remix {remix.id}: {e}')
+
     return remix
+
+
+def estimate_nutrition(
+    original: Recipe,
+    new_ingredients: list[str],
+    new_servings: int,
+    modification: str,
+) -> dict:
+    """Estimate nutrition values for a remixed recipe.
+
+    Args:
+        original: The original recipe with nutrition data.
+        new_ingredients: List of ingredients for the remix.
+        new_servings: Number of servings in the remix.
+        modification: The modification description.
+
+    Returns:
+        Dictionary of nutrition values in the same format as scraped nutrition.
+
+    Raises:
+        AIUnavailableError: If AI service is not available.
+        AIResponseError: If AI returns invalid response.
+        ValidationError: If response doesn't match expected schema.
+    """
+    # Get the nutrition_estimate prompt
+    prompt = AIPrompt.get_prompt('nutrition_estimate')
+
+    # Format original nutrition as readable string
+    nutrition_lines = []
+    for key, value in original.nutrition.items():
+        # Convert camelCase to readable format
+        readable_key = key.replace('Content', '').replace('Fat', ' Fat')
+        readable_key = ''.join(
+            ' ' + c if c.isupper() else c for c in readable_key
+        ).strip().title()
+        nutrition_lines.append(f'- {readable_key}: {value}')
+    original_nutrition_str = '\n'.join(nutrition_lines) if nutrition_lines else 'No nutrition data'
+
+    # Format ingredients
+    original_ingredients_str = '\n'.join(f'- {ing}' for ing in original.ingredients)
+    new_ingredients_str = '\n'.join(f'- {ing}' for ing in new_ingredients)
+
+    # Format the user prompt
+    user_prompt = prompt.format_user_prompt(
+        original_nutrition=original_nutrition_str,
+        original_ingredients=original_ingredients_str,
+        original_servings=original.servings or original.yields or 'unknown',
+        new_ingredients=new_ingredients_str,
+        new_servings=new_servings,
+        modification=modification,
+    )
+
+    # Call AI service
+    service = OpenRouterService()
+    response = service.complete(
+        system_prompt=prompt.system_prompt,
+        user_prompt=user_prompt,
+        model=prompt.model,
+        json_response=True,
+    )
+
+    # Validate response
+    validator = AIResponseValidator()
+    validated = validator.validate('nutrition_estimate', response)
+
+    return validated
 
 
 def _parse_time(time_str: str | None) -> int | None:

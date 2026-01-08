@@ -29,11 +29,13 @@
 | QA-018 | Frontend build - tsconfig permission denied errors | Modern | Won't Fix | QA-R |
 | QA-019 | Screen locks during Play Mode (Modern) | Modern | Verified | QA-S |
 | QA-020 | Profile icon should navigate to profile chooser | Modern | Verified | QA-T |
-| QA-021 | Remixed recipes have no image | Modern + Legacy | New | - |
-| QA-022 | Instructions tab crashes on remixed recipes | Modern | New | - |
+| QA-021 | Remixed recipes have no image | Modern + Legacy | Verified | - |
+| QA-022 | Instructions tab crashes on remixed recipes | Modern | Verified | - |
 | QA-023 | Remix button does nothing on Legacy | Legacy | Verified | - |
-| QA-024 | Legacy instructions tab shows curly braces on remixes | Legacy | New | - |
-| QA-025 | Legacy Play Mode shows [object Object] for remix steps | Legacy | New | - |
+| QA-024 | Legacy instructions tab shows curly braces on remixes | Legacy | Verified | - |
+| QA-025 | Legacy Play Mode shows [object Object] for remix steps | Legacy | Verified | - |
+| QA-026 | Remixed recipes have no nutrition information | Modern + Legacy | Verified | - |
+| QA-027 | Invalid AI model selection breaks features silently | Modern + Legacy | New | - |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -1912,6 +1914,81 @@ On the Legacy frontend Play Mode, when cooking a remixed recipe, each step displ
 When Legacy Play Mode JavaScript tries to display the step, it coerces the object to a string, resulting in `[object Object]`.
 
 **Fix:** Same fix as QA-022 - change `remix.py:137` to store instructions as plain strings.
+
+---
+
+### QA-026: Remixed recipes have no nutrition information
+
+**Found:** 2026-01-08 (Modern + Legacy)
+**Reporter:** Matt
+**Status:** New (Enhancement)
+
+When viewing a remixed recipe, the Nutrition tab shows no data. Original recipes display nutrition information scraped from the source, but AI-generated remixes have no nutrition data.
+
+**Steps to reproduce:**
+1. Create a remix of any recipe
+2. View the remixed recipe
+3. Click the Nutrition tab
+4. No nutrition information displayed
+
+**Expected behavior:** Some nutrition information should be available.
+
+**Actual behavior:** Nutrition tab is empty for remixed recipes.
+
+**Root Cause:**
+Original recipes get nutrition from `recipe-scrapers` which extracts it from the source website. Remixed recipes are AI-generated and `remix.py` does not populate any nutrition fields.
+
+**Possible Solutions:**
+1. **Copy from original** - Inaccurate since ingredients change in remixes
+2. **AI estimation** - Have the AI estimate nutrition based on modified ingredients (future enhancement)
+3. **Document limitation** - Accept that remixes don't have nutrition data
+
+**Fix:** Implemented option 2 - AI nutrition estimation.
+- Added `nutrition_estimate` prompt (migration 0003)
+- Added validation schema in `validator.py`
+- Added `estimate_nutrition()` function in `remix.py`
+- Called automatically after remix creation if original has nutrition data
+- Non-blocking: if estimation fails, remix is still created without nutrition
+
+---
+
+### QA-027: Invalid AI model selection breaks features silently
+
+**Found:** 2026-01-08 (Modern + Legacy)
+**Reporter:** Matt
+**Status:** New
+
+When a user selects an invalid model ID in the AI Settings UI, AI features fail with unhelpful error messages like "Failed to load suggestions" instead of indicating the model is invalid.
+
+**Steps to reproduce:**
+1. Go to AI Settings (Modern frontend)
+2. Change a prompt's model to an invalid ID (e.g., `google/gemini-2.5-flash-preview`)
+3. Save settings
+4. Try to use the feature (e.g., Remix suggestions)
+5. Feature fails with generic error
+
+**Expected behavior:** Either:
+- Validate model IDs before saving and show error if invalid
+- Show clear error message indicating the model is not available
+- Gracefully fall back to a default model
+
+**Actual behavior:** Generic "Failed to load suggestions" error. User has no indication the model selection is the problem.
+
+**Root Cause:**
+The AI Settings UI allows free-form model selection but doesn't validate against OpenRouter's available models. When an invalid model is used, OpenRouter returns an error that gets caught and converted to a generic user-facing error.
+
+**Error from logs:**
+```
+openrouter.errors.chaterror.ChatError: google/gemini-2.5-flash-preview is not a valid model ID
+```
+
+**Possible Solutions:**
+1. **Validate on save** - Query OpenRouter for available models and validate selection
+2. **Better error messages** - Parse OpenRouter errors and show specific message to user
+3. **Model dropdown** - Replace free-form input with dropdown of valid models
+4. **Fallback model** - If selected model fails, fall back to default (claude-3.5-haiku)
+
+**Status:** New - needs implementation decision.
 
 ---
 

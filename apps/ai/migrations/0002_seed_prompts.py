@@ -29,7 +29,9 @@ Always respond with valid JSON in this exact format:
 
 Maintain the spirit of the original recipe while implementing the requested changes.
 Adjust cooking times and techniques as needed for the modifications.
-Ensure all measurements are precise and instructions are clear.''',
+Ensure all measurements are precise and instructions are clear.
+
+IMPORTANT: Respond with ONLY the JSON, no additional text, explanation, or commentary.''',
             'user_prompt_template': '''Original Recipe:
 Title: {title}
 Description: {description}
@@ -60,7 +62,9 @@ Rules:
 - Maintain proper ratios between ingredients
 - Convert to sensible units when quantities become too large or small
 - Round to practical measurements (e.g., 1/4 cup, not 0.247 cups)
-- Keep original ingredient names and preparation instructions''',
+- Keep original ingredient names and preparation instructions
+
+IMPORTANT: Respond with ONLY the JSON, no additional text, explanation, or commentary.''',
             'user_prompt_template': '''Current ingredients (for {original_servings} servings):
 {ingredients}
 
@@ -81,7 +85,9 @@ Tips should be:
 - Practical and actionable
 - Specific to the recipe or technique
 - Helpful for home cooks of varying skill levels
-- Brief but informative (1-2 sentences each)''',
+- Brief but informative (1-2 sentences each)
+
+IMPORTANT: Respond with ONLY the JSON, no additional text, explanation, or commentary.''',
             'user_prompt_template': '''Recipe:
 Title: {title}
 Ingredients:
@@ -108,7 +114,9 @@ Always respond with valid JSON in this exact format:
 }
 
 The search_query should be a specific dish name or cuisine type that matches their preferences.
-Keep descriptions concise (1-2 sentences).''',
+Keep descriptions concise (1-2 sentences).
+
+IMPORTANT: Respond with ONLY the JSON, no additional text, explanation, or commentary.''',
             'user_prompt_template': '''User's favorite recipes:
 {favorites}
 
@@ -133,7 +141,9 @@ Consider:
 - Current season and weather
 - Upcoming holidays within the next 2 weeks
 - Seasonal ingredient availability
-- Traditional dishes for the time of year''',
+- Traditional dishes for the time of year
+
+IMPORTANT: Respond with ONLY the JSON, no additional text, explanation, or commentary.''',
             'user_prompt_template': '''Current date: {date}
 Current season: {season}
 
@@ -158,7 +168,9 @@ Suggest dishes that:
 - Are from cuisines they haven't explored
 - Use techniques they might not have tried
 - Introduce new flavors while remaining accessible
-- Are achievable for a home cook''',
+- Are achievable for a home cook
+
+IMPORTANT: Respond with ONLY the JSON, no additional text, explanation, or commentary.''',
             'user_prompt_template': '''User's recent recipes (cuisines and types):
 {history}
 
@@ -179,7 +191,9 @@ Consider:
 - Relevance to the search query
 - Recipe completeness (has image, ratings, reviews)
 - Source reliability
-- Clarity of title and description''',
+- Clarity of title and description
+
+IMPORTANT: Respond with ONLY the JSON, no additional text, explanation, or commentary.''',
             'user_prompt_template': '''Search query: {query}
 
 Search results:
@@ -203,7 +217,9 @@ Always respond with valid JSON in this exact format:
 The label should be:
 - Concise (2-4 words maximum)
 - Descriptive of what's being timed
-- Action-oriented (e.g., "Simmer sauce", "Rest meat")''',
+- Action-oriented (e.g., "Simmer sauce", "Rest meat")
+
+IMPORTANT: Respond with ONLY the JSON, no additional text, explanation, or commentary.''',
             'user_prompt_template': '''Instruction: {instruction}
 Duration: {duration}
 
@@ -226,7 +242,9 @@ Suggestions should be:
 - Interesting but not too extreme
 - Short phrases (3-6 words each)
 
-Examples: "Make it vegan", "Add more protein", "Use seasonal vegetables", "Make it spicy"''',
+Examples: "Make it vegan", "Add more protein", "Use seasonal vegetables", "Make it spicy"
+
+IMPORTANT: Respond with ONLY the JSON, no additional text, explanation, or commentary.''',
             'user_prompt_template': '''Recipe:
 Title: {title}
 Cuisine: {cuisine}
@@ -256,7 +274,9 @@ Consider:
 - Common recipe site HTML patterns
 - Schema.org recipe markup
 - Class and ID patterns
-- Fallback selectors that are more robust''',
+- Fallback selectors that are more robust
+
+IMPORTANT: Respond with ONLY the JSON, no additional text, explanation, or commentary.''',
             'user_prompt_template': '''Original selector: {selector}
 Target element: {target}
 Sample HTML:
