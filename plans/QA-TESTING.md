@@ -13,7 +13,7 @@
 | QA-002 | No way to view all imported recipes | Legacy + Modern | Verified | QA-B |
 | QA-003 | Numbered list styling inconsistent | Legacy + Modern | Verified | QA-C |
 | QA-004 | Back button returns to Play Mode after closing it | Legacy | Verified | QA-D |
-| QA-005 | No "View All Recipes" link on home page | Legacy + Modern | New | QA-E |
+| QA-005 | No "View All Recipes" link on home page | Legacy + Modern | Fixed | QA-E |
 | QA-006 | Insufficient spacing between list number and text | Legacy | New | QA-F |
 
 ### Status Key
@@ -312,25 +312,67 @@ _Browser history API solution:_
 
 **Issue:** QA-005 - No "View All Recipes" link on home page
 **Affects:** Legacy + Modern
-**Status:** New
+**Status:** Fixed
 
 **Problem:**
 The home page has limits on how many recipes are displayed:
-- Recently Viewed: 6 recipes (Legacy), 9 recipes (Modern)
+- Recently Viewed: 6 recipes (Legacy), 6 recipes (Modern)
 - Favorites section: Limited display
 
 Users who import many recipes over time will eventually have older recipes fall off the visible list with no way to access them. The Figma design shows a "View All" link but it's not implemented.
 
 **Research Findings:**
-- _How existing code handles this:_ [TBD - complete before defining tasks]
-- _Design intent (Figma):_ Shows "View All ({count})" link on Recently Viewed section (line 989-993 of Figma App.tsx)
-- _Established patterns to follow:_ [TBD]
 
-**Tasks:** _(Define after research is complete)_
-- [ ] Add "View All" link to Recently Viewed section (Legacy)
-- [ ] Add "View All" link to Recently Viewed section (Modern)
-- [ ] Create All Recipes page/screen for both frontends
-- [ ] Ensure pagination or infinite scroll for large recipe lists
+_How existing code handles this:_
+- Legacy `views.py:45`: History limited to 6 items with `[:6]`
+- Modern `Home.tsx:51`: History fetched with `api.history.list(6)`
+- Both frontends show only the first 6 recently viewed recipes
+- API supports variable limit parameter for history endpoint
+
+_Design intent (Figma):_
+- `App.tsx:987-994`: Section header with "Recently Viewed" and "View All ({count})" button
+- `App.tsx:1903-1949`: Full "All Recipes" screen showing all viewed recipes in grid
+- Empty state with "No recipes viewed yet" message and "Browse Recipes" button
+- Pattern matches existing Favorites screen structure
+
+_Established patterns to follow:_
+- Favorites screen already exists with same structure (header, back button, recipe grid)
+- URL pattern: `/legacy/favorites/` → `/legacy/all-recipes/`
+- Modern screen pattern: Favorites.tsx → AllRecipes.tsx
+
+**Tasks:**
+- [x] Add "View All" link to Recently Viewed section (Legacy)
+- [x] Add "View All" link to Recently Viewed section (Modern)
+- [x] Create All Recipes page/screen for both frontends
+- [x] Pass total history count to home pages for display
+
+**Implementation:**
+
+_Legacy:_
+- Added `all_recipes` view in `views.py:187-217` (fetches all history, no limit)
+- Added URL pattern `/legacy/all-recipes/` in `urls.py:13`
+- Created `all_recipes.html` template (matches favorites.html structure)
+- Updated `home.html:64-66` with section-header containing View All link
+- Added `.section-header` and `.section-link` CSS in `layout.css:320-351`
+- Updated home view to pass `history_count` for total recipe count
+
+_Modern:_
+- Created `AllRecipes.tsx` screen (matches Favorites.tsx structure)
+- Added `'all-recipes'` screen type in `App.tsx:21`
+- Added handlers `handleAllRecipesClick/Back` in `App.tsx:187-193`
+- Added `onAllRecipesClick` prop to Home component
+- Updated Home to fetch full history, display 6, show total count
+- Added View All button in Recently Viewed section header
+
+**Files Changed:**
+- `apps/legacy/views.py` - Added `all_recipes` view, updated `home` view
+- `apps/legacy/urls.py` - Added all-recipes URL
+- `apps/legacy/templates/legacy/all_recipes.html` - New template
+- `apps/legacy/templates/legacy/home.html` - Added View All link
+- `apps/legacy/static/legacy/css/layout.css` - Added section-header styles
+- `frontend/src/screens/AllRecipes.tsx` - New screen
+- `frontend/src/screens/Home.tsx` - Added View All link and prop
+- `frontend/src/App.tsx` - Added screen type, handlers, routing
 
 **Verification:**
 - [ ] "View All" link visible on home page when recipes exist

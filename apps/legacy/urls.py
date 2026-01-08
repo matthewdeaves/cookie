@@ -10,6 +10,7 @@ urlpatterns = [
     path('', views.profile_selector, name='profile_selector'),
     path('home/', views.home, name='home'),
     path('search/', views.search, name='search'),
+    path('all-recipes/', views.all_recipes, name='all_recipes'),
     path('favorites/', views.favorites, name='favorites'),
     path('collections/', views.collections, name='collections'),
     path('collections/<int:collection_id>/', views.collection_detail, name='collection_detail'),

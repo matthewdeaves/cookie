@@ -317,9 +317,35 @@
     padding: 1.5rem 0;
 }
 
+.section-header {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.section-header .section-title {
+    margin-bottom: 0;
+}
+
 .section-title {
     font-size: 1.125rem;
     font-weight: 600;
     color: var(--foreground);
     margin-bottom: 1rem;
+}
+
+.section-link {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.section-link:hover,
+.section-link:active {
+    text-decoration: underline;
 }

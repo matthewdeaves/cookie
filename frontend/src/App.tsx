@@ -6,6 +6,7 @@ import Search from './screens/Search'
 import RecipeDetail from './screens/RecipeDetail'
 import PlayMode from './screens/PlayMode'
 import Favorites from './screens/Favorites'
+import AllRecipes from './screens/AllRecipes'
 import Collections from './screens/Collections'
 import CollectionDetail from './screens/CollectionDetail'
 import { api, type Profile, type RecipeDetail as RecipeDetailType } from './api/client'
@@ -17,6 +18,7 @@ type Screen =
   | 'recipe-detail'
   | 'play-mode'
   | 'favorites'
+  | 'all-recipes'
   | 'collections'
   | 'collection-detail'
 
@@ -132,14 +134,19 @@ function App() {
     } catch (error) {
       console.error('Failed to record history:', error)
     }
+    setPreviousScreen(currentScreen)
     setSelectedRecipeId(recipeId)
     setCurrentScreen('recipe-detail')
   }
 
   const handleRecipeDetailBack = () => {
     setSelectedRecipeId(null)
-    // Go back to previous screen (could be home or search)
-    setCurrentScreen(searchQuery ? 'search' : 'home')
+    // Go back to previous screen
+    if (previousScreen === 'all-recipes' || previousScreen === 'favorites') {
+      setCurrentScreen(previousScreen)
+    } else {
+      setCurrentScreen(searchQuery ? 'search' : 'home')
+    }
   }
 
   const handleFavoriteToggle = async (recipe: RecipeDetailType) => {
@@ -179,6 +186,14 @@ function App() {
   }
 
   const handleFavoritesBack = () => {
+    setCurrentScreen('home')
+  }
+
+  const handleAllRecipesClick = () => {
+    setCurrentScreen('all-recipes')
+  }
+
+  const handleAllRecipesBack = () => {
     setCurrentScreen('home')
   }
 
@@ -248,6 +263,7 @@ function App() {
           onSearch={handleSearch}
           onRecipeClick={handleRecipeClick}
           onFavoritesClick={handleFavoritesClick}
+          onAllRecipesClick={handleAllRecipesClick}
           onCollectionsClick={handleCollectionsClick}
         />
       )}
@@ -274,6 +290,12 @@ function App() {
       {currentScreen === 'favorites' && (
         <Favorites
           onBack={handleFavoritesBack}
+          onRecipeClick={handleRecipeClick}
+        />
+      )}
+      {currentScreen === 'all-recipes' && (
+        <AllRecipes
+          onBack={handleAllRecipesBack}
           onRecipeClick={handleRecipeClick}
         />
       )}

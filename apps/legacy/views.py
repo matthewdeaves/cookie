@@ -40,9 +40,11 @@ def home(request):
     ).select_related('recipe').order_by('-created_at')[:12]
 
     # Get recently viewed for this profile
-    history = RecipeViewHistory.objects.filter(
+    history_qs = RecipeViewHistory.objects.filter(
         profile=profile
-    ).select_related('recipe').order_by('-viewed_at')[:6]
+    ).select_related('recipe').order_by('-viewed_at')
+    history_count = history_qs.count()
+    history = history_qs[:6]
 
     # Build favorite recipe IDs set for checking
     favorite_recipe_ids = set(f.recipe_id for f in favorites)
@@ -55,6 +57,7 @@ def home(request):
         },
         'favorites': favorites,
         'history': history,
+        'history_count': history_count,
         'favorite_recipe_ids': favorite_recipe_ids,
     })
 
@@ -181,6 +184,39 @@ def play_mode(request, recipe_id):
         'recipe': recipe,
         'instructions': instructions,
         'instructions_json': instructions,  # For JavaScript
+    })
+
+
+def all_recipes(request):
+    """All Recipes screen - shows all viewed recipes (history)."""
+    profile_id = request.session.get('profile_id')
+    if not profile_id:
+        return redirect('legacy:profile_selector')
+
+    try:
+        profile = Profile.objects.get(id=profile_id)
+    except Profile.DoesNotExist:
+        del request.session['profile_id']
+        return redirect('legacy:profile_selector')
+
+    # Get all history for this profile (no limit)
+    history = RecipeViewHistory.objects.filter(
+        profile=profile
+    ).select_related('recipe').order_by('-viewed_at')
+
+    # Build set of favorite recipe IDs for display
+    favorite_recipe_ids = set(
+        RecipeFavorite.objects.filter(profile=profile).values_list('recipe_id', flat=True)
+    )
+
+    return render(request, 'legacy/all_recipes.html', {
+        'profile': {
+            'id': profile.id,
+            'name': profile.name,
+            'avatar_color': profile.avatar_color,
+        },
+        'history': history,
+        'favorite_recipe_ids': favorite_recipe_ids,
     })
 
 

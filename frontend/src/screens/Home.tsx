@@ -19,6 +19,7 @@ interface HomeProps {
   onSearch: (query: string) => void
   onRecipeClick: (recipeId: number) => void
   onFavoritesClick: () => void
+  onAllRecipesClick: () => void
   onCollectionsClick: () => void
 }
 
@@ -32,12 +33,14 @@ export default function Home({
   onSearch,
   onRecipeClick,
   onFavoritesClick,
+  onAllRecipesClick,
   onCollectionsClick,
 }: HomeProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<Tab>('favorites')
   const [favorites, setFavorites] = useState<Favorite[]>([])
   const [history, setHistory] = useState<HistoryItem[]>([])
+  const [historyCount, setHistoryCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -48,10 +51,11 @@ export default function Home({
     try {
       const [favoritesData, historyData] = await Promise.all([
         api.favorites.list(),
-        api.history.list(6),
+        api.history.list(1000), // Get all to count, display first 6
       ])
       setFavorites(favoritesData)
-      setHistory(historyData)
+      setHistoryCount(historyData.length)
+      setHistory(historyData.slice(0, 6))
     } catch (error) {
       console.error('Failed to load data:', error)
       toast.error('Failed to load recipes')
@@ -195,9 +199,17 @@ export default function Home({
               {/* Recently Viewed */}
               {history.length > 0 && (
                 <section className="mb-8">
-                  <h2 className="mb-4 text-lg font-medium text-foreground">
-                    Recently Viewed
-                  </h2>
+                  <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-lg font-medium text-foreground">
+                      Recently Viewed
+                    </h2>
+                    <button
+                      onClick={onAllRecipesClick}
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      View All ({historyCount})
+                    </button>
+                  </div>
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
                     {history.map((item) => (
                       <RecipeCard
