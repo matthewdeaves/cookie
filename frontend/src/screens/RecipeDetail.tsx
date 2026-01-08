@@ -272,7 +272,16 @@ export default function RecipeDetail({
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <span className="text-muted-foreground">Prep:</span>
                 <span className="text-foreground">
-                  {formatTime(recipe.prep_time)}
+                  {scaledData?.prep_time_adjusted ? (
+                    <>
+                      {formatTime(scaledData.prep_time_adjusted)}
+                      <span className="ml-1 text-muted-foreground">
+                        (was {formatTime(recipe.prep_time)})
+                      </span>
+                    </>
+                  ) : (
+                    formatTime(recipe.prep_time)
+                  )}
                 </span>
               </div>
             )}
@@ -283,7 +292,16 @@ export default function RecipeDetail({
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <span className="text-muted-foreground">Cook:</span>
                 <span className="text-foreground">
-                  {formatTime(recipe.cook_time)}
+                  {scaledData?.cook_time_adjusted ? (
+                    <>
+                      {formatTime(scaledData.cook_time_adjusted)}
+                      <span className="ml-1 text-muted-foreground">
+                        (was {formatTime(recipe.cook_time)})
+                      </span>
+                    </>
+                  ) : (
+                    formatTime(recipe.cook_time)
+                  )}
                 </span>
               </div>
             )}
@@ -294,7 +312,16 @@ export default function RecipeDetail({
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <span className="text-muted-foreground">Total:</span>
                 <span className="text-foreground">
-                  {formatTime(recipe.total_time)}
+                  {scaledData?.total_time_adjusted ? (
+                    <>
+                      {formatTime(scaledData.total_time_adjusted)}
+                      <span className="ml-1 text-muted-foreground">
+                        (was {formatTime(recipe.total_time)})
+                      </span>
+                    </>
+                  ) : (
+                    formatTime(recipe.total_time)
+                  )}
                 </span>
               </div>
             )}
@@ -382,7 +409,7 @@ export default function RecipeDetail({
           <IngredientsTab recipe={recipe} scaledData={scaledData} />
         )}
         {activeTab === 'instructions' && (
-          <InstructionsTab recipe={recipe} />
+          <InstructionsTab recipe={recipe} scaledData={scaledData} />
         )}
         {activeTab === 'nutrition' && (
           <NutritionTab recipe={recipe} />
@@ -466,12 +493,22 @@ function IngredientsTab({
   )
 }
 
-function InstructionsTab({ recipe }: { recipe: RecipeDetailType }) {
-  const instructions = recipe.instructions.length > 0
-    ? recipe.instructions
-    : recipe.instructions_text
-      ? recipe.instructions_text.split('\n').filter((s) => s.trim())
-      : []
+function InstructionsTab({
+  recipe,
+  scaledData,
+}: {
+  recipe: RecipeDetailType
+  scaledData: ScaleResponse | null
+}) {
+  // Use scaled instructions if available, otherwise fall back to original
+  const hasScaledInstructions = scaledData?.instructions && scaledData.instructions.length > 0
+  const instructions = hasScaledInstructions
+    ? scaledData.instructions
+    : recipe.instructions.length > 0
+      ? recipe.instructions
+      : recipe.instructions_text
+        ? recipe.instructions_text.split('\n').filter((s) => s.trim())
+        : []
 
   if (instructions.length === 0) {
     return (
@@ -482,16 +519,23 @@ function InstructionsTab({ recipe }: { recipe: RecipeDetailType }) {
   }
 
   return (
-    <ol className="space-y-4">
-      {instructions.map((step, index) => (
-        <li key={index} className="flex items-start gap-4">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
-            {index + 1}
-          </span>
-          <p className="pt-0.5 text-foreground">{step}</p>
-        </li>
-      ))}
-    </ol>
+    <div className="space-y-4">
+      {hasScaledInstructions && (
+        <p className="text-sm text-muted-foreground">
+          Instructions adjusted for {scaledData.target_servings} servings
+        </p>
+      )}
+      <ol className="space-y-4">
+        {instructions.map((step, index) => (
+          <li key={index} className="flex items-start gap-4">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+              {index + 1}
+            </span>
+            <p className="pt-0.5 text-foreground">{step}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
   )
 }
 

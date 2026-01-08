@@ -1,6 +1,7 @@
 """Serving adjustment (scaling) service using AI."""
 
 import logging
+import re
 
 from apps.recipes.models import Recipe, ServingAdjustment
 from apps.profiles.models import Profile
@@ -10,6 +11,45 @@ from .openrouter import OpenRouterService, AIUnavailableError, AIResponseError
 from .validator import AIResponseValidator, ValidationError
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_time(time_str: str | None) -> int | None:
+    """Parse a time string like '30 minutes' into minutes.
+
+    Copied from remix.py for consistency.
+    """
+    if not time_str:
+        return None
+
+    time_str = time_str.lower().strip()
+
+    # Try to extract numbers
+    numbers = re.findall(r'\d+', time_str)
+    if not numbers:
+        return None
+
+    minutes = int(numbers[0])
+
+    # Convert hours to minutes if needed
+    if 'hour' in time_str:
+        minutes *= 60
+        if len(numbers) > 1:
+            minutes += int(numbers[1])
+
+    return minutes
+
+
+def _format_time(minutes: int | None) -> str:
+    """Format minutes as a readable time string for the prompt."""
+    if not minutes:
+        return 'Not specified'
+    if minutes >= 60:
+        hours = minutes // 60
+        mins = minutes % 60
+        if mins:
+            return f'{hours} hour{"s" if hours > 1 else ""} {mins} minutes'
+        return f'{hours} hour{"s" if hours > 1 else ""}'
+    return f'{minutes} minutes'
 
 
 def scale_recipe(
@@ -57,7 +97,11 @@ def scale_recipe(
             'target_servings': target_servings,
             'original_servings': recipe.servings,
             'ingredients': cached.ingredients,
+            'instructions': cached.instructions,  # QA-031
             'notes': cached.notes,
+            'prep_time_adjusted': cached.prep_time_adjusted,  # QA-032
+            'cook_time_adjusted': cached.cook_time_adjusted,  # QA-032
+            'total_time_adjusted': cached.total_time_adjusted,  # QA-032
             'cached': True,
         }
     except ServingAdjustment.DoesNotExist:
@@ -69,10 +113,23 @@ def scale_recipe(
     # Format ingredients as a string
     ingredients_str = '\n'.join(f'- {ing}' for ing in recipe.ingredients)
 
-    # Format the user prompt
+    # Format instructions as a string (QA-031)
+    instructions = recipe.instructions or []
+    if not instructions and recipe.instructions_text:
+        instructions = [s.strip() for s in recipe.instructions_text.split('\n') if s.strip()]
+    instructions_str = '\n'.join(f'{i+1}. {step}' for i, step in enumerate(instructions))
+    if not instructions_str:
+        instructions_str = 'No instructions available'
+
+    # Format the user prompt with new fields (QA-031 + QA-032)
     user_prompt = prompt.format_user_prompt(
+        title=recipe.title,
         original_servings=recipe.servings,
         ingredients=ingredients_str,
+        instructions=instructions_str,
+        prep_time=_format_time(recipe.prep_time),
+        cook_time=_format_time(recipe.cook_time),
+        total_time=_format_time(recipe.total_time),
         new_servings=target_servings,
     )
 
@@ -90,7 +147,13 @@ def scale_recipe(
     validated = validator.validate('serving_adjustment', response)
 
     ingredients = validated['ingredients']
+    scaled_instructions = validated.get('instructions', [])  # QA-031
     notes = validated.get('notes', [])
+
+    # Parse time adjustments (QA-032)
+    prep_time_adjusted = _parse_time(validated.get('prep_time'))
+    cook_time_adjusted = _parse_time(validated.get('cook_time'))
+    total_time_adjusted = _parse_time(validated.get('total_time'))
 
     # Cache the result
     ServingAdjustment.objects.create(
@@ -99,7 +162,11 @@ def scale_recipe(
         target_servings=target_servings,
         unit_system=unit_system,
         ingredients=ingredients,
+        instructions=scaled_instructions,  # QA-031
         notes=notes,
+        prep_time_adjusted=prep_time_adjusted,  # QA-032
+        cook_time_adjusted=cook_time_adjusted,  # QA-032
+        total_time_adjusted=total_time_adjusted,  # QA-032
     )
 
     logger.info(f'Created serving adjustment for recipe {recipe_id} to {target_servings} servings')
@@ -108,7 +175,11 @@ def scale_recipe(
         'target_servings': target_servings,
         'original_servings': recipe.servings,
         'ingredients': ingredients,
+        'instructions': scaled_instructions,  # QA-031
         'notes': notes,
+        'prep_time_adjusted': prep_time_adjusted,  # QA-032
+        'cook_time_adjusted': cook_time_adjusted,  # QA-032
+        'total_time_adjusted': total_time_adjusted,  # QA-032
         'cached': False,
     }
 

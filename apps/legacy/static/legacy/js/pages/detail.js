@@ -17,7 +17,9 @@ Cookie.pages.detail = (function() {
     var isScaling = false;
     var isGeneratingTips = false;
     var scaledIngredients = null;
+    var scaledInstructions = null;
     var scalingNotes = [];
+    var adjustedTimes = null;  // {prep: int|null, cook: int|null, total: int|null}
 
     /**
      * Initialize the page
@@ -439,8 +441,11 @@ Cookie.pages.detail = (function() {
         // If returning to original, reset scaled data
         if (newServings === originalServings) {
             scaledIngredients = null;
+            scaledInstructions = null;
             scalingNotes = [];
+            adjustedTimes = null;
             renderOriginalIngredients();
+            renderOriginalTimes();
             return;
         }
 
@@ -480,8 +485,16 @@ Cookie.pages.detail = (function() {
             }
 
             scaledIngredients = response.ingredients;
+            scaledInstructions = response.instructions || [];
             scalingNotes = response.notes || [];
+            adjustedTimes = {
+                prep: response.prep_time_adjusted,
+                cook: response.cook_time_adjusted,
+                total: response.total_time_adjusted
+            };
             renderScaledIngredients();
+            renderScaledInstructions();
+            renderAdjustedTimes();
 
             if (scalingNotes.length > 0) {
                 Cookie.toast.info(scalingNotes[0]);
@@ -514,6 +527,149 @@ Cookie.pages.detail = (function() {
         }
         for (var k = 0; k < scaledTexts.length; k++) {
             scaledTexts[k].classList.add('hidden');
+        }
+
+        // Also reset instructions
+        renderOriginalInstructions();
+    }
+
+    /**
+     * Render original instructions (reset from scaled)
+     */
+    function renderOriginalInstructions() {
+        var instructionItems = document.querySelectorAll('.instruction-item');
+        for (var i = 0; i < instructionItems.length; i++) {
+            instructionItems[i].classList.remove('scaled');
+        }
+
+        // Show original text, hide scaled text
+        var originalTexts = document.querySelectorAll('.instruction-text-original');
+        var scaledTexts = document.querySelectorAll('.instruction-text-scaled');
+
+        for (var j = 0; j < originalTexts.length; j++) {
+            originalTexts[j].classList.remove('hidden');
+        }
+        for (var k = 0; k < scaledTexts.length; k++) {
+            scaledTexts[k].classList.add('hidden');
+        }
+
+        // Hide scaled indicator
+        var indicator = document.querySelector('.instructions-scaled-indicator');
+        if (indicator) {
+            indicator.classList.add('hidden');
+        }
+    }
+
+    /**
+     * Render scaled instructions
+     */
+    function renderScaledInstructions() {
+        if (!scaledInstructions || scaledInstructions.length === 0) return;
+
+        var instructionItems = document.querySelectorAll('.instruction-item');
+
+        for (var i = 0; i < instructionItems.length && i < scaledInstructions.length; i++) {
+            var item = instructionItems[i];
+            var textEl = item.querySelector('.instruction-text');
+
+            if (textEl) {
+                // Store original if not already stored
+                if (!textEl.classList.contains('has-scaled')) {
+                    textEl.classList.add('has-scaled', 'instruction-text-original');
+
+                    // Create scaled text element
+                    var scaledEl = document.createElement('p');
+                    scaledEl.className = 'instruction-text instruction-text-scaled hidden';
+                    textEl.parentNode.insertBefore(scaledEl, textEl.nextSibling);
+                }
+
+                // Update scaled text
+                var scaledTextEl = item.querySelector('.instruction-text-scaled');
+                if (scaledTextEl) {
+                    scaledTextEl.textContent = scaledInstructions[i];
+                    scaledTextEl.classList.remove('hidden');
+                }
+
+                // Hide original
+                var origTextEl = item.querySelector('.instruction-text-original');
+                if (origTextEl) {
+                    origTextEl.classList.add('hidden');
+                }
+
+                item.classList.add('scaled');
+            }
+        }
+
+        // Show scaled indicator
+        var tabContent = document.getElementById('tab-instructions');
+        if (tabContent) {
+            var indicator = tabContent.querySelector('.instructions-scaled-indicator');
+            if (!indicator) {
+                indicator = document.createElement('p');
+                indicator.className = 'instructions-scaled-indicator scaled-notice';
+                indicator.textContent = 'Instructions adjusted for ' + currentServings + ' servings';
+                tabContent.insertBefore(indicator, tabContent.firstChild);
+            } else {
+                indicator.textContent = 'Instructions adjusted for ' + currentServings + ' servings';
+                indicator.classList.remove('hidden');
+            }
+        }
+    }
+
+    /**
+     * Format minutes as readable time
+     */
+    function formatTime(minutes) {
+        if (!minutes) return null;
+        if (minutes < 60) return minutes + ' min';
+        var hours = Math.floor(minutes / 60);
+        var mins = minutes % 60;
+        return mins > 0 ? hours + 'h ' + mins + 'm' : hours + 'h';
+    }
+
+    /**
+     * Render adjusted cooking times
+     */
+    function renderAdjustedTimes() {
+        if (!adjustedTimes) return;
+
+        var timeTypes = ['prep', 'cook', 'total'];
+        for (var i = 0; i < timeTypes.length; i++) {
+            var type = timeTypes[i];
+            var adjusted = adjustedTimes[type];
+            if (!adjusted) continue;
+
+            var el = document.querySelector('[data-time-type="' + type + '"]');
+            if (el) {
+                var valueEl = el.querySelector('.time-value');
+                if (valueEl) {
+                    // Store original if not already stored
+                    if (!valueEl.getAttribute('data-original')) {
+                        valueEl.setAttribute('data-original', valueEl.textContent);
+                    }
+                    var original = valueEl.getAttribute('data-original');
+                    valueEl.innerHTML = formatTime(adjusted) + ' <span class="time-was">(was ' + original + ')</span>';
+                    valueEl.classList.add('time-adjusted');
+                }
+            }
+        }
+    }
+
+    /**
+     * Render original cooking times
+     */
+    function renderOriginalTimes() {
+        var timeTypes = ['prep', 'cook', 'total'];
+        for (var i = 0; i < timeTypes.length; i++) {
+            var type = timeTypes[i];
+            var el = document.querySelector('[data-time-type="' + type + '"]');
+            if (el) {
+                var valueEl = el.querySelector('.time-value');
+                if (valueEl && valueEl.getAttribute('data-original')) {
+                    valueEl.textContent = valueEl.getAttribute('data-original');
+                    valueEl.classList.remove('time-adjusted');
+                }
+            }
         }
     }
 

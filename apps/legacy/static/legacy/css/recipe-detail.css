@@ -926,6 +926,39 @@
     display: none;
 }
 
+/* Instruction scaled state */
+.instruction-item.scaled .instruction-number {
+    background-color: var(--accent);
+}
+
+.instruction-text-scaled {
+    color: var(--foreground);
+}
+
+.instruction-text-original.hidden,
+.instruction-text-scaled.hidden {
+    display: none;
+}
+
+.instructions-scaled-indicator {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background-color: var(--muted);
+    border-radius: 0.375rem;
+}
+
+/* Adjusted cooking times */
+.time-was {
+    color: var(--muted-foreground);
+    font-size: 0.875em;
+}
+
+.time-adjusted {
+    color: var(--accent);
+}
+
 /* Tips Loading */
 .tips-loading {
     text-align: center;

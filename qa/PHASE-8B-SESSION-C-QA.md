@@ -38,6 +38,11 @@ _Established patterns:_
 - [ ] Consider optional AI-based tidying service for complex conversions
 - [ ] Test with examples from this issue
 
+**Additional insight (from QA testing):**
+- **Discrete/practical units** (onions, eggs, cups, tablespoons) should round to halves (1, 1½, 2)
+- **Continuous/weight units** (grams, kg, ounces, ml) can scale precisely (225g, 340g)
+- Update AI prompt to be smarter about unit-appropriate rounding
+
 **Files to modify:**
 - `apps/ai/services/scaling.py` - Add post-processing
 - `apps/recipes/utils.py` (new) - Create tidy_quantities utility
@@ -96,7 +101,7 @@ _The problem:_
 > **Implementation Session:** These two issues are implemented together as they both modify the same files and share the same migration.
 
 ### QA-031: Scaled recipes need instruction step alignment
-**Status:** Ready to Implement
+**Status:** Fixed
 **Severity:** High
 **Component:** AI Scaling Service
 
@@ -110,7 +115,7 @@ When ingredients are scaled, the instruction steps are not updated to match. Thi
 ---
 
 ### QA-032: Scaled recipes need cooking time adjustments
-**Status:** Ready to Implement
+**Status:** Fixed
 **Severity:** Medium
 **Component:** AI Scaling Service
 
@@ -284,12 +289,16 @@ Show adjusted times with "(was X min)" comparison when scaled.
    - Open a recipe with steps mentioning quantities (e.g., "Add 1 cup flour")
    - Scale from 4 servings to 8 servings (2x)
    - Verify:
-     - [ ] Ingredients show scaled quantities
-     - [ ] Instructions tab shows updated quantity references
-     - [ ] Cooking times show adjusted values (if significantly scaled)
-     - [ ] Times show "(was X min)" comparison when adjusted
+     - [x] Ingredients show scaled quantities
+     - [x] Instructions tab shows updated quantity references
+     - [x] Cooking times show adjusted values (if significantly scaled)
+     - [x] Times show "(was X min)" comparison when adjusted
    - Scale back to original servings
    - Verify instructions and times return to original
+
+**Testing completed:** 2026-01-08
+- Modern frontend: All features verified working
+- Legacy frontend: All features verified working (iPad tested)
 
 ---
 
@@ -431,9 +440,45 @@ _Verification:_
 |-------|-------|----------|--------|
 | QA-029 | Ingredient quantities need AI tidying | Medium | Researched |
 | QA-030 | Nutrition tab serving label is ambiguous | Low | Fixed |
-| **QA-031** | Scaled recipes need instruction step alignment | **High** | **Ready to Implement** |
-| **QA-032** | Scaled recipes need cooking time adjustments | Medium | **Ready to Implement** |
+| QA-031 | Scaled recipes need instruction step alignment | High | Fixed |
+| QA-032 | Scaled recipes need cooking time adjustments | Medium | Fixed |
 | QA-033 | Tips should generate automatically and adjust for scaling | Medium | Researched |
 | QA-034 | AI prompts must be in migrations and visible in settings | Low | Fixed |
+| QA-035 | SQLite database locking errors under concurrent load | Medium | Open |
 
 > **Note:** QA-031 and QA-032 are implemented together as "Scaling Service v2" since they share the same files and migration.
+
+---
+
+## QA-035: SQLite database locking errors under concurrent load
+**Status:** Open
+**Severity:** Medium
+**Component:** Database / Infrastructure
+
+**Description:**
+Occasional "database is locked" errors occur when multiple requests try to write to the SQLite database simultaneously. This is a known SQLite limitation with concurrent writes.
+
+**Example error:**
+```
+sqlite3.OperationalError: database is locked
+django.db.utils.OperationalError: database is locked
+```
+
+**Observed in:**
+- `RecipeViewHistory.objects.update_or_create()` in legacy views
+- Any concurrent write operations
+
+**Potential solutions:**
+1. **Short-term:** Add retry logic with backoff for write operations
+2. **Short-term:** Increase SQLite timeout setting (`timeout` in database config)
+3. **Long-term:** Migrate to PostgreSQL for production use
+4. **Alternative:** Use WAL (Write-Ahead Logging) mode for SQLite
+
+**Tasks:**
+- [ ] Research SQLite WAL mode and timeout settings
+- [ ] Consider adding `DATABASE_OPTIONS = {'timeout': 30}` to settings
+- [ ] Evaluate if PostgreSQL migration is warranted for production
+
+**Files to consider:**
+- `cookie/settings.py` - Database configuration
+- Any views with high-frequency writes

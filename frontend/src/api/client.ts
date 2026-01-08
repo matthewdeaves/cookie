@@ -60,7 +60,11 @@ export interface ScaleResponse {
   target_servings: number
   original_servings: number
   ingredients: string[]
+  instructions: string[]  // QA-031
   notes: string[]
+  prep_time_adjusted: number | null  // QA-032
+  cook_time_adjusted: number | null  // QA-032
+  total_time_adjusted: number | null  // QA-032
   nutrition: NutritionValues | null
   cached: boolean
 }

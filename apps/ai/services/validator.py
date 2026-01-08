@@ -32,7 +32,11 @@ RESPONSE_SCHEMAS = {
         'required': ['ingredients'],
         'properties': {
             'ingredients': {'type': 'array', 'items': {'type': 'string'}},
+            'instructions': {'type': 'array', 'items': {'type': 'string'}},  # QA-031
             'notes': {'type': 'array', 'items': {'type': 'string'}},
+            'prep_time': {'type': ['string', 'null']},   # QA-032
+            'cook_time': {'type': ['string', 'null']},   # QA-032
+            'total_time': {'type': ['string', 'null']},  # QA-032
         },
     },
     'tips_generation': {
@@ -153,6 +157,30 @@ class AIResponseValidator:
         """
         errors = []
         expected_type = schema.get('type')
+
+        # Handle union types (e.g., ['string', 'null'])
+        if isinstance(expected_type, list):
+            valid = False
+            for t in expected_type:
+                if t == 'null' and value is None:
+                    valid = True
+                    break
+                elif t == 'string' and isinstance(value, str):
+                    valid = True
+                    break
+                elif t == 'integer' and isinstance(value, int) and not isinstance(value, bool):
+                    valid = True
+                    break
+                elif t == 'number' and isinstance(value, (int, float)) and not isinstance(value, bool):
+                    valid = True
+                    break
+                elif t == 'boolean' and isinstance(value, bool):
+                    valid = True
+                    break
+            if not valid:
+                types_str = ' or '.join(expected_type)
+                errors.append(f'{path}: expected {types_str}, got {type(value).__name__}')
+            return errors
 
         # Type validation
         if expected_type == 'object':

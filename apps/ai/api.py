@@ -315,7 +315,11 @@ class ScaleOut(Schema):
     target_servings: int
     original_servings: int
     ingredients: List[str]
+    instructions: List[str] = []  # QA-031
     notes: List[str]
+    prep_time_adjusted: Optional[int] = None  # QA-032
+    cook_time_adjusted: Optional[int] = None  # QA-032
+    total_time_adjusted: Optional[int] = None  # QA-032
     nutrition: Optional[NutritionOut] = None
     cached: bool
 
@@ -362,7 +366,11 @@ def scale_recipe_endpoint(request, data: ScaleIn):
             'target_servings': result['target_servings'],
             'original_servings': result['original_servings'],
             'ingredients': result['ingredients'],
+            'instructions': result.get('instructions', []),  # QA-031
             'notes': result['notes'],
+            'prep_time_adjusted': result.get('prep_time_adjusted'),  # QA-032
+            'cook_time_adjusted': result.get('cook_time_adjusted'),  # QA-032
+            'total_time_adjusted': result.get('total_time_adjusted'),  # QA-032
             'nutrition': nutrition,
             'cached': result['cached'],
         }

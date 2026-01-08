@@ -251,7 +251,11 @@ class ServingAdjustment(models.Model):
         default='metric',
     )
     ingredients = models.JSONField(default=list)
+    instructions = models.JSONField(default=list)  # QA-031: Scaled instructions
     notes = models.JSONField(default=list)
+    prep_time_adjusted = models.PositiveIntegerField(null=True, blank=True)  # QA-032
+    cook_time_adjusted = models.PositiveIntegerField(null=True, blank=True)  # QA-032
+    total_time_adjusted = models.PositiveIntegerField(null=True, blank=True)  # QA-032
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
