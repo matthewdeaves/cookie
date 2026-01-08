@@ -84,6 +84,52 @@ Extend the scaling service to:
 
 ---
 
+## QA-033: Tips should generate automatically and adjust for scaling
+**Status:** Open
+**Severity:** Medium
+**Component:** Tips Generation Service / UI
+
+**Description:**
+Currently users must manually click "Generate Tips" button to get cooking tips. This is not intuitive - tips should be generated automatically when viewing the Tips tab or recipe detail.
+
+Additionally, when a recipe is scaled, the tips should be regenerated or adjusted to reflect the scaled quantities (e.g., "use a larger pan" when doubling a recipe).
+
+**Proposed Solution:**
+1. Auto-generate tips when user views Tips tab (if not already cached)
+2. When recipe is scaled, either:
+   - Regenerate tips with scaling context, or
+   - Append scaling-specific tips to existing tips
+3. Show loading state while tips are being generated
+
+---
+
+## QA-034: AI prompts must be in migrations and visible in settings
+**Status:** Open
+**Severity:** Low
+**Type:** Task/Process
+
+**Description:**
+All AI prompts added to the system should:
+1. Be seeded via Django migrations (not manual DB inserts)
+2. Appear in the Settings > AI Prompts management UI
+
+This ensures prompts are version-controlled, reproducible across environments, and editable by users.
+
+**Checklist for new prompts:**
+- [ ] Create migration file with RunPython to seed prompt
+- [ ] Include prompt_type, name, description, system_prompt, user_prompt_template, model
+- [ ] Verify prompt appears in Settings after migration
+- [ ] Add reverse migration to remove prompt if needed
+
+**Current prompts to verify:**
+- recipe_remix
+- remix_suggestions
+- serving_adjustment
+- tips_generation
+- nutrition_estimate
+
+---
+
 ## Summary
 
 | Issue | Title | Severity | Status |
@@ -92,3 +138,5 @@ Extend the scaling service to:
 | QA-030 | Nutrition tab serving label is ambiguous | Low | Open |
 | QA-031 | Scaled recipes need instruction step alignment | High | Open |
 | QA-032 | Scaled recipes need cooking time adjustments | Medium | Open |
+| QA-033 | Tips should generate automatically and adjust for scaling | Medium | Open |
+| QA-034 | AI prompts must be in migrations and visible in settings | Low | Open |
