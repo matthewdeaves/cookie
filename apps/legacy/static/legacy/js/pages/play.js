@@ -75,6 +75,14 @@ Cookie.pages.play = (function() {
      * Setup event listeners
      */
     function setupEventListeners() {
+        // Initialize audio on first user interaction (iOS Safari requirement)
+        // This MUST be called from touchstart/click to enable audio playback later
+        var initAudioHandler = function() {
+            Cookie.Timer.unlockAudio();
+        };
+        document.addEventListener('touchstart', initAudioHandler, false);
+        document.addEventListener('click', initAudioHandler, false);
+
         // Exit button - use location.replace() to avoid Play Mode in history
         var exitBtn = document.getElementById('exit-btn');
         if (exitBtn) {
@@ -108,9 +116,6 @@ Cookie.pages.play = (function() {
 
         // Keyboard navigation
         document.addEventListener('keydown', handleKeyDown);
-
-        // Touch events for iOS 9
-        document.addEventListener('touchstart', function() {}, { passive: true });
     }
 
     /**
@@ -324,7 +329,15 @@ Cookie.pages.play = (function() {
      * Add a new timer
      */
     function addTimer(label, duration) {
+        // Unlock audio on user interaction (iOS requires this)
+        Cookie.Timer.unlockAudio();
+
         var timer = Cookie.Timer.create(label, duration);
+
+        // Set up completion callback to show toast
+        timer.onComplete = function(t) {
+            Cookie.toast.success(t.label + ' timer complete!');
+        };
 
         // Create timer widget element
         var widget = createTimerWidget(timer);

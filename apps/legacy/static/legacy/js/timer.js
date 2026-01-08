@@ -1,6 +1,7 @@
 /**
  * Timer functionality (ES5, iOS 9 compatible)
  * CRITICAL: This must work on iOS 9 Safari
+ * Uses Web Audio API with webkitAudioContext fallback
  */
 var Cookie = Cookie || {};
 
@@ -10,9 +11,9 @@ Cookie.Timer = (function() {
     var timers = [];
     var nextId = 1;
 
-    // Audio context singleton for Web Audio API beeps
+    // Web Audio API context (created lazily on user gesture)
     var audioContext = null;
-    var audioUnlocked = false;
+    var audioInitialized = false;
 
     /**
      * Timer constructor
@@ -169,126 +170,116 @@ Cookie.Timer = (function() {
     };
 
     // ==========================================
-    // Module-level functions
+    // Audio functions using Web Audio API
     // ==========================================
 
     /**
-     * Notification handling - alert for iOS 9 compatibility
+     * Initialize AudioContext on user gesture (required for iOS)
+     * Uses webkitAudioContext fallback for iOS 9 Safari
      */
-    function notify(label) {
-        // Try Notification API first (modern browsers)
-        if ('Notification' in window && Notification.permission === 'granted') {
-            try {
-                new Notification('Timer Complete!', { body: label });
-            } catch (e) {
-                // Fallback to alert
-                alert('Timer Complete: ' + label);
-            }
-        } else {
-            // Fallback to alert for iOS 9
-            alert('Timer Complete: ' + label);
-        }
-
-        // Try to play sound
-        playSound();
-    }
-
-    /**
-     * Get or create AudioContext singleton (iOS 9 compatible)
-     */
-    function getAudioContext() {
+    function initAudio() {
         if (audioContext) {
-            return audioContext;
+            // Already initialized, just resume if suspended
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            return;
         }
+
         try {
+            // Use webkitAudioContext for iOS 9 Safari
             var AudioContextClass = window.AudioContext || window.webkitAudioContext;
             if (AudioContextClass) {
                 audioContext = new AudioContextClass();
-                return audioContext;
+                audioInitialized = true;
             }
         } catch (e) {
             // Web Audio API not supported
         }
-        return null;
+
+        // Resume if suspended (iOS autoplay policy)
+        if (audioContext && audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
     }
 
     /**
-     * Unlock audio for iOS (must be called from user interaction)
+     * Play alarm sound - 3 beeps at 880 Hz (A5 note)
+     * Uses square wave for harsh, attention-grabbing sound
+     */
+    function playAlarmSound() {
+        if (!audioContext) {
+            return;
+        }
+
+        // Resume if suspended
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+
+        try {
+            var ctx = audioContext;
+            var now = ctx.currentTime;
+
+            // Play 3 beeps
+            for (var i = 0; i < 3; i++) {
+                var startTime = now + (i * 0.3);
+
+                var oscillator = ctx.createOscillator();
+                var gainNode = ctx.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(ctx.destination);
+
+                // 880 Hz = A5 note, square wave for harsh beep
+                oscillator.frequency.value = 880;
+                oscillator.type = 'square';
+
+                // Volume envelope (attack, sustain, release)
+                gainNode.gain.setValueAtTime(0.5, startTime);
+                gainNode.gain.setValueAtTime(0.5, startTime + 0.12);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.15);
+
+                oscillator.start(startTime);
+                oscillator.stop(startTime + 0.15);
+            }
+        } catch (e) {
+            // Silent fail
+        }
+    }
+
+    // ==========================================
+    // Module-level functions
+    // ==========================================
+
+    /**
+     * Notification handling - play sound only (no alert)
+     */
+    function notify(label) {
+        // Play alarm sound
+        playAlarmSound();
+
+        // Try Notification API for desktop browsers (optional, non-blocking)
+        if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+                new Notification('Timer Complete!', { body: label });
+            } catch (e) {
+                // Ignore notification errors
+            }
+        }
+        // No alert() - just play the sound and show toast
+    }
+
+    /**
+     * Initialize audio on user interaction (iOS requires this)
+     * Call this from touchstart/click handlers
      */
     function unlockAudio() {
-        if (audioUnlocked) {
-            return;
-        }
-        var ctx = getAudioContext();
-        if (!ctx) {
-            return;
-        }
-        // Resume suspended context
-        if (ctx.state === 'suspended' && ctx.resume) {
-            ctx.resume();
-        }
-        // Play silent buffer to unlock iOS audio
-        try {
-            var buffer = ctx.createBuffer(1, 1, 22050);
-            var source = ctx.createBufferSource();
-            source.buffer = buffer;
-            source.connect(ctx.destination);
-            source.start(0);
-            audioUnlocked = true;
-        } catch (e) {
-            // Silent fail
-        }
+        initAudio();
     }
 
     /**
-     * Play a single tone at specified frequency
-     */
-    function playTone(ctx, frequency, startTime, duration) {
-        var oscillator = ctx.createOscillator();
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(frequency, startTime);
-
-        var gainNode = ctx.createGain();
-        gainNode.gain.setValueAtTime(0, startTime);
-        // Quick attack
-        gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.01);
-        // Sustain
-        gainNode.gain.setValueAtTime(0.3, startTime + duration - 0.05);
-        // Quick release (prevents click)
-        gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
-
-        oscillator.connect(gainNode);
-        gainNode.connect(ctx.destination);
-
-        oscillator.start(startTime);
-        oscillator.stop(startTime + duration);
-    }
-
-    /**
-     * Play timer completion sound using Web Audio API
-     */
-    function playSound() {
-        var ctx = getAudioContext();
-        if (!ctx) {
-            return;
-        }
-        // Resume context if suspended
-        if (ctx.state === 'suspended' && ctx.resume) {
-            ctx.resume();
-        }
-        try {
-            var now = ctx.currentTime;
-            // Three-tone beep pattern: A5-A5-E5
-            playTone(ctx, 880, now, 0.15);        // A5
-            playTone(ctx, 880, now + 0.2, 0.15);  // A5
-            playTone(ctx, 660, now + 0.45, 0.25); // E5
-        } catch (e) {
-            // Silent fail
-        }
-    }
-
-    /**
-     * Request notification permission and unlock audio
+     * Request notification permission and initialize audio
      */
     function requestPermission() {
         if ('Notification' in window && Notification.permission === 'default') {
@@ -298,8 +289,8 @@ Cookie.Timer = (function() {
                 // Not supported
             }
         }
-        // Also unlock audio for iOS (called from user interaction context)
-        unlockAudio();
+        // Initialize audio context (called from user interaction context)
+        initAudio();
     }
 
     /**

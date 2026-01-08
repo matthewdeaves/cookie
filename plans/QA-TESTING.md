@@ -21,7 +21,7 @@
 | QA-010 | Multiple timers have no spacing in Play Mode | Legacy | Verified | QA-J |
 | QA-011 | Timers don't auto-start when added in Play Mode | Modern | Verified | QA-K |
 | QA-012 | Timer completion sound doesn't play | Modern | Verified | QA-L |
-| QA-013 | Timer completion sound doesn't play | Legacy | Fixed | QA-M |
+| QA-013 | Timer completion sound doesn't play | Legacy | Verified | QA-M |
 | QA-014 | Screen locks during Play Mode | Legacy | New | QA-N |
 | QA-015 | No "View All" link for Favorites section | Legacy + Modern | New | QA-O |
 | QA-016 | Back button after import goes to home instead of search results | Modern | New | QA-P |
@@ -968,7 +968,7 @@ _Files to modify:_
 
 **Issue:** QA-013 - Timer completion sound doesn't play
 **Affects:** Legacy
-**Status:** Fixed
+**Status:** Verified
 
 **Problem:**
 On the Legacy frontend (iPad 3 / iOS 9) in Play Mode, when a timer completes (reaches 0:00), no sound is played to alert the user. This is a critical issue for cooking, as users may be away from the device or focused on other tasks when the timer completes.
@@ -978,41 +978,46 @@ On the Legacy frontend (iPad 3 / iOS 9) in Play Mode, when a timer completes (re
 **Research Findings:**
 
 _Root cause:_
-- Legacy `timer.js:195-203` had `playSound()` function trying to load `/static/legacy/audio/timer.mp3`
-- The audio file did not exist, causing silent failure
+- Initial HTML5 Audio attempts failed due to iOS 9 audio restrictions
 - iOS 9 requires user interaction before audio playback ("unlock")
+- Found working implementation in `/home/matt/Desktop/cookie1_old` using Web Audio API
 
-_Solution:_
-- Replace HTML5 Audio with Web Audio API (ES5 compatible)
-- Use `webkitAudioContext` fallback for iOS 9 Safari
-- Add `unlockAudio()` called from `requestPermission()` (which runs on Play Mode entry)
-- Generate beep tones programmatically (no audio file needed)
+_Solution (from working old codebase):_
+- Use Web Audio API with `webkitAudioContext` fallback for iOS 9 Safari
+- Initialize AudioContext on first user gesture (touchstart/click on document)
+- Generate beep tones programmatically using oscillator (880 Hz, square wave)
+- No audio files needed - pure programmatic sound generation
 
 **Tasks:**
-- [x] Add Web Audio API singleton and unlock function
-- [x] Add `playTone()` helper for generating beeps
-- [x] Replace `playSound()` with Web Audio API implementation
-- [x] Call `unlockAudio()` from `requestPermission()`
-- [x] Export `unlockAudio` in public API
-- [ ] Test on iPad 3 / iOS 9
+- [x] Rewrite timer.js to use Web Audio API with `webkitAudioContext`
+- [x] Add global touchstart/click handlers in play.js to initialize audio
+- [x] Play 3 beeps at 880 Hz on timer completion
+- [x] Remove alert() - just play sound and show toast
+- [x] Remove unused HTML5 audio element from play_mode.html
+- [x] Test on iPad 3 / iOS 9
 
 **Implementation:**
-- Added audio context singleton with `webkitAudioContext` fallback
-- Added `unlockAudio()` - plays silent buffer to enable iOS audio
-- Added `playTone()` - generates sine wave with gain envelope
-- Updated `playSound()` - plays A5-A5-E5 three-tone beep pattern
-- Updated `requestPermission()` - also calls `unlockAudio()` for iOS
+- Rewrote `timer.js` with Web Audio API:
+  - `initAudio()` creates AudioContext with `webkitAudioContext` fallback
+  - `playAlarmSound()` generates 3 beeps at 880 Hz using square wave oscillator
+  - Handles suspended context state (iOS autoplay policy)
+- Updated `play.js`:
+  - Added global `touchstart` and `click` listeners to call `unlockAudio()`
+  - Added `onComplete` callback to show toast when timer finishes
+- Removed base64 audio element from `play_mode.html` (not needed)
 
 **Files Changed:**
-- `apps/legacy/static/legacy/js/timer.js` - Added Web Audio API beep functionality
+- `apps/legacy/static/legacy/js/timer.js` - Complete rewrite with Web Audio API
+- `apps/legacy/static/legacy/js/pages/play.js` - Global audio init + toast callback
+- `apps/legacy/templates/legacy/play_mode.html` - Removed unused audio element
 
 **Verification:**
-- [ ] Sound plays when timer reaches 0:00
-- [ ] Sound is audible and distinct
-- [ ] Works on iPad 3 / iOS 9
-- [ ] ES5/iOS 9 audio API compatibility
+- [x] Sound plays when timer reaches 0:00
+- [x] Sound is audible and distinct (3 beeps at 880 Hz)
+- [x] Works on iPad 3 / iOS 9
+- [x] ES5/iOS 9 audio API compatibility (webkitAudioContext)
 
-**Related:** QA-012 (same issue on Modern frontend) - Fixed with same approach
+**Related:** QA-012 (same issue on Modern frontend) - Fixed with similar Web Audio API approach
 
 ---
 
@@ -1028,24 +1033,58 @@ On the Legacy frontend (iPad 3 / iOS 9) in Play Mode, the iPad screen locks afte
 **Screenshots:** _N/A (behavioral issue)_
 
 **Research Findings:**
-_To be completed during research phase_
+
+_Available APIs for iOS 9:_
+- **Screen Wake Lock API:** NOT supported on iOS 9 (requires iOS 16.4+)
+- **NoSleep.js pattern (silent video loop):** Proven to work on iOS 9 Safari
+- **Canvas animation:** Less reliable than video loop, not recommended
+
+_Why silent video loop is the best approach:_
+- Battle-tested pattern used in production apps
+- ES5 compatible (no modern API dependencies)
+- Can be toggled on/off without page reload
+- Minimal bandwidth (silent video is very small)
+- Follows existing codebase patterns (similar to timer.js audio handling)
+
+_How it works:_
+1. Create a hidden `<video>` element with base64-encoded silent MP4
+2. Set `loop` and `muted` attributes
+3. Call `play()` when entering Play Mode
+4. Call `pause()` when exiting Play Mode
+5. Video plays silently in background, preventing device sleep
+
+_Entry/exit points identified:_
+- **Entry:** `play.js:23` in `init()` function - Enable wake lock
+- **Exit:** `play.js:122` in `handleExit()` function - Disable wake lock
+
+_Pattern to follow:_
+- `timer.js` module demonstrates identical singleton IIFE pattern
+- `unlockAudio()` in timer.js shows iOS workaround approach
+- ES5 syntax throughout
 
 **Tasks:**
-_To be defined after research_
+- [ ] Create `apps/legacy/static/legacy/js/wake-lock.js` module with video loop
+- [ ] Embed base64-encoded silent MP4 video in module
+- [ ] Add `WakeLock.enable()` call in `play.js` `init()` function
+- [ ] Add `WakeLock.disable()` call in `play.js` `handleExit()` function
+- [ ] Add script include in `play_mode.html` template
+- [ ] Test on iPad 3 / iOS 9
 
 **Implementation:**
 _Pending_
 
 **Files Changed:**
-_Pending_
+- `apps/legacy/static/legacy/js/wake-lock.js` - New module (create)
+- `apps/legacy/static/legacy/js/pages/play.js` - Add enable/disable calls
+- `apps/legacy/templates/legacy/play_mode.html` - Add script include
 
 **Verification:**
-- [ ] Screen stays awake while in Play Mode
+- [ ] Screen stays awake while in Play Mode (test 5+ minutes)
 - [ ] Screen returns to normal auto-lock behavior when exiting Play Mode
 - [ ] Works on iPad 3 / iOS 9
-- [ ] Modern frontend behavior (should also implement if possible)
-
-**Note:** This may require the Screen Wake Lock API or a workaround (e.g., playing a silent video loop). iOS 9 Safari may have limited support for wake lock functionality. Need to research available options for older iOS versions.
+- [ ] Timer alerts still work while wake lock active
+- [ ] Exit via back button also disables wake lock
+- [ ] Modern frontend behavior (optional - can implement later)
 
 ---
 
@@ -1061,16 +1100,55 @@ On the home page, the "Recently Viewed" section has a "View All" link that navig
 **Screenshots:** _To be added during testing_
 
 **Research Findings:**
-_To be completed during research phase_
+
+_How QA-005 implemented "View All" for Recently Viewed:_
+
+**Legacy backend (`views.py`):**
+```python
+history_qs = RecipeViewHistory.objects.filter(profile=profile)
+history_count = history_qs.count()  # Total count passed to template
+history = history_qs[:6]            # Limited preview
+```
+
+**Legacy template (`home.html:64-66`):**
+```html
+<div class="section-header">
+    <h2 class="section-title">Recently Viewed</h2>
+    <a href="{% url 'legacy:all_recipes' %}" class="section-link">View All ({{ history_count }})</a>
+</div>
+```
+
+**Modern frontend (`Home.tsx`):**
+- `historyCount` state stores total count
+- View All button with `onClick={onAllRecipesClick}` handler
+- Shows count: `View All ({historyCount})`
+
+_Current Favorites section (missing pattern):_
+- Legacy `home.html:79-80`: Just `<h2>` title, no section-header wrapper
+- Modern `Home.tsx:226-230`: Just `<h2>` title, no View All button
+- No `favorites_count` variable passed to Legacy template
+
+_Existing Favorites pages (no new pages needed):_
+- Legacy: `/legacy/favorites/` URL already exists with full list
+- Modern: `Favorites.tsx` screen already exists
+- Navigation handlers already wired up in `App.tsx`
 
 **Tasks:**
-_To be defined after research_
+- [ ] Add `favorites_count` to home view context in `views.py`
+- [ ] Wrap Favorites title in `section-header` div in `home.html`
+- [ ] Add View All link to Favorites section in `home.html`
+- [ ] Add `favoritesCount` state to `Home.tsx`
+- [ ] Add View All button to Favorites section in `Home.tsx`
+- [ ] Test on Legacy (iPad 3 / iOS 9)
+- [ ] Test on Modern (desktop browser)
 
 **Implementation:**
 _Pending_
 
 **Files Changed:**
-_Pending_
+- `apps/legacy/views.py` - Add `favorites_count` to home view context
+- `apps/legacy/templates/legacy/home.html` - Add section-header with View All link
+- `frontend/src/screens/Home.tsx` - Add favoritesCount state and View All button
 
 **Verification:**
 - [ ] "View All" link appears in Favorites section header on home page
@@ -1078,8 +1156,6 @@ _Pending_
 - [ ] Clicking link navigates to existing Favorites page
 - [ ] Works on Legacy (iPad 3 / iOS 9)
 - [ ] Works on Modern (desktop browser)
-
-**Note:** This should be simpler than QA-005 since the Favorites page already exists. We just need to add the section header with the "View All" link to match the Recently Viewed pattern.
 
 ---
 
