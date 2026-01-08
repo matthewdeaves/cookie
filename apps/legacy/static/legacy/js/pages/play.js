@@ -41,6 +41,9 @@ Cookie.pages.play = (function() {
         // Request notification permission
         Cookie.Timer.requestPermission();
 
+        // Enable wake lock to prevent screen sleep during cooking
+        Cookie.WakeLock.enable();
+
         // Initial render
         updateDisplay();
         updateDetectedTimes();
@@ -75,13 +78,14 @@ Cookie.pages.play = (function() {
      * Setup event listeners
      */
     function setupEventListeners() {
-        // Initialize audio on first user interaction (iOS Safari requirement)
-        // This MUST be called from touchstart/click to enable audio playback later
-        var initAudioHandler = function() {
+        // Initialize audio and wake lock on first user interaction (iOS Safari requirement)
+        // This MUST be called from touchstart/click to enable audio/video playback later
+        var initMediaHandler = function() {
             Cookie.Timer.unlockAudio();
+            Cookie.WakeLock.unlock();
         };
-        document.addEventListener('touchstart', initAudioHandler, false);
-        document.addEventListener('click', initAudioHandler, false);
+        document.addEventListener('touchstart', initMediaHandler, false);
+        document.addEventListener('click', initMediaHandler, false);
 
         // Exit button - use location.replace() to avoid Play Mode in history
         var exitBtn = document.getElementById('exit-btn');
@@ -126,6 +130,10 @@ Cookie.pages.play = (function() {
      */
     function handleExit(e) {
         e.preventDefault();
+
+        // Disable wake lock when leaving Play Mode
+        Cookie.WakeLock.disable();
+
         // Go back to the previous page (Recipe Detail)
         // This effectively removes Play Mode from the navigation flow
         if (window.history.length > 1) {

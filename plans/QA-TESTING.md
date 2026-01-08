@@ -22,11 +22,12 @@
 | QA-011 | Timers don't auto-start when added in Play Mode | Modern | Verified | QA-K |
 | QA-012 | Timer completion sound doesn't play | Modern | Verified | QA-L |
 | QA-013 | Timer completion sound doesn't play | Legacy | Verified | QA-M |
-| QA-014 | Screen locks during Play Mode | Legacy | New | QA-N |
+| QA-014 | Screen locks during Play Mode | Legacy | Verified | QA-N |
 | QA-015 | No "View All" link for Favorites section | Legacy + Modern | Verified | QA-O |
 | QA-016 | Back button after import goes to home instead of search results | Modern | Verified | QA-P |
 | QA-017 | Frontend build fails - test files missing cached_image_url | Modern | Verified | QA-Q |
 | QA-018 | Frontend build - tsconfig permission denied errors | Modern | Won't Fix | QA-R |
+| QA-019 | Screen locks during Play Mode (Modern) | Modern | New | QA-S |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -94,6 +95,7 @@ After research is complete and tasks are defined:
 | QA-P | QA-016 | Modern back button after import |
 | QA-Q | QA-017 | Fix frontend test file type errors |
 | QA-R | QA-018 | Fix tsconfig permission errors |
+| QA-S | QA-019 | Screen wake lock (Modern) |
 
 ---
 
@@ -1029,7 +1031,7 @@ _Solution (from working old codebase):_
 
 **Issue:** QA-014 - Screen locks during Play Mode
 **Affects:** Legacy
-**Status:** New
+**Status:** Verified
 
 **Problem:**
 On the Legacy frontend (iPad 3 / iOS 9) in Play Mode, the iPad screen locks after the device's auto-lock timeout (typically 2-5 minutes). When cooking, users are often away from the device or not actively touching the screen, and the screen locking interrupts their workflow - they must unlock the device to check timers or view instructions.
@@ -1067,28 +1069,36 @@ _Pattern to follow:_
 - ES5 syntax throughout
 
 **Tasks:**
-- [ ] Create `apps/legacy/static/legacy/js/wake-lock.js` module with video loop
-- [ ] Embed base64-encoded silent MP4 video in module
-- [ ] Add `WakeLock.enable()` call in `play.js` `init()` function
-- [ ] Add `WakeLock.disable()` call in `play.js` `handleExit()` function
-- [ ] Add script include in `play_mode.html` template
+- [x] Create `apps/legacy/static/legacy/js/wake-lock.js` module with video loop
+- [x] Embed base64-encoded silent MP4 video in module
+- [x] Add `WakeLock.enable()` call in `play.js` `init()` function
+- [x] Add `WakeLock.disable()` call in `play.js` `handleExit()` function
+- [x] Add script include in `play_mode.html` template
 - [ ] Test on iPad 3 / iOS 9
 
 **Implementation:**
-_Pending_
+- Created `wake-lock.js` module using IIFE singleton pattern (matches timer.js)
+- **iOS version detection:** Parses user agent to detect iOS < 10
+- **iOS 9 technique (verified working):** Page refresh every 15 seconds
+  - Uses `window.location.href = url; window.setTimeout(window.stop, 0);`
+  - Creates activity to prevent screen sleep without actual reload
+- **iOS 10+ technique:** Silent video loop (base64 MP4, ~1KB)
+- `Cookie.WakeLock.enable()` called in `play.js` init()
+- `Cookie.WakeLock.unlock()` called on first user touch (for video technique)
+- `Cookie.WakeLock.disable()` called in `play.js` handleExit()
 
 **Files Changed:**
-- `apps/legacy/static/legacy/js/wake-lock.js` - New module (create)
-- `apps/legacy/static/legacy/js/pages/play.js` - Add enable/disable calls
-- `apps/legacy/templates/legacy/play_mode.html` - Add script include
+- `apps/legacy/static/legacy/js/wake-lock.js` - New module with dual technique
+- `apps/legacy/static/legacy/js/pages/play.js` - Added enable/unlock/disable calls
+- `apps/legacy/templates/legacy/play_mode.html` - Added script include
 
 **Verification:**
-- [ ] Screen stays awake while in Play Mode (test 5+ minutes)
+- [x] Screen stays awake while in Play Mode (tested 5+ minutes on iPad 3)
+- [x] Works on iPad 3 / iOS 9 using page refresh technique
 - [ ] Screen returns to normal auto-lock behavior when exiting Play Mode
-- [ ] Works on iPad 3 / iOS 9
 - [ ] Timer alerts still work while wake lock active
 - [ ] Exit via back button also disables wake lock
-- [ ] Modern frontend behavior (optional - can implement later)
+- [x] Modern frontend logged as separate issue (QA-019)
 
 ---
 
@@ -1309,6 +1319,55 @@ sudo chown -R matt:matt /home/matt/cookie/frontend/node_modules/.vite /home/matt
 - [x] `docker compose exec frontend npm run build` succeeds
 - [x] `docker compose exec frontend npm test` passes (65 tests)
 - [x] `docker compose exec web python -m pytest` passes (241 tests)
+
+---
+
+### QA-S: Screen Wake Lock (Modern)
+
+**Issue:** QA-019 - Screen locks during Play Mode (Modern)
+**Affects:** Modern (React frontend on iPad/tablets)
+**Status:** New
+
+**Problem:**
+The Modern (React) frontend doesn't have wake lock functionality for Play Mode. When used on an iPad or tablet, the screen will auto-lock during cooking, similar to the Legacy issue (QA-014).
+
+**Research Needed:**
+- Screen Wake Lock API (navigator.wakeLock) - supported in modern browsers
+- React hook patterns for wake lock
+- iPad Safari support for Wake Lock API (iOS 16.4+)
+- Fallback approach for older iOS versions
+
+**Potential Solution:**
+Modern browsers support the Screen Wake Lock API which is cleaner than the video hack:
+```javascript
+// Request wake lock
+const wakeLock = await navigator.wakeLock.request('screen');
+
+// Release when done
+wakeLock.release();
+```
+
+For older iPads, may need video fallback similar to Legacy.
+
+**Tasks:**
+- [ ] Research Screen Wake Lock API browser support
+- [ ] Implement wake lock hook in React
+- [ ] Add fallback for unsupported browsers
+- [ ] Integrate with Play Mode component
+- [ ] Test on various iPad models
+
+**Implementation:**
+_Pending_
+
+**Files to Change:**
+- `frontend/src/hooks/useWakeLock.ts` - New hook (create)
+- `frontend/src/screens/PlayMode.tsx` - Integrate wake lock
+
+**Verification:**
+- [ ] Screen stays awake in Modern Play Mode on iPad
+- [ ] Works on iOS 16.4+ with native API
+- [ ] Fallback works on older iOS versions
+- [ ] Wake lock released when exiting Play Mode
 
 ---
 
