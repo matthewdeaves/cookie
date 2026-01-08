@@ -18,7 +18,7 @@
 | QA-007 | Button icons off-center (Safari flexbox bug) | Legacy | Verified | QA-G |
 | QA-008 | Search input text unreadable in dark mode | Modern | Verified | QA-H |
 | QA-009 | Search results missing/broken images | Legacy + Modern | Verified | QA-I |
-| QA-010 | Multiple timers have no spacing in Play Mode | Legacy | New | QA-J |
+| QA-010 | Multiple timers have no spacing in Play Mode | Legacy | Verified | QA-J |
 | QA-011 | Timers don't auto-start when added in Play Mode | Modern | New | QA-K |
 | QA-012 | Timer completion sound doesn't play | Modern | New | QA-L |
 | QA-013 | Timer completion sound doesn't play | Legacy | New | QA-M |
@@ -723,7 +723,7 @@ All sessions completed successfully. See `plans/QA-009.md` for detailed implemen
 
 **Issue:** QA-010 - Multiple timers have no spacing in Play Mode
 **Affects:** Legacy
-**Status:** New
+**Status:** Verified
 
 **Problem:**
 When a recipe has more than one timer in Play Mode, the timers are stacked vertically with no space between them. They appear to be sitting directly on top of each other, making them difficult to distinguish and interact with.
@@ -771,24 +771,53 @@ _Solution (same as QA-006):_
 - For flex-wrap: May need negative margin on container + margin on all items
 
 **Tasks:**
-- [ ] Add `> * + *` margin fallbacks for all 9 elements using `gap:` in play-mode.css
-- [ ] For `.timer-list` (flex-column): Add `> * + * { margin-top: 0.5rem; }`
-- [ ] For flex-row elements: Add `> * + * { margin-left: [gap-value]; }`
-- [ ] For flex-wrap elements (`.quick-timers`, `.detected-times-btns`): Use negative margin pattern
+- [x] Add `> * + *` margin fallbacks for all 9 elements using `gap:` in play-mode.css
+- [x] For `.timer-list` (flex-column): Add `> * + * { margin-top: 0.5rem; }`
+- [x] For flex-row elements: Add `> * + * { margin-left: [gap-value]; }`
+- [x] For flex-wrap elements (`.quick-timers`, `.detected-times-btns`): Use negative margin pattern
 - [ ] Test timer spacing on iPad 3 / iOS 9
 - [ ] Verify all play mode UI elements have proper spacing
 
 **Implementation:**
-_Pending_
+
+Added iOS 9 margin fallbacks for all 9 elements using CSS `gap:` property in play-mode.css:
+
+1. **`.nav-btn`** (line 181-184): Flex-row → `margin-left: 0.5rem` on subsequent children
+2. **`.step-indicators`** (line 218-221): Flex-row → `margin-left: 0.375rem` on subsequent children
+3. **`.timer-panel-title`** (line 291-294): Flex-row → `margin-left: 0.5rem` on subsequent children
+4. **`.quick-timers`** (line 327-333): Flex-wrap → Negative margin `-0.25rem` on container, `margin: 0.25rem` on all children
+5. **`.quick-timer-btn`** (line 354-357): Flex-row → `margin-left: 0.25rem` on subsequent children
+6. **`.detected-times-btns`** (line 380-387): Flex-wrap → Negative margin `-0.25rem` on container, `margin: 0.25rem` on all children
+7. **`.detected-time-btn`** (line 407-410): Flex-row → `margin-left: 0.25rem` on subsequent children
+8. **`.timer-list`** (line 428-431): Flex-column → `margin-top: 0.5rem` on subsequent children - **MAIN FIX**
+9. **`.timer-actions`** (line 515-518): Flex-row → `margin-left: 0.5rem` on subsequent children
+
+**Pattern used:**
+- **Flex-row:** Used `> * + *` selector with `margin-left` (owl selector targets all siblings after the first)
+- **Flex-column:** Used `> * + *` selector with `margin-top`
+- **Flex-wrap:** Used negative margin on container plus positive margin on all children to simulate gap behavior
+
+**Additional fixes applied after initial testing:**
+
+After testing on iPad 3, discovered that timer buttons were extending beyond the timer box. Root cause: iOS 9 flexbox sizing issues. Applied the following fixes:
+
+1. **`.timer-widget`**: Added `overflow: hidden`, `flex-shrink: 0` for proper containment
+2. **`.timer-actions`**: Added `width: 100%`, `align-items: stretch` for proper flex layout
+3. **`.btn-timer`**: Added explicit `flex-shrink: 1`, `box-sizing: border-box`, `max-width: 100%`
+4. **`.btn-timer-secondary`**: Same sizing fixes as btn-timer
+5. **`.btn-timer-danger`**: Added `flex-shrink: 0`, `box-sizing: border-box`
+
+These ensure iOS 9 Safari correctly calculates flexbox dimensions and prevents button overflow.
 
 **Files Changed:**
-_Pending_
+- `apps/legacy/static/legacy/css/play-mode.css` - Added 9 iOS 9 margin fallbacks for flexbox gap properties + timer button sizing fixes
 
 **Verification:**
-- [ ] Multiple timers have visible spacing between them
-- [ ] Touch targets remain accessible (44px minimum)
-- [ ] Works on iPad 3 / iOS 9
-- [ ] Modern frontend behavior unchanged (if applicable)
+- [x] Multiple timers have visible spacing between them
+- [x] Timer buttons stay within timer box borders
+- [x] Touch targets remain accessible (44px minimum)
+- [x] Works on iPad 3 / iOS 9
+- [x] Modern frontend behavior unchanged (if applicable)
 
 ---
 
@@ -804,10 +833,39 @@ On the Modern frontend in Play Mode, when a user adds a timer, it does not autom
 **Screenshots:** _To be added during testing_
 
 **Research Findings:**
-_To be completed during research phase_
+
+_How existing code handles this:_
+- **useTimers.ts:40-52:** `addTimer()` creates timers with `isRunning: false` hardcoded
+- **TimerPanel.tsx:37-43:** Calls `addTimer()` but never calls `startTimer()` afterward
+- **TimerWidget.tsx:55-80:** Renders Play/Pause button based on `isRunning` state
+- Timer only starts when user manually clicks Play button, which calls `toggleTimer()` → `startTimer()`
+
+_Current flow (broken):_
+1. User clicks "Add Timer" (Quick Timer or Detected Time button)
+2. `addTimer(label, duration)` creates timer with `isRunning: false`
+3. Timer appears in list with Play button visible
+4. User must manually tap Play to start countdown
+
+_Root cause:_
+- `useTimers.ts:49` hardcodes `isRunning: false` for all new timers
+- No automatic call to `startTimer()` after timer creation
+- Two-step process (add, then start) creates unnecessary friction
+
+_Design consideration:_
+- `setTimers()` is asynchronous, so `startTimer()` can't be called immediately after `addTimer()`
+- Need to either: (a) return timer ID and use effect/callback, or (b) start interval inline during creation
+
+_Recommended fix approach:_
+- Modify `addTimer()` to return the timer ID
+- Use `useEffect` to auto-start newly added timers, OR
+- Modify `addTimer()` to optionally start the timer inline during creation
 
 **Tasks:**
-_To be defined after research_
+- [ ] Modify `useTimers.ts` to return timer ID from `addTimer()`
+- [ ] Add auto-start logic (via useEffect or inline in addTimer)
+- [ ] Update `TimerPanel.tsx` to use new auto-start behavior
+- [ ] Update `timers.test.ts` to expect auto-started timers
+- [ ] Verify on Modern frontend (desktop browser)
 
 **Implementation:**
 _Pending_
@@ -817,6 +875,9 @@ _Pending_
 
 **Verification:**
 - [ ] Timers automatically start counting down when added
+- [ ] Quick timers (1min, 5min, 10min) auto-start
+- [ ] Detected time buttons auto-start timers
+- [ ] Pause/resume still works correctly
 - [ ] Works on Modern frontend (desktop browser)
 - [ ] Legacy frontend behavior unchanged (verify current behavior matches expected)
 
