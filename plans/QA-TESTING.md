@@ -29,6 +29,11 @@
 | QA-018 | Frontend build - tsconfig permission denied errors | Modern | Won't Fix | QA-R |
 | QA-019 | Screen locks during Play Mode (Modern) | Modern | Verified | QA-S |
 | QA-020 | Profile icon should navigate to profile chooser | Modern | Verified | QA-T |
+| QA-021 | Remixed recipes have no image | Modern + Legacy | New | - |
+| QA-022 | Instructions tab crashes on remixed recipes | Modern | New | - |
+| QA-023 | Remix button does nothing on Legacy | Legacy | Verified | - |
+| QA-024 | Legacy instructions tab shows curly braces on remixes | Legacy | New | - |
+| QA-025 | Legacy Play Mode shows [object Object] for remix steps | Legacy | New | - |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -1711,6 +1716,202 @@ On the Modern frontend, clicking the user profile avatar/icon in the top right c
 **Expected behavior:** Clicking the profile avatar should navigate to the profile chooser page, matching the behavior of the adjacent switch profile icon.
 
 **Root Cause:** _To be investigated during research phase_
+
+---
+
+### QA-021: Remixed recipes have no image
+
+**Found:** 2026-01-08 (Modern)
+**Reporter:** Matt
+
+When a user creates a remix of a recipe, the remixed recipe has no image. The original recipe has both an `image_url` (external) and `image` (local cached file), but neither is copied to the remix.
+
+**Steps to reproduce:**
+1. Navigate to a recipe with an image (e.g., Thai Green Curry)
+2. Click the Remix button (sparkles icon)
+3. Select a modification and create the remix
+4. View the remixed recipe
+
+**Expected behavior:** The remixed recipe should display the same image as the original recipe.
+
+**Actual behavior:** The remixed recipe shows "No image" placeholder.
+
+**Root Cause:**
+In `apps/ai/services/remix.py:133-152`, the `create_remix()` function creates a new Recipe but does NOT copy the image fields from the original:
+
+```python
+remix = Recipe.objects.create(
+    title=validated['title'],
+    # ... other fields ...
+    cuisine=original.cuisine,  # Only cuisine and category are copied
+    category=original.category,
+    # Missing: image_url=original.image_url,
+    # Missing: image=original.image,
+)
+```
+
+**Database evidence:**
+- Original recipe ID 17: `image_url='https://...jpg'`, `image='recipe_images/recipe_27eb4c63a079.jpg'`
+- Remix recipe ID 26: `image_url=''`, `image=''`
+
+**Fix:** Add `image_url=original.image_url` and `image=original.image` to the Recipe.objects.create() call in remix.py.
+
+---
+
+### QA-022: Instructions tab crashes on remixed recipes
+
+**Found:** 2026-01-08 (Modern)
+**Reporter:** Matt
+
+When viewing a remixed recipe and clicking the Instructions tab, the React app crashes and shows a blank page. The page source shows only the HTML shell with no rendered content.
+
+**Steps to reproduce:**
+1. Create a remix of any recipe
+2. View the remixed recipe (Ingredients tab works)
+3. Click the "Instructions" tab
+4. Page goes blank
+
+**Expected behavior:** Instructions should display like any other recipe.
+
+**Actual behavior:** React app crashes, showing blank page with only the Vite dev server HTML shell.
+
+**Root Cause:**
+**Data format mismatch between remix storage and frontend expectations.**
+
+In `apps/ai/services/remix.py:137`:
+```python
+instructions=[{'text': step} for step in validated['instructions']],
+```
+
+This saves instructions as: `[{'text': 'Heat pan...'}, {'text': 'Add ingredients...'}]`
+
+But in `frontend/src/screens/RecipeDetail.tsx:416-421`, InstructionsTab expects `string[]`:
+```typescript
+{instructions.map((step, index) => (
+  <p className="pt-0.5 text-foreground">{step}</p>  // step is object, not string!
+))}
+```
+
+When React tries to render `{step}` where step is an object `{text: '...'}`, it throws:
+> "Objects are not valid as a React child (found: object with keys {text})"
+
+**Database evidence:**
+- Original recipe instructions: `['Step 1 text', 'Step 2 text']` (list of strings)
+- Remix recipe instructions: `[{'text': 'Step 1 text'}, {'text': 'Step 2 text'}]` (list of dicts)
+
+**TypeScript types (client.ts):**
+- Line 104: `instructions: string[]` (RecipeDetail type expects strings)
+
+**Fix:** Change `remix.py:137` from:
+```python
+instructions=[{'text': step} for step in validated['instructions']],
+```
+to:
+```python
+instructions=validated['instructions'],
+```
+
+The AI already returns instructions as a list of strings, so the wrapping is unnecessary and breaks the frontend.
+
+---
+
+### QA-023: Remix button does nothing on Legacy
+
+**Found:** 2026-01-08 (iPad 3 / iOS 9)
+**Reporter:** Matt
+**Status:** New
+
+On the Legacy frontend recipe detail page, clicking the Remix button (sparkles icon) does nothing. No modal appears, no error is shown.
+
+**Steps to reproduce:**
+1. Navigate to any recipe detail page on Legacy frontend (iPad / iOS 9)
+2. Click the Remix button (sparkles icon near favorite/collection buttons)
+3. Nothing happens
+
+**Expected behavior:** Remix modal should appear with AI-generated suggestions.
+
+**Actual behavior:** Button click has no visible effect. Collection modal DOES work (same pattern).
+
+**Root Cause:** **Staticfiles out of date - `collectstatic` not run after remix code added.**
+
+| File | Size | Modified | Has Remix Code |
+|------|------|----------|----------------|
+| Source (`apps/legacy/static/legacy/js/pages/detail.js`) | 21,027 bytes | Jan 8 17:35 | ✅ Yes |
+| Staticfiles (`staticfiles/legacy/js/pages/detail.js`) | 13,221 bytes | Jan 8 07:24 | ❌ No |
+
+The diff shows the staticfiles version is missing:
+- Remix variables (`selectedRemixSuggestion`, `remixSuggestions`, `isCreatingRemix`)
+- All remix event listeners in `setupEventListeners()`
+- All remix functions (`handleRemixClick`, `closeRemixModal`, `loadRemixSuggestions`, etc.)
+
+Django serves from `staticfiles/` in production, so the old JS (without remix) is being served.
+
+**Fix:**
+```bash
+docker compose exec web python manage.py collectstatic --noinput
+```
+
+Then clear browser cache on iPad and reload.
+
+**Tasks:**
+- [x] Run `collectstatic` to update staticfiles
+- [x] Clear iPad browser cache
+- [x] Verify remix modal appears
+- [ ] Test full remix flow on Legacy
+
+**Verification:** Confirmed working on iPad 3 / iOS 9 after running `collectstatic`.
+
+---
+
+### QA-024: Legacy instructions tab shows curly braces on remixes
+
+**Found:** 2026-01-08 (iPad 3 / iOS 9)
+**Reporter:** Matt
+**Status:** New
+
+On the Legacy frontend, when viewing a remixed recipe's Instructions tab, each instruction step displays with curly braces `{}` around the text instead of plain text.
+
+**Steps to reproduce:**
+1. Create a remix of any recipe
+2. Navigate to the remixed recipe on Legacy frontend
+3. Click the Instructions tab
+4. Instructions show wrapped in curly braces
+
+**Expected behavior:** Instructions display as plain text (e.g., "Heat the pan...")
+
+**Actual behavior:** Instructions display with curly braces (e.g., "{text: Heat the pan...}" or similar)
+
+**Root Cause:** Same as QA-022 - remix instructions stored as `[{'text': '...'}]` instead of `['...']`.
+
+When the Django template iterates over instructions and renders `{{ instruction }}`, it outputs the dict representation including the curly braces, rather than just the text content.
+
+**Fix:** Same fix as QA-022 - change `remix.py:137` to store instructions as plain strings.
+
+---
+
+### QA-025: Legacy Play Mode shows [object Object] for remix steps
+
+**Found:** 2026-01-08 (iPad 3 / iOS 9)
+**Reporter:** Matt
+**Status:** New
+
+On the Legacy frontend Play Mode, when cooking a remixed recipe, each step displays `[object Object]` instead of the actual instruction text.
+
+**Steps to reproduce:**
+1. Create a remix of any recipe
+2. Navigate to the remixed recipe on Legacy frontend
+3. Click "Cook!" to enter Play Mode
+4. Step text shows `[object Object]` instead of actual instructions
+
+**Expected behavior:** Step displays instruction text (e.g., "Heat the pan...")
+
+**Actual behavior:** Step displays `[object Object]`
+
+**Root Cause:** Same as QA-022 - remix instructions stored as `[{'text': '...'}]` instead of `['...']`.
+
+When Legacy Play Mode JavaScript tries to display the step, it coerces the object to a string, resulting in `[object Object]`.
+
+**Fix:** Same fix as QA-022 - change `remix.py:137` to store instructions as plain strings.
 
 ---
 
