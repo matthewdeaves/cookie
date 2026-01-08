@@ -75,6 +75,12 @@ Cookie.pages.play = (function() {
      * Setup event listeners
      */
     function setupEventListeners() {
+        // Exit button - use location.replace() to avoid Play Mode in history
+        var exitBtn = document.getElementById('exit-btn');
+        if (exitBtn) {
+            exitBtn.addEventListener('click', handleExit);
+        }
+
         // Navigation buttons
         if (elements.prevBtn) {
             elements.prevBtn.addEventListener('click', handlePrevious);
@@ -105,6 +111,26 @@ Cookie.pages.play = (function() {
 
         // Touch events for iOS 9
         document.addEventListener('touchstart', function() {}, { passive: true });
+    }
+
+    /**
+     * Handle exit button click
+     * Uses history.back() to return to Recipe Detail without adding Play Mode
+     * to the forward history. This ensures the back button from Recipe Detail
+     * goes to the page before it (e.g., Home), not back to Play Mode.
+     */
+    function handleExit(e) {
+        e.preventDefault();
+        // Go back to the previous page (Recipe Detail)
+        // This effectively removes Play Mode from the navigation flow
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            // Fallback if no history (direct URL access)
+            var exitBtn = document.getElementById('exit-btn');
+            var recipeUrl = exitBtn ? exitBtn.getAttribute('href') : '/legacy/home/';
+            window.location.href = recipeUrl;
+        }
     }
 
     /**

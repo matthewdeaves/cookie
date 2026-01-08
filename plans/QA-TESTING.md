@@ -12,7 +12,7 @@
 | QA-001 | Navigation bar missing menu links | Legacy | Verified | QA-A |
 | QA-002 | No way to view all imported recipes | Legacy + Modern | Verified | QA-B |
 | QA-003 | Numbered list styling inconsistent | Legacy + Modern | Verified | QA-C |
-| QA-004 | Back button returns to Play Mode after closing it | Legacy | New | QA-D |
+| QA-004 | Back button returns to Play Mode after closing it | Legacy | Verified | QA-D |
 | QA-005 | No "View All Recipes" link on home page | Legacy + Modern | New | QA-E |
 | QA-006 | Insufficient spacing between list number and text | Legacy | New | QA-F |
 
@@ -48,10 +48,13 @@ After research is complete and tasks are defined:
 
 ### After Each Session
 
-1. Test fix on target device (iPad 3 / iOS 9 or modern browser)
-2. Update issue status (Fixed/Verified/Won't Fix)
-3. Run `/clear`
-4. Start next session or log new issues discovered
+1. Confirm fix is deployed (dev server restarted, no build errors)
+2. Clear caches (hard refresh, Cmd+Shift+R / Ctrl+Shift+R)
+3. Verify new code is running (check a changed element or behavior)
+4. Test fix on target device (iPad 3 / iOS 9 or modern browser)
+5. Update issue status (Fixed/Verified/Won't Fix)
+6. Run `/clear`
+7. Start next session or log new issues discovered
 
 ---
 
@@ -239,7 +242,7 @@ Implementation intentionally differentiated ingredients (gray) from instructions
 
 **Issue:** QA-004 - Back button returns to Play Mode after closing it
 **Affects:** Legacy
-**Status:** New
+**Status:** Verified
 
 **Problem:**
 When a user navigates from Home → Recipe Detail → Play Mode, then closes Play Mode to return to Recipe Detail, pressing the browser back button incorrectly navigates back to Play Mode instead of returning to Home. Play Mode is being added to the browser history stack, causing unexpected back button behavior.
@@ -260,22 +263,48 @@ When a user navigates from Home → Recipe Detail → Play Mode, then closes Pla
 **Note:** This issue does not affect the Modern frontend, which handles Play Mode navigation correctly.
 
 **Research Findings:**
-- _How Modern frontend handles this:_ [TBD - complete before defining tasks]
-- _Browser history API options:_ [TBD - replaceState vs pushState for ES5]
-- _Established patterns to follow:_ [TBD]
 
-**Tasks:** _(Define after research is complete)_
-- [ ] Research how Modern frontend handles Play Mode navigation
-- [ ] Investigate browser history API options (`replaceState` vs `pushState`)
-- [ ] Determine best approach for Legacy (ES5 compatible)
-- [ ] Implement fix without affecting Modern frontend
-- [ ] Test back button behavior through full flow
+_How Modern frontend handles this:_
+- Modern `PlayMode.tsx` is a React component that receives an `onExit` callback prop
+- It never uses browser navigation - exit just calls `onExit()` which changes app state
+- Browser history is never touched, so no back button issue exists
+
+_How Legacy currently handles this:_
+- Cook button in `detail.js:373`: `window.location.href = '/legacy/recipe/' + recipeId + '/play/'` - pushes to history
+- Exit button in `play_mode.html:29`: `<a href="{% url 'legacy:recipe_detail' recipe.id %}">` - also pushes to history
+- This creates history: `[Home, Recipe, Play, Recipe]` where Back from last Recipe goes to Play
+
+_Root cause:_
+- Legacy uses full page navigation for Play Mode entry AND exit
+- Both push new entries onto history stack instead of replacing
+
+_Browser history API solution:_
+- `location.replace(url)` - navigates to URL but replaces current history entry (ES5 compatible)
+- When exiting Play Mode, replace Play with Recipe in history: `[Home, Recipe, Play]` → `[Home, Recipe]`
+
+**Tasks:**
+- [x] Research how Modern frontend handles Play Mode navigation
+- [x] Investigate browser history API options (`replaceState` vs `pushState`)
+- [x] Determine best approach for Legacy (ES5 compatible)
+- [x] Implement fix without affecting Modern frontend
+- [x] Test back button behavior through full flow
+
+**Implementation:**
+- Added click handler for exit button in `play.js:116-134`
+- Handler calls `e.preventDefault()` to stop the `<a>` link navigation
+- Uses `window.history.back()` to go back to Recipe Detail (initial attempt with `location.replace()` had issues on iOS 9)
+- This navigates back rather than forward, so Play Mode doesn't affect back button behavior
+- Keyboard Escape key still works (triggers button click which fires our handler)
+- Fallback to href navigation if no history (direct URL access edge case)
+
+**Files Changed:**
+- `apps/legacy/static/legacy/js/pages/play.js` - Added `handleExit()` function and event listener
 
 **Verification:**
-- [ ] Play Mode → Close → Back returns to page before Recipe Detail
-- [ ] Normal Recipe Detail → Back still works correctly
-- [ ] Works on iPad 3 / iOS 9
-- [ ] Modern frontend behavior unchanged
+- [x] Play Mode → Close → Back returns to page before Recipe Detail
+- [x] Normal Recipe Detail → Back still works correctly
+- [x] Works on iPad 3 / iOS 9
+- [x] Modern frontend behavior unchanged
 
 ---
 
