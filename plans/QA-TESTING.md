@@ -14,7 +14,7 @@
 | QA-003 | Numbered list styling inconsistent | Legacy + Modern | Verified | QA-C |
 | QA-004 | Back button returns to Play Mode after closing it | Legacy | Verified | QA-D |
 | QA-005 | No "View All Recipes" link on home page | Legacy + Modern | Verified | QA-E |
-| QA-006 | Insufficient spacing between list number and text | Legacy | New | QA-F |
+| QA-006 | Recipe detail layout/spacing issues (iOS 9 gap) | Legacy | Verified | QA-F |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -69,7 +69,7 @@ After research is complete and tasks are defined:
 | QA-C | QA-003 | List styling consistency |
 | QA-D | QA-004 | Play mode history navigation |
 | QA-E | QA-005 | View All Recipes link |
-| QA-F | QA-006 | List number/text spacing |
+| QA-F | QA-006 | Recipe detail layout/spacing (iOS 9) |
 
 ---
 
@@ -382,30 +382,88 @@ _Modern:_
 
 ---
 
-### QA-F: List Number/Text Spacing
+### QA-F: Recipe Detail Layout/Spacing Issues
 
-**Issue:** QA-006 - Insufficient spacing between list number and text
+**Issue:** QA-006 - Multiple spacing/layout issues on recipe detail page
 **Affects:** Legacy
-**Status:** New
+**Status:** Verified
 
 **Problem:**
-In Legacy recipe detail ingredient and instruction lists, there is insufficient spacing (gap) between the numbered circle badge and the text content to the right of it. The text appears too close to the number, making it harder to read. Modern frontend spacing is acceptable.
+Multiple spacing and layout issues on the Legacy recipe detail page, all stemming from CSS `gap` property not being supported on iOS 9 Safari:
+1. Insufficient spacing between numbered badges and text in ingredient/instruction lists
+2. Meta items (Prep/Cook/Total/Servings) running together with no spacing
+3. Nutrition labels showing raw field names instead of human-readable text
+
+**Screenshots:** `ipadtestingshots/IMG_0018.PNG`, `IMG_0019.PNG`, `IMG_0020.PNG`
 
 **Research Findings:**
-- _Current gap values:_ [TBD - check Legacy CSS gap values]
-- _Design intent (Figma):_ [TBD - check Figma for intended spacing]
-- _Modern frontend gap (reference):_ [TBD - check what Modern uses]
 
-**Tasks:** _(Define after research is complete)_
-- [ ] Check current gap values in Legacy CSS
-- [ ] Check Modern gap values for reference
-- [ ] Check Figma design for intended spacing
-- [ ] Update Legacy `recipe-detail.css` gap values
-- [ ] Verify spacing looks good on iPad
+_Root Cause: iOS 9 Safari does not support CSS `gap` for flexbox_
+- Flexbox `gap` support was added in Safari 14.1 (iOS 14.5)
+- Legacy CSS uses `gap:` property 13+ times in `recipe-detail.css` without proper fallbacks
+- The `> * + *` "owl selector" pattern should provide margin-based fallbacks, but most are missing or broken
+
+_Current vs Figma vs Modern comparison:_
+
+| Element | Legacy CSS | Modern (Tailwind) | Figma Design |
+|---------|------------|-------------------|--------------|
+| Ingredient item gap | `gap: 0.75rem` (12px) | `gap-3` (12px) | `gap-4` (16px) |
+| Instruction item gap | `gap: 1rem` (16px) | `gap-4` (16px) | `gap-4` (16px) |
+| Meta items gap | `gap: 1rem` (16px) | `gap-4` (16px) | `gap-4` (16px) |
+| Ingredient text padding-top | none | none | `pt-0.5` (2px) |
+| Instruction text padding-top | `0.125rem` (2px) | `pt-0.5` (2px) | `pt-0.5` (2px) |
+
+_Specific issues found:_
+
+1. **`.meta-items`** (line 243-248): Has `gap: 1rem` but fallback is `margin-left: 0` (should be `1rem`)
+2. **`.ingredient-item`** (line 390-397): Has `gap: 0.75rem` with NO fallback
+3. **`.instruction-item`** (line 429-436): Has `gap: 1rem` with NO fallback
+4. **`.meta-item`** (line 250-257): Has `gap: 0.5rem` with NO fallback
+5. **`.hero-rating`** (line 107-114): Has `gap: 0.25rem` with NO fallback
+
+_Nutrition labels issue (separate from gap):_
+- Legacy template outputs `{{ key }}` raw, showing "CarbohydrateContent", "CholesterolContent"
+- Modern uses `{key.replace(/_/g, ' ')}` with CSS `capitalize` class
+- Need Django template filter to humanize/format nutrition keys
+
+_Files to modify:_
+- `apps/legacy/static/legacy/css/recipe-detail.css` - Add margin fallbacks for all `gap:` usages
+- `apps/legacy/templatetags/legacy_tags.py` - Add `format_nutrition_key` filter
+- `apps/legacy/templates/legacy/recipe_detail.html` - Use new filter for nutrition labels
+
+**Tasks:**
+- [x] Add `> * + *` margin fallbacks for all flexbox `gap:` properties in recipe-detail.css
+- [x] Fix `.meta-items` fallback from `margin-left: 0` to `margin-left: 1rem`
+- [x] Add `padding-top` to `.ingredient-text` for vertical alignment with badge
+- [x] Create `format_nutrition_key` template filter to humanize nutrition labels
+- [x] Apply filter in recipe_detail.html nutrition section
+- [x] Increased ingredient gap from 12px to 16px to match Figma
+- [x] Verify all spacing works on iPad 3 / iOS 9
+
+**Implementation:**
+- Added `> * + *` margin fallbacks for 11 elements in `recipe-detail.css`:
+  - `.hero-rating`, `.cook-btn`, `.meta-items`, `.meta-item`, `.serving-adjuster`
+  - `.serving-controls`, `.ingredient-item`, `.instruction-item`, `.tip-item`, `.collection-list`
+- For `.nutrition-grid` (wrapped layout), used negative margin on container + margin on items
+- Fixed `.meta-items` fallback from `margin-left: 0` to `margin-left: 1rem`
+- Added `padding-top: 0.125rem` to `.ingredient-text` for vertical alignment
+- Increased `.ingredient-item` gap from `0.75rem` to `1rem` to match Figma design
+- Created `format_nutrition_key` filter that converts:
+  - "CarbohydrateContent" → "Carbohydrate"
+  - "SaturatedFatContent" → "Saturated fat"
+  - "saturated_fat" → "Saturated Fat"
+
+**Files Changed:**
+- `apps/legacy/static/legacy/css/recipe-detail.css` - Added margin fallbacks for iOS 9
+- `apps/legacy/templatetags/legacy_tags.py` - Added `format_nutrition_key` filter
+- `apps/legacy/templates/legacy/recipe_detail.html` - Applied filter to nutrition labels
 
 **Verification:**
-- [ ] Adequate spacing between number badge and text
-- [ ] Works on iPad 3 / iOS 9
+- [x] Meta items have visible spacing between them
+- [x] Adequate spacing between number badge and text in all lists
+- [x] Nutrition labels show human-readable text (e.g., "Carbohydrate" not "CarbohydrateContent")
+- [x] Text vertically aligned with badge centers
+- [x] Works on iPad 3 / iOS 9
 
 ---
 
@@ -484,12 +542,20 @@ Related to QA-002 (imported recipes visibility) - while QA-002's fix ensures new
 
 ---
 
-### QA-006: Insufficient spacing between list number and text
+### QA-006: Recipe detail layout/spacing issues (iOS 9)
 
 **Found:** 2026-01-07 (iPad 3 / iOS 9)
 **Reporter:** Matt
 
-In Legacy recipe detail, the ingredient and instruction lists have insufficient gap between the numbered circle badge and the text content. The text appears cramped against the number badge. Modern frontend has adequate spacing.
+Multiple layout and spacing issues on the Legacy recipe detail page:
+
+1. **List item spacing:** Ingredient and instruction lists have insufficient gap between the numbered circle badge and text content. Text appears cramped against badges.
+
+2. **Meta items concatenated:** The recipe details row (Prep/Cook/Total/Servings) shows with no spacing between items, appearing as "Prep:20 minCook:10 minTotal:30 min".
+
+3. **Nutrition labels raw:** Nutrition tab shows raw field names like "CarbohydrateContent", "CholesterolContent" instead of human-readable labels.
+
+**Root Cause:** CSS `gap` property is not supported for flexbox in iOS 9 Safari. The Legacy CSS uses `gap:` extensively without margin-based fallbacks.
 
 Related to QA-003 (list styling) - discovered during verification of the badge color fix.
 

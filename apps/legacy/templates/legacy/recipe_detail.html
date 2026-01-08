@@ -226,7 +226,7 @@
             <div class="nutrition-grid">
                 {% for key, value in recipe.nutrition.items %}
                 <div class="nutrition-item">
-                    <span class="nutrition-label">{{ key }}</span>
+                    <span class="nutrition-label">{{ key|format_nutrition_key }}</span>
                     <span class="nutrition-value">{{ value }}</span>
                 </div>
                 {% endfor %}
