@@ -21,7 +21,7 @@
                 </svg>
             </a>
             <button type="button" id="logout-btn" class="avatar avatar-md" style="background-color: {{ profile.avatar_color }}; min-height: auto; min-width: auto;">
-                {{ profile.name|slice:":1"|upper }}
+                <span class="btn-icon-wrapper">{{ profile.name|slice:":1"|upper }}</span>
             </button>
         </nav>
     </header>

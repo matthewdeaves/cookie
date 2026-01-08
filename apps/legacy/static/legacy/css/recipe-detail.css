@@ -69,6 +69,18 @@
     background-color: rgba(0, 0, 0, 0.6);
 }
 
+/* Button icon wrapper - fixes Safari bug where buttons ignore flex centering */
+.btn-icon-wrapper {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
 .hero-content {
     position: absolute;
     bottom: 1rem;

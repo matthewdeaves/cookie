@@ -15,6 +15,7 @@
 | QA-004 | Back button returns to Play Mode after closing it | Legacy | Verified | QA-D |
 | QA-005 | No "View All Recipes" link on home page | Legacy + Modern | Verified | QA-E |
 | QA-006 | Recipe detail layout/spacing issues (iOS 9 gap) | Legacy | Verified | QA-F |
+| QA-007 | Button icons off-center (Safari flexbox bug) | Legacy | Verified | QA-G |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -70,6 +71,7 @@ After research is complete and tasks are defined:
 | QA-D | QA-004 | Play mode history navigation |
 | QA-E | QA-005 | View All Recipes link |
 | QA-F | QA-006 | Recipe detail layout/spacing (iOS 9) |
+| QA-G | QA-007 | Button icons off-center (Safari) |
 
 ---
 
@@ -467,6 +469,115 @@ _Files to modify:_
 
 ---
 
+### QA-G: Button Icons Off-Center (Safari Flexbox Bug)
+
+**Issue:** QA-007 - Button icons appear slightly left-of-center
+**Affects:** Legacy
+**Status:** Verified
+
+**Problem:**
+On iPad 3 / iOS 9, circular icon buttons (back button, favorite, collection, servings +/-) display the SVG icon slightly to the left of center within the circle. The icons are still inside the circle, but visibly offset.
+
+**Screenshots:** `ipadtestingshots/IMG_0018.PNG`, `IMG_0019.PNG`, `IMG_0020.PNG`
+
+**Affected Elements:**
+- `.hero-back` - Back button (chevron icon)
+- `.hero-action-btn` - Favorite (heart) and Collection (+) buttons
+- `.serving-btn` - Servings decrease (-) and increase (+) buttons
+
+**Research Findings:**
+
+_Root Cause: Safari bug with button elements as flex containers_
+
+This is a **documented Safari bug** in the [flexbugs repository](https://github.com/philipwalton/flexbugs/issues/236):
+
+> Safari ignores `align-items` and `justify-content` when the flex container is a `<button>` element.
+
+Current CSS applies flexbox centering directly to button elements:
+```css
+.hero-back {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+```
+
+While this works in modern browsers, Safari (especially older versions like iOS 9) ignores these properties on `<button>` elements due to how the browser's default button rendering conflicts with `display: flex`.
+
+_Workaround from flexbugs:_
+
+Wrap the button contents in a `<span>` or `<div>` and apply the flexbox centering to that wrapper instead:
+
+```html
+<!-- Before -->
+<button class="hero-back">
+    <svg>...</svg>
+</button>
+
+<!-- After -->
+<button class="hero-back">
+    <span class="btn-icon-wrapper">
+        <svg>...</svg>
+    </span>
+</button>
+```
+
+```css
+.btn-icon-wrapper {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+```
+
+_Alternative: CSS text-align fallback_
+
+Since SVGs are inline by default, `text-align: center` on the button may help as a simpler fallback, though this only handles horizontal centering.
+
+**Tasks:**
+- [x] Add `.btn-icon-wrapper` CSS class with flexbox centering
+- [x] Wrap SVG icons in hero buttons (back, favorite, collection) with wrapper spans
+- [x] Wrap SVG icons in serving buttons (+/-) with wrapper spans
+- [ ] Verify icons are centered on iPad 3 / iOS 9
+
+**Implementation:**
+- Added `.btn-icon-wrapper` class to `recipe-detail.css:72-82` with full flexbox centering and `-webkit-` prefixes
+- Wrapper spans fill the button (`width: 100%; height: 100%`) so flex centering works properly
+- Updated `recipe_detail.html`: back button, favorite button, collection button
+- Updated `serving_adjuster.html`: decrease button, increase button
+
+**Files Changed:**
+- `apps/legacy/static/legacy/css/components.css` - Added `.btn-icon-wrapper` class (global)
+- `apps/legacy/static/legacy/css/recipe-detail.css` - Added `.btn-icon-wrapper` class (duplicate for recipe page)
+- `apps/legacy/templates/legacy/recipe_detail.html` - Wrapped 5 buttons (back, favorite, collection, 2 modal close)
+- `apps/legacy/templates/legacy/partials/serving_adjuster.html` - Wrapped 2 buttons (decrease, increase)
+- `apps/legacy/templates/legacy/partials/recipe_card.html` - Wrapped favorite button
+- `apps/legacy/templates/legacy/collection_detail.html` - Wrapped 2 buttons (remove, modal close)
+- `apps/legacy/templates/legacy/collections.html` - Wrapped modal close button
+- `apps/legacy/templates/legacy/profile_selector.html` - Wrapped add profile button
+- `apps/legacy/templates/legacy/home.html` - Wrapped profile avatar letter
+
+**Verification:**
+- [x] Back button icon centered
+- [x] Favorite button icon centered
+- [x] Collection button icon centered
+- [x] Servings decrease (-) button icon centered
+- [x] Servings increase (+) button icon centered
+- [x] Recipe card favorite buttons centered
+- [x] Collection remove (X) buttons centered
+- [x] Modal close buttons centered
+- [x] Profile avatar letter centered
+- [x] Add profile (+) button centered
+- [x] Works on iPad 3 / iOS 9
+
+---
+
 ## Issue Details
 
 ### QA-001: Navigation bar missing menu links
@@ -558,6 +669,27 @@ Multiple layout and spacing issues on the Legacy recipe detail page:
 **Root Cause:** CSS `gap` property is not supported for flexbox in iOS 9 Safari. The Legacy CSS uses `gap:` extensively without margin-based fallbacks.
 
 Related to QA-003 (list styling) - discovered during verification of the badge color fix.
+
+---
+
+### QA-007: Button icons off-center (Safari flexbox bug)
+
+**Found:** 2026-01-08 (iPad 3 / iOS 9)
+**Reporter:** Matt
+
+Circular icon buttons on the recipe detail page display their SVG icons slightly to the left of center within the circle:
+
+- Back button (chevron `<`) in top-left of hero image
+- Favorite button (heart) near Cook! button
+- Collection button (+) near Cook! button
+- Servings decrease button (-)
+- Servings increase button (+)
+
+The icons are still contained within the circles but are noticeably off-center, appearing offset to the left. This is a known Safari bug where `<button>` elements ignore flexbox centering properties (`align-items`, `justify-content`).
+
+**Root Cause:** Safari ignores `align-items` and `justify-content` when the flex container is a `<button>` element. This is a documented bug in the [flexbugs repository](https://github.com/philipwalton/flexbugs/issues/236).
+
+Related to QA-006 (CSS gap fallbacks) - same class of iOS 9 CSS compatibility issues.
 
 ---
 
