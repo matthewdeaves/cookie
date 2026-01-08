@@ -28,7 +28,7 @@
 | QA-017 | Frontend build fails - test files missing cached_image_url | Modern | Verified | QA-Q |
 | QA-018 | Frontend build - tsconfig permission denied errors | Modern | Won't Fix | QA-R |
 | QA-019 | Screen locks during Play Mode (Modern) | Modern | Verified | QA-S |
-| QA-020 | Profile icon should navigate to profile chooser | Modern | New | QA-T |
+| QA-020 | Profile icon should navigate to profile chooser | Modern | Verified | QA-T |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -1385,22 +1385,24 @@ On the Modern frontend, clicking the user profile icon (avatar) in the top right
 _To be investigated during research phase_
 
 **Tasks:**
-- [ ] Research how profile icon click is currently handled in Modern frontend
-- [ ] Identify the header component and profile avatar element
-- [ ] Add onClick handler to navigate to profile chooser
-- [ ] Verify behavior matches switch profile icon
-- [ ] Test on Modern frontend (desktop browser)
+- [x] Research how profile icon click is currently handled in Modern frontend
+- [x] Identify the header component and profile avatar element
+- [x] Add onClick handler to navigate to profile chooser
+- [x] Verify behavior matches switch profile icon
+- [x] Test on Modern frontend (desktop browser)
 
 **Implementation:**
-_Pending_
+- Added `onClick` handler to profile avatar in `App.tsx` header
+- Avatar now calls `handleProfileClick()` to navigate to profile chooser
+- Matches behavior of adjacent switch profile icon
 
-**Files to Change:**
-- Likely `frontend/src/App.tsx` or header component - Add onClick handler to profile avatar
+**Files Changed:**
+- `frontend/src/App.tsx` - Added onClick handler to profile avatar
 
 **Verification:**
-- [ ] Clicking profile avatar navigates to profile chooser
-- [ ] Behavior matches the switch profile icon
-- [ ] Works on Modern frontend (desktop browser)
+- [x] Clicking profile avatar navigates to profile chooser
+- [x] Behavior matches the switch profile icon
+- [x] Works on Modern frontend (desktop browser)
 
 ---
 

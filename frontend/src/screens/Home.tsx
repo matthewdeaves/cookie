@@ -127,12 +127,14 @@ export default function Home({
           </button>
 
           {/* Profile avatar */}
-          <div
+          <button
+            onClick={onLogout}
             className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium text-white"
             style={{ backgroundColor: profile.avatar_color }}
+            aria-label="Switch profile"
           >
             {getInitial(profile.name)}
-          </div>
+          </button>
 
           {/* Logout */}
           <button
