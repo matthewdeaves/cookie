@@ -291,7 +291,7 @@ Phase 2:
 ---
 
 ## QA-034: AI prompts must be in migrations and visible in settings
-**Status:** Open (Researched) - Mostly Compliant
+**Status:** Fixed
 **Severity:** Low
 **Type:** Task/Process
 
@@ -341,7 +341,7 @@ _Verification:_
 | nutrition_estimate | ✓ 0003 | **MISSING** | ✓ (works anyway) |
 
 **Tasks:**
-- [ ] Add `('nutrition_estimate', 'Nutrition Estimate')` to PROMPT_TYPES in `models.py`
+- [x] Add `('nutrition_estimate', 'Nutrition Estimate')` to PROMPT_TYPES in `models.py`
 - [ ] Verify all 11 prompts appear in Settings UI after fix
 
 **Files to modify:**
@@ -365,4 +365,4 @@ _Verification:_
 | QA-031 | Scaled recipes need instruction step alignment | High | Researched |
 | QA-032 | Scaled recipes need cooking time adjustments | Medium | Researched |
 | QA-033 | Tips should generate automatically and adjust for scaling | Medium | Researched |
-| QA-034 | AI prompts must be in migrations and visible in settings | Low | Researched |
+| QA-034 | AI prompts must be in migrations and visible in settings | Low | Fixed |

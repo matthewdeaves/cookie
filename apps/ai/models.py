@@ -8,6 +8,7 @@ class AIPrompt(models.Model):
         ('recipe_remix', 'Recipe Remix'),
         ('serving_adjustment', 'Serving Adjustment'),
         ('tips_generation', 'Tips Generation'),
+        ('nutrition_estimate', 'Nutrition Estimate'),
         ('discover_favorites', 'Discover from Favorites'),
         ('discover_seasonal', 'Discover Seasonal/Holiday'),
         ('discover_new', 'Discover Try Something New'),
