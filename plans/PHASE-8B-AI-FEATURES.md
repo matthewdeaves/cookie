@@ -24,7 +24,7 @@
 
 - [x] 8B.1 React: Recipe remix feature with AI suggestions modal
 - [x] 8B.2 Legacy: Recipe remix feature
-- [ ] 8B.3 Serving adjustment API (AI-only, not persisted)
+- [ ] 8B.3 Serving adjustment API (AI-only, cached per-profile)
 - [ ] 8B.4 Tips generation service (cached in ai_tips field)
 - [ ] 8B.5 Discover AI suggestions (3 types combined into feed)
 - [ ] 8B.6 Search result ranking
@@ -86,29 +86,66 @@ POST   /api/ai/remix/                # Create remixed recipe
 ### Rules (from claude.md)
 - AI-ONLY: No frontend math fallback
 - Show ONLY when BOTH: API key configured AND recipe has servings
-- NOT persisted: Computed on-the-fly, original recipe unchanged
+- **PERSISTED per-profile**: Results cached in `ServingAdjustment` model for efficiency
+- Original recipe unchanged; adjustments stored separately
+
+### Design Decisions
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Persistence | Cached per-profile | Avoid redundant API calls; reuse results |
+| Pre-generation | On-demand only | Save API costs |
+| Scope | Ingredients + instruction notes | AI flags cooking time/pan size adjustments |
+| Nutrition | Client-side calculation | Simple multiplication, no AI needed |
+| Unit system | Per-profile preference | Same servings, different units = different cache entries |
+
+### Data Model
+```python
+class ServingAdjustment(models.Model):
+    recipe = ForeignKey(Recipe, on_delete=CASCADE, related_name='serving_adjustments')
+    profile = ForeignKey('profiles.Profile', on_delete=CASCADE)
+    target_servings = PositiveIntegerField()
+    unit_system = CharField(max_length=10, choices=[('metric', 'Metric'), ('imperial', 'Imperial')])
+    ingredients = JSONField(default=list)  # Scaled ingredient strings
+    notes = JSONField(default=list)        # Cooking time/pan size notes
+    created_at = DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['recipe', 'profile', 'target_servings', 'unit_system']
+```
 
 ### Flow
 1. Recipe detail shows serving adjuster (if conditions met)
 2. User clicks +/- to change target servings
-3. Frontend calls API with original + target servings
-4. AI returns scaled ingredients
-5. Display scaled ingredients (don't save)
+3. Frontend calls API with recipe_id + target servings
+4. Backend checks for cached `ServingAdjustment`
+5. Cache hit → return instantly (no API call)
+6. Cache miss → call AI → persist result → return
+7. Display scaled ingredients + notes (original unchanged)
+
+### Nutrition Handling
+- **Per-serving assumption**: Schema.org convention, most sites follow this
+- **Display labels**: "Nutrition (per serving)" and "Total for X servings"
+- **Missing nutrition**: Call `estimate_nutrition()` (reuse from remix), persist to Recipe
+- **Calculation**: Client-side multiplication (per-serving × target servings)
 
 ### API Endpoint
 ```
 POST   /api/ai/scale/
 {
     "recipe_id": 123,
-    "original_servings": 4,
     "target_servings": 8,
-    "unit_system": "metric"  // or "imperial"
+    "unit_system": "metric"
 }
 
 Response:
 {
-    "ingredients": ["2 cups flour (scaled from 1 cup)", ...],
-    "notes": ["Cooking time may need adjustment for larger batch"]
+    "target_servings": 8,
+    "original_servings": 4,
+    "ingredients": ["400g flour (scaled from 200g)", ...],
+    "notes": ["Baking time may need 10-15 extra minutes", "Use a larger pan"],
+    "nutrition_per_serving": {"calories": "250 kcal", ...},
+    "nutrition_total": {"calories": "2000 kcal", ...},
+    "cached": true
 }
 ```
 
@@ -321,7 +358,7 @@ POST   /api/ai/remix-suggestions/         # Get AI remix prompts for recipe
 POST   /api/ai/remix/                     # Create recipe remix
 
 # Serving Adjustment
-POST   /api/ai/scale/                     # Scale ingredients (not persisted)
+POST   /api/ai/scale/                     # Scale ingredients (cached per-profile)
 
 # Tips
 POST   /api/ai/tips/                      # Get cooking tips (cached)
@@ -351,6 +388,9 @@ apps/ai/
     ├── ranking.py          # Search result ranking
     ├── timer.py            # Timer naming
     └── selector.py         # CSS selector repair
+
+apps/recipes/
+├── models.py               # Add: ServingAdjustment model
 ```
 
 ---
@@ -461,6 +501,22 @@ def test_serving_adjustment_hidden_without_servings():
     recipe = Recipe.objects.create(title='Test', servings=None)
     response = client.get(f'/api/recipes/{recipe.id}/')
     assert response.json()['can_adjust_servings'] == False
+
+def test_serving_adjustment_cached():
+    """Test that serving adjustments are cached per-profile."""
+    recipe = Recipe.objects.create(title='Test', servings=4, ingredients=['1 cup flour'])
+    profile = Profile.objects.create(name='Test')
+
+    # First call - should create cache entry
+    response1 = client.post('/api/ai/scale/', {'recipe_id': recipe.id, 'target_servings': 8})
+    assert response1.json()['cached'] == False
+
+    # Second call - should return cached
+    response2 = client.post('/api/ai/scale/', {'recipe_id': recipe.id, 'target_servings': 8})
+    assert response2.json()['cached'] == True
+
+    # Verify ServingAdjustment was created
+    assert ServingAdjustment.objects.filter(recipe=recipe, profile=profile, target_servings=8).exists()
 
 def test_discover_for_new_user():
     profile = Profile.objects.create(name='New User')
