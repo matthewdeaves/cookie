@@ -225,9 +225,19 @@ export default function Home({
 
               {/* Favorites */}
               <section>
-                <h2 className="mb-4 text-lg font-medium text-foreground">
-                  My Favorite Recipes
-                </h2>
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-lg font-medium text-foreground">
+                    My Favorite Recipes
+                  </h2>
+                  {favorites.length > 0 && (
+                    <button
+                      onClick={onFavoritesClick}
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      View All ({favorites.length})
+                    </button>
+                  )}
+                </div>
                 {favorites.length > 0 ? (
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
                     {favorites.map((favorite) => (

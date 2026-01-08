@@ -35,9 +35,11 @@ def home(request):
         return redirect('legacy:profile_selector')
 
     # Get favorites for this profile
-    favorites = RecipeFavorite.objects.filter(
+    favorites_qs = RecipeFavorite.objects.filter(
         profile=profile
-    ).select_related('recipe').order_by('-created_at')[:12]
+    ).select_related('recipe').order_by('-created_at')
+    favorites_count = favorites_qs.count()
+    favorites = favorites_qs[:12]
 
     # Get recently viewed for this profile
     history_qs = RecipeViewHistory.objects.filter(
@@ -56,6 +58,7 @@ def home(request):
             'avatar_color': profile.avatar_color,
         },
         'favorites': favorites,
+        'favorites_count': favorites_count,
         'history': history,
         'history_count': history_count,
         'favorite_recipe_ids': favorite_recipe_ids,

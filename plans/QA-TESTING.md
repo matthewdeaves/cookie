@@ -23,7 +23,7 @@
 | QA-012 | Timer completion sound doesn't play | Modern | Verified | QA-L |
 | QA-013 | Timer completion sound doesn't play | Legacy | Verified | QA-M |
 | QA-014 | Screen locks during Play Mode | Legacy | New | QA-N |
-| QA-015 | No "View All" link for Favorites section | Legacy + Modern | New | QA-O |
+| QA-015 | No "View All" link for Favorites section | Legacy + Modern | Verified | QA-O |
 | QA-016 | Back button after import goes to home instead of search results | Modern | New | QA-P |
 
 ### Status Key
@@ -1134,28 +1134,41 @@ _Existing Favorites pages (no new pages needed):_
 - Navigation handlers already wired up in `App.tsx`
 
 **Tasks:**
-- [ ] Add `favorites_count` to home view context in `views.py`
-- [ ] Wrap Favorites title in `section-header` div in `home.html`
-- [ ] Add View All link to Favorites section in `home.html`
-- [ ] Add `favoritesCount` state to `Home.tsx`
-- [ ] Add View All button to Favorites section in `Home.tsx`
-- [ ] Test on Legacy (iPad 3 / iOS 9)
-- [ ] Test on Modern (desktop browser)
+- [x] Add `favorites_count` to home view context in `views.py`
+- [x] Wrap Favorites title in `section-header` div in `home.html`
+- [x] Add View All link to Favorites section in `home.html`
+- [x] Add View All button to Favorites section in `Home.tsx` (uses `favorites.length` directly)
+- [x] Test on Legacy (iPad 3 / iOS 9)
+- [x] Test on Modern (desktop browser)
 
 **Implementation:**
-_Pending_
+
+_Legacy:_
+- Updated `views.py:37-42` to use `favorites_qs` queryset pattern (like `history_qs`)
+- Added `favorites_count = favorites_qs.count()` and `favorites = favorites_qs[:12]`
+- Added `favorites_count` to template context (line 61)
+- Updated `home.html:79-85` to wrap title in `.section-header` div
+- Added View All link with count: `View All ({{ favorites_count }})`
+- Link only shown when favorites exist (matches empty state pattern)
+
+_Modern:_
+- Updated `Home.tsx:227-240` Favorites section header
+- Added flex container with `justify-between` to match Recently Viewed pattern
+- Added View All button that calls existing `onFavoritesClick` handler
+- Uses `favorites.length` directly (no separate state needed - full list already fetched)
+- Button only shown when `favorites.length > 0`
 
 **Files Changed:**
-- `apps/legacy/views.py` - Add `favorites_count` to home view context
-- `apps/legacy/templates/legacy/home.html` - Add section-header with View All link
-- `frontend/src/screens/Home.tsx` - Add favoritesCount state and View All button
+- `apps/legacy/views.py` - Added `favorites_count` to home view context
+- `apps/legacy/templates/legacy/home.html` - Added section-header with View All link
+- `frontend/src/screens/Home.tsx` - Added View All button to Favorites section
 
 **Verification:**
-- [ ] "View All" link appears in Favorites section header on home page
-- [ ] Link shows favorite count (e.g., "View All (12)")
-- [ ] Clicking link navigates to existing Favorites page
-- [ ] Works on Legacy (iPad 3 / iOS 9)
-- [ ] Works on Modern (desktop browser)
+- [x] "View All" link appears in Favorites section header on home page
+- [x] Link shows favorite count (e.g., "View All (12)")
+- [x] Clicking link navigates to existing Favorites page
+- [x] Works on Legacy (iPad 3 / iOS 9)
+- [x] Works on Modern (desktop browser)
 
 ---
 
