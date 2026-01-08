@@ -3,6 +3,7 @@
 from django.urls import path, include
 from ninja import NinjaAPI
 
+from apps.ai.api import router as ai_router
 from apps.core.api import router as settings_router
 from apps.profiles.api import router as profiles_router
 from apps.recipes.api import router as recipes_router
@@ -14,6 +15,7 @@ from apps.recipes.api_user import (
 
 api = NinjaAPI()
 api.add_router('/settings', settings_router)
+api.add_router('/ai', ai_router)
 api.add_router('/profiles', profiles_router)
 api.add_router('/recipes', recipes_router)
 api.add_router('/favorites', favorites_router)

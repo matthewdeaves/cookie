@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     'apps.core',
     'apps.profiles',
     'apps.recipes',
+    'apps.ai',
     'apps.legacy',
 ]
 
@@ -99,6 +100,11 @@ LOGGING = {
             'propagate': False,
         },
         'apps.recipes.services': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'apps.ai': {
             'handlers': ['console'],
             'level': 'INFO',
             'propagate': False,

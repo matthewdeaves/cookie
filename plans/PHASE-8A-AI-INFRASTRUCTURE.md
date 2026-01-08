@@ -17,9 +17,9 @@
 
 ## Tasks
 
-- [ ] 8A.1 OpenRouter service with configurable models
-- [ ] 8A.2 AIPrompt model with 10 default prompts (data migration)
-- [ ] 8A.3 AI response schema validation
+- [x] 8A.1 OpenRouter service with configurable models
+- [x] 8A.2 AIPrompt model with 10 default prompts (data migration)
+- [x] 8A.3 AI response schema validation
 - [ ] 8A.4 React: AI Prompts settings UI (all 10 editable)
 - [ ] 8A.5 Legacy: AI Prompts settings UI
 - [ ] 8A.6 Write tests for OpenRouter service and schema validation
