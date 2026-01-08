@@ -245,7 +245,7 @@
         <div id="tab-nutrition" class="tab-content hidden">
             {% if recipe.nutrition %}
             {% if recipe.servings %}
-            <p class="nutrition-note">Per {{ recipe.servings }} serving{{ recipe.servings|pluralize }}</p>
+            <p class="nutrition-note">Per serving (recipe makes {{ recipe.servings }})</p>
             {% endif %}
             <div class="nutrition-grid">
                 {% for key, value in recipe.nutrition.items %}

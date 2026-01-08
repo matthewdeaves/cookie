@@ -45,7 +45,7 @@ _Established patterns:_
 ---
 
 ## QA-030: Nutrition tab serving label is ambiguous
-**Status:** Open (Researched)
+**Status:** Fixed
 **Severity:** Low
 **Component:** Recipe Detail UI
 
@@ -80,9 +80,9 @@ _The problem:_
 - Should be "Per serving (recipe makes 8)" or "Nutrition per serving"
 
 **Tasks:**
-- [ ] Update Modern frontend label in `RecipeDetail.tsx:511-514`
-- [ ] Update Legacy template label in `recipe_detail.html:248`
-- [ ] Use format: "Per serving (recipe makes X)" or "Nutrition per serving"
+- [x] Update Modern frontend label in `RecipeDetail.tsx:511-514`
+- [x] Update Legacy template label in `recipe_detail.html:248`
+- [x] Use format: "Per serving (recipe makes X)"
 - [ ] Test both frontends
 
 **Files to modify:**
@@ -361,7 +361,7 @@ _Verification:_
 | Issue | Title | Severity | Status |
 |-------|-------|----------|--------|
 | QA-029 | Ingredient quantities need AI tidying | Medium | Researched |
-| QA-030 | Nutrition tab serving label is ambiguous | Low | Researched |
+| QA-030 | Nutrition tab serving label is ambiguous | Low | Fixed |
 | QA-031 | Scaled recipes need instruction step alignment | High | Researched |
 | QA-032 | Scaled recipes need cooking time adjustments | Medium | Researched |
 | QA-033 | Tips should generate automatically and adjust for scaling | Medium | Researched |

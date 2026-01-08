@@ -510,7 +510,7 @@ function NutritionTab({ recipe }: { recipe: RecipeDetailType }) {
     <div>
       {recipe.servings && (
         <p className="mb-4 text-sm text-muted-foreground">
-          Per {recipe.servings} serving{recipe.servings > 1 ? 's' : ''}
+          Per serving (recipe makes {recipe.servings})
         </p>
       )}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
