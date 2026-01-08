@@ -224,3 +224,41 @@ class CachedSearchImage(models.Model):
 
     def __str__(self):
         return f"Cached: {self.external_url}"
+
+
+class ServingAdjustment(models.Model):
+    """Cached AI-generated serving adjustments per profile."""
+
+    UNIT_SYSTEM_CHOICES = [
+        ('metric', 'Metric'),
+        ('imperial', 'Imperial'),
+    ]
+
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='serving_adjustments',
+    )
+    profile = models.ForeignKey(
+        'profiles.Profile',
+        on_delete=models.CASCADE,
+        related_name='serving_adjustments',
+    )
+    target_servings = models.PositiveIntegerField()
+    unit_system = models.CharField(
+        max_length=10,
+        choices=UNIT_SYSTEM_CHOICES,
+        default='metric',
+    )
+    ingredients = models.JSONField(default=list)
+    notes = models.JSONField(default=list)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['recipe', 'profile', 'target_servings', 'unit_system']
+        indexes = [
+            models.Index(fields=['recipe', 'profile']),
+        ]
+
+    def __str__(self):
+        return f"{self.recipe.title} - {self.target_servings} servings ({self.profile.name})"

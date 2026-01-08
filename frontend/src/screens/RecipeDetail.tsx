@@ -16,6 +16,7 @@ import {
   api,
   type RecipeDetail as RecipeDetailType,
   type Settings,
+  type ScaleResponse,
 } from '../api/client'
 import { cn } from '../lib/utils'
 import AddToCollectionDropdown from '../components/AddToCollectionDropdown'
@@ -51,6 +52,10 @@ export default function RecipeDetail({
   const [metaExpanded, setMetaExpanded] = useState(true)
   const [servings, setServings] = useState<number | null>(null)
   const [showRemixModal, setShowRemixModal] = useState(false)
+  const [scaledData, setScaledData] = useState<ScaleResponse | null>(null)
+  const [scalingLoading, setScalingLoading] = useState(false)
+  const [tips, setTips] = useState<string[]>([])
+  const [tipsLoading, setTipsLoading] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -65,6 +70,9 @@ export default function RecipeDetail({
       setRecipe(recipeData)
       setSettings(settingsData)
       setServings(recipeData.servings)
+      setTips(recipeData.ai_tips || [])
+      // Reset scaled data when loading a new recipe
+      setScaledData(null)
     } catch (error) {
       console.error('Failed to load recipe:', error)
       toast.error('Failed to load recipe')
@@ -84,12 +92,53 @@ export default function RecipeDetail({
   const canShowServingAdjustment =
     settings?.ai_available && recipe?.servings !== null
 
-  const handleServingChange = (delta: number) => {
-    if (!servings) return
+  const handleServingChange = async (delta: number) => {
+    if (!servings || !recipe) return
     const newServings = Math.max(1, servings + delta)
     setServings(newServings)
-    // TODO: In Phase 8, call AI to adjust ingredient quantities
-    toast.info('Serving adjustment will be AI-powered in Phase 8')
+
+    // If returning to original servings, clear scaled data
+    if (newServings === recipe.servings) {
+      setScaledData(null)
+      return
+    }
+
+    // Call AI to scale ingredients
+    setScalingLoading(true)
+    try {
+      const result = await api.ai.scale(recipe.id, newServings, profileId)
+      setScaledData(result)
+      if (result.notes.length > 0) {
+        toast.info(result.notes[0])
+      }
+    } catch (error) {
+      console.error('Failed to scale recipe:', error)
+      toast.error('Failed to scale ingredients')
+      // Revert to previous servings on error
+      setServings(servings)
+    } finally {
+      setScalingLoading(false)
+    }
+  }
+
+  const handleGenerateTips = async () => {
+    if (!recipe || tipsLoading) return
+
+    setTipsLoading(true)
+    try {
+      const result = await api.ai.tips(recipe.id)
+      setTips(result.tips)
+      // Update the recipe object too
+      setRecipe({ ...recipe, ai_tips: result.tips })
+      if (!result.cached) {
+        toast.success('Tips generated!')
+      }
+    } catch (error) {
+      console.error('Failed to generate tips:', error)
+      toast.error('Failed to generate tips')
+    } finally {
+      setTipsLoading(false)
+    }
   }
 
   if (loading) {
@@ -257,21 +306,27 @@ export default function RecipeDetail({
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleServingChange(-1)}
-                    disabled={servings <= 1}
+                    disabled={servings <= 1 || scalingLoading}
                     className="rounded-md bg-muted p-1 text-foreground transition-colors hover:bg-muted/80 disabled:opacity-50"
                   >
                     <Minus className="h-4 w-4" />
                   </button>
                   <span className="w-8 text-center font-medium text-foreground">
-                    {servings}
+                    {scalingLoading ? '...' : servings}
                   </span>
                   <button
                     onClick={() => handleServingChange(1)}
-                    className="rounded-md bg-muted p-1 text-foreground transition-colors hover:bg-muted/80"
+                    disabled={scalingLoading}
+                    className="rounded-md bg-muted p-1 text-foreground transition-colors hover:bg-muted/80 disabled:opacity-50"
                   >
                     <Plus className="h-4 w-4" />
                   </button>
                 </div>
+                {scaledData && servings !== recipe?.servings && (
+                  <span className="text-xs text-muted-foreground">
+                    (scaled from {recipe?.servings})
+                  </span>
+                )}
               </div>
             )}
 
@@ -324,7 +379,7 @@ export default function RecipeDetail({
       {/* Tab content */}
       <div className="px-4 py-6">
         {activeTab === 'ingredients' && (
-          <IngredientsTab recipe={recipe} />
+          <IngredientsTab recipe={recipe} scaledData={scaledData} />
         )}
         {activeTab === 'instructions' && (
           <InstructionsTab recipe={recipe} />
@@ -333,7 +388,13 @@ export default function RecipeDetail({
           <NutritionTab recipe={recipe} />
         )}
         {activeTab === 'tips' && (
-          <TipsTab recipe={recipe} aiAvailable={settings?.ai_available} />
+          <TipsTab
+            tips={tips}
+            scalingNotes={scaledData?.notes || []}
+            aiAvailable={settings?.ai_available}
+            loading={tipsLoading}
+            onGenerateTips={handleGenerateTips}
+          />
         )}
       </div>
 
@@ -349,9 +410,18 @@ export default function RecipeDetail({
   )
 }
 
-function IngredientsTab({ recipe }: { recipe: RecipeDetailType }) {
-  // Use ingredient_groups if available, otherwise flat ingredients list
-  const hasGroups = recipe.ingredient_groups.length > 0
+function IngredientsTab({
+  recipe,
+  scaledData,
+}: {
+  recipe: RecipeDetailType
+  scaledData: ScaleResponse | null
+}) {
+  // Use scaled ingredients if available, otherwise use recipe ingredients
+  const ingredients = scaledData?.ingredients || recipe.ingredients
+
+  // Use ingredient_groups if available and not scaled, otherwise flat ingredients list
+  const hasGroups = recipe.ingredient_groups.length > 0 && !scaledData
 
   if (hasGroups) {
     return (
@@ -384,7 +454,7 @@ function IngredientsTab({ recipe }: { recipe: RecipeDetailType }) {
 
   return (
     <ol className="space-y-2">
-      {recipe.ingredients.map((ingredient, index) => (
+      {ingredients.map((ingredient, index) => (
         <li key={index} className="flex items-start gap-3 text-foreground">
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
             {index + 1}
@@ -461,23 +531,41 @@ function NutritionTab({ recipe }: { recipe: RecipeDetailType }) {
 }
 
 function TipsTab({
-  recipe,
+  tips,
+  scalingNotes,
   aiAvailable,
+  loading,
+  onGenerateTips,
 }: {
-  recipe: RecipeDetailType
+  tips: string[]
+  scalingNotes: string[]
   aiAvailable?: boolean
+  loading: boolean
+  onGenerateTips: () => void
 }) {
-  const tips = recipe.ai_tips || []
+  if (loading) {
+    return (
+      <div className="text-center">
+        <Sparkles className="mx-auto mb-3 h-8 w-8 animate-pulse text-primary" />
+        <p className="text-foreground">Generating cooking tips...</p>
+      </div>
+    )
+  }
 
-  if (tips.length === 0) {
+  const hasContent = tips.length > 0 || scalingNotes.length > 0
+
+  if (!hasContent) {
     return (
       <div className="text-center">
         <Sparkles className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
         <p className="mb-2 text-foreground">No cooking tips yet</p>
         {aiAvailable ? (
-          <p className="text-sm text-muted-foreground">
-            Tips will be generated when you start cooking
-          </p>
+          <button
+            onClick={onGenerateTips}
+            className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Generate Tips
+          </button>
         ) : (
           <p className="text-sm text-muted-foreground">
             Configure an API key in settings to enable AI-generated tips
@@ -488,15 +576,47 @@ function TipsTab({
   }
 
   return (
-    <ol className="space-y-3">
-      {tips.map((tip, index) => (
-        <li key={index} className="flex items-start gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-medium text-accent-foreground">
-            {index + 1}
-          </span>
-          <p className="text-foreground">{tip}</p>
-        </li>
-      ))}
-    </ol>
+    <div className="space-y-4">
+      {/* Scaling notes */}
+      {scalingNotes.length > 0 && (
+        <div className="rounded-lg bg-accent/10 p-3">
+          <h4 className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
+            <Sparkles className="h-4 w-4 text-accent" />
+            Scaling Notes
+          </h4>
+          <ul className="space-y-1 text-sm text-muted-foreground">
+            {scalingNotes.map((note, index) => (
+              <li key={index}>• {note}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Tips */}
+      {tips.length > 0 && (
+        <ol className="space-y-3">
+          {tips.map((tip, index) => (
+            <li key={index} className="flex items-start gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-medium text-accent-foreground">
+                {index + 1}
+              </span>
+              <p className="text-foreground">{tip}</p>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      {/* Show generate button if no tips but has scaling notes */}
+      {tips.length === 0 && aiAvailable && (
+        <div className="text-center pt-4">
+          <button
+            onClick={onGenerateTips}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Generate Tips
+          </button>
+        </div>
+      )}
+    </div>
   )
 }

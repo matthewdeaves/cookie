@@ -32,6 +32,7 @@ RESPONSE_SCHEMAS = {
         'required': ['ingredients'],
         'properties': {
             'ingredients': {'type': 'array', 'items': {'type': 'string'}},
+            'notes': {'type': 'array', 'items': {'type': 'string'}},
         },
     },
     'tips_generation': {

@@ -856,3 +856,112 @@
     color: var(--muted-foreground);
     cursor: not-allowed;
 }
+
+/* Scaling Notes */
+.scaling-notes {
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    background-color: rgba(var(--accent-rgb, 136, 84, 208), 0.1);
+    border-radius: 0.5rem;
+}
+
+.scaling-notes.hidden {
+    display: none;
+}
+
+.scaling-notes-title {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+    margin: 0 0 0.5rem 0;
+}
+
+.scaling-notes-title > * + * {
+    margin-left: 0.5rem;
+}
+
+.scaling-notes-title svg {
+    color: var(--accent);
+}
+
+.scaling-notes-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.scaling-notes-list li {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    padding: 0.125rem 0;
+}
+
+.scaling-notes-list li::before {
+    content: "• ";
+}
+
+/* Serving scaled indicator */
+.serving-scaled-indicator {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    margin-left: 0.5rem;
+}
+
+/* Ingredient scaled state */
+.ingredient-item.scaled .ingredient-number {
+    background-color: var(--accent);
+}
+
+.ingredient-text-scaled {
+    color: var(--foreground);
+}
+
+.ingredient-text-original.hidden,
+.ingredient-text-scaled.hidden {
+    display: none;
+}
+
+/* Tips Loading */
+.tips-loading {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.tips-loading.hidden {
+    display: none;
+}
+
+.tips-loading-icon {
+    -webkit-animation: pulse 2s ease-in-out infinite;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.tips-loading-text {
+    font-size: 1rem;
+    color: var(--foreground);
+    margin: 0;
+}
+
+@-webkit-keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.tips-loading-icon svg {
+    color: var(--primary);
+}
+
+/* Generate Tips Button */
+#generate-tips-btn {
+    margin-top: 1rem;
+}

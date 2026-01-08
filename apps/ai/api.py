@@ -13,6 +13,8 @@ from apps.recipes.models import Recipe
 from .models import AIPrompt
 from .services.openrouter import OpenRouterService, AIUnavailableError, AIResponseError
 from .services.remix import get_remix_suggestions, create_remix
+from .services.scaling import scale_recipe, calculate_nutrition
+from .services.tips import generate_tips
 from .services.validator import ValidationError
 
 router = Router(tags=['ai'])
@@ -278,6 +280,128 @@ def create_remix_endpoint(request, data: CreateRemixIn):
             'yields': remix.yields,
             'servings': remix.servings,
         }
+    except Recipe.DoesNotExist:
+        return 404, {
+            'error': 'not_found',
+            'message': f'Recipe {data.recipe_id} not found',
+        }
+    except AIUnavailableError as e:
+        return 503, {
+            'error': 'ai_unavailable',
+            'message': str(e),
+        }
+    except (AIResponseError, ValidationError) as e:
+        return 400, {
+            'error': 'ai_error',
+            'message': str(e),
+        }
+
+
+# Scaling Schemas
+
+class ScaleIn(Schema):
+    recipe_id: int
+    target_servings: int
+    unit_system: str = 'metric'
+    profile_id: int
+
+
+class NutritionOut(Schema):
+    per_serving: dict
+    total: dict
+
+
+class ScaleOut(Schema):
+    target_servings: int
+    original_servings: int
+    ingredients: List[str]
+    notes: List[str]
+    nutrition: Optional[NutritionOut] = None
+    cached: bool
+
+
+# Scaling Endpoints
+
+@router.post('/scale', response={200: ScaleOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+def scale_recipe_endpoint(request, data: ScaleIn):
+    """Scale a recipe to a different number of servings."""
+    try:
+        profile = Profile.objects.get(id=data.profile_id)
+    except Profile.DoesNotExist:
+        return 404, {
+            'error': 'not_found',
+            'message': f'Profile {data.profile_id} not found',
+        }
+
+    try:
+        recipe = Recipe.objects.get(id=data.recipe_id)
+    except Recipe.DoesNotExist:
+        return 404, {
+            'error': 'not_found',
+            'message': f'Recipe {data.recipe_id} not found',
+        }
+
+    try:
+        result = scale_recipe(
+            recipe_id=data.recipe_id,
+            target_servings=data.target_servings,
+            profile=profile,
+            unit_system=data.unit_system,
+        )
+
+        # Calculate nutrition if available
+        nutrition = None
+        if recipe.nutrition:
+            nutrition = calculate_nutrition(
+                recipe=recipe,
+                original_servings=recipe.servings,
+                target_servings=data.target_servings,
+            )
+
+        return {
+            'target_servings': result['target_servings'],
+            'original_servings': result['original_servings'],
+            'ingredients': result['ingredients'],
+            'notes': result['notes'],
+            'nutrition': nutrition,
+            'cached': result['cached'],
+        }
+    except ValueError as e:
+        return 400, {
+            'error': 'validation_error',
+            'message': str(e),
+        }
+    except AIUnavailableError as e:
+        return 503, {
+            'error': 'ai_unavailable',
+            'message': str(e),
+        }
+    except (AIResponseError, ValidationError) as e:
+        return 400, {
+            'error': 'ai_error',
+            'message': str(e),
+        }
+
+
+# Tips Schemas
+
+class TipsIn(Schema):
+    recipe_id: int
+
+
+class TipsOut(Schema):
+    tips: List[str]
+    cached: bool
+
+
+# Tips Endpoints
+
+@router.post('/tips', response={200: TipsOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+def tips_endpoint(request, data: TipsIn):
+    """Generate cooking tips for a recipe."""
+    try:
+        result = generate_tips(data.recipe_id)
+        return result
     except Recipe.DoesNotExist:
         return 404, {
             'error': 'not_found',

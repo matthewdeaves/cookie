@@ -8,11 +8,16 @@ Cookie.pages.detail = (function() {
     'use strict';
 
     var recipeId;
+    var profileId;
     var currentServings;
     var originalServings;
     var selectedRemixSuggestion = null;
     var remixSuggestions = [];
     var isCreatingRemix = false;
+    var isScaling = false;
+    var isGeneratingTips = false;
+    var scaledIngredients = null;
+    var scalingNotes = [];
 
     /**
      * Initialize the page
@@ -22,6 +27,8 @@ Cookie.pages.detail = (function() {
         if (!pageEl) return;
 
         recipeId = parseInt(pageEl.getAttribute('data-recipe-id'), 10);
+        profileId = parseInt(pageEl.getAttribute('data-profile-id'), 10);
+
         setupEventListeners();
     }
 
@@ -169,6 +176,12 @@ Cookie.pages.detail = (function() {
         var remixCreateBtn = document.getElementById('remix-create-btn');
         if (remixCreateBtn) {
             remixCreateBtn.addEventListener('click', handleRemixCreate);
+        }
+
+        // Generate tips button
+        var generateTipsBtn = document.getElementById('generate-tips-btn');
+        if (generateTipsBtn) {
+            generateTipsBtn.addEventListener('click', handleGenerateTips);
         }
     }
 
@@ -414,6 +427,8 @@ Cookie.pages.detail = (function() {
      * Adjust servings
      */
     function adjustServings(delta) {
+        if (isScaling) return;
+
         var newServings = Math.max(1, currentServings + delta);
         if (newServings === currentServings) return;
 
@@ -421,8 +436,165 @@ Cookie.pages.detail = (function() {
         updateServingDisplay();
         updateServingButtons();
 
-        // TODO: In Phase 8, call AI API to adjust ingredient quantities
-        Cookie.toast.info('Serving adjustment will be AI-powered in Phase 8');
+        // If returning to original, reset scaled data
+        if (newServings === originalServings) {
+            scaledIngredients = null;
+            scalingNotes = [];
+            renderOriginalIngredients();
+            return;
+        }
+
+        // Call AI API to scale ingredients
+        scaleIngredients(newServings);
+    }
+
+    /**
+     * Scale ingredients via AI API
+     */
+    function scaleIngredients(targetServings) {
+        if (!profileId) {
+            Cookie.toast.error('Profile not found');
+            return;
+        }
+
+        isScaling = true;
+        updateServingButtons();
+        updateServingDisplay();
+
+        Cookie.ajax.post('/api/ai/scale', {
+            recipe_id: recipeId,
+            target_servings: targetServings,
+            profile_id: profileId,
+            unit_system: 'metric'
+        }, function(err, response) {
+            isScaling = false;
+            updateServingButtons();
+            updateServingDisplay();
+
+            if (err) {
+                Cookie.toast.error('Failed to scale ingredients');
+                // Revert to original
+                currentServings = originalServings;
+                updateServingDisplay();
+                return;
+            }
+
+            scaledIngredients = response.ingredients;
+            scalingNotes = response.notes || [];
+            renderScaledIngredients();
+
+            if (scalingNotes.length > 0) {
+                Cookie.toast.info(scalingNotes[0]);
+            }
+        });
+    }
+
+    /**
+     * Render original ingredients
+     */
+    function renderOriginalIngredients() {
+        // Hide scaling notes in tips tab
+        var notesContainer = document.getElementById('scaling-notes');
+        if (notesContainer) {
+            notesContainer.classList.add('hidden');
+        }
+
+        // Show original ingredients by removing scaled class
+        var ingredientItems = document.querySelectorAll('.ingredient-item');
+        for (var i = 0; i < ingredientItems.length; i++) {
+            ingredientItems[i].classList.remove('scaled');
+        }
+
+        // Show original text, hide scaled text
+        var originalTexts = document.querySelectorAll('.ingredient-text-original');
+        var scaledTexts = document.querySelectorAll('.ingredient-text-scaled');
+
+        for (var j = 0; j < originalTexts.length; j++) {
+            originalTexts[j].classList.remove('hidden');
+        }
+        for (var k = 0; k < scaledTexts.length; k++) {
+            scaledTexts[k].classList.add('hidden');
+        }
+    }
+
+    /**
+     * Render scaled ingredients
+     */
+    function renderScaledIngredients() {
+        if (!scaledIngredients) return;
+
+        // Get ingredient list (flat list, not groups for now)
+        var ingredientItems = document.querySelectorAll('.ingredient-item');
+
+        for (var i = 0; i < ingredientItems.length && i < scaledIngredients.length; i++) {
+            var item = ingredientItems[i];
+            var textEl = item.querySelector('.ingredient-text');
+
+            if (textEl) {
+                // Store original if not already stored
+                if (!textEl.classList.contains('has-scaled')) {
+                    var originalText = textEl.textContent;
+                    textEl.classList.add('has-scaled', 'ingredient-text-original');
+
+                    // Create scaled text element
+                    var scaledEl = document.createElement('span');
+                    scaledEl.className = 'ingredient-text-scaled hidden';
+                    textEl.parentNode.insertBefore(scaledEl, textEl.nextSibling);
+                }
+
+                // Update scaled text
+                var scaledTextEl = item.querySelector('.ingredient-text-scaled');
+                if (scaledTextEl) {
+                    scaledTextEl.textContent = scaledIngredients[i];
+                    scaledTextEl.classList.remove('hidden');
+                }
+
+                // Hide original
+                var origTextEl = item.querySelector('.ingredient-text-original');
+                if (origTextEl) {
+                    origTextEl.classList.add('hidden');
+                }
+
+                item.classList.add('scaled');
+            }
+        }
+
+        // Show scaling notes in tips tab
+        renderScalingNotes();
+    }
+
+    /**
+     * Render scaling notes in tips tab
+     */
+    function renderScalingNotes() {
+        var notesContainer = document.getElementById('scaling-notes');
+        var tabTips = document.getElementById('tab-tips');
+
+        if (!tabTips) return;
+
+        // Create or update notes container in tips tab
+        if (!notesContainer) {
+            notesContainer = document.createElement('div');
+            notesContainer.id = 'scaling-notes';
+            notesContainer.className = 'scaling-notes';
+            // Insert at the beginning of tips content
+            var tipsContent = document.getElementById('tips-content');
+            if (tipsContent) {
+                tipsContent.insertBefore(notesContainer, tipsContent.firstChild);
+            }
+        }
+
+        if (scalingNotes.length > 0) {
+            var notesHtml = '<h4 class="scaling-notes-title"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg> Scaling Notes</h4><ul class="scaling-notes-list">';
+            for (var j = 0; j < scalingNotes.length; j++) {
+                notesHtml += '<li>' + escapeHtml(scalingNotes[j]) + '</li>';
+            }
+            notesHtml += '</ul>';
+            notesContainer.innerHTML = notesHtml;
+            notesContainer.classList.remove('hidden');
+        } else {
+            notesContainer.classList.add('hidden');
+        }
     }
 
     /**
@@ -431,7 +603,29 @@ Cookie.pages.detail = (function() {
     function updateServingDisplay() {
         var valueEl = document.querySelector('.serving-value');
         if (valueEl) {
-            valueEl.textContent = currentServings;
+            if (isScaling) {
+                valueEl.textContent = '...';
+            } else {
+                valueEl.textContent = currentServings;
+            }
+        }
+
+        // Show scaled indicator
+        var adjuster = document.querySelector('.serving-adjuster');
+        if (adjuster) {
+            if (scaledIngredients && currentServings !== originalServings) {
+                if (!adjuster.querySelector('.serving-scaled-indicator')) {
+                    var indicator = document.createElement('span');
+                    indicator.className = 'serving-scaled-indicator';
+                    indicator.textContent = '(scaled from ' + originalServings + ')';
+                    adjuster.appendChild(indicator);
+                }
+            } else {
+                var existingIndicator = adjuster.querySelector('.serving-scaled-indicator');
+                if (existingIndicator) {
+                    existingIndicator.remove();
+                }
+            }
         }
     }
 
@@ -440,8 +634,13 @@ Cookie.pages.detail = (function() {
      */
     function updateServingButtons() {
         var decreaseBtn = document.querySelector('.serving-decrease');
+        var increaseBtn = document.querySelector('.serving-increase');
+
         if (decreaseBtn) {
-            decreaseBtn.disabled = currentServings <= 1;
+            decreaseBtn.disabled = currentServings <= 1 || isScaling;
+        }
+        if (increaseBtn) {
+            increaseBtn.disabled = isScaling;
         }
     }
 
@@ -656,6 +855,81 @@ Cookie.pages.detail = (function() {
         var div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    /**
+     * Handle generate tips button click
+     */
+    function handleGenerateTips() {
+        if (isGeneratingTips) return;
+
+        isGeneratingTips = true;
+
+        // Show loading state
+        var tipsContent = document.getElementById('tips-content');
+        var tipsLoading = document.getElementById('tips-loading');
+
+        if (tipsContent) {
+            tipsContent.classList.add('hidden');
+        }
+        if (tipsLoading) {
+            tipsLoading.classList.remove('hidden');
+        }
+
+        Cookie.ajax.post('/api/ai/tips', { recipe_id: recipeId }, function(err, response) {
+            isGeneratingTips = false;
+
+            if (err) {
+                // Show content again on error
+                if (tipsContent) {
+                    tipsContent.classList.remove('hidden');
+                }
+                if (tipsLoading) {
+                    tipsLoading.classList.add('hidden');
+                }
+                Cookie.toast.error('Failed to generate tips');
+                return;
+            }
+
+            // Render tips
+            renderTips(response.tips);
+
+            if (!response.cached) {
+                Cookie.toast.success('Tips generated!');
+            }
+        });
+    }
+
+    /**
+     * Render tips list
+     */
+    function renderTips(tips) {
+        var tipsContent = document.getElementById('tips-content');
+        var tipsLoading = document.getElementById('tips-loading');
+
+        if (tipsLoading) {
+            tipsLoading.classList.add('hidden');
+        }
+
+        if (!tipsContent) return;
+
+        if (!tips || tips.length === 0) {
+            tipsContent.innerHTML = '<p class="empty-text">No tips available for this recipe.</p>';
+            tipsContent.classList.remove('hidden');
+            return;
+        }
+
+        var html = '<ol class="tips-list">';
+        for (var i = 0; i < tips.length; i++) {
+            html += '<li class="tip-item">';
+            html += '<span class="tip-number">' + (i + 1) + '</span>';
+            html += '<p class="tip-text">' + escapeHtml(tips[i]) + '</p>';
+            html += '</li>';
+        }
+        html += '</ol>';
+
+        tipsContent.innerHTML = html;
+        tipsContent.classList.remove('hidden');
     }
 
     return {

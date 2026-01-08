@@ -51,6 +51,25 @@ export interface RemixResponse {
   servings: number | null
 }
 
+export interface NutritionValues {
+  per_serving: Record<string, string | number>
+  total: Record<string, string | number>
+}
+
+export interface ScaleResponse {
+  target_servings: number
+  original_servings: number
+  ingredients: string[]
+  notes: string[]
+  nutrition: NutritionValues | null
+  cached: boolean
+}
+
+export interface TipsResponse {
+  tips: string[]
+  cached: boolean
+}
+
 export interface TestApiKeyResponse {
   success: boolean
   message: string
@@ -258,6 +277,23 @@ export const api = {
           }),
         }),
     },
+
+    scale: (recipeId: number, targetServings: number, profileId: number, unitSystem: string = 'metric') =>
+      request<ScaleResponse>('/ai/scale', {
+        method: 'POST',
+        body: JSON.stringify({
+          recipe_id: recipeId,
+          target_servings: targetServings,
+          profile_id: profileId,
+          unit_system: unitSystem,
+        }),
+      }),
+
+    tips: (recipeId: number) =>
+      request<TipsResponse>('/ai/tips', {
+        method: 'POST',
+        body: JSON.stringify({ recipe_id: recipeId }),
+      }),
   },
 
   profiles: {
