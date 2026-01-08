@@ -186,7 +186,7 @@ class RemixOut(Schema):
     title: str
     description: str
     ingredients: List[str]
-    instructions: List[dict]
+    instructions: List[str]
     host: str
     site_name: str
     is_remix: bool

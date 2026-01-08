@@ -134,7 +134,7 @@ def create_remix(
         title=validated['title'],
         description=validated['description'],
         ingredients=validated['ingredients'],
-        instructions=[{'text': step} for step in validated['instructions']],
+        instructions=validated['instructions'],
         instructions_text='\n'.join(validated['instructions']),
         host='user-generated',
         site_name='User Generated',
@@ -149,6 +149,8 @@ def create_remix(
         # Carry over some fields from original
         cuisine=original.cuisine,
         category=original.category,
+        image_url=original.image_url,
+        image=original.image,
     )
 
     logger.info(f'Created remix {remix.id} from recipe {original.id} for profile {profile.id}')
