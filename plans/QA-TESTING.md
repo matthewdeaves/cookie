@@ -35,7 +35,8 @@
 | QA-024 | Legacy instructions tab shows curly braces on remixes | Legacy | Verified | - |
 | QA-025 | Legacy Play Mode shows [object Object] for remix steps | Legacy | Verified | - |
 | QA-026 | Remixed recipes have no nutrition information | Modern + Legacy | Verified | - |
-| QA-027 | Invalid AI model selection breaks features silently | Modern + Legacy | New | - |
+| QA-027 | Invalid AI model selection breaks features silently | Modern + Legacy | Verified | - |
+| QA-028 | Old browsers show white page instead of redirecting to Legacy | Legacy | New | - |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -1956,7 +1957,7 @@ Original recipes get nutrition from `recipe-scrapers` which extracts it from the
 
 **Found:** 2026-01-08 (Modern + Legacy)
 **Reporter:** Matt
-**Status:** New
+**Status:** Fixed
 
 When a user selects an invalid model ID in the AI Settings UI, AI features fail with unhelpful error messages like "Failed to load suggestions" instead of indicating the model is invalid.
 
@@ -1982,13 +1983,95 @@ The AI Settings UI allows free-form model selection but doesn't validate against
 openrouter.errors.chaterror.ChatError: google/gemini-2.5-flash-preview is not a valid model ID
 ```
 
-**Possible Solutions:**
-1. **Validate on save** - Query OpenRouter for available models and validate selection
-2. **Better error messages** - Parse OpenRouter errors and show specific message to user
-3. **Model dropdown** - Replace free-form input with dropdown of valid models
-4. **Fallback model** - If selected model fails, fall back to default (claude-3.5-haiku)
+**Research Findings:**
+The OpenRouter Python SDK provides a `models.list()` method that returns all available models. The dropdown should be populated from this API, not a static list.
 
-**Status:** New - needs implementation decision.
+**Fix Implementation:**
+
+1. **Added `get_available_models()` to OpenRouterService** (`apps/ai/services/openrouter.py:196-221`)
+   - Queries OpenRouter API for list of available models
+   - Returns list of `{id, name}` dicts
+
+2. **Changed `/api/ai/models` endpoint to fetch from OpenRouter** (`apps/ai/api.py:178-189`)
+   - Dropdown now shows only valid models from OpenRouter API
+   - Returns empty list if no API key configured
+   - Users can only select valid models - no invalid selection possible
+
+3. **Added defense-in-depth validation on save** (`apps/ai/api.py:145-162`)
+   - Validates model against OpenRouter before saving (backup check)
+   - Returns 422 with `error: 'invalid_model'` if model somehow invalid
+
+4. **Updated frontend error handling** (`frontend/src/screens/Settings.tsx:140-154`)
+   - Parses JSON error response from server
+   - Displays specific error message if validation fails
+
+**Status:** Fixed - awaiting verification.
+
+---
+
+### QA-028: Old browsers show white page instead of redirecting to Legacy
+
+**Issue:** QA-028 - Old browsers show white page instead of redirecting to Legacy
+**Affects:** Legacy
+**Status:** New
+
+**Problem:**
+On iPad with Safari on iOS 9, navigating to the root URL (/) shows a white page instead of redirecting to /legacy/. The modern React frontend fails silently on unsupported browsers.
+
+**Steps to reproduce:**
+1. Use an old iPad with Safari on iOS 9
+2. Navigate to http://[cookie-ip-address]/
+3. Page shows white/blank instead of redirecting to /legacy/
+
+**Research Findings:**
+
+_Current routing architecture:_
+- Root URL (`/`) has NO Django handler - falls through to Nginx
+- Nginx proxies unmatched routes to Vite (React frontend)
+- React app requires ES2020+ (ES6 modules, async/await, Fetch API, etc.)
+- iOS 9 Safari doesn't support ES6 modules, so React never initializes → white page
+
+_Existing browser detection:_
+- `DeviceDetectionMiddleware` exists in `apps/core/middleware.py`
+- Already detects iOS 9 and earlier via User-Agent pattern
+- Sets `request.is_legacy_device` flag on every request
+- **Currently not used anywhere** - no redirect logic implemented
+
+_Why white page occurs:_
+1. iOS 9 Safari doesn't understand `<script type="module">`
+2. React and dependencies fail to parse/load
+3. React never initializes, shows empty page
+4. No error message displayed to user
+
+_Best solution - server-side middleware redirect:_
+- Expand `DeviceDetectionMiddleware` to detect more browsers
+- Add redirect logic for legacy devices requesting root path
+- Works for all browsers, with or without JavaScript
+- Leverages existing detection logic already in place
+
+_Browsers to redirect:_
+- iOS < 11 (Safari lacks ES6 module support)
+- All IE versions (no ES6 support)
+- Edge Legacy (non-Chromium, pre-2020)
+- Chrome < 60, Firefox < 55 (ES6 modules)
+
+**Tasks:**
+- [ ] Expand `_is_legacy_device()` to detect more browser types (IE, Edge Legacy, old Chrome/Firefox)
+- [ ] Add redirect logic to middleware for root path requests from legacy devices
+- [ ] Ensure `/api/` and `/legacy/` paths are NOT redirected
+- [ ] Add tests for new browser detection patterns
+- [ ] Add tests for redirect behavior
+- [ ] Verify on iPad 3 / iOS 9
+
+**Files to Change:**
+- `apps/core/middleware.py` - Expand detection + add redirect
+- `tests/test_device_detection.py` - Add new test cases
+
+**Verification:**
+- [ ] iOS 9 Safari on root URL redirects to /legacy/
+- [ ] Modern browsers still get React app
+- [ ] /api/ endpoints work for all browsers
+- [ ] /legacy/ URLs work without redirect loops
 
 ---
 

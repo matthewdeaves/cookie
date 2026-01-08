@@ -193,6 +193,34 @@ class OpenRouterService:
         settings = AppSettings.get()
         return bool(settings.openrouter_api_key)
 
+    def get_available_models(self) -> list[dict[str, str]]:
+        """Get list of available models from OpenRouter.
+
+        Returns:
+            List of dicts with 'id' and 'name' keys for each available model.
+
+        Raises:
+            AIResponseError: If the API call fails.
+        """
+        try:
+            with OpenRouter(api_key=self.api_key) as client:
+                response = client.models.list()
+
+            if not response or not hasattr(response, 'data'):
+                raise AIResponseError('Invalid response from OpenRouter models API')
+
+            models = [
+                {'id': model.id, 'name': model.name}
+                for model in response.data
+                if hasattr(model, 'id') and hasattr(model, 'name')
+            ]
+            return sorted(models, key=lambda m: m['name'].lower())
+        except AIServiceError:
+            raise
+        except Exception as e:
+            logger.exception('Failed to fetch OpenRouter models')
+            raise AIResponseError(f'Failed to fetch available models: {e}')
+
     @classmethod
     def test_connection(cls, api_key: str) -> tuple[bool, str]:
         """Test if an API key is valid by making a minimal request.

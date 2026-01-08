@@ -18,8 +18,8 @@ class AIPromptModelTests(TestCase):
     """Tests for the AIPrompt model."""
 
     def test_prompts_seeded(self):
-        """Verify all 10 prompts were seeded."""
-        assert AIPrompt.objects.count() == 10
+        """Verify all 11 prompts were seeded."""
+        assert AIPrompt.objects.count() == 11
 
     def test_all_prompt_types_exist(self):
         """Verify all prompt types are present."""
@@ -34,6 +34,7 @@ class AIPromptModelTests(TestCase):
             'timer_naming',
             'remix_suggestions',
             'selector_repair',
+            'nutrition_estimate',
         ]
         for prompt_type in expected_types:
             assert AIPrompt.objects.filter(prompt_type=prompt_type).exists()
@@ -157,12 +158,27 @@ class AIAPITests(TestCase):
         assert 'available' in data
         assert 'default_model' in data
 
-    def test_models_endpoint(self):
-        """Test the models list endpoint."""
+    def test_models_endpoint_no_api_key(self):
+        """Test the models list endpoint returns empty without API key."""
         response = self.client.get('/api/ai/models')
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 10  # 10 models defined
+        assert data == []  # No models without API key
+
+    @patch('apps.ai.api.OpenRouterService')
+    def test_models_endpoint_with_api_key(self, mock_service_class):
+        """Test the models list endpoint returns models from OpenRouter."""
+        mock_service = MagicMock()
+        mock_service.get_available_models.return_value = [
+            {'id': 'anthropic/claude-3.5-haiku', 'name': 'Claude 3.5 Haiku'},
+            {'id': 'openai/gpt-4o', 'name': 'GPT-4o'},
+        ]
+        mock_service_class.return_value = mock_service
+
+        response = self.client.get('/api/ai/models')
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 2
         assert data[0]['id'] == 'anthropic/claude-3.5-haiku'
 
     def test_prompts_endpoint(self):
@@ -170,7 +186,7 @@ class AIAPITests(TestCase):
         response = self.client.get('/api/ai/prompts')
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 10  # 10 prompts seeded
+        assert len(data) == 11  # 11 prompts seeded
 
     def test_get_prompt_endpoint(self):
         """Test getting a specific prompt."""
@@ -199,6 +215,27 @@ class AIAPITests(TestCase):
         # Verify persistence
         prompt = AIPrompt.objects.get(prompt_type='recipe_remix')
         assert prompt.model == 'openai/gpt-4o'
+
+    @patch('apps.ai.api.OpenRouterService')
+    def test_update_prompt_invalid_model(self, mock_service_class):
+        """Test updating a prompt with invalid model returns 422."""
+        # Mock get_available_models to return a list that doesn't include the invalid model
+        mock_service = MagicMock()
+        mock_service.get_available_models.return_value = [
+            {'id': 'anthropic/claude-3.5-haiku', 'name': 'Claude 3.5 Haiku'},
+            {'id': 'openai/gpt-4o', 'name': 'GPT-4o'},
+        ]
+        mock_service_class.return_value = mock_service
+
+        response = self.client.put(
+            '/api/ai/prompts/recipe_remix',
+            data={'model': 'invalid/model-name'},
+            content_type='application/json'
+        )
+        assert response.status_code == 422
+        data = response.json()
+        assert data['error'] == 'invalid_model'
+        assert 'invalid/model-name' in data['message']
 
     def test_test_api_key_empty(self):
         """Test API key validation with empty key."""
@@ -369,6 +406,32 @@ class OpenRouterServiceTests(TestCase):
         success, message = OpenRouterService.test_connection('')
         assert success is False
         assert 'not provided' in message or 'not configured' in message
+
+    @patch('apps.ai.services.openrouter.OpenRouter')
+    def test_get_available_models_success(self, mock_openrouter_class):
+        """Test getting available models from OpenRouter, sorted alphabetically."""
+        mock_client = MagicMock()
+        mock_openrouter_class.return_value.__enter__ = Mock(return_value=mock_client)
+        mock_openrouter_class.return_value.__exit__ = Mock(return_value=False)
+
+        # Mock response with model data in non-alphabetical order
+        mock_model1 = MagicMock()
+        mock_model1.id = 'openai/gpt-4o'
+        mock_model1.name = 'GPT-4o'
+        mock_model2 = MagicMock()
+        mock_model2.id = 'anthropic/claude-3.5-haiku'
+        mock_model2.name = 'Claude 3.5 Haiku'
+        mock_response = Mock()
+        mock_response.data = [mock_model1, mock_model2]  # GPT first, Claude second
+        mock_client.models.list.return_value = mock_response
+
+        service = OpenRouterService(api_key='test-key')
+        models = service.get_available_models()
+
+        assert len(models) == 2
+        # Should be sorted alphabetically by name
+        assert models[0]['name'] == 'Claude 3.5 Haiku'
+        assert models[1]['name'] == 'GPT-4o'
 
 
 @pytest.mark.asyncio

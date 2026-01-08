@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from apps.core.models import AppSettings
 from apps.profiles.models import Profile
 from apps.ai.models import AIPrompt
+from apps.ai.services.openrouter import OpenRouterService, AIUnavailableError, AIResponseError
 from apps.recipes.models import (
     Recipe,
     RecipeCollection,
@@ -334,11 +335,12 @@ def settings(request):
     # Get all AI prompts
     prompts = list(AIPrompt.objects.all().order_by('name'))
 
-    # Get available models
-    models = [
-        {'id': model_id, 'name': model_name}
-        for model_id, model_name in AIPrompt.AVAILABLE_MODELS
-    ]
+    # Get available models from OpenRouter
+    try:
+        service = OpenRouterService()
+        models = service.get_available_models()
+    except (AIUnavailableError, AIResponseError):
+        models = []
 
     return render(request, 'legacy/settings.html', {
         'profile': {

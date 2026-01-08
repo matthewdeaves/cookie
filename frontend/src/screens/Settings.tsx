@@ -139,7 +139,19 @@ export default function Settings({ onBack }: SettingsProps) {
       setEditForm(null)
     } catch (error) {
       console.error('Failed to save prompt:', error)
-      toast.error('Failed to save prompt')
+      // Try to parse error message from server
+      let errorMessage = 'Failed to save prompt'
+      if (error instanceof Error) {
+        try {
+          const parsed = JSON.parse(error.message)
+          if (parsed.message) {
+            errorMessage = parsed.message
+          }
+        } catch {
+          // Not JSON, use generic message
+        }
+      }
+      toast.error(errorMessage)
     } finally {
       setSavingPrompt(false)
     }

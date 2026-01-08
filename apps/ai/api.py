@@ -131,7 +131,7 @@ def get_prompt(request, prompt_type: str):
         }
 
 
-@router.put('/prompts/{prompt_type}', response={200: PromptOut, 404: ErrorOut})
+@router.put('/prompts/{prompt_type}', response={200: PromptOut, 404: ErrorOut, 422: ErrorOut})
 def update_prompt(request, prompt_type: str, data: PromptUpdateIn):
     """Update a specific AI prompt."""
     try:
@@ -141,6 +141,25 @@ def update_prompt(request, prompt_type: str, data: PromptUpdateIn):
             'error': 'not_found',
             'message': f'Prompt type "{prompt_type}" not found',
         }
+
+    # Validate model if provided
+    if data.model is not None:
+        try:
+            service = OpenRouterService()
+            available_models = service.get_available_models()
+            valid_model_ids = {m['id'] for m in available_models}
+
+            if data.model not in valid_model_ids:
+                return 422, {
+                    'error': 'invalid_model',
+                    'message': f'Model "{data.model}" is not available. Please select a valid model.',
+                }
+        except AIUnavailableError:
+            # If we can't validate (no API key), allow the change but it may fail later
+            pass
+        except AIResponseError:
+            # If model list fetch fails, allow the change but it may fail later
+            pass
 
     # Update only provided fields
     if data.system_prompt is not None:
@@ -158,11 +177,16 @@ def update_prompt(request, prompt_type: str, data: PromptUpdateIn):
 
 @router.get('/models', response=List[ModelOut])
 def list_models(request):
-    """List available AI models."""
-    return [
-        {'id': model_id, 'name': model_name}
-        for model_id, model_name in AIPrompt.AVAILABLE_MODELS
-    ]
+    """List available AI models from OpenRouter."""
+    try:
+        service = OpenRouterService()
+        return service.get_available_models()
+    except AIUnavailableError:
+        # No API key configured - return empty list
+        return []
+    except AIResponseError:
+        # API error - return empty list
+        return []
 
 
 # Remix Schemas
