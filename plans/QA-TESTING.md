@@ -36,7 +36,7 @@
 | QA-025 | Legacy Play Mode shows [object Object] for remix steps | Legacy | Verified | - |
 | QA-026 | Remixed recipes have no nutrition information | Modern + Legacy | Verified | - |
 | QA-027 | Invalid AI model selection breaks features silently | Modern + Legacy | Verified | - |
-| QA-028 | Old browsers show white page instead of redirecting to Legacy | Legacy | New | - |
+| QA-028 | Old browsers show white page instead of redirecting to Legacy | Legacy | Verified | - |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -2013,7 +2013,7 @@ The OpenRouter Python SDK provides a `models.list()` method that returns all ava
 
 **Issue:** QA-028 - Old browsers show white page instead of redirecting to Legacy
 **Affects:** Legacy
-**Status:** New
+**Status:** Verified
 
 **Problem:**
 On iPad with Safari on iOS 9, navigating to the root URL (/) shows a white page instead of redirecting to /legacy/. The modern React frontend fails silently on unsupported browsers.
@@ -2031,47 +2031,45 @@ _Current routing architecture:_
 - React app requires ES2020+ (ES6 modules, async/await, Fetch API, etc.)
 - iOS 9 Safari doesn't support ES6 modules, so React never initializes → white page
 
-_Existing browser detection:_
-- `DeviceDetectionMiddleware` exists in `apps/core/middleware.py`
-- Already detects iOS 9 and earlier via User-Agent pattern
-- Sets `request.is_legacy_device` flag on every request
-- **Currently not used anywhere** - no redirect logic implemented
-
 _Why white page occurs:_
 1. iOS 9 Safari doesn't understand `<script type="module">`
 2. React and dependencies fail to parse/load
 3. React never initializes, shows empty page
 4. No error message displayed to user
 
-_Best solution - server-side middleware redirect:_
-- Expand `DeviceDetectionMiddleware` to detect more browsers
-- Add redirect logic for legacy devices requesting root path
-- Works for all browsers, with or without JavaScript
-- Leverages existing detection logic already in place
-
 _Browsers to redirect:_
 - iOS < 11 (Safari lacks ES6 module support)
 - All IE versions (no ES6 support)
 - Edge Legacy (non-Chromium, pre-2020)
-- Chrome < 60, Firefox < 55 (ES6 modules)
 
 **Tasks:**
-- [ ] Expand `_is_legacy_device()` to detect more browser types (IE, Edge Legacy, old Chrome/Firefox)
-- [ ] Add redirect logic to middleware for root path requests from legacy devices
-- [ ] Ensure `/api/` and `/legacy/` paths are NOT redirected
-- [ ] Add tests for new browser detection patterns
-- [ ] Add tests for redirect behavior
-- [ ] Verify on iPad 3 / iOS 9
+- [x] Add User-Agent detection to Nginx for legacy browsers
+- [x] Redirect legacy browsers from root path to `/legacy/`
+- [x] Ensure `/api/` and `/legacy/` paths are NOT redirected
+- [x] Expand Django middleware detection (for future use)
+- [x] Add tests for browser detection patterns
+- [x] Verify on iPad 3 / iOS 9
 
-**Files to Change:**
-- `apps/core/middleware.py` - Expand detection + add redirect
-- `tests/test_device_detection.py` - Add new test cases
+**Implementation:**
+- **Nginx redirect** (`nginx/nginx.conf`): Added User-Agent checks in the root location block
+  - Detects iOS < 11, IE (MSIE/Trident), Edge Legacy
+  - Returns 302 redirect to `/legacy/` for legacy browsers
+  - Must be at Nginx level since root `/` bypasses Django entirely
+- **Django middleware** (`apps/core/middleware.py`): Simplified to detection only
+  - Sets `request.is_legacy_device` flag for potential future use in views/templates
+  - Redirect logic removed (handled by Nginx for performance)
+- **Tests** (`tests/test_device_detection.py`): 15 tests for browser detection
+
+**Files Changed:**
+- `nginx/nginx.conf` - Added legacy browser detection + redirect
+- `apps/core/middleware.py` - Simplified to detection flag only
+- `tests/test_device_detection.py` - Browser detection test coverage
 
 **Verification:**
-- [ ] iOS 9 Safari on root URL redirects to /legacy/
-- [ ] Modern browsers still get React app
-- [ ] /api/ endpoints work for all browsers
-- [ ] /legacy/ URLs work without redirect loops
+- [x] iOS 9 Safari on root URL redirects to /legacy/
+- [x] Modern browsers still get React app
+- [x] /api/ endpoints work for all browsers
+- [x] /legacy/ URLs work without redirect loops
 
 ---
 
