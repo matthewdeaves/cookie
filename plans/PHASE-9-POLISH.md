@@ -32,7 +32,7 @@
 - [x] 9.8 User management tab: List users, delete with full cascade (recipes, images, all related data)
 - [x] 9.9 Search source health review: Audit failed sources, attempt AI repair, replace unfixable sources
 - [x] 9.10 Danger Zone tab: Reset database with confirmation (wipe data, clear images/cache, re-run migrations)
-- [ ] 9.11 Browser fingerprint spoofer review: Audit configuration, optimize settings, ensure best practices
+- [x] 9.11 Browser fingerprint spoofer review: Audit configuration, optimize settings, ensure best practices
 
 ---
 
@@ -2456,12 +2456,12 @@ def test_modern_ua():
 [ ] Source health - AI repair attempted on failed sources
 [ ] Source health - all sources returning results or replaced
 [ ] Source health - no sources with needs_attention=True
-[ ] Fingerprint spoofer - code located and documented
-[ ] Fingerprint spoofer - configuration audited against best practices
-[ ] Fingerprint spoofer - User-Agent pool is modern and diverse
-[ ] Fingerprint spoofer - all required HTTP headers present
-[ ] Fingerprint spoofer - request timing has randomization
-[ ] Fingerprint spoofer - all sources work with updated config
+[x] Fingerprint spoofer - code located and documented
+[x] Fingerprint spoofer - configuration audited against best practices
+[x] Fingerprint spoofer - User-Agent pool is modern and diverse
+[x] Fingerprint spoofer - all required HTTP headers present (via curl_cffi impersonate)
+[x] Fingerprint spoofer - request timing has randomization
+[x] Fingerprint spoofer - all sources work with updated config
 ```
 
 ---
