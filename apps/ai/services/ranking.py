@@ -57,9 +57,9 @@ def rank_results(query: str, results: list[dict]) -> list[dict]:
         return results
 
     # Format results for the AI
-    # Limit to first 20 results to keep prompt size manageable
-    results_to_rank = results[:20]
-    remaining = results[20:] if len(results) > 20 else []
+    # Limit to first 40 results to keep prompt size manageable
+    results_to_rank = results[:40]
+    remaining = results[40:] if len(results) > 40 else []
 
     results_text = '\n'.join(
         f'{i}. "{r.get("title", "Unknown")}" from {r.get("host", "unknown")} '
@@ -90,8 +90,13 @@ def rank_results(query: str, results: list[dict]) -> list[dict]:
         # Apply ranking
         ranked_results = _apply_ranking(results_to_rank, ranking)
 
-        # Append any remaining results that weren't ranked
-        ranked_results.extend(remaining)
+        # Sort remaining results to prioritize those with images
+        if remaining:
+            remaining_sorted = sorted(
+                remaining,
+                key=lambda r: (0 if r.get('image_url') else 1),
+            )
+            ranked_results.extend(remaining_sorted)
 
         logger.info(f'AI ranked {len(results_to_rank)} results for query "{query}"')
         return ranked_results
