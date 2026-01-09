@@ -1,7 +1,7 @@
 # QA-039: AI Ingredient Scaling Produces Impractical Results
 
 ## Status
-**OPEN** - Future implementation (Low priority)
+**RESOLVED** - Implemented via migration 0008
 
 ## Issue
 
@@ -67,10 +67,10 @@ Create dedicated `ingredient_tidy` prompt that:
 
 ## Acceptance Criteria
 
-- [ ] Indivisible items (eggs, crusts, slices, etc.) scale to whole numbers
-- [ ] Notes explain when rounding was applied
-- [ ] Common countable items are handled gracefully
-- [ ] Existing decimal-to-fraction tidying still works
+- [x] Indivisible items (eggs, crusts, slices, etc.) scale to whole numbers
+- [x] Notes explain when rounding was applied
+- [x] Common countable items are handled gracefully
+- [x] Existing decimal-to-fraction tidying still works
 
 ## Priority
 
@@ -173,3 +173,18 @@ Rules for indivisible items:
 ### Notes
 
 This could be combined with QA-029 (ingredient quantity tidying) which already addresses some formatting issues. The scaling prompt may need enhancement to produce more practical outputs from the start rather than relying on post-processing.
+
+---
+
+## Resolution
+
+**Implemented:** 2026-01-09
+
+**Solution:** Created migration `0008_update_serving_adjustment_indivisible.py` that adds comprehensive indivisible item handling to the `serving_adjustment` AI prompt.
+
+**Changes:**
+- Added "Rules for indivisible items" section to the system prompt
+- Includes extensive list of indivisible items: eggs, pizza crusts, bread slices, tortillas, steaks, chicken breasts, burger buns, hot dog buns, pita breads, naan, bagels, muffins, croissants, dinner rolls, taco shells, pie crusts, etc.
+- AI will round indivisible items to nearest whole number
+- AI will round UP when insufficient quantity affects the dish
+- AI will add notes explaining when rounding was applied
