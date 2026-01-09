@@ -84,11 +84,12 @@ class TestScraperHelpers:
         assert len(filename) == len('recipe_') + 12 + len('.jpg')
 
     def test_generate_image_filename_png(self):
+        """PNG source images still get .jpg extension (converted to JPEG for iOS 9)."""
         filename = self.scraper._generate_image_filename(
             'https://example.com/recipe/123',
             'https://example.com/images/photo.png'
         )
-        assert filename.endswith('.png')
+        assert filename.endswith('.jpg')  # All images converted to JPEG (QA-054)
 
     def test_generate_image_filename_no_extension(self):
         filename = self.scraper._generate_image_filename(

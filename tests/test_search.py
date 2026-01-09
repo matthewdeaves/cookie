@@ -31,7 +31,7 @@ class TestSearchHelpers:
     def test_looks_like_recipe_url_numeric_id(self):
         """Test URL with numeric ID in path is detected."""
         assert self.search._looks_like_recipe_url(
-            'https://example.com/article/12345/yummy-cookies',
+            'https://example.com/12345/yummy-cookies',
             'example.com'
         ) is True
 

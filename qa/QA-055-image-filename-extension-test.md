@@ -1,7 +1,7 @@
 # QA-055: Test Failure - PNG Image Filename Extension
 
 ## Status
-**OPEN** - Test failure discovered during Session G testing
+**VERIFIED** - Test updated to expect .jpg, all 228 tests pass
 
 ## Issue
 
@@ -18,29 +18,64 @@ filename = scraper._generate_image_filename(
     'https://example.com/images/photo.png'
 )
 # Returns: 'recipe_84452edcaf83.jpg'
-# Expected: 'recipe_84452edcaf83.png'
+# Expected by test: 'recipe_84452edcaf83.png'
 ```
 
 The `_generate_image_filename()` method always returns `.jpg` extension.
 
 ### Expected Behavior
-The test expects PNG URLs to generate `.png` filenames.
+The test expects PNG URLs to generate `.png` filenames, but this is outdated.
 
 ## Root Cause
 
 **File:** `apps/recipes/services/scraper.py`
 
-The `_generate_image_filename()` method was intentionally changed in QA-054 to always use `.jpg` extension because all images are now converted to JPEG format for iOS 9 compatibility.
+The `_generate_image_filename()` method was intentionally changed in QA-054 to always use `.jpg` extension because all images are now converted to JPEG format for iOS 9 compatibility via `_convert_webp_to_jpeg()`.
 
-## Resolution Options
+This is correct behavior - the test expectation is wrong.
 
-1. **Update the test** - The test is outdated and should be updated to expect `.jpg` since all images are converted to JPEG per QA-054
-2. **Remove the test** - The test is no longer valid given the WebP conversion behavior
+## Resolution
 
-## Recommendation
+**Update the test** to expect `.jpg` since all images are converted to JPEG per QA-054.
 
-Update the test to expect `.jpg` extension, as this is the intended behavior after the QA-054 fix.
+## Implementation Plan
+
+### Task 1: Update test to expect `.jpg`
+
+**File:** `tests/test_scraper.py`
+
+**Current code (lines 86-91):**
+```python
+def test_generate_image_filename_png(self):
+    filename = self.scraper._generate_image_filename(
+        'https://example.com/recipe/123',
+        'https://example.com/images/photo.png'
+    )
+    assert filename.endswith('.png')
+```
+
+**Change to:**
+```python
+def test_generate_image_filename_png(self):
+    """PNG source images still get .jpg extension (converted to JPEG for iOS 9)."""
+    filename = self.scraper._generate_image_filename(
+        'https://example.com/recipe/123',
+        'https://example.com/images/photo.png'
+    )
+    assert filename.endswith('.jpg')  # All images converted to JPEG (QA-054)
+```
+
+### Task 2: Run tests to verify
+
+```bash
+pytest tests/test_scraper.py::TestScraperHelpers -v
+```
 
 ## Files to Change
 
-- `tests/test_scraper.py` - Update `test_generate_image_filename_png` to expect `.jpg`
+- `tests/test_scraper.py` - Update `test_generate_image_filename_png` assertion
+
+## Verification
+
+1. `pytest tests/test_scraper.py::TestScraperHelpers -v` passes
+2. All scraper tests pass: `pytest tests/test_scraper.py -v`

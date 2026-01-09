@@ -1,11 +1,11 @@
 # QA-056: Test Failure - Recipe URL Numeric ID Detection
 
 ## Status
-**OPEN** - Test failure discovered during Session G testing
+**VERIFIED** - Test URL updated to avoid exclude pattern, all 228 tests pass
 
 ## Issue
 
-Unit test `test_looks_like_recipe_url_numeric_id` fails because the `_looks_like_recipe_url()` method doesn't detect URLs with numeric IDs in the path.
+Unit test `test_looks_like_recipe_url_numeric_id` fails because the test URL contains `/article/` which is explicitly excluded.
 
 ### Test Details
 - **File:** `tests/test_search.py:33`
@@ -21,35 +21,75 @@ result = search._looks_like_recipe_url(
 # Expected: True
 ```
 
-URLs with patterns like `/article/12345/slug` are not being recognized as potential recipe URLs.
-
 ### Expected Behavior
-URLs containing numeric IDs in the path (e.g., `/article/12345/`) should be detected as likely recipe URLs, as many recipe sites use this pattern.
+The test expects URLs with numeric IDs to be detected as recipe URLs.
 
-## Root Cause
+## Root Cause Analysis
 
 **File:** `apps/recipes/services/search.py`
 
-The `_looks_like_recipe_url()` method's pattern matching doesn't include a check for numeric IDs in URL paths.
+The `_looks_like_recipe_url()` method logic:
+1. First checks **exclude_patterns** (lines 456-458)
+2. Then checks **recipe_patterns** (lines 460-463)
 
-## Analysis Needed
+The test URL `https://example.com/article/12345/yummy-cookies` fails because:
+1. `/article/` is in exclude_patterns (line 406, added in QA-053)
+2. Exclude check happens BEFORE recipe pattern check
+3. The URL is correctly rejected as an article page
 
-1. Review the current `_looks_like_recipe_url()` implementation
-2. Determine if the test expectation is correct (should numeric ID paths be recipe URLs?)
-3. Either update the method to detect numeric IDs, or update/remove the test if the expectation is wrong
+**This is correct behavior** - article pages should be excluded even if they have numeric IDs. The test expectation is wrong.
 
-## Common Recipe URL Patterns with Numeric IDs
+## Resolution
 
-- `example.com/recipes/12345/recipe-name`
-- `example.com/article/12345/recipe-name`
-- `example.com/r/12345`
-- `example.com/recipe-12345`
+**Update the test** to use a URL that properly tests numeric ID detection without hitting exclude patterns.
 
-## Files to Investigate
+## Implementation Plan
 
-- `apps/recipes/services/search.py` - `_looks_like_recipe_url()` method
-- `tests/test_search.py` - Test expectations
+### Task 1: Update test URL
 
-## Recommendation
+**File:** `tests/test_search.py`
 
-Investigate whether this is a missing feature in the URL detection logic or an incorrect test expectation. If the pattern is common among recipe sites, add detection for numeric ID paths.
+**Current code (lines 31-36):**
+```python
+def test_looks_like_recipe_url_numeric_id(self):
+    """Test URL with numeric ID in path is detected."""
+    assert self.search._looks_like_recipe_url(
+        'https://example.com/article/12345/yummy-cookies',
+        'example.com'
+    ) is True
+```
+
+**Change to:**
+```python
+def test_looks_like_recipe_url_numeric_id(self):
+    """Test URL with numeric ID in path is detected."""
+    assert self.search._looks_like_recipe_url(
+        'https://example.com/12345/yummy-cookies',
+        'example.com'
+    ) is True
+```
+
+The new URL `/12345/yummy-cookies`:
+- Contains numeric ID pattern `/\d+/` which matches `r'/\d+/'` in recipe_patterns
+- Does NOT contain any exclude patterns
+- Represents a real recipe URL pattern (e.g., `allrecipes.com/12345/chocolate-cake`)
+
+### Task 2: Run tests to verify
+
+```bash
+pytest tests/test_search.py::TestSearchHelpers -v
+```
+
+## Alternative Considered
+
+Could reorder the pattern checks so recipe patterns take precedence, but this would cause false positives (article pages with numeric IDs would be incorrectly detected as recipes). The current behavior is correct.
+
+## Files to Change
+
+- `tests/test_search.py` - Update `test_looks_like_recipe_url_numeric_id` test URL
+
+## Verification
+
+1. `pytest tests/test_search.py::TestSearchHelpers -v` passes
+2. All search tests pass: `pytest tests/test_search.py -v`
+3. Manual verification that `/article/` URLs are still correctly excluded
