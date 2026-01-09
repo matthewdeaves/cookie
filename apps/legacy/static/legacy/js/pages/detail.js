@@ -282,6 +282,17 @@ Cookie.pages.detail = (function() {
         if (targetContent) {
             targetContent.classList.remove('hidden');
         }
+
+        // QA-046: Auto-generate tips when viewing Tips tab for old recipes without tips
+        if (tabName === 'tips') {
+            var pageEl = document.querySelector('[data-page="recipe-detail"]');
+            var aiAvailable = pageEl && pageEl.getAttribute('data-ai-available') === 'true';
+            var hasTips = document.querySelectorAll('.tips-list .tip-item').length > 0;
+
+            if (aiAvailable && !hasTips && !isGeneratingTips && !tipsPollingState.isPolling) {
+                handleGenerateTips(false);
+            }
+        }
     }
 
     /**

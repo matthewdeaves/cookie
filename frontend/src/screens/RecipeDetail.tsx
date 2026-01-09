@@ -107,6 +107,20 @@ export default function RecipeDetail({
     }
   }, [recipe?.id, recipe?.scraped_at, tips.length])
 
+  // Auto-generate tips when viewing Tips tab for old recipes without tips (QA-046)
+  useEffect(() => {
+    if (
+      activeTab === 'tips' &&
+      tips.length === 0 &&
+      settings?.ai_available &&
+      !tipsLoading &&
+      !tipsPolling &&
+      recipe
+    ) {
+      handleGenerateTips(false)
+    }
+  }, [activeTab]) // Only trigger on tab change
+
   const loadData = async () => {
     try {
       const [recipeData, settingsData] = await Promise.all([
