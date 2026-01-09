@@ -45,21 +45,21 @@ SEARCH_SOURCES = [
         'result_selector': '',
     },
     {
-        'host': 'foodnetwork.com',
-        'name': 'Food Network',
-        'search_url_template': 'https://www.foodnetwork.com/search/{query}-',
+        'host': 'thepioneerwoman.com',
+        'name': 'The Pioneer Woman',
+        'search_url_template': 'https://www.thepioneerwoman.com/food-cooking/recipes/?query={query}',
         'result_selector': '',
     },
     {
-        'host': 'food52.com',
-        'name': 'Food52',
-        'search_url_template': 'https://food52.com/recipes/search?q={query}',
+        'host': 'southernliving.com',
+        'name': 'Southern Living',
+        'search_url_template': 'https://www.southernliving.com/search?q={query}',
         'result_selector': '',
     },
     {
-        'host': 'jamieoliver.com',
-        'name': 'Jamie Oliver',
-        'search_url_template': 'https://www.jamieoliver.com/search/?s={query}',
+        'host': 'skinnytaste.com',
+        'name': 'Skinnytaste',
+        'search_url_template': 'https://www.skinnytaste.com/?s={query}',
         'result_selector': '',
     },
     {
@@ -83,7 +83,7 @@ SEARCH_SOURCES = [
     {
         'host': 'tasteofhome.com',
         'name': 'Taste of Home',
-        'search_url_template': 'https://www.tasteofhome.com/search/?q={query}',
+        'search_url_template': 'https://www.tasteofhome.com/recipes/?s={query}',
         'result_selector': '',
     },
     {

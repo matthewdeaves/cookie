@@ -14,13 +14,13 @@ SELECTOR_UPDATES = {
     'budgetbytes.com': 'article.post-summary',
     'delish.com': 'a.full-item-card',
     'epicurious.com': 'article.recipe-card',
-    'foodnetwork.com': 'section.o-ResultCard a',
-    'food52.com': 'div.collectable-tile',
-    'jamieoliver.com': 'div.recipe-card',
+    'thepioneerwoman.com': 'a[href*="/recipes/a"]',
+    'southernliving.com': 'a[href*="/recipes/"]',
+    'skinnytaste.com': 'h2 a',
     'tasty.co': 'a.feed-item',
     'seriouseats.com': 'a.card__title',
     'simplyrecipes.com': 'a.card__titleLink',
-    'tasteofhome.com': 'a.card',
+    'tasteofhome.com': 'h3.entry-title a',
     'thekitchn.com': 'a.PostCard__link',
 }
 

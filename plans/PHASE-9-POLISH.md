@@ -16,6 +16,7 @@
 | D | 9.8 | User management (list, delete with cascade) |
 | E | 9.9 | Search source health review + repair/replacement |
 | F | 9.10 | Danger Zone tab with database reset functionality |
+| G | 9.11 | Browser fingerprint spoofer configuration review |
 
 ---
 
@@ -29,8 +30,9 @@
 - [ ] 9.6 Testing with pytest (unit + integration)
 - [ ] 9.7 Final cross-browser/device testing
 - [x] 9.8 User management tab: List users, delete with full cascade (recipes, images, all related data)
-- [ ] 9.9 Search source health review: Audit failed sources, attempt AI repair, replace unfixable sources
+- [x] 9.9 Search source health review: Audit failed sources, attempt AI repair, replace unfixable sources
 - [ ] 9.10 Danger Zone tab: Reset database with confirmation (wipe data, clear images/cache, re-run migrations)
+- [ ] 9.11 Browser fingerprint spoofer review: Audit configuration, optimize settings, ensure best practices
 
 ---
 
@@ -2193,6 +2195,239 @@ For production, consider enabling automatic repair in the search flow:
 
 ---
 
+## Browser Fingerprint Spoofer Review (Session G - Task 9.11)
+
+**Purpose:** Review and optimize the browser fingerprint spoofing library used for web scraping to ensure it is configured correctly, using best practices, and maximizing success rates when scraping recipe sites.
+
+### Background
+
+The application uses browser fingerprint spoofing to avoid bot detection when scraping recipe websites. This session involves:
+- Auditing the current fingerprint spoofer configuration
+- Reviewing how it integrates with the scraping service
+- Ensuring optimal settings for recipe site compatibility
+- Identifying any missed opportunities or misconfigurations
+
+### Review Areas
+
+#### 1. Library Audit
+
+**Identify Current Implementation:**
+- Which fingerprint spoofing library is in use?
+- What version is installed?
+- Is there a more recent/better maintained alternative?
+
+**Library Options (common ones):**
+- `playwright-stealth` / `puppeteer-stealth`
+- `undetected-chromedriver`
+- `fake-useragent`
+- `curl-cffi` (for requests-based scraping)
+- Custom header rotation
+
+**Questions to Answer:**
+- Is the library actively maintained?
+- Does it handle all major fingerprinting vectors?
+- Is it compatible with async operations?
+
+#### 2. Configuration Review
+
+**Check Settings For:**
+
+| Setting | Purpose | Optimal Value |
+|---------|---------|---------------|
+| User-Agent rotation | Avoid same-UA detection | Pool of 20+ modern UAs |
+| Accept-Language | Match realistic browser | Weighted by region |
+| Accept-Encoding | Content negotiation | gzip, deflate, br |
+| Referer | Hide scraper origin | Google search or direct |
+| DNT (Do Not Track) | Realistic browser behavior | Random (1/0) |
+| Sec-Fetch-* headers | Modern browser markers | Match Chrome/Firefox |
+| Connection timing | Avoid bot patterns | Random delays (1-5s) |
+| TLS fingerprint | Advanced detection | JA3 spoofing if available |
+| WebGL/Canvas | Advanced fingerprinting | Spoof if browser-based |
+| Screen resolution | Device fingerprinting | Common resolutions |
+
+**Configuration Checklist:**
+```
+[ ] User-Agent pool is diverse and current
+[ ] Headers match a real browser exactly
+[ ] Request timing has realistic randomization
+[ ] TLS fingerprint matches browser (if applicable)
+[ ] Cookies are handled appropriately
+[ ] Proxy rotation configured (if used)
+[ ] Session persistence mimics real user
+```
+
+#### 3. Integration Review
+
+**How Fingerprinting Integrates with Scraping:**
+
+1. **Search Service** (`apps/recipes/services/search.py`)
+   - Review how headers are set for search requests
+   - Check if fingerprinting is applied consistently
+   - Verify retry logic uses different fingerprints
+
+2. **Scrape Service** (`apps/recipes/services/scrape.py`)
+   - Review how recipes are fetched
+   - Check if fingerprinting matches search service
+   - Verify image downloads use same spoofing
+
+3. **Source Testing** (Source Selectors tab)
+   - Ensure test requests use production fingerprinting
+   - Results should match real scrape success rates
+
+**Code Review Points:**
+```python
+# Check for these patterns:
+
+# ❌ Bad: Hardcoded single User-Agent
+headers = {'User-Agent': 'Mozilla/5.0 ...'}
+
+# ✅ Good: Rotated from pool
+headers = {'User-Agent': get_random_user_agent()}
+
+# ❌ Bad: Missing modern headers
+headers = {'User-Agent': ua}
+
+# ✅ Good: Complete header set
+headers = {
+    'User-Agent': ua,
+    'Accept': 'text/html,application/xhtml+xml...',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Site': 'none',
+    'Sec-Fetch-User': '?1',
+    ...
+}
+```
+
+#### 4. Best Practices Checklist
+
+**Request Behavior:**
+- [ ] Random delays between requests (not fixed intervals)
+- [ ] Delays vary per domain (some sites stricter than others)
+- [ ] Session cookies preserved across requests to same domain
+- [ ] Referer header set realistically (Google search, direct, etc.)
+- [ ] Failed requests retry with different fingerprint
+
+**Header Quality:**
+- [ ] User-Agent pool contains only modern, valid UAs
+- [ ] Accept headers match User-Agent browser type
+- [ ] Sec-Fetch headers present and correct
+- [ ] No scraper-identifying headers leaked
+
+**Detection Avoidance:**
+- [ ] Request rate respects site's tolerance
+- [ ] No predictable request patterns
+- [ ] IP reputation maintained (proxy rotation if needed)
+- [ ] Handles soft blocks gracefully (CAPTCHA, rate limits)
+
+#### 5. Site-Specific Considerations
+
+Some recipe sites may have stricter bot detection:
+
+| Site | Protection Level | Notes |
+|------|-----------------|-------|
+| AllRecipes | Low | Basic UA check |
+| Food Network | Medium | Cloudflare |
+| NYT Cooking | High | Paywall + bot detection |
+| Serious Eats | Low | Minimal protection |
+| BBC Good Food | Low-Medium | Regional checks |
+| Epicurious | Medium | Rate limiting |
+
+**For stricter sites, consider:**
+- Longer delays
+- Residential proxy IP (if available)
+- Browser-based scraping (Playwright) as fallback
+
+#### 6. Testing Methodology
+
+**Manual Testing:**
+```bash
+# Test single source with verbose output
+python manage.py shell
+>>> from apps.recipes.services.search import search_recipes
+>>> results = search_recipes('chocolate cake', sources=['allrecipes'])
+>>> print(f"Found {len(results)} results")
+
+# Check headers being sent
+>>> import httpx
+>>> # Add request logging to see exact headers
+```
+
+**Automated Testing:**
+```python
+def test_fingerprint_rotation():
+    """Verify fingerprints change between requests."""
+    fingerprints = set()
+    for _ in range(10):
+        headers = get_spoofed_headers()
+        fingerprints.add(headers['User-Agent'])
+    assert len(fingerprints) >= 5, "Should use diverse User-Agents"
+
+def test_headers_complete():
+    """Verify all required headers present."""
+    headers = get_spoofed_headers()
+    required = ['User-Agent', 'Accept', 'Accept-Language', 'Accept-Encoding']
+    for key in required:
+        assert key in headers, f"Missing header: {key}"
+
+def test_modern_ua():
+    """Verify User-Agents are current browser versions."""
+    headers = get_spoofed_headers()
+    ua = headers['User-Agent']
+    # Should be Chrome 100+ or equivalent
+    assert 'Chrome/1' in ua or 'Firefox/1' in ua
+```
+
+### Implementation Tasks
+
+1. **Audit Current Setup**
+   - Locate fingerprint spoofing code
+   - Document current configuration
+   - List all headers being sent
+
+2. **Identify Gaps**
+   - Compare against best practices checklist
+   - Note missing headers or outdated UAs
+   - Check for inconsistent application
+
+3. **Optimize Configuration**
+   - Update User-Agent pool with current browsers
+   - Add missing Sec-Fetch headers
+   - Implement proper header ordering
+   - Add realistic request timing
+
+4. **Test Changes**
+   - Test against all 15 sources
+   - Verify success rate improves or maintains
+   - Check for any regressions
+
+5. **Document Configuration**
+   - Add comments explaining each header
+   - Document any site-specific handling
+   - Note recommended update frequency for UA pool
+
+### Deliverables
+
+1. Audit report of current fingerprint configuration
+2. List of improvements/optimizations made
+3. Updated configuration with best practices applied
+4. Test results showing source compatibility
+5. Documentation of fingerprint settings
+
+### Acceptance Criteria (9.11)
+
+1. Fingerprint spoofer code is located and documented
+2. Current configuration is audited against best practices
+3. User-Agent pool contains only modern, valid browsers
+4. All required HTTP headers are present and correctly formatted
+5. Request timing includes appropriate randomization
+6. All 15 search sources work with updated configuration
+7. No regression in scrape success rates
+8. Configuration is documented with maintenance notes
+
+---
+
 ## Checkpoint (End of Phase)
 
 ```
@@ -2221,6 +2456,12 @@ For production, consider enabling automatic repair in the search flow:
 [ ] Source health - AI repair attempted on failed sources
 [ ] Source health - all sources returning results or replaced
 [ ] Source health - no sources with needs_attention=True
+[ ] Fingerprint spoofer - code located and documented
+[ ] Fingerprint spoofer - configuration audited against best practices
+[ ] Fingerprint spoofer - User-Agent pool is modern and diverse
+[ ] Fingerprint spoofer - all required HTTP headers present
+[ ] Fingerprint spoofer - request timing has randomization
+[ ] Fingerprint spoofer - all sources work with updated config
 ```
 
 ---
@@ -2244,3 +2485,5 @@ For production, consider enabling automatic repair in the search flow:
 - [ ] Profile deletion cascades all data including images
 - [ ] Danger Zone tab with database reset works on both interfaces
 - [ ] Database reset performs complete factory reset with confirmation
+- [ ] Fingerprint spoofer reviewed and optimized for best practices
+- [ ] All scraping headers modern and properly configured

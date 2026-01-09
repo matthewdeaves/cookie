@@ -386,6 +386,9 @@ class RecipeSearch:
             r'/food/',
             r'/cooking/',
             r'/\d+/',  # Numeric ID in path
+            r'-recipe/?$',  # URL ending with -recipe
+            r'/a\d+/',  # Alphanumeric IDs like /a69912280/
+            r'/food-cooking/',  # Pioneer Woman style
         ]
 
         # Exclude non-recipe paths
@@ -465,6 +468,11 @@ class RecipeSearch:
         # Heuristic: URL path has enough segments and isn't too short
         segments = [s for s in path.split('/') if s]
         if len(segments) >= 2 and len(path) > 20:
+            return True
+
+        # Also accept single-segment slug-style URLs (common for food blogs)
+        # e.g., /30-cloves-garlic-chicken/
+        if len(segments) == 1 and len(path) > 15 and path.count('-') >= 2:
             return True
 
         return False
