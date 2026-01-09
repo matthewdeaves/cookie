@@ -442,9 +442,9 @@ export default function RecipeDetail({
         <div className="flex px-4">
           {(
             [
-              { key: 'ingredients', label: 'Ingredients' },
-              { key: 'instructions', label: 'Instructions' },
-              { key: 'nutrition', label: 'Nutrition' },
+              { key: 'ingredients' as const, label: 'Ingredients' },
+              { key: 'instructions' as const, label: 'Instructions' },
+              { key: 'nutrition' as const, label: 'Nutrition' },
               // Only show Tips tab when AI is available (8B.11 graceful degradation)
               ...(settings?.ai_available ? [{ key: 'tips' as const, label: 'Tips' }] : []),
             ]

@@ -315,22 +315,124 @@ Cookie.pages.play = (function() {
 
     /**
      * Handle quick timer button click
+     * Uses AI to generate a descriptive timer name if available
      */
     function handleQuickTimer(e) {
         var btn = e.currentTarget;
         var duration = parseInt(btn.getAttribute('data-duration'), 10);
         var label = btn.getAttribute('data-label');
-        addTimer(label, duration);
+        var instruction = instructions[currentStep] || '';
+
+        // If AI is available, try to get an AI-generated name
+        if (typeof AI_AVAILABLE !== 'undefined' && AI_AVAILABLE && instruction) {
+            // Disable button while loading
+            btn.disabled = true;
+            btn.classList.add('loading');
+
+            // Convert seconds to minutes for the API
+            var durationMinutes = Math.ceil(duration / 60);
+
+            // Call AI API using XMLHttpRequest (ES5 compatible)
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/ai/timer-name', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    btn.disabled = false;
+                    btn.classList.remove('loading');
+
+                    if (xhr.status === 200) {
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            if (response.label) {
+                                addTimer(response.label, duration);
+                                return;
+                            }
+                        } catch (parseError) {
+                            // JSON parse error, fall through to default
+                        }
+                    }
+                    // AI failed, use default label
+                    addTimer(label, duration);
+                }
+            };
+
+            xhr.onerror = function() {
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                addTimer(label, duration);
+            };
+
+            xhr.send(JSON.stringify({
+                step_text: instruction,
+                duration_minutes: durationMinutes
+            }));
+        } else {
+            // No AI available, use default label
+            addTimer(label, duration);
+        }
     }
 
     /**
      * Handle detected timer button click
+     * Uses AI to generate a descriptive timer name if available
      */
     function handleDetectedTimer(e) {
         var btn = e.currentTarget;
         var duration = parseInt(btn.getAttribute('data-duration'), 10);
         var label = btn.getAttribute('data-label');
-        addTimer(label, duration);
+        var instruction = instructions[currentStep] || '';
+
+        // If AI is available, try to get an AI-generated name
+        if (typeof AI_AVAILABLE !== 'undefined' && AI_AVAILABLE && instruction) {
+            // Disable button while loading
+            btn.disabled = true;
+            btn.classList.add('loading');
+
+            // Convert seconds to minutes for the API
+            var durationMinutes = Math.ceil(duration / 60);
+
+            // Call AI API using XMLHttpRequest (ES5 compatible)
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/ai/timer-name', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    btn.disabled = false;
+                    btn.classList.remove('loading');
+
+                    if (xhr.status === 200) {
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            if (response.label) {
+                                addTimer(response.label, duration);
+                                return;
+                            }
+                        } catch (parseError) {
+                            // JSON parse error, fall through to default
+                        }
+                    }
+                    // AI failed, use default label
+                    addTimer(label, duration);
+                }
+            };
+
+            xhr.onerror = function() {
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                addTimer(label, duration);
+            };
+
+            xhr.send(JSON.stringify({
+                step_text: instruction,
+                duration_minutes: durationMinutes
+            }));
+        } else {
+            // No AI available, use default label
+            addTimer(label, duration);
+        }
     }
 
     /**

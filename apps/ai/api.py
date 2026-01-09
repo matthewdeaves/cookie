@@ -16,6 +16,7 @@ from .services.remix import get_remix_suggestions, create_remix
 from .services.scaling import scale_recipe, calculate_nutrition
 from .services.tips import generate_tips, clear_tips
 from .services.discover import get_discover_suggestions
+from .services.timer import generate_timer_name
 from .services.validator import ValidationError
 
 router = Router(tags=['ai'])
@@ -487,6 +488,55 @@ def tips_endpoint(request, data: TipsIn):
             'error': 'not_found',
             'message': f'Recipe {data.recipe_id} not found',
         }
+    except AIUnavailableError as e:
+        return 503, {
+            'error': 'ai_unavailable',
+            'message': str(e),
+        }
+    except (AIResponseError, ValidationError) as e:
+        return 400, {
+            'error': 'ai_error',
+            'message': str(e),
+        }
+
+
+# Timer Naming Schemas
+
+class TimerNameIn(Schema):
+    step_text: str
+    duration_minutes: int
+
+
+class TimerNameOut(Schema):
+    label: str
+
+
+# Timer Naming Endpoints
+
+@router.post('/timer-name', response={200: TimerNameOut, 400: ErrorOut, 503: ErrorOut})
+def timer_name_endpoint(request, data: TimerNameIn):
+    """Generate a descriptive name for a cooking timer.
+
+    Takes a cooking instruction and duration, returns a short label.
+    """
+    if not data.step_text:
+        return 400, {
+            'error': 'validation_error',
+            'message': 'Step text is required',
+        }
+
+    if data.duration_minutes <= 0:
+        return 400, {
+            'error': 'validation_error',
+            'message': 'Duration must be positive',
+        }
+
+    try:
+        result = generate_timer_name(
+            step_text=data.step_text,
+            duration_minutes=data.duration_minutes,
+        )
+        return result
     except AIUnavailableError as e:
         return 503, {
             'error': 'ai_unavailable',

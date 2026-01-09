@@ -360,6 +360,16 @@
     background-color: var(--muted);
 }
 
+.quick-timer-btn:disabled {
+    opacity: 0.5;
+    cursor: wait;
+}
+
+.quick-timer-btn.loading svg {
+    -webkit-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+}
+
 /* Detected times */
 .detected-times {
     margin-bottom: 1rem;
@@ -411,6 +421,26 @@
 
 .detected-time-btn:hover {
     background-color: rgba(107, 142, 95, 0.2);
+}
+
+.detected-time-btn:disabled {
+    opacity: 0.5;
+    cursor: wait;
+}
+
+.detected-time-btn.loading svg {
+    -webkit-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+}
+
+@-webkit-keyframes spin {
+    from { -webkit-transform: rotate(0deg); }
+    to { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 /* Timer list */

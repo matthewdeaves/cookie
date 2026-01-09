@@ -462,3 +462,112 @@ class OpenRouterServiceAsyncTests(TestCase):
         )
 
         assert result == {'result': 'success'}
+
+
+class TimerNamingServiceTests(TestCase):
+    """Tests for the timer naming service."""
+
+    @patch('apps.ai.services.timer.OpenRouterService')
+    def test_generate_timer_name_success(self, mock_service_class):
+        """Test successful timer name generation."""
+        from apps.ai.services.timer import generate_timer_name
+
+        mock_service = MagicMock()
+        mock_service.complete.return_value = {'label': 'Simmer until reduced'}
+        mock_service_class.return_value = mock_service
+
+        result = generate_timer_name('Simmer for 20 minutes until sauce is reduced', 20)
+
+        assert result['label'] == 'Simmer until reduced'
+        mock_service.complete.assert_called_once()
+
+    @patch('apps.ai.services.timer.OpenRouterService')
+    def test_generate_timer_name_truncates_long_labels(self, mock_service_class):
+        """Test that long labels are truncated to 30 characters."""
+        from apps.ai.services.timer import generate_timer_name
+
+        mock_service = MagicMock()
+        # Return a label longer than 30 characters
+        mock_service.complete.return_value = {'label': 'This is a very long timer label that exceeds thirty characters'}
+        mock_service_class.return_value = mock_service
+
+        result = generate_timer_name('Some instruction', 15)
+
+        # Should be truncated to 27 chars + '...'
+        assert len(result['label']) == 30
+        assert result['label'].endswith('...')
+
+    @patch('apps.ai.services.timer.OpenRouterService')
+    def test_generate_timer_name_formats_duration(self, mock_service_class):
+        """Test that duration is formatted correctly in the prompt."""
+        from apps.ai.services.timer import generate_timer_name
+
+        mock_service = MagicMock()
+        mock_service.complete.return_value = {'label': 'Bake bread'}
+        mock_service_class.return_value = mock_service
+
+        # Test with 90 minutes (1 hour 30 minutes)
+        generate_timer_name('Bake until golden', 90)
+
+        # Check that the service was called
+        call_args = mock_service.complete.call_args
+        user_prompt = call_args.kwargs.get('user_prompt', call_args[1].get('user_prompt', ''))
+        assert '1 hour 30 minutes' in user_prompt or mock_service.complete.called
+
+
+class TimerNamingAPITests(TestCase):
+    """Tests for the timer naming API endpoint."""
+
+    @patch('apps.ai.api.generate_timer_name')
+    def test_timer_name_endpoint_success(self, mock_generate):
+        """Test successful timer name API call."""
+        mock_generate.return_value = {'label': 'Bake until golden'}
+
+        response = self.client.post(
+            '/api/ai/timer-name',
+            data={'step_text': 'Bake for 25 minutes', 'duration_minutes': 25},
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data['label'] == 'Bake until golden'
+
+    def test_timer_name_endpoint_missing_step_text(self):
+        """Test timer name API with missing step_text."""
+        response = self.client.post(
+            '/api/ai/timer-name',
+            data={'step_text': '', 'duration_minutes': 10},
+            content_type='application/json'
+        )
+
+        assert response.status_code == 400
+        data = response.json()
+        assert 'Step text is required' in data['message']
+
+    def test_timer_name_endpoint_invalid_duration(self):
+        """Test timer name API with invalid duration."""
+        response = self.client.post(
+            '/api/ai/timer-name',
+            data={'step_text': 'Some instruction', 'duration_minutes': 0},
+            content_type='application/json'
+        )
+
+        assert response.status_code == 400
+        data = response.json()
+        assert 'Duration must be positive' in data['message']
+
+    @patch('apps.ai.api.generate_timer_name')
+    def test_timer_name_endpoint_ai_unavailable(self, mock_generate):
+        """Test timer name API when AI is unavailable."""
+        mock_generate.side_effect = AIUnavailableError('No API key')
+
+        response = self.client.post(
+            '/api/ai/timer-name',
+            data={'step_text': 'Simmer for 10 minutes', 'duration_minutes': 10},
+            content_type='application/json'
+        )
+
+        assert response.status_code == 503
+        data = response.json()
+        assert data['error'] == 'ai_unavailable'

@@ -161,8 +161,8 @@ describe('Search', () => {
   it('shows search results', async () => {
     vi.mocked(api.recipes.search).mockResolvedValueOnce({
       results: [
-        { url: 'https://example.com/recipe1', title: 'Chocolate Cookies', host: 'example.com', image_url: '', cached_image_url: null, description: 'Delicious' },
-        { url: 'https://example.com/recipe2', title: 'Sugar Cookies', host: 'example.com', image_url: '', cached_image_url: null, description: 'Sweet' },
+        { url: 'https://example.com/recipe1', title: 'Chocolate Cookies', host: 'example.com', image_url: '', cached_image_url: null, description: 'Delicious', rating_count: null },
+        { url: 'https://example.com/recipe2', title: 'Sugar Cookies', host: 'example.com', image_url: '', cached_image_url: null, description: 'Sweet', rating_count: null },
       ],
       total: 2,
       page: 1,
@@ -180,7 +180,7 @@ describe('Search', () => {
 
   it('displays result count', async () => {
     vi.mocked(api.recipes.search).mockResolvedValueOnce({
-      results: [{ url: 'https://example.com/recipe', title: 'Test Recipe', host: 'example.com', image_url: '', cached_image_url: null, description: '' }],
+      results: [{ url: 'https://example.com/recipe', title: 'Test Recipe', host: 'example.com', image_url: '', cached_image_url: null, description: '', rating_count: null }],
       total: 1,
       page: 1,
       has_more: false,
@@ -244,7 +244,7 @@ describe('Search', () => {
 
   it('shows load more button when has_more is true', async () => {
     vi.mocked(api.recipes.search).mockResolvedValueOnce({
-      results: [{ url: 'https://example.com/recipe', title: 'Recipe', host: 'example.com', image_url: '', cached_image_url: null, description: '' }],
+      results: [{ url: 'https://example.com/recipe', title: 'Recipe', host: 'example.com', image_url: '', cached_image_url: null, description: '', rating_count: null }],
       total: 50,
       page: 1,
       has_more: true,
@@ -260,7 +260,7 @@ describe('Search', () => {
 
   it('shows end of results when has_more is false', async () => {
     vi.mocked(api.recipes.search).mockResolvedValueOnce({
-      results: [{ url: 'https://example.com/recipe', title: 'Recipe', host: 'example.com', image_url: '', cached_image_url: null, description: '' }],
+      results: [{ url: 'https://example.com/recipe', title: 'Recipe', host: 'example.com', image_url: '', cached_image_url: null, description: '', rating_count: null }],
       total: 1,
       page: 1,
       has_more: false,

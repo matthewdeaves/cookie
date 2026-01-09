@@ -14,9 +14,36 @@
 | B | 8B.2 | Recipe remix: Legacy UI | ✓ Complete |
 | C | 8B.3-8B.4 | Serving adjustment + tips generation | ✓ Complete |
 | D | 8B.4-fix, 8B.5-8B.6 | Tips auto-generation + Discover feed + search ranking | ✓ Complete |
-| E | 8B.7 | Timer naming (8B.8 remix suggestions already complete) | **Next** |
-| F | 8B.9-8B.10 | Selector repair + tests | Pending |
+| E | 8B.7 | Timer naming for Play Mode | ✓ Complete |
+| F | 8B.9-8B.10 | Selector repair + tests | **Next** |
 | G | 8B.11 | AI feature graceful degradation (no/invalid API key) | Pending |
+
+---
+
+## Session E Implementation Summary
+
+### Timer Naming (8B.7) - Complete
+
+**Backend:**
+1. Created `apps/ai/services/timer.py` with `generate_timer_name(step_text, duration_minutes)`
+2. Added `POST /api/ai/timer-name` endpoint to `apps/ai/api.py`
+3. Reused existing `timer_naming` prompt (already seeded in migration 0002)
+
+**React Frontend:**
+1. Updated `TimerPanel.tsx` to accept `aiAvailable` prop
+2. When adding detected timers, calls AI API to get descriptive label
+3. Shows loading spinner while fetching AI name
+4. Falls back to formatted time if AI unavailable or fails
+5. Updated `PlayMode.tsx` to fetch AI status and pass to TimerPanel
+
+**Legacy Frontend:**
+1. Updated `views.py` to pass `ai_available` to play_mode template
+2. Updated `play_mode.html` to expose `AI_AVAILABLE` to JavaScript
+3. Updated `play.js` `handleDetectedTimer()` to call AI API via XMLHttpRequest
+4. Added loading CSS animation for button state
+5. Falls back to time label if AI fails
+
+**Result:** Timers now get descriptive names like "Bake until golden" instead of "25 min"
 
 ---
 
@@ -71,7 +98,7 @@
 - [x] 8B.4 Tips generation service (auto-generated on import, cached in ai_tips field)
 - [x] 8B.5 Discover AI suggestions (3 types combined into feed)
 - [x] 8B.6 Search result ranking
-- [ ] 8B.7 Timer naming
+- [x] 8B.7 Timer naming
 - [x] 8B.8 Remix suggestions (contextual prompts per recipe)
 - [ ] 8B.9 Selector repair (AI-powered auto-fix for broken sources)
 - [ ] 8B.10 Write tests for all AI features and fallback behavior

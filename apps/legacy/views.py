@@ -172,6 +172,10 @@ def play_mode(request, recipe_id):
     # Get the recipe (must belong to this profile)
     recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)
 
+    # Check if AI features are available
+    settings = AppSettings.get()
+    ai_available = bool(settings.openrouter_api_key)
+
     # Prepare instructions
     instructions = recipe.instructions
     if not instructions and recipe.instructions_text:
@@ -186,6 +190,7 @@ def play_mode(request, recipe_id):
         'recipe': recipe,
         'instructions': instructions,
         'instructions_json': instructions,  # For JavaScript
+        'ai_available': ai_available,
     })
 
 

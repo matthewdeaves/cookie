@@ -86,6 +86,10 @@ export interface DiscoverResponse {
   refreshed_at: string
 }
 
+export interface TimerNameResponse {
+  label: string
+}
+
 export interface TestApiKeyResponse {
   success: boolean
   message: string
@@ -324,6 +328,15 @@ export const api = {
 
     discover: (profileId: number) =>
       request<DiscoverResponse>(`/ai/discover/${profileId}/`),
+
+    timerName: (stepText: string, durationMinutes: number) =>
+      request<TimerNameResponse>('/ai/timer-name', {
+        method: 'POST',
+        body: JSON.stringify({
+          step_text: stepText,
+          duration_minutes: durationMinutes,
+        }),
+      }),
   },
 
   profiles: {

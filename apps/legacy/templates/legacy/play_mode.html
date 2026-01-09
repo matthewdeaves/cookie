@@ -89,9 +89,10 @@
     {% endif %}
 </div>
 
-<!-- Pass instructions to JavaScript -->
+<!-- Pass instructions and settings to JavaScript -->
 <script>
     var RECIPE_INSTRUCTIONS = {{ instructions_json|safe }};
+    var AI_AVAILABLE = {{ ai_available|yesno:"true,false" }};
 </script>
 {% endblock %}
 

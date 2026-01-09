@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
+import { api } from '../api/client'
 import type { RecipeDetail } from '../api/client'
 import { useTimers } from '../hooks/useTimers'
 import { useWakeLock } from '../hooks/useWakeLock'
@@ -15,6 +16,16 @@ interface PlayModeProps {
 
 export default function PlayMode({ recipe, onExit }: PlayModeProps) {
   const [currentStep, setCurrentStep] = useState(0)
+  const [aiAvailable, setAiAvailable] = useState(false)
+
+  // Fetch AI availability on mount
+  useEffect(() => {
+    api.ai.status().then((status) => {
+      setAiAvailable(status.available)
+    }).catch(() => {
+      setAiAvailable(false)
+    })
+  }, [])
 
   // Get instructions array
   const instructions =
@@ -215,7 +226,7 @@ export default function PlayMode({ recipe, onExit }: PlayModeProps) {
         </div>
 
         {/* Timer panel */}
-        <TimerPanel timers={timers} instructionText={currentInstruction} />
+        <TimerPanel timers={timers} instructionText={currentInstruction} aiAvailable={aiAvailable} />
       </div>
     </div>
   )

@@ -1,12 +1,14 @@
-import { Timer as TimerIcon, Plus, ChevronUp, ChevronDown } from 'lucide-react'
+import { Timer as TimerIcon, Plus, ChevronUp, ChevronDown, Sparkles, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import type { UseTimersReturn } from '../hooks/useTimers'
 import { detectTimes } from '../hooks/useTimers'
 import TimerWidget from './TimerWidget'
+import { api } from '../api/client'
 
 interface TimerPanelProps {
   timers: UseTimersReturn
   instructionText?: string
+  aiAvailable?: boolean
 }
 
 const QUICK_TIMERS = [
@@ -15,8 +17,9 @@ const QUICK_TIMERS = [
   { label: '+15 min', duration: 15 * 60 },
 ]
 
-export default function TimerPanel({ timers, instructionText }: TimerPanelProps) {
+export default function TimerPanel({ timers, instructionText, aiAvailable = false }: TimerPanelProps) {
   const [expanded, setExpanded] = useState(true)
+  const [loadingTimerId, setLoadingTimerId] = useState<string | null>(null)
 
   // Detect times from current instruction
   const detectedTimes = instructionText ? detectTimes(instructionText) : []
@@ -34,12 +37,33 @@ export default function TimerPanel({ timers, instructionText }: TimerPanelProps)
     return `${mins}m ${secs}s`
   }
 
-  const handleAddQuickTimer = (label: string, duration: number) => {
-    timers.addTimer(label, duration)
+  const handleAddTimer = async (id: string, fallbackLabel: string, duration: number) => {
+    const durationMinutes = Math.ceil(duration / 60)
+
+    // If AI is available and we have instruction text, try to get an AI-generated name
+    if (aiAvailable && instructionText) {
+      setLoadingTimerId(id)
+      try {
+        const response = await api.ai.timerName(instructionText, durationMinutes)
+        timers.addTimer(response.label, duration)
+      } catch {
+        // AI failed, use fallback
+        timers.addTimer(fallbackLabel, duration)
+      } finally {
+        setLoadingTimerId(null)
+      }
+    } else {
+      // No AI available, use fallback label
+      timers.addTimer(fallbackLabel, duration)
+    }
   }
 
-  const handleAddDetectedTimer = (seconds: number) => {
-    timers.addTimer(formatDetectedTime(seconds), seconds)
+  const handleAddQuickTimer = (label: string, duration: number, index: number) => {
+    handleAddTimer(`quick-${index}`, label, duration)
+  }
+
+  const handleAddDetectedTimer = (seconds: number, index: number) => {
+    handleAddTimer(`detected-${index}`, formatDetectedTime(seconds), seconds)
   }
 
   const activeTimerCount = timers.timers.filter((t) => t.isRunning).length
@@ -74,16 +98,22 @@ export default function TimerPanel({ timers, instructionText }: TimerPanelProps)
         <div className="space-y-4 px-4 pb-4">
           {/* Quick timer buttons */}
           <div className="flex flex-wrap gap-2">
-            {QUICK_TIMERS.map(({ label, duration }) => (
+            {QUICK_TIMERS.map(({ label, duration }, idx) => (
               <button
                 key={label}
-                onClick={() => handleAddQuickTimer(label.replace('+', ''), duration)}
-                className="flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-muted"
+                onClick={() => handleAddQuickTimer(label.replace('+', '').trim(), duration, idx)}
+                disabled={loadingTimerId !== null}
+                className="flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-muted disabled:opacity-50"
               >
-                <Plus className="h-3 w-3" />
+                {loadingTimerId === `quick-${idx}` ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Plus className="h-3 w-3" />
+                )}
                 {label}
               </button>
             ))}
+            {aiAvailable && instructionText && <Sparkles className="h-4 w-4 text-primary self-center" />}
           </div>
 
           {/* Detected time suggestions */}
@@ -96,10 +126,15 @@ export default function TimerPanel({ timers, instructionText }: TimerPanelProps)
                 {detectedTimes.map((seconds, idx) => (
                   <button
                     key={idx}
-                    onClick={() => handleAddDetectedTimer(seconds)}
-                    className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1.5 text-sm text-primary transition-colors hover:bg-primary/20"
+                    onClick={() => handleAddDetectedTimer(seconds, idx)}
+                    disabled={loadingTimerId !== null}
+                    className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1.5 text-sm text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
                   >
-                    <Plus className="h-3 w-3" />
+                    {loadingTimerId === `detected-${idx}` ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Plus className="h-3 w-3" />
+                    )}
                     {formatDetectedTime(seconds)}
                   </button>
                 ))}
