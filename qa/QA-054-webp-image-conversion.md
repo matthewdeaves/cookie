@@ -1,7 +1,7 @@
 # QA-054: WebP Images Not Displaying on iOS 9
 
 ## Status
-**FIXED** - Pending verification
+**VERIFIED** - Confirmed working on iOS 9 (recipe 7)
 
 ## Issue
 
