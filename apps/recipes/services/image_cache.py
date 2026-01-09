@@ -17,6 +17,8 @@ from curl_cffi.requests import AsyncSession
 from django.core.files.base import ContentFile
 from PIL import Image
 
+from apps.recipes.services.fingerprint import BROWSER_PROFILES
+
 logger = logging.getLogger(__name__)
 
 
@@ -27,11 +29,12 @@ class SearchImageCache:
     Enables iOS 9 Safari compatibility by downloading external recipe images
     to the server immediately (fire-and-forget), then returning local URLs
     that don't trigger CORS restrictions.
+
+    Browser profiles are centralized in fingerprint.py for maintainability.
     """
 
     MAX_CONCURRENT = 5
     DOWNLOAD_TIMEOUT = 15
-    BROWSER_PROFILE = 'chrome136'
 
     async def cache_images(self, image_urls: list) -> None:
         """
@@ -121,7 +124,10 @@ class SearchImageCache:
 
     async def _fetch_image(self, url: str) -> bytes | None:
         """
-        Fetch image content from URL.
+        Fetch image content from URL with browser profile fallback.
+
+        Tries multiple browser profiles if initial request fails.
+        Browser profiles are configured in fingerprint.py.
 
         Args:
             url: Image URL to fetch
@@ -132,21 +138,24 @@ class SearchImageCache:
         if not self._is_image_url(url):
             return None
 
-        try:
-            async with AsyncSession(impersonate=self.BROWSER_PROFILE) as session:
-                response = await session.get(
-                    url,
-                    timeout=self.DOWNLOAD_TIMEOUT,
-                    allow_redirects=True,
-                )
+        # Try each browser profile until one succeeds
+        for profile in BROWSER_PROFILES:
+            try:
+                async with AsyncSession(impersonate=profile) as session:
+                    response = await session.get(
+                        url,
+                        timeout=self.DOWNLOAD_TIMEOUT,
+                        allow_redirects=True,
+                    )
 
-                if response.status_code == 200:
-                    content_type = response.headers.get('content-type', '')
-                    if 'image' in content_type:
-                        return response.content
+                    if response.status_code == 200:
+                        content_type = response.headers.get('content-type', '')
+                        if 'image' in content_type:
+                            return response.content
 
-        except Exception as e:
-            logger.debug(f"Failed to fetch image {url}: {e}")
+            except Exception as e:
+                logger.debug(f"Failed to fetch image {url} with {profile}: {e}")
+                continue
 
         return None
 

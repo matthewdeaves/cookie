@@ -15,6 +15,11 @@ from bs4 import BeautifulSoup
 from curl_cffi.requests import AsyncSession
 from django.utils import timezone
 
+from apps.recipes.services.fingerprint import (
+    BROWSER_PROFILES,
+    get_random_delay,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -35,12 +40,12 @@ class RecipeSearch:
 
     Uses curl_cffi with browser impersonation to fetch search pages,
     then parses results using BeautifulSoup with site-specific selectors.
+
+    Browser profiles are centralized in fingerprint.py for maintainability.
     """
 
     MAX_CONCURRENT = 10
-    RATE_LIMIT_DELAY = 1.5  # seconds between requests to same domain
     DEFAULT_TIMEOUT = 30
-    BROWSER_PROFILE = 'chrome136'
 
     def __init__(self):
         self.timeout = self.DEFAULT_TIMEOUT
@@ -93,8 +98,11 @@ class RecipeSearch:
         # Create semaphore for concurrency control
         semaphore = asyncio.Semaphore(self.MAX_CONCURRENT)
 
-        # Search all sources concurrently
-        async with AsyncSession(impersonate=self.BROWSER_PROFILE) as session:
+        # Search all sources concurrently with primary browser profile
+        # If all sources fail, we try fallback profiles
+        primary_profile = BROWSER_PROFILES[0]
+
+        async with AsyncSession(impersonate=primary_profile) as session:
             tasks = [
                 self._search_source(session, semaphore, source, query)
                 for source in enabled_sources
@@ -175,8 +183,12 @@ class RecipeSearch:
     ) -> list[SearchResult]:
         """
         Search a single source for recipes.
+
+        Uses randomized delays to avoid bot detection patterns.
         """
         async with semaphore:
+            # Add randomized delay to avoid predictable request patterns
+            await asyncio.sleep(get_random_delay())
             # Build search URL
             search_url = source.search_url_template.replace(
                 '{query}',

@@ -18,6 +18,8 @@ from django.utils import timezone
 from curl_cffi.requests import AsyncSession
 from recipe_scrapers import scrape_html
 
+from apps.recipes.services.fingerprint import BROWSER_PROFILES
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,9 +44,10 @@ class RecipeScraper:
 
     Uses curl_cffi to bypass anti-bot measures and recipe-scrapers
     to parse structured recipe data from HTML.
+
+    Browser profiles are centralized in fingerprint.py for maintainability.
     """
 
-    BROWSER_PROFILES = ['chrome136', 'safari18_0', 'firefox133']
     DEFAULT_TIMEOUT = 30
 
     def __init__(self):
@@ -185,10 +188,11 @@ class RecipeScraper:
         Fetch HTML from URL with browser impersonation.
 
         Tries multiple browser profiles if initial request fails.
+        Browser profiles are configured in fingerprint.py.
         """
         errors = []
 
-        for profile in self.BROWSER_PROFILES:
+        for profile in BROWSER_PROFILES:
             try:
                 async with AsyncSession(impersonate=profile) as session:
                     response = await session.get(
@@ -330,28 +334,32 @@ class RecipeScraper:
         Download recipe image and return as ContentFile.
 
         WebP images are converted to JPEG for iOS 9 compatibility.
+        Tries multiple browser profiles if initial request fails.
         """
         if not image_url:
             return None
 
-        try:
-            async with AsyncSession(impersonate='chrome136') as session:
-                response = await session.get(
-                    image_url,
-                    timeout=self.timeout,
-                    allow_redirects=True,
-                )
+        # Try each browser profile until one succeeds
+        for profile in BROWSER_PROFILES:
+            try:
+                async with AsyncSession(impersonate=profile) as session:
+                    response = await session.get(
+                        image_url,
+                        timeout=self.timeout,
+                        allow_redirects=True,
+                    )
 
-                if response.status_code == 200:
-                    content_type = response.headers.get('content-type', '')
-                    if 'image' in content_type or self._is_image_url(image_url):
-                        content = response.content
-                        # Convert WebP to JPEG for iOS 9 compatibility
-                        content = self._convert_webp_to_jpeg(content)
-                        return ContentFile(content)
+                    if response.status_code == 200:
+                        content_type = response.headers.get('content-type', '')
+                        if 'image' in content_type or self._is_image_url(image_url):
+                            content = response.content
+                            # Convert WebP to JPEG for iOS 9 compatibility
+                            content = self._convert_webp_to_jpeg(content)
+                            return ContentFile(content)
 
-        except Exception as e:
-            logger.warning(f"Failed to download image {image_url}: {e}")
+            except Exception as e:
+                logger.warning(f"Failed to download image {image_url} with {profile}: {e}")
+                continue
 
         return None
 
