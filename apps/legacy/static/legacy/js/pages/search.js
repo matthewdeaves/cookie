@@ -315,11 +315,17 @@ Cookie.pages.search = (function() {
             descriptionHtml = '<p class="search-result-description">' + escapeHtml(truncate(result.description, 100)) + '</p>';
         }
 
+        // Build host line with optional rating count
+        var hostHtml = escapeHtml(result.host);
+        if (result.rating_count) {
+            hostHtml += ' · ' + formatNumber(result.rating_count) + ' Ratings';
+        }
+
         return '<div class="search-result-card" data-url="' + escapeHtml(result.url) + '">' +
             '<div class="search-result-image">' + imageHtml + '</div>' +
             '<div class="search-result-content">' +
                 '<h3 class="search-result-title">' + escapeHtml(result.title) + '</h3>' +
-                '<p class="search-result-host">' + escapeHtml(result.host) + '</p>' +
+                '<p class="search-result-host">' + hostHtml + '</p>' +
                 descriptionHtml +
                 '<button type="button" class="btn-import" data-url="' + escapeHtml(result.url) + '">Import</button>' +
             '</div>' +
@@ -392,6 +398,14 @@ Cookie.pages.search = (function() {
         if (!str) return '';
         if (str.length <= length) return str;
         return str.substring(0, length) + '...';
+    }
+
+    /**
+     * Helper: Format number with commas (ES5 compatible)
+     */
+    function formatNumber(num) {
+        if (!num) return '';
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     }
 
     /**
