@@ -1,7 +1,7 @@
 # QA-053: Search Results Should Filter Out Recipes Without Titles
 
 ## Status
-**FIXED** - Pending verification on device
+**VERIFIED** - URL filtering working on iOS 9
 
 ## Issue
 
@@ -125,7 +125,10 @@ High - Users encountering errors when trying to import search results
 **`apps/recipes/services/search.py`**
 - Added title check after rating extraction (line 292-294)
 - If title becomes empty after stripping rating text, result is filtered out
-- Added article/blog URL exclusion patterns to `_looks_like_recipe_url()` to filter non-recipe pages
+- Added extensive URL exclusion patterns to `_looks_like_recipe_url()`:
+  - Article/blog: `/article/`, `/blog/`, `/story/`, `/news/`, `/feature/`, `/guide/`, `/review/`, `/roundup/`
+  - Video/media: `/video/`, `/watch/`, `/episode/`, `/series/`, `/show/`, `/gallery/`, `/slideshow/`
+  - Index pages: `/seasons`, `/collections`, `/cuisines`, `/ingredients`, `/occasions`, `/courses`, `/diets/`, `/menus/`
 
 **`apps/ai/services/ranking.py`**
 - Added `_filter_valid()` helper to filter results without titles
