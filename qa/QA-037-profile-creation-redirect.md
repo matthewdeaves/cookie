@@ -1,6 +1,7 @@
 # QA-037: Auto-Navigate to Home After Profile Creation
 
-**Status: FIXED** (2026-01-09)
+## Status
+**RESOLVED** (2026-01-09) - Verified on Modern and Legacy frontends
 
 ## Issue
 After creating a new profile, the user stays on the profile selector screen. They should automatically be taken to the home/search page.

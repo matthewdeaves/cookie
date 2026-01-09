@@ -49,8 +49,7 @@ Update all three discover prompts to:
 Medium - Affects discoverability/usefulness of suggestions
 
 ## Status
-
-RESOLVED - Fixed by updating AI prompts
+**RESOLVED** (2026-01-09) - Verified on Modern and Legacy frontends
 
 ## Solution
 

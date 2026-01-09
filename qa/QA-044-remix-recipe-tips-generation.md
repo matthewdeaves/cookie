@@ -1,6 +1,7 @@
 # QA-044: Remix Recipe Tips Generation Fails/Times Out
 
-**Status: FIXED** ✓ Confirmed working on Legacy and Modern frontends
+## Status
+**RESOLVED** (2026-01-09) - Verified on Modern and Legacy frontends
 
 ## Issue
 

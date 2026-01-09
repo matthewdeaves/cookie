@@ -57,8 +57,7 @@ Should differentiate between:
 Low - UX improvement, not blocking functionality
 
 ## Status
-
-RESOLVED - Fixed in both React and Legacy frontends
+**RESOLVED** (2026-01-09) - Verified on Modern and Legacy frontends
 
 ## Implementation
 

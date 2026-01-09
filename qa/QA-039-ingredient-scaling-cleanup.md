@@ -1,5 +1,8 @@
 # QA-039: AI Ingredient Scaling Produces Impractical Results
 
+## Status
+**OPEN** - Future implementation (Low priority)
+
 ## Issue
 
 When scaling recipes, the AI produces mathematically correct but practically nonsensical ingredient quantities.

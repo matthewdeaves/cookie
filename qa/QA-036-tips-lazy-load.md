@@ -332,4 +332,5 @@ The Safari-compatible date parsing fix was applied:
 - Added cache-control headers to `nginx/nginx.conf`
 - Logged QA-038 for legacy QA workflow improvements
 
-**Status:** ✅ Complete - Verified on iPad 2026-01-09
+## Status
+**RESOLVED** (2026-01-09) - Verified on Modern and Legacy frontends

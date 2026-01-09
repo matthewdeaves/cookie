@@ -22,8 +22,7 @@ Additionally, only the first 20 results were being ranked, meaning paginated res
 Medium - UX/visual improvement for better app appearance
 
 ## Status
-
-RESOLVED
+**RESOLVED** (2026-01-09) - Verified on Modern and Legacy frontends
 
 ## Implementation
 

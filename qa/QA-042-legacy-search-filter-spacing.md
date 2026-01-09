@@ -31,8 +31,7 @@ Source filters should have adequate spacing (e.g., 8-12px gap) between each filt
 Low - Visual polish / UX improvement
 
 ## Status
-
-**FIXED** (2026-01-09)
+**RESOLVED** (2026-01-09) - Verified on Modern and Legacy frontends
 
 ## Root Cause
 
