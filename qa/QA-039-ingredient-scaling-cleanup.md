@@ -79,6 +79,94 @@ Future - To be addressed in polish/QA phase
 
 ---
 
-## Notes
+## Research Findings
+
+### Current Data Flow
+
+```
+Recipe with ingredients
+    ↓
+scale_recipe() calls AI (apps/ai/services/scaling.py:137-144)
+    ↓
+AI returns: "1.125 unbaked pizza crusts (scaled from 1)"
+    ↓
+tidy_quantities() processes it (line 151)
+    ↓
+tidy_ingredient() converts decimal to fraction
+    ↓
+Result: "1 1/8 unbaked pizza crusts" (mathematically correct, practically wrong)
+```
+
+### AI Prompt Analysis
+
+**Current prompt:** `apps/ai/migrations/0005_update_serving_adjustment_v2.py:12-69`
+
+The system prompt includes:
+```
+Rules for ingredients:
+- Round to practical measurements (e.g., 1/4 cup, not 0.247 cups)
+```
+
+**Problem:** No guidance on handling indivisible items. The AI treats pizza crusts the same as cups of flour.
+
+### Solution Analysis
+
+#### Option A: Improve AI Prompt (RECOMMENDED)
+
+**Why this is best:**
+- Fixes at the source - AI generates correct output
+- No fragile pattern matching code needed
+- Single migration update
+- All future scalings benefit automatically
+- AI can provide intelligent notes about rounding
+
+**Implementation:** Create new migration to update `serving_adjustment` prompt:
+
+```python
+# Add to system_prompt after existing "Rules for ingredients:"
+
+Rules for indivisible items:
+- Identify items that cannot be fractionally used: eggs, pizza crusts,
+  bread slices, tortillas, steaks, chicken breasts, loaves, etc.
+- Round quantities of indivisible items to the nearest whole number
+- Round UP when insufficient quantity affects the dish
+  (e.g., 1.4 eggs → 2 eggs, 0.6 crusts → 1 crust)
+- In notes, explain if rounding was applied: "Rounded eggs from 1.5 to 2"
+```
+
+#### Option B: Post-Processing Cleanup (NOT RECOMMENDED)
+
+**Problems:**
+- Requires maintaining pattern list (eggs, crusts, etc.)
+- Pattern matching is fragile ("duck eggs"? "tortilla chips"?)
+- Happens AFTER AI, so cleaning up bad data
+- More complex regex/parsing code
+
+#### Option C: New AI Feature (NOT RECOMMENDED)
+
+**Problems:**
+- Doubles API calls (scale → then tidy)
+- Increased latency and cost
+- Overkill for what should be in initial prompt
+
+### Files Reference
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| `apps/ai/services/scaling.py` | 56-186 | Main `scale_recipe()` function |
+| `apps/ai/services/scaling.py` | 137-144 | AI call |
+| `apps/ai/services/scaling.py` | 151 | `tidy_quantities()` call |
+| `apps/recipes/utils.py` | 114-169 | `tidy_ingredient()` function |
+| `apps/ai/migrations/0005_update_serving_adjustment_v2.py` | 12-69 | Current AI prompt |
+| `apps/ai/services/validator.py` | 30-41 | Response validation schema |
+
+### Implementation Plan
+
+1. Create new migration `0007_update_serving_adjustment_indivisible.py`
+2. Add indivisible item rules to system prompt
+3. Test with sample recipes containing eggs, crusts, slices
+4. Verify existing decimal-to-fraction tidying still works
+
+### Notes
 
 This could be combined with QA-029 (ingredient quantity tidying) which already addresses some formatting issues. The scaling prompt may need enhancement to produce more practical outputs from the start rather than relying on post-processing.
