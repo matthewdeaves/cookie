@@ -1,7 +1,7 @@
 # QA-048: Search Results Missing Space Before "Ratings"
 
 ## Status
-**OPEN** - Root cause identified
+**VERIFIED** - Confirmed working on Modern frontend
 
 ## Issue
 
