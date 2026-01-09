@@ -4,6 +4,7 @@ import logging
 import re
 
 from apps.recipes.models import Recipe, ServingAdjustment
+from apps.recipes.utils import tidy_quantities
 from apps.profiles.models import Profile
 
 from ..models import AIPrompt
@@ -146,7 +147,8 @@ def scale_recipe(
     validator = AIResponseValidator()
     validated = validator.validate('serving_adjustment', response)
 
-    ingredients = validated['ingredients']
+    # Tidy ingredient quantities (convert decimals to fractions) - QA-029
+    ingredients = tidy_quantities(validated['ingredients'])
     scaled_instructions = validated.get('instructions', [])  # QA-031
     notes = validated.get('notes', [])
 

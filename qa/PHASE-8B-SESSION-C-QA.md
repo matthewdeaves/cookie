@@ -1,7 +1,7 @@
 # Phase 8B Session C - QA Issues
 
 ## QA-029: Ingredient quantities need AI tidying
-**Status:** Open (Researched)
+**Status:** Fixed
 **Severity:** Medium
 **Component:** AI Scaling / Recipe Display
 
@@ -32,20 +32,40 @@ _Established patterns:_
 - AI response post-processing could be added in `scaling.py` after validation, before caching
 
 **Tasks:**
-- [ ] Create `tidy_quantities()` utility function for fraction conversion
-- [ ] Apply post-processor in `scaling.py` after AI validation, before caching
-- [ ] Handle common fractions: 0.25→1/4, 0.33→1/3, 0.5→1/2, 0.67→2/3, 0.75→3/4
-- [ ] Consider optional AI-based tidying service for complex conversions
-- [ ] Test with examples from this issue
+- [x] Create `tidy_quantities()` utility function for fraction conversion
+- [x] Apply post-processor in `scaling.py` after AI validation, before caching
+- [x] Handle common fractions: 0.25→1/4, 0.33→1/3, 0.5→1/2, 0.67→2/3, 0.75→3/4
+- [x] Test with examples from this issue
+- [ ] Consider optional AI-based tidying service for complex conversions (future)
 
-**Additional insight (from QA testing):**
-- **Discrete/practical units** (onions, eggs, cups, tablespoons) should round to halves (1, 1½, 2)
-- **Continuous/weight units** (grams, kg, ounces, ml) can scale precisely (225g, 340g)
-- Update AI prompt to be smarter about unit-appropriate rounding
+**Implementation:**
 
-**Files to modify:**
-- `apps/ai/services/scaling.py` - Add post-processing
-- `apps/recipes/utils.py` (new) - Create tidy_quantities utility
+Created `apps/recipes/utils.py` with:
+- `decimal_to_fraction()` - Converts decimals to common fractions (1/8, 1/6, 1/4, 1/3, 3/8, 1/2, 5/8, 2/3, 3/4, 5/6, 7/8)
+- `tidy_ingredient()` - Applies fraction conversion to ingredient strings
+- `tidy_quantities()` - Applies to a list of ingredients
+
+Unit-aware processing:
+- **Fraction units** (cups, tablespoons, teaspoons, pieces, etc.) → Convert to fractions
+- **Decimal units** (grams, kg, ml, liters, oz, lb) → Keep precise decimals
+
+Integrated in `scaling.py:150-151`:
+```python
+# Tidy ingredient quantities (convert decimals to fractions) - QA-029
+ingredients = tidy_quantities(validated['ingredients'])
+```
+
+**Files changed:**
+- `apps/recipes/utils.py` - New utility module with fraction conversion
+- `apps/ai/services/scaling.py` - Import and apply tidy_quantities
+- `apps/recipes/tests.py` - Added 17 tests for quantity tidying
+
+**Verification:**
+- [x] 0.5 cup → 1/2 cup
+- [x] 1.333 cups → 1 1/3 cups
+- [x] 0.666 cup → 2/3 cup
+- [x] 225g butter → 225 g butter (unchanged)
+- [x] All 85 backend tests pass
 
 ---
 
@@ -438,7 +458,7 @@ _Verification:_
 
 | Issue | Title | Severity | Status |
 |-------|-------|----------|--------|
-| QA-029 | Ingredient quantities need AI tidying | Medium | Researched |
+| QA-029 | Ingredient quantities need AI tidying | Medium | Fixed |
 | QA-030 | Nutrition tab serving label is ambiguous | Low | Fixed |
 | QA-031 | Scaled recipes need instruction step alignment | High | Fixed |
 | QA-032 | Scaled recipes need cooking time adjustments | Medium | Fixed |

@@ -438,3 +438,116 @@ class NoProfileTests(TestCase):
         """History endpoints require a selected profile."""
         response = self.client.get('/api/history/')
         self.assertEqual(response.status_code, 404)
+
+
+class QuantityTidyingTests(TestCase):
+    """Tests for ingredient quantity tidying utilities (QA-029)."""
+
+    def test_decimal_to_fraction_half(self):
+        """Convert 0.5 to 1/2."""
+        from apps.recipes.utils import decimal_to_fraction
+        self.assertEqual(decimal_to_fraction(0.5), '1/2')
+
+    def test_decimal_to_fraction_quarter(self):
+        """Convert 0.25 to 1/4."""
+        from apps.recipes.utils import decimal_to_fraction
+        self.assertEqual(decimal_to_fraction(0.25), '1/4')
+
+    def test_decimal_to_fraction_third(self):
+        """Convert 0.333... to 1/3."""
+        from apps.recipes.utils import decimal_to_fraction
+        self.assertEqual(decimal_to_fraction(0.333), '1/3')
+        self.assertEqual(decimal_to_fraction(0.33), '1/3')
+
+    def test_decimal_to_fraction_two_thirds(self):
+        """Convert 0.666... to 2/3."""
+        from apps.recipes.utils import decimal_to_fraction
+        self.assertEqual(decimal_to_fraction(0.666), '2/3')
+        self.assertEqual(decimal_to_fraction(0.67), '2/3')
+
+    def test_decimal_to_fraction_three_quarters(self):
+        """Convert 0.75 to 3/4."""
+        from apps.recipes.utils import decimal_to_fraction
+        self.assertEqual(decimal_to_fraction(0.75), '3/4')
+
+    def test_decimal_to_fraction_mixed_number(self):
+        """Convert 1.5 to 1 1/2."""
+        from apps.recipes.utils import decimal_to_fraction
+        self.assertEqual(decimal_to_fraction(1.5), '1 1/2')
+        self.assertEqual(decimal_to_fraction(2.25), '2 1/4')
+        self.assertEqual(decimal_to_fraction(1.333), '1 1/3')
+
+    def test_decimal_to_fraction_whole_number(self):
+        """Whole numbers stay as-is."""
+        from apps.recipes.utils import decimal_to_fraction
+        self.assertEqual(decimal_to_fraction(2.0), '2')
+        self.assertEqual(decimal_to_fraction(3.0), '3')
+
+    def test_tidy_ingredient_cups(self):
+        """Tidy cup measurements."""
+        from apps.recipes.utils import tidy_ingredient
+        self.assertEqual(tidy_ingredient('0.5 cup sugar'), '1/2 cup sugar')
+        self.assertEqual(tidy_ingredient('1.5 cups flour'), '1 1/2 cups flour')
+        self.assertEqual(tidy_ingredient('0.333 cup milk'), '1/3 cup milk')
+
+    def test_tidy_ingredient_tablespoons(self):
+        """Tidy tablespoon measurements."""
+        from apps.recipes.utils import tidy_ingredient
+        self.assertEqual(tidy_ingredient('0.5 tablespoon oil'), '1/2 tablespoon oil')
+        self.assertEqual(tidy_ingredient('1.5 tbsp butter'), '1 1/2 tbsp butter')
+
+    def test_tidy_ingredient_teaspoons(self):
+        """Tidy teaspoon measurements."""
+        from apps.recipes.utils import tidy_ingredient
+        self.assertEqual(tidy_ingredient('0.25 teaspoon salt'), '1/4 teaspoon salt')
+        self.assertEqual(tidy_ingredient('0.5 tsp vanilla'), '1/2 tsp vanilla')
+
+    def test_tidy_ingredient_keeps_grams(self):
+        """Grams should stay as decimals."""
+        from apps.recipes.utils import tidy_ingredient
+        self.assertEqual(tidy_ingredient('225g butter'), '225 g butter')
+        self.assertEqual(tidy_ingredient('150.5 grams flour'), '150.5 grams flour')
+
+    def test_tidy_ingredient_keeps_ml(self):
+        """Milliliters should stay as decimals."""
+        from apps.recipes.utils import tidy_ingredient
+        self.assertEqual(tidy_ingredient('250 ml milk'), '250 ml milk')
+        self.assertEqual(tidy_ingredient('37.5 ml water'), '37.5 ml water')
+
+    def test_tidy_ingredient_countable_items(self):
+        """Countable items get fractions."""
+        from apps.recipes.utils import tidy_ingredient
+        self.assertEqual(tidy_ingredient('1.5 cloves garlic'), '1 1/2 cloves garlic')
+        self.assertEqual(tidy_ingredient('0.5 bunch parsley'), '1/2 bunch parsley')
+
+    def test_tidy_ingredient_no_unit(self):
+        """Ingredients without recognized units get tidied."""
+        from apps.recipes.utils import tidy_ingredient
+        self.assertEqual(tidy_ingredient('1.5 large eggs'), '1 1/2 large eggs')
+        self.assertEqual(tidy_ingredient('0.5 medium onion'), '1/2 medium onion')
+
+    def test_tidy_quantities_list(self):
+        """Tidy a list of ingredients."""
+        from apps.recipes.utils import tidy_quantities
+        ingredients = [
+            '0.5 cup sugar',
+            '1.333 cups flour',
+            '225g butter',
+            '0.25 teaspoon salt',
+        ]
+        result = tidy_quantities(ingredients)
+        self.assertEqual(result[0], '1/2 cup sugar')
+        self.assertEqual(result[1], '1 1/3 cups flour')
+        self.assertEqual(result[2], '225 g butter')
+        self.assertEqual(result[3], '1/4 teaspoon salt')
+
+    def test_tidy_ingredient_empty_string(self):
+        """Empty string returns empty string."""
+        from apps.recipes.utils import tidy_ingredient
+        self.assertEqual(tidy_ingredient(''), '')
+
+    def test_tidy_ingredient_no_number(self):
+        """Ingredient without number returns as-is."""
+        from apps.recipes.utils import tidy_ingredient
+        self.assertEqual(tidy_ingredient('salt to taste'), 'salt to taste')
+        self.assertEqual(tidy_ingredient('fresh parsley'), 'fresh parsley')
