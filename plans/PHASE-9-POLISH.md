@@ -11,7 +11,7 @@
 | Session | Tasks | Focus |
 |---------|-------|-------|
 | A | 9.1-9.2 | Settings screens (both interfaces) |
-| B | 9.3-9.5 | Error handling + loading + toasts |
+| B | 9.3-9.5 | Error handling + loading + toasts (QA-057 discovered) |
 | C | 9.6-9.7 | Final testing + verification |
 | D | 9.8 | User management (list, delete with cascade) |
 | E | 9.9 | Search source health review + repair/replacement |
@@ -22,9 +22,9 @@
 
 - [x] 9.1 React: Settings screen (General, AI Prompts, Sources, Source Selectors tabs)
 - [x] 9.2 Legacy: Settings screen (all tabs)
-- [ ] 9.3 Error handling and edge cases
-- [ ] 9.4 Loading states and skeletons (React) / Loading indicators (Legacy)
-- [ ] 9.5 Toast notifications (both interfaces)
+- [x] 9.3 Error handling and edge cases
+- [x] 9.4 Loading states and skeletons (React) / Loading indicators (Legacy)
+- [x] 9.5 Toast notifications (both interfaces)
 - [ ] 9.6 Testing with pytest (unit + integration)
 - [ ] 9.7 Final cross-browser/device testing
 - [ ] 9.8 User management tab: List users, delete with full cascade (recipes, images, all related data)
