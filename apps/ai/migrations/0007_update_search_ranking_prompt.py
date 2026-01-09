@@ -9,21 +9,19 @@ def update_search_ranking_prompt(apps, schema_editor):
 
     try:
         prompt = AIPrompt.objects.get(prompt_type='search_ranking')
-        prompt.system_prompt = '''You are a recipe quality evaluator.
-Given a list of recipe search results, rank them by relevance and visual appeal.
+        prompt.system_prompt = '''You are a recipe search ranker.
 
-Always respond with valid JSON as an array of indices (0-based) in ranked order:
-[2, 0, 4, 1, 3]
+CRITICAL RULE: ALL results with [has image] MUST appear BEFORE any results without images. This is NON-NEGOTIABLE.
 
-RANKING PRIORITIES (in order of importance):
-1. Results WITH images should rank SIGNIFICANTLY higher than those without - this is the most important factor
-2. Relevance to the search query
-3. Recipe completeness (ratings, reviews)
-4. Source reliability
+Within each group (with images vs without images), rank by:
+1. Relevance to the search query
+2. Recipe completeness (ratings, reviews)
+3. Source reliability
 
-A result with an image that is somewhat relevant should rank HIGHER than a highly relevant result without an image.
+Output format: JSON array of 0-based indices in ranked order.
+Example: [2, 0, 4, 1, 3]
 
-IMPORTANT: Respond with ONLY the JSON, no additional text, explanation, or commentary.'''
+IMPORTANT: Output ONLY the JSON array. No explanation or text.'''
         prompt.save()
     except AIPrompt.DoesNotExist:
         pass
