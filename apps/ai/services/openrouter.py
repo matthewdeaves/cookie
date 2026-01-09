@@ -107,6 +107,7 @@ class OpenRouterService:
 
                     return json.loads(content)
                 except json.JSONDecodeError as e:
+                    # Note: This log appears in test output for test_complete_invalid_json - expected
                     logger.error(f'Failed to parse AI response as JSON: {content}')
                     raise AIResponseError(f'Invalid JSON in AI response: {e}')
 
