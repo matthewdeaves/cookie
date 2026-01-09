@@ -1,12 +1,18 @@
 const API_BASE = '/api'
 
-export interface Settings {
-  ai_available: boolean
-}
-
 export interface AIStatus {
   available: boolean
+  configured: boolean
+  valid: boolean
   default_model: string
+  error: string | null
+  error_code: string | null
+}
+
+export interface AIErrorResponse {
+  error: string
+  message: string
+  action?: string  // User action to resolve the error (e.g., 'configure_key', 'update_key', 'retry')
 }
 
 export interface AIModel {
@@ -258,10 +264,6 @@ async function request<T>(
 }
 
 export const api = {
-  settings: {
-    get: () => request<Settings>('/settings/'),
-  },
-
   ai: {
     status: () => request<AIStatus>('/ai/status'),
 

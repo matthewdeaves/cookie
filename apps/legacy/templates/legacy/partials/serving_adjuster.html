@@ -4,7 +4,7 @@ Only rendered when AI is available and recipe has servings.
 Expects: recipe.servings (int)
 {% endcomment %}
 
-<div class="meta-item serving-adjuster" data-original-servings="{{ recipe.servings }}">
+<div class="meta-item serving-adjuster" data-original-servings="{{ recipe.servings }}" data-ai-feature="scaling">
     <span class="meta-label">Servings:</span>
     <div class="serving-controls">
         <button

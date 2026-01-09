@@ -8,6 +8,7 @@ import {
   type AIStatus,
 } from '../api/client'
 import { cn } from '../lib/utils'
+import { useAIStatus } from '../contexts/AIStatusContext'
 
 interface SettingsProps {
   onBack: () => void
@@ -21,6 +22,7 @@ export default function Settings({ onBack }: SettingsProps) {
   const [prompts, setPrompts] = useState<AIPrompt[]>([])
   const [models, setModels] = useState<AIModel[]>([])
   const [loading, setLoading] = useState(true)
+  const globalAIStatus = useAIStatus()
 
   // API Key state
   const [apiKey, setApiKey] = useState('')
@@ -96,9 +98,14 @@ export default function Settings({ onBack }: SettingsProps) {
       if (result.success) {
         toast.success(result.message)
         setApiKey('')
-        // Reload status
+        // Reload local status
         const statusData = await api.ai.status()
         setAiStatus(statusData)
+        // Also refresh global AI status context
+        await globalAIStatus.refresh()
+        // Reload models list (may have been empty if no key before)
+        const modelsData = await api.ai.models()
+        setModels(modelsData)
       } else {
         toast.error(result.message)
       }
@@ -240,13 +247,22 @@ export default function Settings({ onBack }: SettingsProps) {
                   <div
                     className={cn(
                       'h-2 w-2 rounded-full',
-                      aiStatus?.available ? 'bg-green-500' : 'bg-red-500'
+                      aiStatus?.available ? 'bg-green-500' : aiStatus?.configured ? 'bg-yellow-500' : 'bg-red-500'
                     )}
                   />
                   <span className="text-sm text-muted-foreground">
-                    {aiStatus?.available ? 'Connected' : 'Not configured'}
+                    {aiStatus?.available ? 'Connected' : aiStatus?.configured ? 'Invalid key' : 'Not configured'}
                   </span>
                 </div>
+
+                {aiStatus?.configured && !aiStatus?.valid && (
+                  <div className="mb-4 flex items-center gap-2 rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-3">
+                    <AlertCircle className="h-5 w-5 flex-shrink-0 text-yellow-500" />
+                    <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                      {aiStatus?.error || 'Your API key appears to be invalid or expired. Please update it.'}
+                    </p>
+                  </div>
+                )}
 
                 {aiStatus?.available && (
                   <div className="mb-4 text-sm text-muted-foreground">

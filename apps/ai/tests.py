@@ -151,12 +151,70 @@ class AIAPITests(TestCase):
     """Tests for the AI API endpoints."""
 
     def test_ai_status_endpoint(self):
-        """Test the AI status endpoint."""
+        """Test the AI status endpoint returns enhanced status fields."""
         response = self.client.get('/api/ai/status')
         assert response.status_code == 200
         data = response.json()
+        # Enhanced status fields (8B.11)
         assert 'available' in data
+        assert 'configured' in data
+        assert 'valid' in data
         assert 'default_model' in data
+        assert 'error' in data
+        assert 'error_code' in data
+
+    def test_ai_status_no_api_key(self):
+        """Test AI status shows not configured when no API key."""
+        settings = AppSettings.get()
+        settings.openrouter_api_key = ''
+        settings.save()
+        OpenRouterService.invalidate_key_cache()
+
+        response = self.client.get('/api/ai/status')
+        assert response.status_code == 200
+        data = response.json()
+        assert data['available'] is False
+        assert data['configured'] is False
+        assert data['valid'] is False
+        assert data['error_code'] == 'no_api_key'
+        assert 'No API key configured' in data['error']
+
+    @patch.object(OpenRouterService, 'test_connection')
+    def test_ai_status_invalid_api_key(self, mock_test_connection):
+        """Test AI status shows invalid when API key fails validation."""
+        mock_test_connection.return_value = (False, 'Invalid API key')
+
+        settings = AppSettings.get()
+        settings.openrouter_api_key = 'sk-or-invalid-key'
+        settings.save()
+        OpenRouterService.invalidate_key_cache()
+
+        response = self.client.get('/api/ai/status')
+        assert response.status_code == 200
+        data = response.json()
+        assert data['available'] is False
+        assert data['configured'] is True
+        assert data['valid'] is False
+        assert data['error_code'] == 'invalid_api_key'
+
+    @patch.object(OpenRouterService, 'test_connection')
+    def test_ai_status_valid_api_key(self, mock_test_connection):
+        """Test AI status shows valid when API key passes validation."""
+        mock_test_connection.return_value = (True, 'Connection successful')
+
+        settings = AppSettings.get()
+        settings.openrouter_api_key = 'sk-or-valid-key'
+        settings.save()
+        OpenRouterService.invalidate_key_cache()
+
+        response = self.client.get('/api/ai/status')
+        assert response.status_code == 200
+        data = response.json()
+        assert data['available'] is True
+        assert data['configured'] is True
+        assert data['valid'] is True
+        assert data['error'] is None
+        assert data['error_code'] is None
 
     def test_models_endpoint_no_api_key(self):
         """Test the models list endpoint returns empty without API key."""
@@ -246,6 +304,24 @@ class AIAPITests(TestCase):
         )
         assert response.status_code == 400
 
+    @patch.object(OpenRouterService, 'test_connection')
+    def test_save_api_key_invalidates_cache(self, mock_test_connection):
+        """Test that saving API key invalidates the validation cache."""
+        mock_test_connection.return_value = (True, 'Connection successful')
+
+        # Pre-populate the cache
+        OpenRouterService._key_validation_cache[hash('old-key')] = (True, 0)
+
+        response = self.client.post(
+            '/api/ai/save-api-key',
+            data={'api_key': 'new-key-123'},
+            content_type='application/json'
+        )
+        assert response.status_code == 200
+
+        # Cache should be cleared
+        assert len(OpenRouterService._key_validation_cache) == 0
+
 
 class OpenRouterServiceTests(TestCase):
     """Tests for the OpenRouter service."""
@@ -281,6 +357,56 @@ class OpenRouterServiceTests(TestCase):
         settings.save()
 
         assert OpenRouterService.is_available() is True
+
+    @patch.object(OpenRouterService, 'test_connection')
+    def test_validate_key_cached_caches_result(self, mock_test_connection):
+        """Test that validate_key_cached caches validation results."""
+        mock_test_connection.return_value = (True, 'Connection successful')
+        OpenRouterService.invalidate_key_cache()
+
+        # First call should hit the API
+        is_valid1, error1 = OpenRouterService.validate_key_cached('test-key')
+        assert is_valid1 is True
+        assert error1 is None
+        assert mock_test_connection.call_count == 1
+
+        # Second call should use cache
+        is_valid2, error2 = OpenRouterService.validate_key_cached('test-key')
+        assert is_valid2 is True
+        assert error2 is None
+        assert mock_test_connection.call_count == 1  # Still 1, not called again
+
+    @patch.object(OpenRouterService, 'test_connection')
+    def test_validate_key_cached_caches_invalid_result(self, mock_test_connection):
+        """Test that validate_key_cached caches invalid validation results."""
+        mock_test_connection.return_value = (False, 'Invalid API key')
+        OpenRouterService.invalidate_key_cache()
+
+        # First call should hit the API
+        is_valid1, error1 = OpenRouterService.validate_key_cached('bad-key')
+        assert is_valid1 is False
+        assert error1 is not None
+        assert mock_test_connection.call_count == 1
+
+        # Second call should use cache
+        is_valid2, error2 = OpenRouterService.validate_key_cached('bad-key')
+        assert is_valid2 is False
+        assert mock_test_connection.call_count == 1  # Still 1, not called again
+
+    def test_validate_key_cached_no_key(self):
+        """Test that validate_key_cached handles missing key."""
+        OpenRouterService.invalidate_key_cache()
+        is_valid, error = OpenRouterService.validate_key_cached('')
+        assert is_valid is False
+        assert 'No API key configured' in error
+
+    def test_invalidate_key_cache(self):
+        """Test that invalidate_key_cache clears the cache."""
+        OpenRouterService._key_validation_cache['test'] = (True, 0)
+        assert len(OpenRouterService._key_validation_cache) > 0
+
+        OpenRouterService.invalidate_key_cache()
+        assert len(OpenRouterService._key_validation_cache) == 0
 
     @patch('apps.ai.services.openrouter.OpenRouter')
     def test_complete_success(self, mock_openrouter_class):
@@ -914,26 +1040,33 @@ class AIFeatureFallbackTests(TestCase):
         settings = AppSettings.get()
         settings.openrouter_api_key = ''
         settings.save()
+        OpenRouterService.invalidate_key_cache()
 
         response = self.client.get('/api/ai/status')
         assert response.status_code == 200
         data = response.json()
         assert data['available'] is False
+        assert data['configured'] is False
 
-    def test_ai_status_shows_available_with_key(self):
-        """Test AI status endpoint shows available with API key."""
+    @patch.object(OpenRouterService, 'test_connection')
+    def test_ai_status_shows_available_with_key(self, mock_test_connection):
+        """Test AI status endpoint shows available with valid API key."""
+        mock_test_connection.return_value = (True, 'Connection successful')
         settings = AppSettings.get()
         settings.openrouter_api_key = 'test-key-123'
         settings.save()
+        OpenRouterService.invalidate_key_cache()
 
         response = self.client.get('/api/ai/status')
         assert response.status_code == 200
         data = response.json()
         assert data['available'] is True
+        assert data['configured'] is True
+        assert data['valid'] is True
 
     @patch('apps.ai.api.generate_tips')
-    def test_tips_returns_503_when_ai_unavailable(self, mock_generate):
-        """Test tips endpoint returns 503 when AI is unavailable."""
+    def test_tips_returns_503_with_action_field_when_ai_unavailable(self, mock_generate):
+        """Test tips endpoint returns 503 with action field when AI is unavailable."""
         mock_generate.side_effect = AIUnavailableError('No API key')
 
         response = self.client.post(
@@ -945,6 +1078,8 @@ class AIFeatureFallbackTests(TestCase):
         assert response.status_code == 503
         data = response.json()
         assert data['error'] == 'ai_unavailable'
+        assert data['action'] == 'configure_key'
+        assert 'message' in data
 
     @patch('apps.ai.api.get_remix_suggestions')
     def test_remix_suggestions_returns_503_when_ai_unavailable(self, mock_suggestions):

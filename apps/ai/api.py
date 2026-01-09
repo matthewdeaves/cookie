@@ -27,7 +27,11 @@ router = Router(tags=['ai'])
 
 class AIStatusOut(Schema):
     available: bool
+    configured: bool
+    valid: bool
     default_model: str
+    error: Optional[str] = None
+    error_code: Optional[str] = None
 
 
 class TestApiKeyIn(Schema):
@@ -73,18 +77,50 @@ class ModelOut(Schema):
 class ErrorOut(Schema):
     error: str
     message: str
+    action: Optional[str] = None  # User-facing action to resolve the error
 
 
 # Endpoints
 
 @router.get('/status', response=AIStatusOut)
 def get_ai_status(request):
-    """Check if AI service is available."""
+    """Check if AI service is available with optional key validation.
+
+    Returns a status object with:
+    - available: Whether AI features can be used (configured AND valid)
+    - configured: Whether an API key is configured
+    - valid: Whether the API key has been validated successfully
+    - default_model: The default AI model
+    - error: Error message if something is wrong
+    - error_code: Machine-readable error code
+    """
     settings = AppSettings.get()
-    return {
-        'available': bool(settings.openrouter_api_key),
+    has_key = bool(settings.openrouter_api_key)
+
+    status = {
+        'available': False,
+        'configured': has_key,
+        'valid': False,
         'default_model': settings.default_ai_model,
+        'error': None,
+        'error_code': None,
     }
+
+    if not has_key:
+        status['error'] = 'No API key configured'
+        status['error_code'] = 'no_api_key'
+        return status
+
+    # Validate key using cached validation
+    is_valid, error_message = OpenRouterService.validate_key_cached()
+    status['valid'] = is_valid
+    status['available'] = is_valid
+
+    if not is_valid:
+        status['error'] = error_message or 'API key is invalid or expired'
+        status['error_code'] = 'invalid_api_key'
+
+    return status
 
 
 @router.post('/test-api-key', response={200: TestApiKeyOut, 400: ErrorOut})
@@ -109,6 +145,9 @@ def save_api_key(request, data: SaveApiKeyIn):
     settings = AppSettings.get()
     settings.openrouter_api_key = data.api_key
     settings.save()
+
+    # Invalidate the validation cache since key was updated
+    OpenRouterService.invalidate_key_cache()
 
     return {
         'success': True,
@@ -256,7 +295,8 @@ def remix_suggestions(request, data: RemixSuggestionsIn):
     except AIUnavailableError as e:
         return 503, {
             'error': 'ai_unavailable',
-            'message': str(e),
+            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
+            'action': 'configure_key',
         }
     except (AIResponseError, ValidationError) as e:
         return 400, {
@@ -325,7 +365,8 @@ def create_remix_endpoint(request, data: CreateRemixIn):
     except AIUnavailableError as e:
         return 503, {
             'error': 'ai_unavailable',
-            'message': str(e),
+            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
+            'action': 'configure_key',
         }
     except (AIResponseError, ValidationError) as e:
         return 400, {
@@ -436,7 +477,8 @@ def scale_recipe_endpoint(request, data: ScaleIn):
     except AIUnavailableError as e:
         return 503, {
             'error': 'ai_unavailable',
-            'message': str(e),
+            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
+            'action': 'configure_key',
         }
     except (AIResponseError, ValidationError) as e:
         return 400, {
@@ -492,7 +534,8 @@ def tips_endpoint(request, data: TipsIn):
     except AIUnavailableError as e:
         return 503, {
             'error': 'ai_unavailable',
-            'message': str(e),
+            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
+            'action': 'configure_key',
         }
     except (AIResponseError, ValidationError) as e:
         return 400, {
@@ -541,7 +584,8 @@ def timer_name_endpoint(request, data: TimerNameIn):
     except AIUnavailableError as e:
         return 503, {
             'error': 'ai_unavailable',
-            'message': str(e),
+            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
+            'action': 'configure_key',
         }
     except (AIResponseError, ValidationError) as e:
         return 400, {
@@ -586,7 +630,8 @@ def discover_endpoint(request, profile_id: int):
     except AIUnavailableError as e:
         return 503, {
             'error': 'ai_unavailable',
-            'message': str(e),
+            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
+            'action': 'configure_key',
         }
 
 
@@ -661,7 +706,8 @@ def repair_selector_endpoint(request, data: SelectorRepairIn):
     except AIUnavailableError as e:
         return 503, {
             'error': 'ai_unavailable',
-            'message': str(e),
+            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
+            'action': 'configure_key',
         }
     except (AIResponseError, ValidationError) as e:
         return 400, {

@@ -35,14 +35,18 @@ Cookie.ajax = (function() {
                     }
                     callback(null, response);
                 } else {
+                    var errorData = null;
                     var errorMsg = 'Request failed';
                     try {
-                        var errorData = JSON.parse(xhr.responseText);
+                        errorData = JSON.parse(xhr.responseText);
                         errorMsg = errorData.detail || errorData.message || errorMsg;
                     } catch (e) {
                         errorMsg = xhr.statusText || errorMsg;
                     }
-                    callback(new Error(errorMsg), null);
+                    var err = new Error(errorMsg);
+                    err.status = xhr.status;
+                    err.data = errorData;  // Include full error data for action field etc.
+                    callback(err, null);
                 }
             }
         };

@@ -2,6 +2,7 @@
 
 import json
 import logging
+import time
 from typing import Any
 
 from openrouter import OpenRouter
@@ -28,6 +29,10 @@ class AIResponseError(AIServiceError):
 
 class OpenRouterService:
     """Service for interacting with OpenRouter API."""
+
+    # Class-level cache for API key validation: {key_hash: (is_valid, timestamp)}
+    _key_validation_cache: dict[int, tuple[bool, float]] = {}
+    KEY_VALIDATION_TTL = 300  # 5 minutes
 
     def __init__(self, api_key: str | None = None):
         """Initialize the service with an API key.
@@ -248,3 +253,43 @@ class OpenRouterService:
             return False, f'API error: {e}'
         except Exception as e:
             return False, f'Connection failed: {e}'
+
+    @classmethod
+    def validate_key_cached(cls, api_key: str | None = None) -> tuple[bool, str | None]:
+        """Validate API key with caching to avoid excessive API calls.
+
+        Args:
+            api_key: API key to validate. If None, fetches from AppSettings.
+
+        Returns:
+            Tuple of (is_valid: bool, error_message: str | None)
+        """
+        if api_key is None:
+            settings = AppSettings.get()
+            api_key = settings.openrouter_api_key
+
+        if not api_key:
+            return False, 'No API key configured'
+
+        key_hash = hash(api_key)
+        now = time.time()
+
+        # Check cache
+        if key_hash in cls._key_validation_cache:
+            is_valid, timestamp = cls._key_validation_cache[key_hash]
+            if now - timestamp < cls.KEY_VALIDATION_TTL:
+                return is_valid, None if is_valid else 'API key is invalid or expired'
+
+        # Validate with API
+        try:
+            is_valid, message = cls.test_connection(api_key)
+            cls._key_validation_cache[key_hash] = (is_valid, now)
+            return is_valid, None if is_valid else message
+        except Exception as e:
+            logger.exception('Failed to validate API key')
+            return False, f'Unable to verify API key: {e}'
+
+    @classmethod
+    def invalidate_key_cache(cls):
+        """Clear validation cache (call when key is updated)."""
+        cls._key_validation_cache.clear()

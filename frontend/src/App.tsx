@@ -10,7 +10,8 @@ import AllRecipes from './screens/AllRecipes'
 import Collections from './screens/Collections'
 import CollectionDetail from './screens/CollectionDetail'
 import Settings from './screens/Settings'
-import { api, type Profile, type RecipeDetail as RecipeDetailType, type Settings as SettingsType } from './api/client'
+import { api, type Profile, type RecipeDetail as RecipeDetailType } from './api/client'
+import { AIStatusProvider, useAIStatus } from './contexts/AIStatusContext'
 
 type Screen =
   | 'profile-selector'
@@ -24,18 +25,18 @@ type Screen =
   | 'collection-detail'
   | 'settings'
 
-function App() {
+function AppContent() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('profile-selector')
   const [currentProfile, setCurrentProfile] = useState<Profile | null>(null)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedRecipeId, setSelectedRecipeId] = useState<number | null>(null)
+  const aiStatus = useAIStatus()
   const [playModeRecipe, setPlayModeRecipe] = useState<RecipeDetailType | null>(null)
   const [favoriteRecipeIds, setFavoriteRecipeIds] = useState<Set<number>>(new Set())
   const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null)
   const [pendingRecipeForCollection, setPendingRecipeForCollection] = useState<number | null>(null)
   const [previousScreen, setPreviousScreen] = useState<Screen>('home')
-  const [settings, setSettings] = useState<SettingsType | null>(null)
 
   // Apply theme class to document
   useEffect(() => {
@@ -53,14 +54,12 @@ function App() {
     }
   }, [currentProfile])
 
-  // Load favorites and settings when profile is set
+  // Load favorites when profile is set
   useEffect(() => {
     if (currentProfile) {
       loadFavorites()
-      loadSettings()
     } else {
       setFavoriteRecipeIds(new Set())
-      setSettings(null)
     }
   }, [currentProfile])
 
@@ -70,15 +69,6 @@ function App() {
       setFavoriteRecipeIds(new Set(favorites.map((f) => f.recipe.id)))
     } catch (error) {
       console.error('Failed to load favorites:', error)
-    }
-  }
-
-  const loadSettings = async () => {
-    try {
-      const settingsData = await api.settings.get()
-      setSettings(settingsData)
-    } catch (error) {
-      console.error('Failed to load settings:', error)
     }
   }
 
@@ -281,7 +271,7 @@ function App() {
         <Home
           profile={currentProfile}
           theme={theme}
-          aiAvailable={settings?.ai_available ?? false}
+          aiAvailable={aiStatus.available}
           onThemeToggle={handleThemeToggle}
           onLogout={handleLogout}
           onSearch={handleSearch}
@@ -345,6 +335,14 @@ function App() {
         <Settings onBack={handleSettingsBack} />
       )}
     </>
+  )
+}
+
+function App() {
+  return (
+    <AIStatusProvider>
+      <AppContent />
+    </AIStatusProvider>
   )
 }
 

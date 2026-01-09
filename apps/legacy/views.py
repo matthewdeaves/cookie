@@ -14,6 +14,15 @@ from apps.recipes.models import (
 )
 
 
+def _is_ai_available() -> bool:
+    """Check if AI features are available (key configured AND valid)."""
+    settings = AppSettings.get()
+    if not settings.openrouter_api_key:
+        return False
+    is_valid, _ = OpenRouterService.validate_key_cached()
+    return is_valid
+
+
 def profile_selector(request):
     """Profile selector screen."""
     profiles = list(Profile.objects.all().values(
@@ -54,8 +63,7 @@ def home(request):
     favorite_recipe_ids = set(f.recipe_id for f in favorites)
 
     # Check if AI features are available
-    settings = AppSettings.get()
-    ai_available = bool(settings.openrouter_api_key)
+    ai_available = _is_ai_available()
 
     return render(request, 'legacy/home.html', {
         'profile': {
@@ -130,9 +138,8 @@ def recipe_detail(request, recipe_id):
     # Get user's collections for the "add to collection" feature
     collections = RecipeCollection.objects.filter(profile=profile)
 
-    # Get app settings to check AI availability
-    settings = AppSettings.get()
-    ai_available = bool(settings.openrouter_api_key)
+    # Check if AI features are available
+    ai_available = _is_ai_available()
 
     # Prepare ingredient groups or flat list
     has_ingredient_groups = bool(recipe.ingredient_groups)
@@ -173,8 +180,7 @@ def play_mode(request, recipe_id):
     recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)
 
     # Check if AI features are available
-    settings = AppSettings.get()
-    ai_available = bool(settings.openrouter_api_key)
+    ai_available = _is_ai_available()
 
     # Prepare instructions
     instructions = recipe.instructions
@@ -330,9 +336,8 @@ def settings(request):
         del request.session['profile_id']
         return redirect('legacy:profile_selector')
 
-    # Get app settings
-    app_settings = AppSettings.get()
-    ai_available = bool(app_settings.openrouter_api_key)
+    # Check if AI features are available
+    ai_available = _is_ai_available()
 
     # Get all AI prompts
     prompts = list(AIPrompt.objects.all().order_by('name'))

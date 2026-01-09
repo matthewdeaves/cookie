@@ -15,12 +15,12 @@ import { toast } from 'sonner'
 import {
   api,
   type RecipeDetail as RecipeDetailType,
-  type Settings,
   type ScaleResponse,
 } from '../api/client'
 import { cn } from '../lib/utils'
 import AddToCollectionDropdown from '../components/AddToCollectionDropdown'
 import RemixModal from '../components/RemixModal'
+import { useAIStatus } from '../contexts/AIStatusContext'
 
 interface RecipeDetailProps {
   recipeId: number
@@ -46,7 +46,7 @@ export default function RecipeDetail({
   onRemixCreated,
 }: RecipeDetailProps) {
   const [recipe, setRecipe] = useState<RecipeDetailType | null>(null)
-  const [settings, setSettings] = useState<Settings | null>(null)
+  const aiStatus = useAIStatus()
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<Tab>('ingredients')
   const [metaExpanded, setMetaExpanded] = useState(true)
@@ -112,7 +112,7 @@ export default function RecipeDetail({
     if (
       activeTab === 'tips' &&
       tips.length === 0 &&
-      settings?.ai_available &&
+      aiStatus.available &&
       !tipsLoading &&
       !tipsPolling &&
       recipe
@@ -123,12 +123,8 @@ export default function RecipeDetail({
 
   const loadData = async () => {
     try {
-      const [recipeData, settingsData] = await Promise.all([
-        api.recipes.get(recipeId),
-        api.settings.get(),
-      ])
+      const recipeData = await api.recipes.get(recipeId)
       setRecipe(recipeData)
-      setSettings(settingsData)
       setServings(recipeData.servings)
       setTips(recipeData.ai_tips || [])
       // Reset scaled data when loading a new recipe
@@ -150,7 +146,7 @@ export default function RecipeDetail({
   }
 
   const canShowServingAdjustment =
-    settings?.ai_available && recipe?.servings !== null
+    aiStatus.available && recipe?.servings !== null
 
   const handleServingChange = async (delta: number) => {
     if (!servings || !recipe) return
@@ -287,7 +283,7 @@ export default function RecipeDetail({
             recipeId={recipeId}
             onCreateNew={() => onAddToNewCollection(recipeId)}
           />
-          {settings?.ai_available && (
+          {aiStatus.available && (
             <button
               onClick={() => setShowRemixModal(true)}
               className="rounded-full bg-black/40 p-2 text-white backdrop-blur-sm transition-colors hover:text-primary"
@@ -446,7 +442,7 @@ export default function RecipeDetail({
               { key: 'instructions' as const, label: 'Instructions' },
               { key: 'nutrition' as const, label: 'Nutrition' },
               // Only show Tips tab when AI is available (8B.11 graceful degradation)
-              ...(settings?.ai_available ? [{ key: 'tips' as const, label: 'Tips' }] : []),
+              ...(aiStatus.available ? [{ key: 'tips' as const, label: 'Tips' }] : []),
             ]
           ).map(({ key, label }) => (
             <button
@@ -480,7 +476,7 @@ export default function RecipeDetail({
           <TipsTab
             tips={tips}
             scalingNotes={scaledData?.notes || []}
-            aiAvailable={settings?.ai_available}
+            aiAvailable={aiStatus.available}
             loading={tipsLoading}
             polling={tipsPolling}
             onGenerateTips={handleGenerateTips}

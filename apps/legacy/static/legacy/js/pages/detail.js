@@ -528,7 +528,11 @@ Cookie.pages.detail = (function() {
             updateServingDisplay();
 
             if (err) {
-                Cookie.toast.error('Failed to scale ingredients');
+                Cookie.aiError.showError(err, 'Failed to scale ingredients');
+                if (Cookie.aiError.shouldHideFeatures(err)) {
+                    // Hide AI features if unavailable
+                    Cookie.aiError.hideAIFeatures();
+                }
                 // Revert to original
                 currentServings = originalServings;
                 updateServingDisplay();
@@ -915,8 +919,13 @@ Cookie.pages.detail = (function() {
 
         Cookie.ajax.post('/api/ai/remix-suggestions', { recipe_id: recipeId }, function(err, response) {
             if (err) {
-                suggestionsContainer.innerHTML = '<p class="remix-error">Failed to load suggestions</p>';
-                Cookie.toast.error('Failed to load suggestions');
+                var errorInfo = Cookie.aiError.handleError(err, 'Failed to load suggestions');
+                suggestionsContainer.innerHTML = '<p class="remix-error">' + errorInfo.message + '</p>';
+                Cookie.aiError.showError(err, 'Failed to load suggestions');
+                if (Cookie.aiError.shouldHideFeatures(err)) {
+                    closeRemixModal();
+                    Cookie.aiError.hideAIFeatures();
+                }
                 return;
             }
 
@@ -1055,7 +1064,11 @@ Cookie.pages.detail = (function() {
                 if (btnText) {
                     btnText.textContent = 'Create Remix';
                 }
-                Cookie.toast.error('Failed to create remix');
+                Cookie.aiError.showError(err, 'Failed to create remix');
+                if (Cookie.aiError.shouldHideFeatures(err)) {
+                    closeRemixModal();
+                    Cookie.aiError.hideAIFeatures();
+                }
                 return;
             }
 
@@ -1188,7 +1201,10 @@ Cookie.pages.detail = (function() {
                 if (tipsLoading) {
                     tipsLoading.classList.add('hidden');
                 }
-                Cookie.toast.error('Failed to generate tips');
+                Cookie.aiError.showError(err, 'Failed to generate tips');
+                if (Cookie.aiError.shouldHideFeatures(err)) {
+                    Cookie.aiError.hideAIFeatures();
+                }
                 return;
             }
 

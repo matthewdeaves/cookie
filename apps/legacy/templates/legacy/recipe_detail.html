@@ -85,6 +85,7 @@
                 id="remix-btn"
                 class="hero-action-btn"
                 title="Remix recipe"
+                data-ai-feature="remix"
             >
                 <span class="btn-icon-wrapper">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -186,7 +187,7 @@
                 Nutrition
             </button>
             {% if ai_available %}
-            <button type="button" class="tab" data-tab="tips">
+            <button type="button" class="tab" data-tab="tips" data-ai-feature="tips-tab">
                 Tips
             </button>
             {% endif %}
