@@ -16,6 +16,7 @@
 | D | 8B.4-fix, 8B.5-8B.6 | Tips auto-generation + Discover feed + search ranking | ✓ Complete |
 | E | 8B.7 | Timer naming (8B.8 remix suggestions already complete) | **Next** |
 | F | 8B.9-8B.10 | Selector repair + tests | Pending |
+| G | 8B.11 | AI feature graceful degradation (no/invalid API key) | Pending |
 
 ---
 
@@ -74,6 +75,7 @@
 - [x] 8B.8 Remix suggestions (contextual prompts per recipe)
 - [ ] 8B.9 Selector repair (AI-powered auto-fix for broken sources)
 - [ ] 8B.10 Write tests for all AI features and fallback behavior
+- [ ] 8B.11 Graceful degradation: Hide/disable AI features when no API key or invalid key
 
 ---
 
@@ -411,6 +413,413 @@ async def repair_selector(source: SearchSource) -> bool:
 
 ---
 
+## Feature 10: Graceful Degradation (Session G)
+
+### Goal
+Ensure all AI features degrade gracefully when:
+1. **No API key configured** - Features hidden completely
+2. **Invalid API key** - Features hidden with helpful message
+3. **API key becomes invalid at runtime** - Features fail gracefully with user guidance
+4. **OpenRouter service unavailable** - Temporary errors handled smoothly
+
+### Current State Analysis
+
+**What exists:**
+- `AppSettings.openrouter_api_key` stores the key
+- `ai_available = bool(AppSettings.get().openrouter_api_key)` checks if key exists
+- Templates/React use `ai_available` flag to show/hide features
+- `AIUnavailableError` exception exists but only checks key presence, not validity
+
+**What's missing:**
+- No validation of API key validity on app startup or periodically
+- No graceful handling of runtime API failures (401, 429, etc.)
+- UI elements exist but may flash if key becomes invalid
+- No user guidance when AI features fail
+
+### Implementation Plan
+
+#### Backend Changes
+
+**1. Enhanced AI Status Endpoint (`/api/ai/status`)**
+```python
+# apps/ai/api.py
+@router.get('/status')
+def ai_status(request):
+    """Check AI availability with optional key validation."""
+    settings = AppSettings.get()
+    has_key = bool(settings.openrouter_api_key)
+
+    status = {
+        'available': False,
+        'configured': has_key,
+        'valid': False,
+        'default_model': settings.default_ai_model,
+        'error': None,
+        'error_code': None
+    }
+
+    if not has_key:
+        status['error'] = 'No API key configured'
+        status['error_code'] = 'no_api_key'
+        return status
+
+    # Validate key with lightweight API call (cached for 5 minutes)
+    try:
+        is_valid = OpenRouterService().validate_key_cached()
+        status['valid'] = is_valid
+        status['available'] = is_valid
+        if not is_valid:
+            status['error'] = 'API key is invalid or expired'
+            status['error_code'] = 'invalid_api_key'
+    except Exception as e:
+        status['error'] = 'Unable to verify API key'
+        status['error_code'] = 'connection_error'
+
+    return status
+```
+
+**2. Cached Key Validation (`apps/ai/services/openrouter.py`)**
+```python
+import time
+from functools import lru_cache
+
+class OpenRouterService:
+    _key_validation_cache = {}  # {key_hash: (is_valid, timestamp)}
+    KEY_VALIDATION_TTL = 300  # 5 minutes
+
+    def validate_key_cached(self) -> bool:
+        """Validate API key with caching to avoid excessive API calls."""
+        key = self.api_key
+        if not key:
+            return False
+
+        key_hash = hash(key)
+        now = time.time()
+
+        # Check cache
+        if key_hash in self._key_validation_cache:
+            is_valid, timestamp = self._key_validation_cache[key_hash]
+            if now - timestamp < self.KEY_VALIDATION_TTL:
+                return is_valid
+
+        # Validate with API
+        try:
+            is_valid = self.test_connection()
+            self._key_validation_cache[key_hash] = (is_valid, now)
+            return is_valid
+        except Exception:
+            return False
+
+    @classmethod
+    def invalidate_key_cache(cls):
+        """Clear validation cache (call when key is updated)."""
+        cls._key_validation_cache.clear()
+```
+
+**3. Graceful Error Handling in AI Endpoints**
+```python
+# Decorator for all AI endpoints
+def handle_ai_errors(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except AIUnavailableError:
+            return 503, {
+                'error': 'ai_unavailable',
+                'message': 'AI features are not available. Please configure your API key in Settings.',
+                'action': 'configure_key'
+            }
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 401:
+                # Invalid key - invalidate cache
+                OpenRouterService.invalidate_key_cache()
+                return 401, {
+                    'error': 'invalid_api_key',
+                    'message': 'Your API key is invalid or has expired. Please update it in Settings.',
+                    'action': 'update_key'
+                }
+            elif e.response.status_code == 429:
+                return 429, {
+                    'error': 'rate_limited',
+                    'message': 'AI request limit exceeded. Please try again in a few minutes.',
+                    'action': 'retry_later'
+                }
+            elif e.response.status_code == 402:
+                return 402, {
+                    'error': 'insufficient_credits',
+                    'message': 'Your OpenRouter account has insufficient credits.',
+                    'action': 'add_credits'
+                }
+            raise
+        except requests.exceptions.ConnectionError:
+            return 503, {
+                'error': 'connection_error',
+                'message': 'Unable to connect to AI service. Please check your internet connection.',
+                'action': 'retry'
+            }
+    return wrapper
+```
+
+**4. Clear Cache on Key Update**
+```python
+# apps/ai/api.py - in save_api_key endpoint
+@router.post('/save-api-key')
+def save_api_key(request, data: ApiKeySchema):
+    settings = AppSettings.get()
+    settings.openrouter_api_key = data.api_key
+    settings.save()
+
+    # Invalidate validation cache
+    OpenRouterService.invalidate_key_cache()
+
+    return {'success': True, 'message': 'API key saved successfully'}
+```
+
+#### React Frontend Changes
+
+**1. AI Status Context (`frontend/src/contexts/AIStatusContext.tsx`)**
+```typescript
+interface AIStatusContextType {
+  available: boolean
+  configured: boolean
+  valid: boolean
+  error: string | null
+  errorCode: string | null
+  loading: boolean
+  refresh: () => Promise<void>
+}
+
+export const AIStatusProvider = ({ children }) => {
+  const [status, setStatus] = useState<AIStatus | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  const refresh = async () => {
+    try {
+      const data = await api.ai.status()
+      setStatus(data)
+    } catch {
+      setStatus({ available: false, configured: false, valid: false })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    refresh()
+    // Refresh every 5 minutes
+    const interval = setInterval(refresh, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <AIStatusContext.Provider value={{ ...status, loading, refresh }}>
+      {children}
+    </AIStatusContext.Provider>
+  )
+}
+```
+
+**2. Update Components to Use Context**
+
+All AI-dependent components should:
+- Check `aiStatus.available` before showing AI features
+- Handle error responses with appropriate UI feedback
+- Provide actionable guidance to users
+
+**RecipeDetail.tsx:**
+```typescript
+const { available: aiAvailable, errorCode } = useAIStatus()
+
+// Hide remix/tips/scaling buttons completely if not available
+{aiAvailable && (
+  <button onClick={openRemixModal}>Remix</button>
+)}
+
+// Handle API errors in catch blocks
+catch (error) {
+  if (error.errorCode === 'invalid_api_key') {
+    toast.error('API key issue', {
+      description: 'Please update your API key in Settings',
+      action: {
+        label: 'Settings',
+        onClick: () => navigate('/settings')
+      }
+    })
+  }
+}
+```
+
+**Home.tsx (Discover tab):**
+```typescript
+const { available: aiAvailable } = useAIStatus()
+
+// Show helpful message instead of broken UI
+{!aiAvailable ? (
+  <div className="empty-state">
+    <Bot className="h-12 w-12 text-muted-foreground" />
+    <p>AI-powered recipe discovery requires an API key</p>
+    <Button onClick={() => navigate('/settings')}>
+      Configure API Key
+    </Button>
+  </div>
+) : (
+  <DiscoverFeed />
+)}
+```
+
+**Settings.tsx:**
+```typescript
+// Show validation status
+{aiStatus.configured && !aiStatus.valid && (
+  <div className="warning-banner">
+    <AlertCircle />
+    <span>Your API key appears to be invalid. Please update it.</span>
+  </div>
+)}
+```
+
+#### Legacy Frontend Changes
+
+**1. Update `ai_available` Context Variable**
+
+The `ai_available` flag passed to templates should reflect actual validity, not just presence.
+
+```python
+# apps/legacy/views.py
+def get_ai_context():
+    """Get AI availability context for templates."""
+    settings = AppSettings.get()
+    has_key = bool(settings.openrouter_api_key)
+
+    # For legacy, just check key presence (no async validation)
+    # Runtime errors handled by JavaScript
+    return {
+        'ai_available': has_key,
+        'ai_configured': has_key,
+    }
+```
+
+**2. JavaScript Error Handling (`apps/legacy/static/legacy/js/pages/detail.js`)**
+```javascript
+function handleAIError(error, response) {
+    var errorCode = response && response.error_code;
+    var message = response && response.message || 'AI feature unavailable';
+
+    switch (errorCode) {
+        case 'invalid_api_key':
+            Cookie.toast.error('API key issue - please check Settings');
+            // Optionally hide AI buttons
+            hideAIFeatures();
+            break;
+        case 'rate_limited':
+            Cookie.toast.warning('Too many requests - please wait a moment');
+            break;
+        case 'insufficient_credits':
+            Cookie.toast.error('OpenRouter credits depleted');
+            break;
+        default:
+            Cookie.toast.error(message);
+    }
+}
+
+function hideAIFeatures() {
+    document.querySelectorAll('[data-ai-feature]').forEach(function(el) {
+        el.style.display = 'none';
+    });
+}
+```
+
+**3. Template Updates**
+
+Add `data-ai-feature` attributes to AI-dependent elements:
+```html
+<!-- recipe_detail.html -->
+<button data-ai-feature class="btn-remix" onclick="openRemixModal()">
+    Remix
+</button>
+
+{% include 'legacy/partials/serving_adjuster.html' %}
+<!-- Add data-ai-feature to serving adjuster container -->
+```
+
+### Error Codes Reference
+
+| Code | HTTP | Meaning | User Action |
+|------|------|---------|-------------|
+| `no_api_key` | 503 | No key configured | Configure in Settings |
+| `invalid_api_key` | 401 | Key rejected by OpenRouter | Update key in Settings |
+| `rate_limited` | 429 | Too many requests | Wait and retry |
+| `insufficient_credits` | 402 | OpenRouter credits depleted | Add credits on OpenRouter |
+| `connection_error` | 503 | Network/service issue | Check connection, retry |
+| `ai_disabled` | 503 | AI prompt disabled by admin | Contact admin |
+
+### UI Behavior Matrix
+
+| Scenario | Buttons Visible | On Attempt | User Guidance |
+|----------|-----------------|------------|---------------|
+| No key configured | Hidden | N/A | Settings link in Discover empty state |
+| Invalid key | Hidden* | N/A | Warning in Settings, Discover empty state |
+| Valid key | Visible | Works | N/A |
+| Runtime 401 | Visible→Hidden | Toast + hide | "API key invalid - check Settings" |
+| Runtime 429 | Visible | Toast | "Rate limited - try again shortly" |
+| Runtime 402 | Visible | Toast | "Add credits on OpenRouter" |
+| Connection error | Visible | Toast | "Connection error - retry" |
+
+*After initial status check on page load
+
+### Testing Scenarios
+
+```python
+def test_ai_status_no_key():
+    """Status returns unavailable when no key configured."""
+    AppSettings.get().openrouter_api_key = ''
+    response = client.get('/api/ai/status')
+    assert response.json()['available'] == False
+    assert response.json()['error_code'] == 'no_api_key'
+
+def test_ai_status_invalid_key(mock_openrouter):
+    """Status returns unavailable when key is invalid."""
+    mock_openrouter.return_value.status_code = 401
+    response = client.get('/api/ai/status')
+    assert response.json()['available'] == False
+    assert response.json()['error_code'] == 'invalid_api_key'
+
+def test_ai_endpoint_returns_503_no_key():
+    """AI endpoints return 503 when no key configured."""
+    AppSettings.get().openrouter_api_key = ''
+    response = client.post('/api/ai/tips/', {'recipe_id': 1})
+    assert response.status_code == 503
+    assert response.json()['error'] == 'ai_unavailable'
+
+def test_ai_endpoint_handles_runtime_401(mock_openrouter):
+    """AI endpoints handle runtime 401 gracefully."""
+    mock_openrouter.side_effect = HTTPError(response=Mock(status_code=401))
+    response = client.post('/api/ai/tips/', {'recipe_id': 1})
+    assert response.status_code == 401
+    assert response.json()['action'] == 'update_key'
+
+def test_key_cache_invalidated_on_save():
+    """Saving new key invalidates validation cache."""
+    OpenRouterService._key_validation_cache['old'] = (True, time.time())
+    client.post('/api/ai/save-api-key', {'api_key': 'new-key'})
+    assert len(OpenRouterService._key_validation_cache) == 0
+```
+
+### Acceptance Criteria
+
+1. No API key → All AI buttons/tabs hidden, helpful empty states shown
+2. Invalid API key → Same as no key, plus warning in Settings
+3. Valid key → All AI features visible and functional
+4. Runtime 401 → Toast notification, buttons hidden, guidance to Settings
+5. Runtime 429 → Toast notification, buttons remain, retry guidance
+6. Key validation cached (5 min TTL) to avoid excessive API calls
+7. Saving new key clears validation cache immediately
+8. Legacy and React UIs behave consistently
+9. Error messages are user-friendly with actionable guidance
+
+---
+
 ## API Endpoints (All Features)
 
 ```
@@ -518,6 +927,8 @@ const showAIFeatures = settings.ai_available;
 [ ] Timer naming - generates label like "Bake until golden"
 [ ] Selector repair - suggests new selector for broken source
 [ ] Remove API key - ALL AI features hidden (no buttons visible)
+[ ] Invalid API key - helpful error message, guidance to Settings
+[ ] Runtime API errors - graceful degradation with user-friendly toasts
 [ ] pytest - all AI feature tests pass
 ```
 
