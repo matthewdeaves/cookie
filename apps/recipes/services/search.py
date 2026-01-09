@@ -122,28 +122,47 @@ class RecipeSearch:
                 seen_urls.add(r.url)
                 unique_results.append(r)
 
+        # Convert to dict format for ranking
+        result_dicts = [
+            {
+                'url': r.url,
+                'title': r.title,
+                'host': r.host,
+                'image_url': r.image_url,
+                'description': r.description,
+            }
+            for r in unique_results
+        ]
+
+        # Apply AI ranking (optional, skips if unavailable)
+        result_dicts = await self._apply_ai_ranking(query, result_dicts)
+
         # Paginate
-        total = len(unique_results)
+        total = len(result_dicts)
         start = (page - 1) * per_page
         end = start + per_page
-        paginated = unique_results[start:end]
+        paginated = result_dicts[start:end]
 
         return {
-            'results': [
-                {
-                    'url': r.url,
-                    'title': r.title,
-                    'host': r.host,
-                    'image_url': r.image_url,
-                    'description': r.description,
-                }
-                for r in paginated
-            ],
+            'results': paginated,
             'total': total,
             'page': page,
             'has_more': end < total,
             'sites': site_counts,
         }
+
+    async def _apply_ai_ranking(self, query: str, results: list[dict]) -> list[dict]:
+        """Apply AI ranking to search results (non-blocking).
+
+        Skips ranking if AI is unavailable or if it fails.
+        """
+        try:
+            from apps.ai.services.ranking import rank_results
+            ranked = await sync_to_async(rank_results)(query, results)
+            return ranked
+        except Exception as e:
+            logger.warning(f'AI ranking failed: {e}')
+            return results
 
     async def _search_source(
         self,

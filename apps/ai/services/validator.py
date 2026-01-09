@@ -59,31 +59,46 @@ RESPONSE_SCHEMAS = {
         'maxItems': 6,
     },
     'discover_favorites': {
-        'type': 'object',
-        'required': ['search_query', 'title', 'description'],
-        'properties': {
-            'search_query': {'type': 'string'},
-            'title': {'type': 'string'},
-            'description': {'type': 'string'},
+        'type': 'array',
+        'items': {
+            'type': 'object',
+            'required': ['search_query', 'title', 'description'],
+            'properties': {
+                'search_query': {'type': 'string'},
+                'title': {'type': 'string'},
+                'description': {'type': 'string'},
+            },
         },
+        'minItems': 1,
+        'maxItems': 5,
     },
     'discover_seasonal': {
-        'type': 'object',
-        'required': ['search_query', 'title', 'description'],
-        'properties': {
-            'search_query': {'type': 'string'},
-            'title': {'type': 'string'},
-            'description': {'type': 'string'},
+        'type': 'array',
+        'items': {
+            'type': 'object',
+            'required': ['search_query', 'title', 'description'],
+            'properties': {
+                'search_query': {'type': 'string'},
+                'title': {'type': 'string'},
+                'description': {'type': 'string'},
+            },
         },
+        'minItems': 1,
+        'maxItems': 5,
     },
     'discover_new': {
-        'type': 'object',
-        'required': ['search_query', 'title', 'description'],
-        'properties': {
-            'search_query': {'type': 'string'},
-            'title': {'type': 'string'},
-            'description': {'type': 'string'},
+        'type': 'array',
+        'items': {
+            'type': 'object',
+            'required': ['search_query', 'title', 'description'],
+            'properties': {
+                'search_query': {'type': 'string'},
+                'title': {'type': 'string'},
+                'description': {'type': 'string'},
+            },
         },
+        'minItems': 1,
+        'maxItems': 5,
     },
     'search_ranking': {
         'type': 'array',

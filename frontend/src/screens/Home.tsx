@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Moon, Sun, LogOut, Search, Sparkles, Heart, FolderOpen, Settings } from 'lucide-react'
+import { Moon, Sun, LogOut, Search, Sparkles, Heart, FolderOpen, Settings, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   api,
@@ -7,6 +7,7 @@ import {
   type Recipe,
   type Favorite,
   type HistoryItem,
+  type DiscoverSuggestion,
 } from '../api/client'
 import RecipeCard from '../components/RecipeCard'
 import { cn } from '../lib/utils'
@@ -14,6 +15,7 @@ import { cn } from '../lib/utils'
 interface HomeProps {
   profile: Profile
   theme: 'light' | 'dark'
+  aiAvailable: boolean
   onThemeToggle: () => void
   onLogout: () => void
   onSearch: (query: string) => void
@@ -29,6 +31,7 @@ type Tab = 'favorites' | 'discover'
 export default function Home({
   profile,
   theme,
+  aiAvailable,
   onThemeToggle,
   onLogout,
   onSearch,
@@ -44,10 +47,21 @@ export default function Home({
   const [history, setHistory] = useState<HistoryItem[]>([])
   const [historyCount, setHistoryCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [discoverSuggestions, setDiscoverSuggestions] = useState<DiscoverSuggestion[]>([])
+  const [discoverLoading, setDiscoverLoading] = useState(false)
+  const [discoverError, setDiscoverError] = useState(false)
+  // Refreshed at timestamp could be used for display, keeping for future use
+  const [, setDiscoverRefreshedAt] = useState<string | null>(null)
 
   useEffect(() => {
     loadData()
   }, [])
+
+  useEffect(() => {
+    if (activeTab === 'discover' && discoverSuggestions.length === 0 && !discoverLoading && !discoverError && aiAvailable) {
+      loadDiscoverSuggestions()
+    }
+  }, [activeTab, aiAvailable])
 
   const loadData = async () => {
     try {
@@ -64,6 +78,26 @@ export default function Home({
     } finally {
       setLoading(false)
     }
+  }
+
+  const loadDiscoverSuggestions = async () => {
+    setDiscoverLoading(true)
+    setDiscoverError(false)
+    try {
+      const result = await api.ai.discover(profile.id)
+      setDiscoverSuggestions(result.suggestions)
+      setDiscoverRefreshedAt(result.refreshed_at)
+    } catch (error) {
+      console.error('Failed to load discover suggestions:', error)
+      setDiscoverError(true)
+    } finally {
+      setDiscoverLoading(false)
+    }
+  }
+
+  const handleSuggestionClick = (suggestion: DiscoverSuggestion) => {
+    // Execute the search query from the suggestion
+    onSearch(suggestion.search_query)
   }
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -286,17 +320,123 @@ export default function Home({
               </section>
             </>
           ) : (
-            /* Discover tab - placeholder for AI recommendations */
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="mb-4 rounded-full bg-muted p-4">
-                <Sparkles className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="mb-2 text-lg font-medium text-foreground">
-                AI Recommendations Coming Soon
-              </h3>
-              <p className="text-center text-muted-foreground">
-                Personalized recipe suggestions will appear here
-              </p>
+            /* Discover tab - AI recommendations */
+            <div>
+              {discoverLoading ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="mb-4 rounded-full bg-muted p-4">
+                    <Sparkles className="h-8 w-8 animate-pulse text-primary" />
+                  </div>
+                  <p className="text-muted-foreground">
+                    Generating personalized suggestions...
+                  </p>
+                </div>
+              ) : discoverSuggestions.length > 0 ? (
+                <div className="space-y-6">
+                  {/* Header with refresh time */}
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-medium text-foreground">
+                      Personalized For You
+                    </h2>
+                    <button
+                      onClick={loadDiscoverSuggestions}
+                      className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                      disabled={discoverLoading}
+                    >
+                      <RefreshCw className={cn('h-4 w-4', discoverLoading && 'animate-spin')} />
+                      Refresh
+                    </button>
+                  </div>
+
+                  {/* Suggestions grid */}
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {discoverSuggestions.map((suggestion, index) => (
+                      <button
+                        key={`${suggestion.type}-${index}`}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="group flex flex-col rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-primary hover:shadow-md"
+                      >
+                        <div className="mb-2 flex items-center gap-2">
+                          <Sparkles className="h-4 w-4 text-primary" />
+                          <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                            {suggestion.type === 'favorites' && 'Based on Favorites'}
+                            {suggestion.type === 'seasonal' && 'Seasonal'}
+                            {suggestion.type === 'new' && 'Try Something New'}
+                          </span>
+                        </div>
+                        <h3 className="mb-1 font-medium text-foreground group-hover:text-primary">
+                          {suggestion.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {suggestion.description}
+                        </p>
+                        <div className="mt-3 flex items-center gap-1 text-xs text-primary">
+                          <Search className="h-3 w-3" />
+                          <span>Search: {suggestion.search_query}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : !aiAvailable ? (
+                /* Empty state - AI unavailable (no API key) */
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="mb-4 rounded-full bg-muted p-4">
+                    <Sparkles className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="mb-2 text-lg font-medium text-foreground">
+                    AI Recommendations
+                  </h3>
+                  <p className="mb-4 text-center text-muted-foreground">
+                    Configure an API key in settings to enable personalized recipe suggestions
+                  </p>
+                  <button
+                    onClick={onSettingsClick}
+                    className="rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-primary/90"
+                  >
+                    Go to Settings
+                  </button>
+                </div>
+              ) : discoverError ? (
+                /* Empty state - API error */
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="mb-4 rounded-full bg-muted p-4">
+                    <Sparkles className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="mb-2 text-lg font-medium text-foreground">
+                    Unable to Load Suggestions
+                  </h3>
+                  <p className="mb-4 text-center text-muted-foreground">
+                    Something went wrong. Please try again.
+                  </p>
+                  <button
+                    onClick={loadDiscoverSuggestions}
+                    className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-primary/90"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Try Again
+                  </button>
+                </div>
+              ) : (
+                /* Empty state - No suggestions available */
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="mb-4 rounded-full bg-muted p-4">
+                    <Sparkles className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="mb-2 text-lg font-medium text-foreground">
+                    No Suggestions Yet
+                  </h3>
+                  <p className="mb-4 text-center text-muted-foreground">
+                    Add some favorites to get personalized recommendations
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('favorites')}
+                    className="rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-primary/90"
+                  >
+                    View Favorites
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

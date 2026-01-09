@@ -7,6 +7,10 @@ Cookie.pages = Cookie.pages || {};
 Cookie.pages.home = (function() {
     'use strict';
 
+    // State
+    var discoverLoaded = false;
+    var discoverLoading = false;
+
     /**
      * Initialize the page
      */
@@ -56,6 +60,34 @@ Cookie.pages.home = (function() {
                 document.getElementById('search-input').focus();
             });
         }
+
+        // Discover refresh button
+        var refreshBtn = document.getElementById('discover-refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function() {
+                loadDiscoverSuggestions(true);
+            });
+        }
+
+        // Discover retry button (in error state)
+        var retryBtn = document.getElementById('discover-retry-btn');
+        if (retryBtn) {
+            retryBtn.addEventListener('click', function() {
+                loadDiscoverSuggestions(true);
+            });
+        }
+
+        // Discover view favorites button (in no suggestions state)
+        var viewFavoritesBtn = document.getElementById('discover-view-favorites-btn');
+        if (viewFavoritesBtn) {
+            viewFavoritesBtn.addEventListener('click', function() {
+                // Switch to favorites tab
+                var favoritesTabBtn = document.querySelector('.tab-toggle-btn[data-tab="favorites"]');
+                if (favoritesTabBtn) {
+                    favoritesTabBtn.click();
+                }
+            });
+        }
     }
 
     /**
@@ -82,6 +114,167 @@ Cookie.pages.home = (function() {
         if (targetTab) {
             targetTab.classList.remove('hidden');
         }
+
+        // Load discover suggestions when tab is clicked (if AI available and not already loaded)
+        if (tabName === 'discover' && !discoverLoaded && !discoverLoading) {
+            var discoverTab = document.getElementById('tab-discover');
+            var aiAvailable = discoverTab && discoverTab.getAttribute('data-ai-available') === 'true';
+            if (aiAvailable) {
+                loadDiscoverSuggestions(false);
+            }
+        }
+    }
+
+    /**
+     * Hide all empty states
+     */
+    function hideAllEmptyStates() {
+        var emptyNoApi = document.getElementById('discover-empty-no-api');
+        var emptyError = document.getElementById('discover-empty-error');
+        var emptyNone = document.getElementById('discover-empty-none');
+        if (emptyNoApi) emptyNoApi.classList.add('hidden');
+        if (emptyError) emptyError.classList.add('hidden');
+        if (emptyNone) emptyNone.classList.add('hidden');
+    }
+
+    /**
+     * Load discover suggestions from API
+     */
+    function loadDiscoverSuggestions(forceRefresh) {
+        var discoverTab = document.getElementById('tab-discover');
+        if (!discoverTab) return;
+
+        var profileId = discoverTab.getAttribute('data-profile-id');
+        if (!profileId) return;
+
+        var loadingEl = document.getElementById('discover-loading');
+        var contentEl = document.getElementById('discover-content');
+
+        // Show loading state
+        discoverLoading = true;
+        if (loadingEl) loadingEl.classList.remove('hidden');
+        if (contentEl) contentEl.classList.add('hidden');
+        hideAllEmptyStates();
+
+        // Add spinning animation to refresh button if refreshing
+        var refreshBtn = document.getElementById('discover-refresh-btn');
+        var refreshIcon = refreshBtn ? refreshBtn.querySelector('.refresh-icon') : null;
+        if (forceRefresh && refreshIcon) {
+            refreshIcon.classList.add('animate-spin');
+        }
+
+        Cookie.ajax.get('/api/ai/discover/' + profileId + '/', function(err, data) {
+            discoverLoading = false;
+
+            // Remove spinning animation
+            if (refreshIcon) {
+                refreshIcon.classList.remove('animate-spin');
+            }
+
+            if (loadingEl) loadingEl.classList.add('hidden');
+
+            if (err) {
+                // Show error state
+                var emptyError = document.getElementById('discover-empty-error');
+                if (emptyError) emptyError.classList.remove('hidden');
+                discoverLoaded = false;
+                return;
+            }
+
+            if (!data || !data.suggestions || data.suggestions.length === 0) {
+                // Show "no suggestions" state
+                var emptyNone = document.getElementById('discover-empty-none');
+                if (emptyNone) emptyNone.classList.remove('hidden');
+                discoverLoaded = false;
+                return;
+            }
+
+            // Render suggestions
+            renderSuggestions(data.suggestions);
+            if (contentEl) contentEl.classList.remove('hidden');
+            discoverLoaded = true;
+        });
+    }
+
+    /**
+     * Render suggestion cards
+     */
+    function renderSuggestions(suggestions) {
+        var container = document.getElementById('discover-suggestions');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        for (var i = 0; i < suggestions.length; i++) {
+            var suggestion = suggestions[i];
+            var card = createSuggestionCard(suggestion);
+            container.appendChild(card);
+        }
+    }
+
+    /**
+     * Create a suggestion card element
+     */
+    function createSuggestionCard(suggestion) {
+        var card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'discover-card';
+        card.setAttribute('data-search-query', suggestion.search_query);
+
+        // Type label
+        var typeLabel = getTypeLabel(suggestion.type);
+
+        card.innerHTML =
+            '<div class="discover-card-header">' +
+                '<svg class="discover-card-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                    '<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>' +
+                '</svg>' +
+                '<span class="discover-card-type">' + typeLabel + '</span>' +
+            '</div>' +
+            '<h3 class="discover-card-title">' + escapeHtml(suggestion.title) + '</h3>' +
+            '<p class="discover-card-description">' + escapeHtml(suggestion.description) + '</p>' +
+            '<div class="discover-card-search">' +
+                '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                    '<circle cx="11" cy="11" r="8"></circle>' +
+                    '<line x1="21" y1="21" x2="16.65" y2="16.65"></line>' +
+                '</svg>' +
+                '<span>Search: ' + escapeHtml(suggestion.search_query) + '</span>' +
+            '</div>';
+
+        card.addEventListener('click', function() {
+            var query = this.getAttribute('data-search-query');
+            if (query) {
+                window.location.href = '/legacy/search/?q=' + encodeURIComponent(query);
+            }
+        });
+
+        return card;
+    }
+
+    /**
+     * Get display label for suggestion type
+     */
+    function getTypeLabel(type) {
+        switch (type) {
+            case 'favorites':
+                return 'Based on Favorites';
+            case 'seasonal':
+                return 'Seasonal';
+            case 'new':
+                return 'Try Something New';
+            default:
+                return type;
+        }
+    }
+
+    /**
+     * Escape HTML to prevent XSS
+     */
+    function escapeHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
     }
 
     /**

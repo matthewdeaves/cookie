@@ -117,9 +117,38 @@
         </div>
 
         <!-- Discover Tab Content -->
-        <div id="tab-discover" class="tab-content hidden">
-            <!-- Placeholder for AI recommendations -->
-            <div class="empty-state">
+        <div id="tab-discover" class="tab-content hidden" data-profile-id="{{ profile.id }}" data-ai-available="{% if ai_available %}true{% else %}false{% endif %}">
+            <!-- Loading state - visible by default when AI available, JS will hide after loading -->
+            <div id="discover-loading" class="empty-state {% if not ai_available %}hidden{% endif %}">
+                <div class="empty-state-icon sparkle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-pulse">
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                    </svg>
+                </div>
+                <p class="empty-state-text">Generating personalized suggestions...</p>
+            </div>
+
+            <!-- Suggestions content -->
+            <div id="discover-content" class="hidden">
+                <div class="section-header">
+                    <h2 class="section-title">Personalized For You</h2>
+                    <button type="button" id="discover-refresh-btn" class="section-link-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="refresh-icon">
+                            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                            <path d="M3 3v5h5"></path>
+                            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                            <path d="M16 21h5v-5"></path>
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
+                <div id="discover-suggestions" class="discover-grid">
+                    <!-- Suggestions will be rendered here by JS -->
+                </div>
+            </div>
+
+            <!-- Empty state - AI unavailable (no API key) -->
+            <div id="discover-empty-no-api" class="empty-state {% if ai_available %}hidden{% endif %}">
                 <div class="empty-state-icon sparkle">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
@@ -129,8 +158,41 @@
                         <path d="M17 19h4"></path>
                     </svg>
                 </div>
-                <h3 class="empty-state-title">AI Recommendations Coming Soon</h3>
-                <p class="empty-state-text">Personalized recipe suggestions will appear here</p>
+                <h3 class="empty-state-title">AI Recommendations</h3>
+                <p class="empty-state-text">Configure an API key in settings to enable personalized recipe suggestions</p>
+                <a href="{% url 'legacy:settings' %}" class="btn btn-primary">Go to Settings</a>
+            </div>
+
+            <!-- Empty state - API error -->
+            <div id="discover-empty-error" class="empty-state hidden">
+                <div class="empty-state-icon sparkle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                    </svg>
+                </div>
+                <h3 class="empty-state-title">Unable to Load Suggestions</h3>
+                <p class="empty-state-text">Something went wrong. Please try again.</p>
+                <button type="button" id="discover-retry-btn" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                        <path d="M3 3v5h5"></path>
+                        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                        <path d="M16 21h5v-5"></path>
+                    </svg>
+                    Try Again
+                </button>
+            </div>
+
+            <!-- Empty state - No suggestions available -->
+            <div id="discover-empty-none" class="empty-state hidden">
+                <div class="empty-state-icon sparkle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                    </svg>
+                </div>
+                <h3 class="empty-state-title">No Suggestions Yet</h3>
+                <p class="empty-state-text">Add some favorites to get personalized recommendations</p>
+                <button type="button" id="discover-view-favorites-btn" class="btn btn-primary">View Favorites</button>
             </div>
         </div>
     </div>

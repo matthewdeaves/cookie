@@ -10,7 +10,7 @@ import AllRecipes from './screens/AllRecipes'
 import Collections from './screens/Collections'
 import CollectionDetail from './screens/CollectionDetail'
 import Settings from './screens/Settings'
-import { api, type Profile, type RecipeDetail as RecipeDetailType } from './api/client'
+import { api, type Profile, type RecipeDetail as RecipeDetailType, type Settings as SettingsType } from './api/client'
 
 type Screen =
   | 'profile-selector'
@@ -35,6 +35,7 @@ function App() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null)
   const [pendingRecipeForCollection, setPendingRecipeForCollection] = useState<number | null>(null)
   const [previousScreen, setPreviousScreen] = useState<Screen>('home')
+  const [settings, setSettings] = useState<SettingsType | null>(null)
 
   // Apply theme class to document
   useEffect(() => {
@@ -52,12 +53,14 @@ function App() {
     }
   }, [currentProfile])
 
-  // Load favorites when profile is set
+  // Load favorites and settings when profile is set
   useEffect(() => {
     if (currentProfile) {
       loadFavorites()
+      loadSettings()
     } else {
       setFavoriteRecipeIds(new Set())
+      setSettings(null)
     }
   }, [currentProfile])
 
@@ -67,6 +70,15 @@ function App() {
       setFavoriteRecipeIds(new Set(favorites.map((f) => f.recipe.id)))
     } catch (error) {
       console.error('Failed to load favorites:', error)
+    }
+  }
+
+  const loadSettings = async () => {
+    try {
+      const settingsData = await api.settings.get()
+      setSettings(settingsData)
+    } catch (error) {
+      console.error('Failed to load settings:', error)
     }
   }
 
@@ -268,6 +280,7 @@ function App() {
         <Home
           profile={currentProfile}
           theme={theme}
+          aiAvailable={settings?.ai_available ?? false}
           onThemeToggle={handleThemeToggle}
           onLogout={handleLogout}
           onSearch={handleSearch}

@@ -53,6 +53,10 @@ def home(request):
     # Build favorite recipe IDs set for checking
     favorite_recipe_ids = set(f.recipe_id for f in favorites)
 
+    # Check if AI features are available
+    settings = AppSettings.get()
+    ai_available = bool(settings.openrouter_api_key)
+
     return render(request, 'legacy/home.html', {
         'profile': {
             'id': profile.id,
@@ -64,6 +68,7 @@ def home(request):
         'history': history,
         'history_count': history_count,
         'favorite_recipe_ids': favorite_recipe_ids,
+        'ai_available': ai_available,
     })
 
 

@@ -14,7 +14,8 @@ from .models import AIPrompt
 from .services.openrouter import OpenRouterService, AIUnavailableError, AIResponseError
 from .services.remix import get_remix_suggestions, create_remix
 from .services.scaling import scale_recipe, calculate_nutrition
-from .services.tips import generate_tips
+from .services.tips import generate_tips, clear_tips
+from .services.discover import get_discover_suggestions
 from .services.validator import ValidationError
 
 router = Router(tags=['ai'])
@@ -395,6 +396,7 @@ def scale_recipe_endpoint(request, data: ScaleIn):
 
 class TipsIn(Schema):
     recipe_id: int
+    regenerate: bool = False
 
 
 class TipsOut(Schema):
@@ -406,8 +408,15 @@ class TipsOut(Schema):
 
 @router.post('/tips', response={200: TipsOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
 def tips_endpoint(request, data: TipsIn):
-    """Generate cooking tips for a recipe."""
+    """Generate cooking tips for a recipe.
+
+    Pass regenerate=True to clear existing tips and generate fresh ones.
+    """
     try:
+        # Clear existing tips if regenerate requested
+        if data.regenerate:
+            clear_tips(data.recipe_id)
+
         result = generate_tips(data.recipe_id)
         return result
     except Recipe.DoesNotExist:
@@ -423,5 +432,45 @@ def tips_endpoint(request, data: TipsIn):
     except (AIResponseError, ValidationError) as e:
         return 400, {
             'error': 'ai_error',
+            'message': str(e),
+        }
+
+
+# Discover Schemas
+
+class DiscoverSuggestionOut(Schema):
+    type: str
+    title: str
+    description: str
+    search_query: str
+
+
+class DiscoverOut(Schema):
+    suggestions: List[DiscoverSuggestionOut]
+    refreshed_at: str
+
+
+# Discover Endpoints
+
+@router.get('/discover/{profile_id}/', response={200: DiscoverOut, 404: ErrorOut, 503: ErrorOut})
+def discover_endpoint(request, profile_id: int):
+    """Get AI discovery suggestions for a profile.
+
+    Returns cached suggestions if still valid (within 24 hours),
+    otherwise generates new suggestions via AI.
+
+    For new users (no favorites), only seasonal suggestions are returned.
+    """
+    try:
+        result = get_discover_suggestions(profile_id)
+        return result
+    except Profile.DoesNotExist:
+        return 404, {
+            'error': 'not_found',
+            'message': f'Profile {profile_id} not found',
+        }
+    except AIUnavailableError as e:
+        return 503, {
+            'error': 'ai_unavailable',
             'message': str(e),
         }

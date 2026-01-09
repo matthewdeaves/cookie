@@ -74,6 +74,18 @@ export interface TipsResponse {
   cached: boolean
 }
 
+export interface DiscoverSuggestion {
+  type: string
+  title: string
+  description: string
+  search_query: string
+}
+
+export interface DiscoverResponse {
+  suggestions: DiscoverSuggestion[]
+  refreshed_at: string
+}
+
 export interface TestApiKeyResponse {
   success: boolean
   message: string
@@ -293,11 +305,14 @@ export const api = {
         }),
       }),
 
-    tips: (recipeId: number) =>
+    tips: (recipeId: number, regenerate: boolean = false) =>
       request<TipsResponse>('/ai/tips', {
         method: 'POST',
-        body: JSON.stringify({ recipe_id: recipeId }),
+        body: JSON.stringify({ recipe_id: recipeId, regenerate }),
       }),
+
+    discover: (profileId: number) =>
+      request<DiscoverResponse>(`/ai/discover/${profileId}/`),
   },
 
   profiles: {
