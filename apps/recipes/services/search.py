@@ -438,6 +438,19 @@ class RecipeSearch:
             r'/galleries/',
             r'/slideshow/',
             r'/photo-gallery/',
+            # Index/listing pages (QA-053)
+            r'/seasons?(?:/|$)',
+            r'/cuisines?(?:/|$)',
+            r'/ingredients?(?:/|$)',
+            r'/collections?(?:/|$)',
+            r'/occasions?(?:/|$)',
+            r'/courses?(?:/|$)',
+            r'/diets?(?:/|$)',
+            r'/techniques?(?:/|$)',
+            r'/chefs?(?:/|$)',
+            r'/dishes(?:/|$)',
+            r'/menus?(?:/|$)',
+            r'/meal-plans?(?:/|$)',
         ]
 
         for pattern in exclude_patterns:
