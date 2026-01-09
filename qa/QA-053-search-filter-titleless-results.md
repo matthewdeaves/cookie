@@ -1,7 +1,7 @@
 # QA-053: Search Results Should Filter Out Recipes Without Titles
 
 ## Status
-**OPEN** - Root cause identified
+**IN PROGRESS** - Research complete, implementing fix
 
 ## Issue
 
@@ -90,6 +90,20 @@ def rank_results(query: str, results: list[dict]) -> list[dict]:
         return results
     # ... rest of function
 ```
+
+## Research Findings
+
+**Verified:** Code review confirms both root causes are accurate.
+
+1. **search.py:276-290** - Title check at line 276-277 happens BEFORE rating extraction. Rating extraction at line 288 can leave title empty with no subsequent check.
+
+2. **ranking.py:24-30** - `_sort_by_image()` only sorts by image presence, doesn't filter.
+
+3. **ranking.py:33-55** - `rank_results()` passes results directly to AI ranking without filtering titleless entries.
+
+4. **ranking.py:103-108** - When sorting remaining results (beyond first 40), also no title filter.
+
+**Fix approach:** Defense in depth - filter at source (search.py) AND at ranking stage (ranking.py) to catch any edge cases.
 
 ## Affected Components
 
