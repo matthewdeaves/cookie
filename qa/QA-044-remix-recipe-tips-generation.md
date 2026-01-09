@@ -1,5 +1,7 @@
 # QA-044: Remix Recipe Tips Generation Fails/Times Out
 
+**Status: FIXED** ✓ Confirmed working on Legacy and Modern frontends
+
 ## Issue
 
 Cooking tips generation for remix recipes appears to fail or time out. The UI shows inconsistent states across page refreshes.
@@ -158,7 +160,14 @@ Add `created_at` timestamp to remix recipes and update frontend to poll for both
 
 ### Acceptance Criteria
 
-- [ ] Remix recipes auto-generate tips like imported recipes
-- [ ] Tips appear within ~10-15 seconds of remix creation
-- [ ] If generation fails, user can manually trigger via button
-- [ ] No silent failures - appropriate error states shown
+- [x] Remix recipes auto-generate tips like imported recipes
+- [x] Tips appear within ~10-15 seconds of remix creation
+- [x] If generation fails, user can manually trigger via button
+- [x] No silent failures - appropriate error states shown
+
+### Fix Applied
+
+Added background thread tips generation to `apps/ai/services/remix.py`:
+- Added `threading` import
+- Added `_generate_tips_background()` helper function (lines 289-310)
+- Spawned background thread after remix creation (lines 175-181)
