@@ -420,6 +420,24 @@ class RecipeSearch:
             r'/roundup/',
             r'/list/',
             r'/listicle/',
+            # Video paths (QA-053)
+            r'/video/',
+            r'/videos/',
+            r'/watch/',
+            r'/watch\?',
+            r'/embed/',
+            r'/player/',
+            r'/clip/',
+            r'/clips/',
+            r'/episode/',
+            r'/episodes/',
+            r'/series/',
+            r'/show/',
+            r'/shows/',
+            r'/gallery/',
+            r'/galleries/',
+            r'/slideshow/',
+            r'/photo-gallery/',
         ]
 
         for pattern in exclude_patterns:
