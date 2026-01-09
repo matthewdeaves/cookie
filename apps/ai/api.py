@@ -17,6 +17,7 @@ from .services.scaling import scale_recipe, calculate_nutrition
 from .services.tips import generate_tips, clear_tips
 from .services.discover import get_discover_suggestions
 from .services.timer import generate_timer_name
+from .services.selector import repair_selector, get_sources_needing_attention
 from .services.validator import ValidationError
 
 router = Router(tags=['ai'])
@@ -587,3 +588,102 @@ def discover_endpoint(request, profile_id: int):
             'error': 'ai_unavailable',
             'message': str(e),
         }
+
+
+# Selector Repair Schemas
+
+class SelectorRepairIn(Schema):
+    source_id: int
+    html_sample: str
+    target: str = 'recipe search result'
+    confidence_threshold: float = 0.8
+    auto_update: bool = True
+
+
+class SelectorRepairOut(Schema):
+    suggestions: List[str]
+    confidence: float
+    original_selector: str
+    updated: bool
+    new_selector: Optional[str] = None
+
+
+class SourceNeedingAttentionOut(Schema):
+    id: int
+    host: str
+    name: str
+    result_selector: str
+    consecutive_failures: int
+
+
+# Selector Repair Endpoints
+
+@router.post('/repair-selector', response={200: SelectorRepairOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+def repair_selector_endpoint(request, data: SelectorRepairIn):
+    """Attempt to repair a broken CSS selector using AI.
+
+    Analyzes HTML from the search page and suggests new selectors.
+    If confidence is high enough and auto_update=True, the source is updated.
+
+    This endpoint is intended for admin/maintenance use.
+    """
+    from apps.recipes.models import SearchSource
+
+    try:
+        source = SearchSource.objects.get(id=data.source_id)
+    except SearchSource.DoesNotExist:
+        return 404, {
+            'error': 'not_found',
+            'message': f'SearchSource {data.source_id} not found',
+        }
+
+    if not data.html_sample:
+        return 400, {
+            'error': 'validation_error',
+            'message': 'HTML sample is required',
+        }
+
+    try:
+        result = repair_selector(
+            source=source,
+            html_sample=data.html_sample,
+            target=data.target,
+            confidence_threshold=data.confidence_threshold,
+            auto_update=data.auto_update,
+        )
+        return {
+            'suggestions': result['suggestions'],
+            'confidence': result['confidence'],
+            'original_selector': result['original_selector'] or '',
+            'updated': result['updated'],
+            'new_selector': result.get('new_selector'),
+        }
+    except AIUnavailableError as e:
+        return 503, {
+            'error': 'ai_unavailable',
+            'message': str(e),
+        }
+    except (AIResponseError, ValidationError) as e:
+        return 400, {
+            'error': 'ai_error',
+            'message': str(e),
+        }
+
+
+@router.get('/sources-needing-attention', response=List[SourceNeedingAttentionOut])
+def sources_needing_attention_endpoint(request):
+    """List all SearchSources that need attention (broken selectors).
+
+    Returns sources with consecutive_failures >= 3 or needs_attention flag set.
+    """
+    sources = get_sources_needing_attention()
+    return [
+        {
+            'id': s.id,
+            'host': s.host,
+            'name': s.name,
+            'result_selector': s.result_selector or '',
+            'consecutive_failures': s.consecutive_failures,
+        }
+        for s in sources
+    ]

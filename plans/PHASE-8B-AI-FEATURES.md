@@ -15,8 +15,73 @@
 | C | 8B.3-8B.4 | Serving adjustment + tips generation | ✓ Complete |
 | D | 8B.4-fix, 8B.5-8B.6 | Tips auto-generation + Discover feed + search ranking | ✓ Complete |
 | E | 8B.7 | Timer naming for Play Mode | ✓ Complete |
-| F | 8B.9-8B.10 | Selector repair + tests | **Next** |
-| G | 8B.11 | AI feature graceful degradation (no/invalid API key) | Pending |
+| F | 8B.9-8B.10 | Selector repair + tests | ✓ Complete |
+| G | 8B.11 | AI feature graceful degradation (no/invalid API key) | **Next** |
+
+---
+
+## Session F Implementation Summary
+
+### Selector Repair (8B.9) - Complete
+
+**Backend Service (`apps/ai/services/selector.py`):**
+1. Created `repair_selector(source, html_sample, target, confidence_threshold, auto_update)` function
+2. Uses existing `selector_repair` AI prompt (seeded in migration 0002)
+3. Truncates HTML samples to 50KB to avoid token limits
+4. Auto-updates selector if confidence >= threshold (default 0.8) and auto_update=True
+5. Clears `needs_attention` flag on successful auto-update
+6. Created `get_sources_needing_attention()` to list broken sources
+7. Created `repair_all_broken_selectors()` for batch maintenance
+
+**API Endpoints:**
+1. `POST /api/ai/repair-selector` - Attempt repair for a specific source
+2. `GET /api/ai/sources-needing-attention` - List sources with broken selectors
+
+**Integration with Search Flow:**
+- When search returns 0 results, `_record_failure()` increments `consecutive_failures`
+- After 3 consecutive failures, `needs_attention=True` is set
+- Selector repair is designed for admin/maintenance use, not automatic inline repair
+- This avoids blocking search results while AI analyzes HTML
+- **Future:** Automatic inline repair logged as FE-002 in FUTURE-ENHANCEMENTS.md
+
+### AI Feature Tests (8B.10) - Complete
+
+**Test Classes Added to `apps/ai/tests.py`:**
+
+1. **SelectorRepairServiceTests** (5 tests):
+   - Successful repair with auto-update
+   - Low confidence doesn't auto-update
+   - Auto-update disabled respects flag
+   - HTML truncation to 50KB
+   - Getting sources needing attention
+
+2. **SelectorRepairAPITests** (7 tests):
+   - Successful API call
+   - Source not found (404)
+   - Empty HTML validation (400)
+   - AI unavailable (503)
+   - Custom options passthrough
+   - Sources needing attention list
+   - Empty list when none need attention
+
+3. **AIFeatureFallbackTests** (10 tests):
+   - AI status shows unavailable without key
+   - AI status shows available with key
+   - Tips returns 503 when AI unavailable
+   - Remix suggestions returns 503
+   - Scale returns 503
+   - Discover returns 503
+   - Timer name returns 503
+   - Service-level raises AIUnavailableError
+   - Models endpoint returns empty list
+
+4. **AIResponseErrorTests** (4 tests):
+   - Tips returns 400 on AI error
+   - Tips returns 400 on validation error
+   - Remix returns 400 on AI error
+   - Repair selector returns 400 on validation error
+
+**Total:** 71 AI tests now pass (was 45 before Session F)
 
 ---
 
