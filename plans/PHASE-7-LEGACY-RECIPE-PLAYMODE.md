@@ -19,12 +19,12 @@
 
 ## Tasks
 
-- [ ] 7.1 Legacy: Recipe detail screen with tabs
-- [ ] 7.2 Legacy: Serving adjustment UI
-- [ ] 7.3 Legacy: Play mode with timers (REQUIRED - must work on iOS 9)
-- [ ] 7.4 Legacy: Favorites screen
-- [ ] 7.5 Legacy: Collections screens
-- [ ] 7.6 Manual testing on iOS 9 simulator/device
+- [x] 7.1 Legacy: Recipe detail screen with tabs
+- [x] 7.2 Legacy: Serving adjustment UI
+- [x] 7.3 Legacy: Play mode with timers (REQUIRED - must work on iOS 9)
+- [x] 7.4 Legacy: Favorites screen
+- [x] 7.5 Legacy: Collections screens
+- [x] 7.6 Manual testing on iOS 9 simulator/device
 
 ---
 

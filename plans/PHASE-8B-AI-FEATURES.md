@@ -16,7 +16,7 @@
 | D | 8B.4-fix, 8B.5-8B.6 | Tips auto-generation + Discover feed + search ranking | ✓ Complete |
 | E | 8B.7 | Timer naming for Play Mode | ✓ Complete |
 | F | 8B.9-8B.10 | Selector repair + tests | ✓ Complete |
-| G | 8B.11 | AI feature graceful degradation (no/invalid API key) | **Next** |
+| G | 8B.11 | AI feature graceful degradation (no/invalid API key) | ✓ Complete |
 
 ---
 
@@ -165,9 +165,9 @@
 - [x] 8B.6 Search result ranking
 - [x] 8B.7 Timer naming
 - [x] 8B.8 Remix suggestions (contextual prompts per recipe)
-- [ ] 8B.9 Selector repair (AI-powered auto-fix for broken sources)
-- [ ] 8B.10 Write tests for all AI features and fallback behavior
-- [ ] 8B.11 Graceful degradation: Hide/disable AI features when no API key or invalid key
+- [x] 8B.9 Selector repair (AI-powered auto-fix for broken sources)
+- [x] 8B.10 Write tests for all AI features and fallback behavior
+- [x] 8B.11 Graceful degradation: Hide/disable AI features when no API key or invalid key
 
 ---
 
