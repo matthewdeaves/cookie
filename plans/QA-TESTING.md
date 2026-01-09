@@ -37,6 +37,28 @@
 | QA-026 | Remixed recipes have no nutrition information | Modern + Legacy | Verified | - |
 | QA-027 | Invalid AI model selection breaks features silently | Modern + Legacy | Verified | - |
 | QA-028 | Old browsers show white page instead of redirecting to Legacy | Legacy | Verified | - |
+| QA-029 | Ingredient quantities need AI tidying | Backend | Verified | 8B-C |
+| QA-030 | Nutrition tab serving label is ambiguous | Modern + Legacy | Verified | 8B-C |
+| QA-031 | Scaled recipes need instruction step alignment | Backend | Verified | 8B-C |
+| QA-032 | Scaled recipes need cooking time adjustments | Backend | Verified | 8B-C |
+| QA-033 | Tips should generate automatically and adjust for scaling | Backend | Verified | 8B-C |
+| QA-034 | AI prompts must be in migrations and visible in settings | Backend | Verified | 8B-C |
+| QA-035 | SQLite database locking errors under concurrent load | Backend | Verified | 8B-C |
+| QA-036 | Tips lazy loading and progressive enhancement | Modern + Legacy | Verified | - |
+| QA-037 | Profile creation redirect issues | Modern + Legacy | Verified | - |
+| QA-038 | Legacy QA workflow improvements | Legacy | Verified | - |
+| QA-039 | Ingredient scaling cleanup for indivisible items | Backend | Verified | - |
+| QA-040 | Discover tab shows wrong empty state message | Modern | Verified | - |
+| QA-041 | Discover search terms don't match suggestion titles | Modern | Verified | - |
+| QA-042 | Legacy search filter spacing issues | Legacy | Verified | - |
+| QA-043 | Search ranking should prioritize results with images | Backend | Verified | - |
+| QA-044 | Remix recipe tips generation fails/times out | Backend | Verified | - |
+| QA-045 | Scaling shows "(was X min)" for unchanged times | Modern + Legacy | Verified | - |
+| QA-046 | Auto-generate tips when viewing Tips tab | Modern + Legacy | Verified | - |
+| QA-047 | Recipes should be linked to users (profile isolation) | All | Open | - |
+| QA-048 | Search results missing space before "Ratings" | Modern + Legacy | Open | - |
+| QA-049 | Recipe import fails (403 error not shown to user) | Modern | Fixed | - |
+| QA-050 | Tips tab should be hidden without valid API key | Modern + Legacy | Verified | - |
 
 ### Status Key
 - **New** - Logged, not yet fixed
