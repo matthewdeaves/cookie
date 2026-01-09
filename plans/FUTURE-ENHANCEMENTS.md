@@ -11,6 +11,8 @@
 |----|---------|----------|------------|
 | FE-001 | Database-driven search URL filters with settings UI | Medium | Medium |
 | FE-002 | Automatic selector repair on search failure | Low | Medium |
+| FE-003 | OAuth/social login for production deployment mode | High | High |
+| FE-004 | Settings page access control (admin-only restriction) | Medium | Medium |
 
 ---
 
@@ -125,3 +127,213 @@ if not results and html_response:
 - Log all auto-repairs for admin review
 - Consider retry backoff if repair fails multiple times
 - May want confidence threshold higher for auto-repair (0.9 vs 0.8)
+
+---
+
+## FE-003: OAuth/Social Login for Production Deployment
+
+**Status:** Backlog
+
+### Problem
+
+Cookie currently uses a simple profile-based system with no authentication. For production deployment as a public service, proper user authentication is required to:
+- Secure user data
+- Enable multi-device access
+- Prevent unauthorized access
+- Meet user expectations for a modern web app
+
+### Current Implementation
+
+- Profiles are created locally with just a name
+- No password, no email verification
+- Anyone with access to the URL can create/switch profiles
+- Session-based profile tracking only
+
+### Proposed Solution
+
+Add a "production mode" configuration that requires OAuth authentication:
+
+1. **OAuth Providers:**
+   - Google (most common, broad user base)
+   - GitHub (developer-friendly)
+   - Apple ID (required for iOS apps, privacy-focused)
+   - LinkedIn (optional, professional network)
+
+2. **Configuration:**
+   ```python
+   # settings.py or AppSettings
+   AUTHENTICATION_MODE = 'local'  # or 'oauth'
+   OAUTH_PROVIDERS = ['google', 'github', 'apple']
+   OAUTH_REQUIRED = True  # False allows local + oauth
+   ```
+
+3. **User Model Changes:**
+   - Add `User` model (or use Django's built-in)
+   - Link `Profile` to `User` (one user can have multiple profiles/households)
+   - Store OAuth provider + provider user ID
+
+4. **Flow:**
+   - Landing page shows "Sign in with Google/GitHub/Apple"
+   - OAuth callback creates/retrieves user
+   - User selects or creates profile
+   - Session tied to authenticated user
+
+### Django Libraries
+
+| Provider | Library | Notes |
+|----------|---------|-------|
+| All | `django-allauth` | Most comprehensive, supports all providers |
+| All | `python-social-auth` | Alternative, also well-maintained |
+| Google | `google-auth` | Direct Google integration |
+| Apple | Requires special handling | JWT-based, needs Apple Developer account |
+
+**Recommended:** `django-allauth` - handles all providers with consistent API
+
+### Implementation Phases
+
+**Phase 1: Infrastructure**
+- Install `django-allauth`
+- Configure User model
+- Link Profile to User (nullable for migration)
+- Add OAuth provider credentials (env vars)
+
+**Phase 2: Google + GitHub**
+- Implement Google OAuth
+- Implement GitHub OAuth
+- Update login/profile selection flow
+- Migrate existing profiles (optional user linking)
+
+**Phase 3: Apple ID**
+- Apple Developer account setup
+- Implement Sign in with Apple
+- Handle Apple's privacy features (hidden email)
+
+**Phase 4: Production Hardening**
+- Email verification (optional)
+- Account linking (connect multiple providers)
+- Account deletion (GDPR compliance)
+- Rate limiting on auth endpoints
+
+### Files to Change
+
+- `settings.py` - allauth configuration
+- `apps/profiles/models.py` - Add User FK to Profile
+- `apps/profiles/views.py` - OAuth callback handling
+- `apps/legacy/templates/legacy/login.html` - OAuth buttons
+- `frontend/src/screens/Login.tsx` - OAuth buttons
+- New migration for User-Profile relationship
+
+### Environment Variables
+
+```bash
+# Google
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# GitHub
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+
+# Apple
+APPLE_CLIENT_ID=
+APPLE_TEAM_ID=
+APPLE_KEY_ID=
+APPLE_PRIVATE_KEY=
+
+# LinkedIn (optional)
+LINKEDIN_CLIENT_ID=
+LINKEDIN_CLIENT_SECRET=
+```
+
+### Deployment Considerations
+
+- OAuth requires HTTPS (use Let's Encrypt)
+- Callback URLs must be registered with each provider
+- Apple requires paid developer account ($99/year)
+- LinkedIn API has stricter approval process
+
+### Migration Path
+
+1. Deploy with `AUTHENTICATION_MODE='local'` (current behavior)
+2. Configure OAuth providers
+3. Switch to `AUTHENTICATION_MODE='oauth'`
+4. Existing local profiles become "unclaimed"
+5. Users can optionally link existing profiles to their OAuth account
+
+### Security Notes
+
+- Store OAuth tokens securely (encrypted at rest)
+- Implement CSRF protection on OAuth flows
+- Validate OAuth state parameter
+- Consider refresh token rotation
+- Log all authentication events
+
+---
+
+## FE-004: Settings Page Access Control
+
+**Status:** Backlog (Requires Research)
+
+### Problem
+
+The Settings page provides access to sensitive configuration:
+- API keys (OpenRouter)
+- AI prompt customization
+- Search source management
+- User/profile deletion
+
+In a production multi-user environment, these settings should be restricted to administrators only, not all users.
+
+### Current Implementation
+
+- Settings page accessible to anyone with a profile
+- No concept of admin vs regular user
+- No permission checks on settings endpoints
+
+### Desired Behavior
+
+- Regular users: Can access General tab (theme, own profile settings)
+- Admins only: AI Prompts, Sources, Source Selectors, Users tabs
+- API endpoints should enforce same restrictions
+
+### Research Required
+
+The implementation approach depends on the authentication model chosen:
+
+**If using FE-003 (OAuth):**
+- User groups/roles via Django's built-in permission system
+- Admin flag on User model
+- OAuth provider admin groups (e.g., GitHub org membership)
+
+**If staying local (profiles only):**
+- Admin PIN/password for settings access
+- Designated "admin profile" concept
+- Environment variable whitelist of admin profile names
+
+**Alternative approaches to evaluate:**
+- Django's `@permission_required` decorator
+- Custom middleware for settings routes
+- Frontend-only hiding (not secure, but simple)
+- Separate admin interface entirely (Django admin?)
+
+### Possible Implementation Options
+
+| Option | Pros | Cons |
+|--------|------|------|
+| Django User groups | Standard, well-documented | Requires User model (FE-003) |
+| Admin profile flag | Simple, works with current model | No real security without auth |
+| Settings PIN | Works without full auth | Extra friction, PIN management |
+| Django admin site | Already exists, powerful | Different UI, not mobile-friendly |
+| Environment whitelist | Simple config | Hardcoded, no runtime changes |
+
+### Dependencies
+
+- May depend on FE-003 (OAuth) for proper implementation
+- Could be implemented partially without OAuth using PIN approach
+
+### Notes
+
+- Research should evaluate Django's permission framework
+- Consider whether Django's built-in admin site is sufficient
+- If implementing custom, ensure API endpoints are also protected
+- Mobile/tablet UX matters - Django admin is not touch-friendly

@@ -11,6 +11,7 @@ from apps.recipes.api_user import (
     favorites_router,
     history_router,
 )
+from apps.recipes.sources_api import router as sources_router
 
 api = NinjaAPI()
 api.add_router('/ai', ai_router)
@@ -19,6 +20,7 @@ api.add_router('/recipes', recipes_router)
 api.add_router('/favorites', favorites_router)
 api.add_router('/collections', collections_router)
 api.add_router('/history', history_router)
+api.add_router('/sources', sources_router)
 
 
 @api.get('/health')

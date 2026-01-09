@@ -224,6 +224,41 @@ export interface SearchResponse {
   sites: Record<string, number>
 }
 
+// Sources
+export interface Source {
+  id: number
+  host: string
+  name: string
+  is_enabled: boolean
+  search_url_template: string
+  result_selector: string
+  logo_url: string
+  last_validated_at: string | null
+  consecutive_failures: number
+  needs_attention: boolean
+}
+
+export interface SourceTestResult {
+  success: boolean
+  message: string
+  results_count: number
+  sample_results: string[]
+}
+
+export interface TestAllSourcesResult {
+  tested: number
+  passed: number
+  failed: number
+  details: {
+    id: number
+    name: string
+    host: string
+    success: boolean
+    results_count?: number
+    error?: string
+  }[]
+}
+
 async function request<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -447,6 +482,48 @@ export const api = {
       request<RecipeDetail>('/recipes/scrape/', {
         method: 'POST',
         body: JSON.stringify({ url }),
+      }),
+  },
+
+  sources: {
+    list: () => request<Source[]>('/sources/'),
+
+    get: (id: number) => request<Source>(`/sources/${id}/`),
+
+    enabledCount: () =>
+      request<{ enabled: number; total: number }>('/sources/enabled-count/'),
+
+    toggle: (id: number) =>
+      request<{ id: number; is_enabled: boolean }>(`/sources/${id}/toggle/`, {
+        method: 'POST',
+      }),
+
+    bulkToggle: (enable: boolean) =>
+      request<{ updated_count: number; is_enabled: boolean }>(
+        '/sources/bulk-toggle/',
+        {
+          method: 'POST',
+          body: JSON.stringify({ enable }),
+        }
+      ),
+
+    updateSelector: (id: number, selector: string) =>
+      request<{ id: number; result_selector: string }>(
+        `/sources/${id}/selector/`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({ result_selector: selector }),
+        }
+      ),
+
+    test: (id: number) =>
+      request<SourceTestResult>(`/sources/${id}/test/`, {
+        method: 'POST',
+      }),
+
+    testAll: () =>
+      request<TestAllSourcesResult>('/sources/test-all/', {
+        method: 'POST',
       }),
   },
 }

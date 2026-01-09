@@ -325,7 +325,7 @@ def collection_detail(request, collection_id):
 
 
 def settings(request):
-    """Settings screen - AI prompts configuration."""
+    """Settings screen - AI prompts and sources configuration."""
     profile_id = request.session.get('profile_id')
     if not profile_id:
         return redirect('legacy:profile_selector')
@@ -335,6 +335,9 @@ def settings(request):
     except Profile.DoesNotExist:
         del request.session['profile_id']
         return redirect('legacy:profile_selector')
+
+    # Get app settings
+    app_settings = AppSettings.get()
 
     # Check if AI features are available
     ai_available = _is_ai_available()

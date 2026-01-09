@@ -1,11 +1,32 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Key, Bot, Check, X, ChevronDown, ChevronUp, AlertCircle, Loader2 } from 'lucide-react'
+import {
+  ArrowLeft,
+  Key,
+  Bot,
+  Check,
+  X,
+  ChevronDown,
+  ChevronUp,
+  AlertCircle,
+  Loader2,
+  Globe,
+  Code,
+  Settings as SettingsIcon,
+  Github,
+  ToggleLeft,
+  ToggleRight,
+  CheckCircle,
+  XCircle,
+  HelpCircle,
+  Play,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import {
   api,
   type AIPrompt,
   type AIModel,
   type AIStatus,
+  type Source,
 } from '../api/client'
 import { cn } from '../lib/utils'
 import { useAIStatus } from '../contexts/AIStatusContext'
@@ -14,13 +35,14 @@ interface SettingsProps {
   onBack: () => void
 }
 
-type Tab = 'api' | 'prompts'
+type Tab = 'general' | 'prompts' | 'sources' | 'selectors'
 
 export default function Settings({ onBack }: SettingsProps) {
-  const [activeTab, setActiveTab] = useState<Tab>('api')
+  const [activeTab, setActiveTab] = useState<Tab>('general')
   const [aiStatus, setAiStatus] = useState<AIStatus | null>(null)
   const [prompts, setPrompts] = useState<AIPrompt[]>([])
   const [models, setModels] = useState<AIModel[]>([])
+  const [sources, setSources] = useState<Source[]>([])
   const [loading, setLoading] = useState(true)
   const globalAIStatus = useAIStatus()
 
@@ -29,7 +51,7 @@ export default function Settings({ onBack }: SettingsProps) {
   const [testingKey, setTestingKey] = useState(false)
   const [savingKey, setSavingKey] = useState(false)
 
-  // Editing state
+  // Editing state for prompts
   const [editingPromptType, setEditingPromptType] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<{
     system_prompt: string
@@ -42,28 +64,42 @@ export default function Settings({ onBack }: SettingsProps) {
   // Expanded prompts for viewing
   const [expandedPrompts, setExpandedPrompts] = useState<Set<string>>(new Set())
 
+  // Sources state
+  const [togglingSourceId, setTogglingSourceId] = useState<number | null>(null)
+  const [bulkToggling, setBulkToggling] = useState(false)
+
+  // Selectors state
+  const [editingSourceId, setEditingSourceId] = useState<number | null>(null)
+  const [editingSelectorValue, setEditingSelectorValue] = useState('')
+  const [savingSelector, setSavingSelector] = useState(false)
+  const [testingSourceId, setTestingSourceId] = useState<number | null>(null)
+  const [testingAll, setTestingAll] = useState(false)
+
   useEffect(() => {
     loadData()
   }, [])
 
   const loadData = async () => {
     try {
-      const [statusData, promptsData, modelsData] = await Promise.all([
+      const [statusData, promptsData, modelsData, sourcesData] = await Promise.all([
         api.ai.status(),
         api.ai.prompts.list(),
         api.ai.models(),
+        api.sources.list(),
       ])
       setAiStatus(statusData)
       setPrompts(promptsData)
       setModels(modelsData)
+      setSources(sourcesData)
     } catch (error) {
-      console.error('Failed to load AI settings:', error)
-      toast.error('Failed to load AI settings')
+      console.error('Failed to load settings:', error)
+      toast.error('Failed to load settings')
     } finally {
       setLoading(false)
     }
   }
 
+  // API Key handlers
   const handleTestApiKey = async () => {
     if (!apiKey.trim()) {
       toast.error('Please enter an API key')
@@ -98,12 +134,9 @@ export default function Settings({ onBack }: SettingsProps) {
       if (result.success) {
         toast.success(result.message)
         setApiKey('')
-        // Reload local status
         const statusData = await api.ai.status()
         setAiStatus(statusData)
-        // Also refresh global AI status context
         await globalAIStatus.refresh()
-        // Reload models list (may have been empty if no key before)
         const modelsData = await api.ai.models()
         setModels(modelsData)
       } else {
@@ -117,6 +150,7 @@ export default function Settings({ onBack }: SettingsProps) {
     }
   }
 
+  // Prompt handlers
   const handleEditPrompt = (prompt: AIPrompt) => {
     setEditingPromptType(prompt.prompt_type)
     setEditForm({
@@ -146,7 +180,6 @@ export default function Settings({ onBack }: SettingsProps) {
       setEditForm(null)
     } catch (error) {
       console.error('Failed to save prompt:', error)
-      // Try to parse error message from server
       let errorMessage = 'Failed to save prompt'
       if (error instanceof Error) {
         try {
@@ -155,7 +188,7 @@ export default function Settings({ onBack }: SettingsProps) {
             errorMessage = parsed.message
           }
         } catch {
-          // Not JSON, use generic message
+          // Not JSON
         }
       }
       toast.error(errorMessage)
@@ -176,10 +209,131 @@ export default function Settings({ onBack }: SettingsProps) {
     })
   }
 
+  // Source handlers
+  const handleToggleSource = async (sourceId: number) => {
+    setTogglingSourceId(sourceId)
+    try {
+      const result = await api.sources.toggle(sourceId)
+      setSources(sources.map(s =>
+        s.id === sourceId ? { ...s, is_enabled: result.is_enabled } : s
+      ))
+    } catch (error) {
+      console.error('Failed to toggle source:', error)
+      toast.error('Failed to toggle source')
+    } finally {
+      setTogglingSourceId(null)
+    }
+  }
+
+  const handleBulkToggle = async (enable: boolean) => {
+    setBulkToggling(true)
+    try {
+      await api.sources.bulkToggle(enable)
+      setSources(sources.map(s => ({ ...s, is_enabled: enable })))
+      toast.success(enable ? 'All sources enabled' : 'All sources disabled')
+    } catch (error) {
+      console.error('Failed to bulk toggle sources:', error)
+      toast.error('Failed to update sources')
+    } finally {
+      setBulkToggling(false)
+    }
+  }
+
+  // Selector handlers
+  const handleEditSelector = (source: Source) => {
+    setEditingSourceId(source.id)
+    setEditingSelectorValue(source.result_selector)
+  }
+
+  const handleCancelEditSelector = () => {
+    setEditingSourceId(null)
+    setEditingSelectorValue('')
+  }
+
+  const handleSaveSelector = async () => {
+    if (editingSourceId === null) return
+
+    setSavingSelector(true)
+    try {
+      const result = await api.sources.updateSelector(editingSourceId, editingSelectorValue)
+      setSources(sources.map(s =>
+        s.id === editingSourceId ? { ...s, result_selector: result.result_selector } : s
+      ))
+      toast.success('Selector updated')
+      setEditingSourceId(null)
+      setEditingSelectorValue('')
+    } catch (error) {
+      console.error('Failed to update selector:', error)
+      toast.error('Failed to update selector')
+    } finally {
+      setSavingSelector(false)
+    }
+  }
+
+  const handleTestSource = async (sourceId: number) => {
+    setTestingSourceId(sourceId)
+    try {
+      const result = await api.sources.test(sourceId)
+      if (result.success) {
+        toast.success(result.message)
+        // Refresh sources to update status
+        const sourcesData = await api.sources.list()
+        setSources(sourcesData)
+      } else {
+        toast.error(result.message)
+        const sourcesData = await api.sources.list()
+        setSources(sourcesData)
+      }
+    } catch (error) {
+      console.error('Failed to test source:', error)
+      toast.error('Failed to test source')
+    } finally {
+      setTestingSourceId(null)
+    }
+  }
+
+  const handleTestAllSources = async () => {
+    setTestingAll(true)
+    try {
+      const result = await api.sources.testAll()
+      toast.success(`Tested ${result.tested} sources: ${result.passed} passed, ${result.failed} failed`)
+      // Refresh sources
+      const sourcesData = await api.sources.list()
+      setSources(sourcesData)
+    } catch (error) {
+      console.error('Failed to test all sources:', error)
+      toast.error('Failed to test all sources')
+    } finally {
+      setTestingAll(false)
+    }
+  }
+
   const getModelName = (modelId: string) => {
     const model = models.find(m => m.id === modelId)
     return model?.name || modelId
   }
+
+  const getSourceStatus = (source: Source): 'working' | 'broken' | 'untested' => {
+    if (!source.last_validated_at) return 'untested'
+    if (source.needs_attention || source.consecutive_failures >= 3) return 'broken'
+    return 'working'
+  }
+
+  const formatRelativeTime = (dateStr: string | null): string => {
+    if (!dateStr) return 'Never'
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins}m ago`
+    const diffHours = Math.floor(diffMins / 60)
+    if (diffHours < 24) return `${diffHours}h ago`
+    const diffDays = Math.floor(diffHours / 24)
+    return `${diffDays}d ago`
+  }
+
+  const enabledCount = sources.filter(s => s.is_enabled).length
 
   return (
     <div className="min-h-screen bg-background">
@@ -197,25 +351,25 @@ export default function Settings({ onBack }: SettingsProps) {
       {/* Tab navigation */}
       <div className="border-b border-border px-4">
         <div className="mx-auto max-w-4xl">
-          <div className="flex gap-6">
+          <div className="flex gap-4 overflow-x-auto">
             <button
-              onClick={() => setActiveTab('api')}
+              onClick={() => setActiveTab('general')}
               className={cn(
-                'border-b-2 py-3 text-sm font-medium transition-colors',
-                activeTab === 'api'
+                'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
+                activeTab === 'general'
                   ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
               )}
             >
               <span className="flex items-center gap-2">
-                <Key className="h-4 w-4" />
-                API Settings
+                <SettingsIcon className="h-4 w-4" />
+                General
               </span>
             </button>
             <button
               onClick={() => setActiveTab('prompts')}
               className={cn(
-                'border-b-2 py-3 text-sm font-medium transition-colors',
+                'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
                 activeTab === 'prompts'
                   ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -224,6 +378,34 @@ export default function Settings({ onBack }: SettingsProps) {
               <span className="flex items-center gap-2">
                 <Bot className="h-4 w-4" />
                 AI Prompts
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('sources')}
+              className={cn(
+                'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
+                activeTab === 'sources'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <span className="flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                Sources
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('selectors')}
+              className={cn(
+                'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
+                activeTab === 'selectors'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <span className="flex items-center gap-2">
+                <Code className="h-4 w-4" />
+                Selectors
               </span>
             </button>
           </div>
@@ -235,11 +417,12 @@ export default function Settings({ onBack }: SettingsProps) {
         <div className="mx-auto max-w-4xl">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <span className="text-muted-foreground">Loading...</span>
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
-          ) : activeTab === 'api' ? (
+          ) : activeTab === 'general' ? (
+            /* General Tab */
             <div className="space-y-6">
-              {/* API Status */}
+              {/* OpenRouter API */}
               <div className="rounded-lg border border-border bg-card p-4">
                 <h2 className="mb-4 text-lg font-medium text-foreground">OpenRouter API</h2>
 
@@ -324,10 +507,33 @@ export default function Settings({ onBack }: SettingsProps) {
                   </a>
                 </p>
               </div>
+
+              {/* About */}
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h2 className="mb-4 text-lg font-medium text-foreground">About</h2>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <div className="flex items-center justify-between">
+                    <span>Version</span>
+                    <span className="font-medium text-foreground">1.0.0</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Source Code</span>
+                    <a
+                      href="https://github.com/matthewdeaves/cookie.git"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-primary hover:underline"
+                    >
+                      <Github className="h-4 w-4" />
+                      GitHub
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
-          ) : (
+          ) : activeTab === 'prompts' ? (
+            /* AI Prompts Tab */
             <div className="space-y-4">
-              {/* Prompts header */}
               <div className="flex items-start gap-3 rounded-lg border border-border bg-card p-4">
                 <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
                 <div>
@@ -343,12 +549,11 @@ export default function Settings({ onBack }: SettingsProps) {
                 <div className="flex items-center gap-3 rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-4">
                   <AlertCircle className="h-5 w-5 text-yellow-500" />
                   <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                    Configure your OpenRouter API key in the API Settings tab to enable AI features.
+                    Configure your OpenRouter API key in the General tab to enable AI features.
                   </p>
                 </div>
               )}
 
-              {/* Prompt cards */}
               {prompts.map((prompt) => {
                 const isEditing = editingPromptType === prompt.prompt_type
                 const isExpanded = expandedPrompts.has(prompt.prompt_type)
@@ -358,7 +563,6 @@ export default function Settings({ onBack }: SettingsProps) {
                     key={prompt.prompt_type}
                     className="rounded-lg border border-border bg-card"
                   >
-                    {/* Header */}
                     <div className="flex items-center justify-between p-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
@@ -384,11 +588,7 @@ export default function Settings({ onBack }: SettingsProps) {
                               className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                               aria-label={isExpanded ? 'Collapse' : 'Expand'}
                             >
-                              {isExpanded ? (
-                                <ChevronUp className="h-5 w-5" />
-                              ) : (
-                                <ChevronDown className="h-5 w-5" />
-                              )}
+                              {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                             </button>
                             <button
                               onClick={() => handleEditPrompt(prompt)}
@@ -401,22 +601,17 @@ export default function Settings({ onBack }: SettingsProps) {
                       </div>
                     </div>
 
-                    {/* Expanded view (read-only) */}
                     {isExpanded && !isEditing && (
                       <div className="border-t border-border px-4 py-4">
                         <div className="space-y-4">
                           <div>
-                            <label className="mb-1 block text-sm font-medium text-muted-foreground">
-                              System Prompt
-                            </label>
+                            <label className="mb-1 block text-sm font-medium text-muted-foreground">System Prompt</label>
                             <pre className="whitespace-pre-wrap rounded-lg bg-muted p-3 text-sm text-foreground">
                               {prompt.system_prompt}
                             </pre>
                           </div>
                           <div>
-                            <label className="mb-1 block text-sm font-medium text-muted-foreground">
-                              User Prompt Template
-                            </label>
+                            <label className="mb-1 block text-sm font-medium text-muted-foreground">User Prompt Template</label>
                             <pre className="whitespace-pre-wrap rounded-lg bg-muted p-3 text-sm text-foreground">
                               {prompt.user_prompt_template}
                             </pre>
@@ -425,14 +620,11 @@ export default function Settings({ onBack }: SettingsProps) {
                       </div>
                     )}
 
-                    {/* Edit form */}
                     {isEditing && editForm && (
                       <div className="border-t border-border px-4 py-4">
                         <div className="space-y-4">
                           <div>
-                            <label className="mb-1 block text-sm font-medium text-foreground">
-                              System Prompt
-                            </label>
+                            <label className="mb-1 block text-sm font-medium text-foreground">System Prompt</label>
                             <textarea
                               value={editForm.system_prompt}
                               onChange={(e) => setEditForm({ ...editForm, system_prompt: e.target.value })}
@@ -441,9 +633,7 @@ export default function Settings({ onBack }: SettingsProps) {
                             />
                           </div>
                           <div>
-                            <label className="mb-1 block text-sm font-medium text-foreground">
-                              User Prompt Template
-                            </label>
+                            <label className="mb-1 block text-sm font-medium text-foreground">User Prompt Template</label>
                             <textarea
                               value={editForm.user_prompt_template}
                               onChange={(e) => setEditForm({ ...editForm, user_prompt_template: e.target.value })}
@@ -456,25 +646,19 @@ export default function Settings({ onBack }: SettingsProps) {
                           </div>
                           <div className="flex gap-4">
                             <div className="flex-1">
-                              <label className="mb-1 block text-sm font-medium text-foreground">
-                                Model
-                              </label>
+                              <label className="mb-1 block text-sm font-medium text-foreground">Model</label>
                               <select
                                 value={editForm.model}
                                 onChange={(e) => setEditForm({ ...editForm, model: e.target.value })}
                                 className="w-full rounded-lg border border-border bg-input-background px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                               >
                                 {models.map((model) => (
-                                  <option key={model.id} value={model.id}>
-                                    {model.name}
-                                  </option>
+                                  <option key={model.id} value={model.id}>{model.name}</option>
                                 ))}
                               </select>
                             </div>
                             <div>
-                              <label className="mb-1 block text-sm font-medium text-foreground">
-                                Status
-                              </label>
+                              <label className="mb-1 block text-sm font-medium text-foreground">Status</label>
                               <button
                                 onClick={() => setEditForm({ ...editForm, is_active: !editForm.is_active })}
                                 className={cn(
@@ -501,11 +685,7 @@ export default function Settings({ onBack }: SettingsProps) {
                               disabled={savingPrompt}
                               className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                              {savingPrompt ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Check className="h-4 w-4" />
-                              )}
+                              {savingPrompt ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                               Save Changes
                             </button>
                           </div>
@@ -515,6 +695,190 @@ export default function Settings({ onBack }: SettingsProps) {
                   </div>
                 )
               })}
+            </div>
+          ) : activeTab === 'sources' ? (
+            /* Sources Tab */
+            <div className="space-y-4">
+              <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
+                <div>
+                  <h2 className="text-lg font-medium text-foreground">Recipe Sources</h2>
+                  <p className="text-sm text-muted-foreground">
+                    {enabledCount} of {sources.length} sources currently enabled
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleBulkToggle(true)}
+                    disabled={bulkToggling || enabledCount === sources.length}
+                    className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Enable All
+                  </button>
+                  <button
+                    onClick={() => handleBulkToggle(false)}
+                    disabled={bulkToggling || enabledCount === 0}
+                    className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Disable All
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                {sources.map((source) => (
+                  <div
+                    key={source.id}
+                    className={cn(
+                      'flex items-center justify-between rounded-lg border p-4 transition-colors',
+                      source.is_enabled ? 'border-border bg-card' : 'border-border/50 bg-muted/30'
+                    )}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-foreground">{source.name}</span>
+                        {source.is_enabled && (
+                          <span className="rounded bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">{source.host}</p>
+                    </div>
+                    <button
+                      onClick={() => handleToggleSource(source.id)}
+                      disabled={togglingSourceId === source.id}
+                      className="text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+                    >
+                      {togglingSourceId === source.id ? (
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                      ) : source.is_enabled ? (
+                        <ToggleRight className="h-8 w-8 text-primary" />
+                      ) : (
+                        <ToggleLeft className="h-8 w-8" />
+                      )}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            /* Selectors Tab */
+            <div className="space-y-4">
+              <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
+                <div>
+                  <h2 className="text-lg font-medium text-foreground">Search Source Selector Management</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Edit CSS selectors and test source connectivity
+                  </p>
+                </div>
+                <button
+                  onClick={handleTestAllSources}
+                  disabled={testingAll}
+                  className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {testingAll ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Play className="h-4 w-4" />
+                  )}
+                  Test All Sources
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {sources.map((source) => {
+                  const status = getSourceStatus(source)
+                  const isEditing = editingSourceId === source.id
+                  const isTesting = testingSourceId === source.id
+
+                  return (
+                    <div
+                      key={source.id}
+                      className="rounded-lg border border-border bg-card p-4"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-foreground">{source.name}</span>
+                            {status === 'working' && (
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                            )}
+                            {status === 'broken' && (
+                              <XCircle className="h-4 w-4 text-red-500" />
+                            )}
+                            {status === 'untested' && (
+                              <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{source.host}</p>
+                          {source.consecutive_failures >= 3 && (
+                            <p className="mt-1 text-xs text-red-500">
+                              Failed {source.consecutive_failures} times - auto-disabled
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">
+                            Last tested: {formatRelativeTime(source.last_validated_at)}
+                          </span>
+                          <button
+                            onClick={() => handleTestSource(source.id)}
+                            disabled={isTesting || testingAll}
+                            className="flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {isTesting ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Play className="h-4 w-4" />
+                            )}
+                            Test
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="mt-3">
+                        <label className="mb-1 block text-xs font-medium text-muted-foreground">CSS Selector</label>
+                        {isEditing ? (
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={editingSelectorValue}
+                              onChange={(e) => setEditingSelectorValue(e.target.value)}
+                              className="flex-1 rounded-lg border border-border bg-input-background px-3 py-1.5 font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                            />
+                            <button
+                              onClick={handleCancelEditSelector}
+                              className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={handleSaveSelector}
+                              disabled={savingSelector}
+                              className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {savingSelector ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                              Save
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <code className="flex-1 rounded bg-muted px-3 py-1.5 font-mono text-sm text-foreground">
+                              {source.result_selector || '(none)'}
+                            </code>
+                            <button
+                              onClick={() => handleEditSelector(source)}
+                              className="rounded-lg bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+                            >
+                              Edit
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
         </div>

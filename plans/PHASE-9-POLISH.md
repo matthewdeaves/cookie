@@ -14,19 +14,21 @@
 | B | 9.3-9.5 | Error handling + loading + toasts |
 | C | 9.6-9.7 | Final testing + verification |
 | D | 9.8 | User management (list, delete with cascade) |
+| E | 9.9 | Search source health review + repair/replacement |
 
 ---
 
 ## Tasks
 
-- [ ] 9.1 React: Settings screen (General, AI Prompts, Sources, Source Selectors tabs)
-- [ ] 9.2 Legacy: Settings screen (all tabs)
+- [x] 9.1 React: Settings screen (General, AI Prompts, Sources, Source Selectors tabs)
+- [x] 9.2 Legacy: Settings screen (all tabs)
 - [ ] 9.3 Error handling and edge cases
 - [ ] 9.4 Loading states and skeletons (React) / Loading indicators (Legacy)
 - [ ] 9.5 Toast notifications (both interfaces)
 - [ ] 9.6 Testing with pytest (unit + integration)
 - [ ] 9.7 Final cross-browser/device testing
 - [ ] 9.8 User management tab: List users, delete with full cascade (recipes, images, all related data)
+- [ ] 9.9 Search source health review: Audit failed sources, attempt AI repair, replace unfixable sources
 
 ---
 
@@ -44,14 +46,14 @@
 ### General Tab
 
 From Figma:
-- **Appearance:** Dark/light toggle (React only; show light-only message on Legacy)
+- ~~**Appearance:** Dark/light toggle~~ (Already implemented - React has theme toggle, Legacy is light-only by design)
 - **Profile Management:**
   - List all profiles
   - "Current" badge on active profile
   - Delete option per profile
-- **Data Management:**
-  - Clear Cache button
-  - Clear View History button
+- ~~**Data Management:**~~ (Won't implement - not needed)
+  - ~~Clear Cache button~~ - Caches are self-managing (ServingAdjustment, AIDiscoverySuggestion auto-refresh)
+  - ~~Clear View History button~~ - Users can ignore history or create new profile
 - **OpenRouter API Key:**
   - Password input field
   - Test connection button
@@ -1198,6 +1200,234 @@ def test_rate_limiting()
 10. No console errors in production
 11. User management: list profiles with stats, delete with cascade
 12. Profile deletion removes all related data including recipe images
+13. All 15 search sources operational or replaced with working alternatives
+
+---
+
+## Search Source Health Review (Session E - Task 9.9)
+
+**Purpose:** Audit all recipe search sources, repair broken selectors using AI, and replace sources that cannot be fixed with new working alternatives.
+
+### Background
+
+Over time, recipe sites change their HTML structure, breaking CSS selectors. The `SearchSource` model tracks:
+- `consecutive_failures` - incremented when searches return 0 results
+- `needs_attention` - set to True after 3+ failures
+- `last_tested` - timestamp of last successful/failed test
+- `result_selector` - CSS selector for extracting recipe links
+
+### Workflow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Source Health Review                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1. Generate Health Report                                      │
+│     └── List all sources with failure counts, last test date    │
+│                                                                 │
+│  2. For each FAILED source:                                     │
+│     ├── Attempt AI Selector Repair (8B.9)                       │
+│     │   ├── If confidence >= 0.8 → Apply fix, test again        │
+│     │   └── If confidence < 0.8 → Manual review needed          │
+│     │                                                           │
+│     └── If AI repair fails:                                     │
+│         ├── Try manual selector fix                             │
+│         └── If unfixable → Find replacement source              │
+│                                                                 │
+│  3. Update source configuration                                 │
+│     ├── Fix selectors                                           │
+│     ├── Add new sources                                         │
+│     └── Disable permanently broken sources                      │
+│                                                                 │
+│  4. Verify all 15 sources return results                        │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Step 1: Generate Health Report
+
+Run the Source Selectors tab "Test All Sources" or use a script:
+
+```python
+# Script to generate source health report
+from apps.recipes.models import SearchSource
+
+def source_health_report():
+    sources = SearchSource.objects.all().order_by('-consecutive_failures')
+
+    print("=" * 60)
+    print("SEARCH SOURCE HEALTH REPORT")
+    print("=" * 60)
+
+    healthy = []
+    needs_attention = []
+
+    for source in sources:
+        status = "🟢 OK" if source.consecutive_failures == 0 else \
+                 "🟡 WARN" if source.consecutive_failures < 3 else \
+                 "🔴 FAIL"
+
+        if source.consecutive_failures >= 3:
+            needs_attention.append(source)
+        else:
+            healthy.append(source)
+
+        print(f"{status} {source.name}")
+        print(f"    Host: {source.host}")
+        print(f"    Failures: {source.consecutive_failures}")
+        print(f"    Last tested: {source.last_tested or 'Never'}")
+        print(f"    Selector: {source.result_selector[:50]}...")
+        print()
+
+    print("=" * 60)
+    print(f"SUMMARY: {len(healthy)} healthy, {len(needs_attention)} need attention")
+    print("=" * 60)
+
+    return needs_attention
+
+# Run: python manage.py shell < scripts/source_health.py
+```
+
+### Step 2: AI Selector Repair (8B.9 Integration)
+
+For each failed source, attempt AI repair:
+
+```python
+from apps.ai.services.selector import repair_selector
+from apps.recipes.models import SearchSource
+
+def attempt_ai_repairs():
+    failed_sources = SearchSource.objects.filter(consecutive_failures__gte=3)
+
+    for source in failed_sources:
+        print(f"\n{'='*40}")
+        print(f"Attempting AI repair for: {source.name}")
+        print(f"Current selector: {source.result_selector}")
+
+        try:
+            result = repair_selector(source)
+
+            if result['success']:
+                print(f"✅ AI repaired selector!")
+                print(f"   New selector: {result['new_selector']}")
+                print(f"   Confidence: {result['confidence']}")
+
+                # Test the new selector
+                test_result = test_source(source)
+                if test_result['success']:
+                    print(f"   Test passed: {test_result['result_count']} results")
+                else:
+                    print(f"   ⚠️ Test failed even with new selector")
+            else:
+                print(f"❌ AI could not repair (confidence too low)")
+                print(f"   Best suggestion: {result.get('suggestion', 'None')}")
+                print(f"   Confidence: {result.get('confidence', 0)}")
+
+        except Exception as e:
+            print(f"❌ AI repair error: {e}")
+```
+
+### Step 3: Manual Repair / Replacement
+
+If AI repair fails, manually inspect and either:
+
+**Option A: Manual Selector Fix**
+1. Visit the source site in browser
+2. Open DevTools, find recipe link elements
+3. Identify new CSS selector
+4. Update via Settings > Source Selectors tab
+5. Test the new selector
+
+**Option B: Replace Source**
+1. Find alternative recipe site with similar content
+2. Create new `SearchSource` entry
+3. Configure selector for new site
+4. Disable the broken source
+
+### Replacement Source Candidates
+
+If existing sources cannot be fixed, consider these alternatives:
+
+| Category | Current Source | Potential Replacement |
+|----------|---------------|----------------------|
+| General | AllRecipes | Food.com, Yummly |
+| Healthy | EatingWell | Cooking Light, Skinnytaste |
+| Budget | Budget Bytes | $5 Dinners, Good Cheap Eats |
+| Quick | Tasty | Delish, Simply Recipes |
+| International | Serious Eats | The Woks of Life, RecipeTin Eats |
+| Baking | Sally's Baking | King Arthur, Handle the Heat |
+| Vegetarian | Cookie and Kate | Minimalist Baker, Oh She Glows |
+
+### Step 4: Verification Checklist
+
+After repairs/replacements, verify:
+
+```
+[ ] Source 1:  AllRecipes.com     - Returns results? ___
+[ ] Source 2:  Food Network       - Returns results? ___
+[ ] Source 3:  Serious Eats       - Returns results? ___
+[ ] Source 4:  Epicurious         - Returns results? ___
+[ ] Source 5:  Bon Appetit        - Returns results? ___
+[ ] Source 6:  Tasty.co           - Returns results? ___
+[ ] Source 7:  Delish             - Returns results? ___
+[ ] Source 8:  Simply Recipes     - Returns results? ___
+[ ] Source 9:  Budget Bytes       - Returns results? ___
+[ ] Source 10: Cookie and Kate    - Returns results? ___
+[ ] Source 11: Sally's Baking     - Returns results? ___
+[ ] Source 12: NYT Cooking        - Returns results? ___
+[ ] Source 13: BBC Good Food      - Returns results? ___
+[ ] Source 14: Taste of Home      - Returns results? ___
+[ ] Source 15: EatingWell         - Returns results? ___
+```
+
+### Implementation Notes
+
+**Using AI Selector Repair (8B.9):**
+
+The AI selector repair feature (implemented in Phase 8B.9) can be invoked:
+
+1. **Via API:**
+   ```bash
+   curl -X POST http://localhost:8000/api/ai/repair-selector/ \
+     -H "Content-Type: application/json" \
+     -d '{"source_id": 123}'
+   ```
+
+2. **Via Settings UI:**
+   - Go to Settings > Source Selectors
+   - Click "Test" on a failed source
+   - If test fails, click "AI Repair" button (if available)
+
+3. **Via Script:**
+   ```python
+   from apps.ai.services.selector import repair_selector
+   source = SearchSource.objects.get(host='example.com')
+   result = repair_selector(source)
+   ```
+
+**Auto-Repair Consideration:**
+
+For production, consider enabling automatic repair in the search flow:
+- When a source returns 0 results, trigger async AI repair
+- See `plans/FUTURE-ENHANCEMENTS.md` FE-002 for the full spec
+
+### Session E Deliverables
+
+1. Health report generated for all 15 sources
+2. AI repair attempted on all failed sources
+3. Manual fixes applied where AI repair insufficient
+4. Replacement sources added for unfixable sites
+5. All 15 sources verified returning search results
+6. Documentation updated with any new sources or selector patterns
+
+### Acceptance Criteria (9.9)
+
+1. All 15 configured search sources return results on test
+2. No sources have `needs_attention=True`
+3. `consecutive_failures=0` for all active sources
+4. Any replaced sources documented in source comments
+5. AI selector repair feature tested and working
 
 ---
 
@@ -1219,6 +1449,10 @@ def test_rate_limiting()
 [ ] Chrome/Firefox/Safari/Edge - React interface works
 [ ] iOS 9 iPad - Legacy interface fully functional
 [ ] Browser console - no errors in production
+[ ] Source health - all 15 sources audited
+[ ] Source health - AI repair attempted on failed sources
+[ ] Source health - all sources returning results or replaced
+[ ] Source health - no sources with needs_attention=True
 ```
 
 ---
@@ -1228,9 +1462,10 @@ def test_rate_limiting()
 - [ ] All phases complete
 - [ ] All tests passing
 - [ ] No console errors
-- [ ] All 15 sources have working selectors
+- [ ] All 15 sources have working selectors (audited & repaired/replaced)
 - [ ] AI features work with valid API key
 - [ ] AI features hidden without API key
+- [ ] AI selector repair tested and functional
 - [ ] iOS 9 iPad fully functional
 - [ ] Dark mode works (React)
 - [ ] Light-only theme works (Legacy)
