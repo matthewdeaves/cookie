@@ -444,14 +444,14 @@ _Verification:_
 | QA-032 | Scaled recipes need cooking time adjustments | Medium | Fixed |
 | QA-033 | Tips should generate automatically and adjust for scaling | Medium | Researched |
 | QA-034 | AI prompts must be in migrations and visible in settings | Low | Fixed |
-| QA-035 | SQLite database locking errors under concurrent load | Medium | Open |
+| QA-035 | SQLite database locking errors under concurrent load | Medium | Researched |
 
 > **Note:** QA-031 and QA-032 are implemented together as "Scaling Service v2" since they share the same files and migration.
 
 ---
 
 ## QA-035: SQLite database locking errors under concurrent load
-**Status:** Open
+**Status:** Researched
 **Severity:** Medium
 **Component:** Database / Infrastructure
 
@@ -465,20 +465,125 @@ django.db.utils.OperationalError: database is locked
 ```
 
 **Observed in:**
-- `RecipeViewHistory.objects.update_or_create()` in legacy views
+- `RecipeViewHistory.objects.update_or_create()` in legacy views (line 117)
+- `RecipeViewHistory.objects.update_or_create()` in API (api_user.py:291)
+- `CachedSearchImage.objects.get_or_create()` in image caching service
 - Any concurrent write operations
 
-**Potential solutions:**
-1. **Short-term:** Add retry logic with backoff for write operations
-2. **Short-term:** Increase SQLite timeout setting (`timeout` in database config)
-3. **Long-term:** Migrate to PostgreSQL for production use
-4. **Alternative:** Use WAL (Write-Ahead Logging) mode for SQLite
+**Research Findings:**
+
+_Current configuration:_
+- **Django version:** 5.2.10 (supports `init_command` and `transaction_mode` options)
+- **Gunicorn:** 2 workers × 2 threads = 4 concurrent request capacity
+- **SQLite settings:** Default (no timeout override, no WAL, default transactions)
+- **Database config (`settings.py:52-57`):**
+  ```python
+  DATABASES = {
+      'default': {
+          'ENGINE': 'django.db.backends.sqlite3',
+          'NAME': BASE_DIR / 'db.sqlite3',
+      }
+  }
+  ```
+
+_Root causes of "database is locked":_
+
+1. **Default journal mode (DELETE)** - Writers block readers, readers block writers
+2. **Deferred transactions (default)** - Lock acquired mid-transaction; if another connection holds lock, SQLite cannot retry (would break serializable isolation)
+3. **Default timeout (5 seconds)** - May not be enough under concurrent load
+4. **No busy_timeout PRAGMA** - Connection-level timeout not configured
+
+_How SQLite locking works:_
+- SQLite allows only ONE writer at a time (global write lock)
+- In default (DELETE) journal mode, writes block reads entirely
+- When a transaction needs a lock mid-execution and another holds it, SQLite waits up to `timeout` seconds
+- If timeout exceeded → "database is locked" error
+- Critical insight: Deferred transactions can't retry mid-transaction without violating isolation guarantees
+
+_Recommended solutions (Django 5.1+):_
+
+**Solution 1: Enable WAL mode** (Write-Ahead Logging)
+- Allows concurrent reads while writing
+- Writers don't block readers, readers don't block writers
+- Persists in database file (only needs to be set once)
+- Creates `.db-shm` and `.db-wal` files alongside database
+- ⚠️ Do NOT use on network file systems (NFS)
+
+**Solution 2: IMMEDIATE transaction mode**
+- Acquires write lock at START of transaction (not mid-transaction)
+- If lock unavailable, transaction fails immediately and can be retried
+- Prevents the "stuck mid-transaction" scenario that causes most errors
+- This is the KEY fix for "database is locked" during concurrent writes
+
+**Solution 3: Increase timeout**
+- Default 5 seconds → 20+ seconds
+- Gives more time for lock acquisition under load
+
+**Solution 4: synchronous=NORMAL PRAGMA**
+- Safe for WAL mode (not safe for DELETE journal mode)
+- Better write performance
+
+_Recommended configuration:_
+```python
+# cookie/settings.py
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'timeout': 20,
+            'transaction_mode': 'IMMEDIATE',
+            'init_command': (
+                'PRAGMA journal_mode=WAL;'
+                'PRAGMA synchronous=NORMAL;'
+                'PRAGMA busy_timeout=5000;'
+            ),
+        },
+    }
+}
+```
+
+_Alternative: Signal-based approach (more explicit):_
+```python
+# apps/core/db_signals.py
+from django.db.backends.signals import connection_created
+from django.dispatch import receiver
+
+@receiver(connection_created)
+def setup_sqlite_pragmas(sender, connection, **kwargs):
+    if connection.vendor == 'sqlite':
+        cursor = connection.cursor()
+        cursor.execute('PRAGMA journal_mode=wal;')
+        cursor.execute('PRAGMA synchronous=NORMAL;')
+        cursor.execute('PRAGMA busy_timeout=5000;')
+        cursor.close()
+```
+
+_One-time WAL enablement (alternative to init_command):_
+```bash
+# WAL mode persists in the database file
+sqlite3 db.sqlite3 'PRAGMA journal_mode=WAL;'
+```
+
+_When to consider PostgreSQL:_
+- High-concurrency production environments
+- Multiple application servers (SQLite is single-file)
+- Need for advanced features (full-text search, JSON operators, etc.)
+- For this project: SQLite with WAL is sufficient for home/small-scale use
 
 **Tasks:**
-- [ ] Research SQLite WAL mode and timeout settings
-- [ ] Consider adding `DATABASE_OPTIONS = {'timeout': 30}` to settings
-- [ ] Evaluate if PostgreSQL migration is warranted for production
+- [ ] Update `cookie/settings.py` with recommended OPTIONS
+- [ ] Run one-time `PRAGMA journal_mode=WAL` on existing database
+- [ ] Restart Docker containers to pick up new settings
+- [ ] Verify `.db-wal` and `.db-shm` files created
+- [ ] Load test with concurrent requests to verify fix
+- [ ] Document SQLite limitations in README if deploying
 
-**Files to consider:**
-- `cookie/settings.py` - Database configuration
-- Any views with high-frequency writes
+**Files to modify:**
+- `cookie/settings.py` - Add OPTIONS to DATABASES config
+
+**References:**
+- [Django, SQLite, and the Database is Locked Error](https://blog.pecar.me/django-sqlite-dblock)
+- [Enabling WAL in SQLite in Django](https://djangoandy.com/2024/07/08/enabling-wal-in-sqlite-in-django/)
+- [SQLite WAL Mode](https://sqlite.org/wal.html)
+- [Simon Willison: Enabling WAL Mode](https://til.simonwillison.net/sqlite/enabling-wal-mode)
