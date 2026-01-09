@@ -32,8 +32,21 @@ Cookie.pages.settings = (function() {
     var testAllBtn;
     var testAllText;
 
+    // DOM Elements - Users tab
+    var tabUsers;
+    var profilesList;
+    var profileCount;
+    var deleteModal;
+    var deleteProfileInfo;
+    var deleteDataSummary;
+    var confirmDeleteBtn;
+    var deleteBtnText;
+
     // Data
     var sources = [];
+    var profiles = [];
+    var currentProfileId = null;
+    var pendingDeleteId = null;
 
     /**
      * Initialize the page
@@ -63,6 +76,22 @@ Cookie.pages.settings = (function() {
         selectorsList = document.getElementById('selectors-list');
         testAllBtn = document.getElementById('test-all-btn');
         testAllText = document.getElementById('test-all-text');
+
+        // Users tab elements
+        tabUsers = document.getElementById('tab-users');
+        profilesList = document.getElementById('profiles-list');
+        profileCount = document.getElementById('profile-count');
+        deleteModal = document.getElementById('delete-profile-modal');
+        deleteProfileInfo = document.getElementById('delete-profile-info');
+        deleteDataSummary = document.getElementById('delete-data-summary');
+        confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        deleteBtnText = document.getElementById('delete-btn-text');
+
+        // Get current profile ID from session (passed via data attribute)
+        var pageElement = document.querySelector('[data-page="settings"]');
+        if (pageElement && pageElement.getAttribute('data-profile-id')) {
+            currentProfileId = parseInt(pageElement.getAttribute('data-profile-id'), 10);
+        }
 
         setupTabSwitching();
         setupApiKeyHandlers();
@@ -101,6 +130,7 @@ Cookie.pages.settings = (function() {
         tabPrompts.classList.add('hidden');
         tabSources.classList.add('hidden');
         tabSelectors.classList.add('hidden');
+        tabUsers.classList.add('hidden');
 
         // Show selected tab
         if (tab === 'general') {
@@ -111,6 +141,12 @@ Cookie.pages.settings = (function() {
             tabSources.classList.remove('hidden');
         } else if (tab === 'selectors') {
             tabSelectors.classList.remove('hidden');
+        } else if (tab === 'users') {
+            tabUsers.classList.remove('hidden');
+            // Load profiles when users tab is shown
+            if (profiles.length === 0) {
+                loadProfiles();
+            }
         }
     }
 
@@ -716,6 +752,201 @@ Cookie.pages.settings = (function() {
         div.appendChild(document.createTextNode(str));
         return div.innerHTML;
     }
+
+    // ============================================
+    // USER MANAGEMENT FUNCTIONS
+    // ============================================
+
+    /**
+     * Load profiles from API
+     */
+    function loadProfiles() {
+        Cookie.ajax.get('/api/profiles/', function(err, result) {
+            if (err) {
+                profilesList.innerHTML = '<div class="error-placeholder">Failed to load profiles</div>';
+                return;
+            }
+
+            profiles = result;
+            renderProfiles();
+            updateProfileCount();
+        });
+    }
+
+    /**
+     * Update profile count display
+     */
+    function updateProfileCount() {
+        profileCount.textContent = profiles.length + ' profile' + (profiles.length !== 1 ? 's' : '');
+    }
+
+    /**
+     * Render profiles list
+     */
+    function renderProfiles() {
+        var html = '';
+
+        for (var i = 0; i < profiles.length; i++) {
+            var profile = profiles[i];
+            var isCurrent = profile.id === currentProfileId;
+            var currentBadge = isCurrent ? '<span class="profile-current-badge">Current</span>' : '';
+            var disabledAttr = isCurrent ? 'disabled' : '';
+            var disabledClass = isCurrent ? 'btn-delete-disabled' : '';
+
+            html += '<div class="profile-card" data-profile-id="' + profile.id + '">';
+            html += '  <div class="profile-avatar" style="background-color: ' + escapeHtml(profile.avatar_color) + '"></div>';
+            html += '  <div class="profile-info">';
+            html += '    <div class="profile-name-row">';
+            html += '      <span class="profile-name">' + escapeHtml(profile.name) + '</span>';
+            html += '      ' + currentBadge;
+            html += '    </div>';
+            html += '    <span class="profile-meta">Created ' + formatDate(profile.created_at) + '</span>';
+            html += '    <span class="profile-stats">';
+            html += '      ' + profile.stats.favorites + ' favorites · ';
+            html += '      ' + profile.stats.collections + ' collections · ';
+            html += '      ' + profile.stats.remixes + ' remixes';
+            html += '    </span>';
+            html += '  </div>';
+            html += '  <button type="button" class="btn-delete ' + disabledClass + '" ' + disabledAttr + ' data-action="delete-profile" data-profile-id="' + profile.id + '" title="' + (isCurrent ? 'Cannot delete current profile' : 'Delete profile') + '">';
+            html += '    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
+            html += '      <path d="M3 6h18"></path>';
+            html += '      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>';
+            html += '      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>';
+            html += '    </svg>';
+            html += '  </button>';
+            html += '</div>';
+        }
+
+        profilesList.innerHTML = html;
+
+        // Attach event listeners
+        var deleteBtns = profilesList.querySelectorAll('[data-action="delete-profile"]');
+        for (var i = 0; i < deleteBtns.length; i++) {
+            deleteBtns[i].addEventListener('click', handleDeleteProfileClick);
+        }
+    }
+
+    /**
+     * Format date for display
+     */
+    function formatDate(dateStr) {
+        if (!dateStr) return 'Unknown';
+        var date = new Date(dateStr);
+        return date.toLocaleDateString();
+    }
+
+    /**
+     * Handle delete profile button click
+     */
+    function handleDeleteProfileClick(e) {
+        var btn = e.currentTarget;
+        if (btn.disabled) return;
+
+        var profileId = parseInt(btn.getAttribute('data-profile-id'), 10);
+        pendingDeleteId = profileId;
+
+        // Fetch deletion preview
+        Cookie.ajax.get('/api/profiles/' + profileId + '/deletion-preview/', function(err, preview) {
+            if (err) {
+                Cookie.toast.error('Failed to load profile info');
+                pendingDeleteId = null;
+                return;
+            }
+
+            renderDeleteModal(preview);
+            deleteModal.classList.remove('hidden');
+        });
+    }
+
+    /**
+     * Render delete modal content
+     */
+    function renderDeleteModal(preview) {
+        var profile = preview.profile;
+        var data = preview.data_to_delete;
+
+        // Profile info
+        deleteProfileInfo.innerHTML = [
+            '<div class="profile-avatar" style="background-color: ' + escapeHtml(profile.avatar_color) + '"></div>',
+            '<div>',
+            '  <div class="profile-name">' + escapeHtml(profile.name) + '</div>',
+            '  <div class="profile-meta">Created ' + formatDate(profile.created_at) + '</div>',
+            '</div>'
+        ].join('');
+
+        // Data summary
+        var summaryItems = [];
+        if (data.remixes > 0) {
+            summaryItems.push(data.remixes + ' remixed recipe' + (data.remixes !== 1 ? 's' : '') +
+                ' (' + data.remix_images + ' images)');
+        }
+        if (data.favorites > 0) {
+            summaryItems.push(data.favorites + ' favorite' + (data.favorites !== 1 ? 's' : ''));
+        }
+        if (data.collections > 0) {
+            summaryItems.push(data.collections + ' collection' + (data.collections !== 1 ? 's' : '') +
+                ' (' + data.collection_items + ' items)');
+        }
+        if (data.view_history > 0) {
+            summaryItems.push(data.view_history + ' view history entries');
+        }
+        if (data.scaling_cache > 0 || data.discover_cache > 0) {
+            summaryItems.push('Cached AI data');
+        }
+        if (summaryItems.length === 0) {
+            summaryItems.push('No associated data');
+        }
+
+        deleteDataSummary.innerHTML =
+            '<div class="summary-title">Data to be deleted:</div>' +
+            '<ul class="summary-list">' + summaryItems.map(function(item) {
+                return '<li>' + item + '</li>';
+            }).join('') + '</ul>';
+    }
+
+    /**
+     * Close delete modal (exposed globally)
+     */
+    function closeDeleteModal() {
+        deleteModal.classList.add('hidden');
+        pendingDeleteId = null;
+    }
+
+    /**
+     * Execute profile deletion (exposed globally)
+     */
+    function executeDeleteProfile() {
+        if (!pendingDeleteId) return;
+
+        confirmDeleteBtn.disabled = true;
+        deleteBtnText.textContent = 'Deleting...';
+
+        Cookie.ajax.delete('/api/profiles/' + pendingDeleteId + '/', function(err, result) {
+            confirmDeleteBtn.disabled = false;
+            deleteBtnText.textContent = 'Delete Profile';
+
+            if (err) {
+                Cookie.toast.error('Failed to delete profile');
+                return;
+            }
+
+            Cookie.toast.success('Profile deleted successfully');
+
+            // Remove from local data and re-render (before closing modal clears pendingDeleteId)
+            var deletedId = pendingDeleteId;
+            closeDeleteModal();
+
+            profiles = profiles.filter(function(p) {
+                return p.id !== deletedId;
+            });
+            renderProfiles();
+            updateProfileCount();
+        });
+    }
+
+    // Expose modal functions globally for onclick handlers
+    window.closeDeleteModal = closeDeleteModal;
+    window.executeDeleteProfile = executeDeleteProfile;
 
     return {
         init: init

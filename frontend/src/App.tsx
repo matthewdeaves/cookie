@@ -332,7 +332,7 @@ function AppContent() {
         />
       )}
       {currentScreen === 'settings' && (
-        <Settings onBack={handleSettingsBack} />
+        <Settings onBack={handleSettingsBack} currentProfileId={currentProfile?.id ?? null} />
       )}
     </>
   )

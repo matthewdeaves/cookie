@@ -114,6 +114,50 @@ export interface Profile {
   unit_preference: string
 }
 
+export interface ProfileStats {
+  favorites: number
+  collections: number
+  collection_items: number
+  remixes: number
+  view_history: number
+  scaling_cache: number
+  discover_cache: number
+}
+
+export interface ProfileWithStats {
+  id: number
+  name: string
+  avatar_color: string
+  theme: string
+  unit_preference: string
+  created_at: string
+  stats: ProfileStats
+}
+
+export interface DeletionData {
+  remixes: number
+  remix_images: number
+  favorites: number
+  collections: number
+  collection_items: number
+  view_history: number
+  scaling_cache: number
+  discover_cache: number
+}
+
+export interface ProfileSummary {
+  id: number
+  name: string
+  avatar_color: string
+  created_at: string
+}
+
+export interface DeletionPreview {
+  profile: ProfileSummary
+  data_to_delete: DeletionData
+  warnings: string[]
+}
+
 export interface ProfileInput {
   name: string
   avatar_color: string
@@ -377,7 +421,7 @@ export const api = {
   },
 
   profiles: {
-    list: () => request<Profile[]>('/profiles/'),
+    list: () => request<ProfileWithStats[]>('/profiles/'),
 
     get: (id: number) => request<Profile>(`/profiles/${id}/`),
 
@@ -402,6 +446,9 @@ export const api = {
       request<Profile>(`/profiles/${id}/select/`, {
         method: 'POST',
       }),
+
+    deletionPreview: (id: number) =>
+      request<DeletionPreview>(`/profiles/${id}/deletion-preview/`),
   },
 
   favorites: {

@@ -15,6 +15,7 @@
 | C | 9.6-9.7 | Final testing + verification |
 | D | 9.8 | User management (list, delete with cascade) |
 | E | 9.9 | Search source health review + repair/replacement |
+| F | 9.10 | Danger Zone tab with database reset functionality |
 
 ---
 
@@ -27,8 +28,9 @@
 - [x] 9.5 Toast notifications (both interfaces)
 - [ ] 9.6 Testing with pytest (unit + integration)
 - [ ] 9.7 Final cross-browser/device testing
-- [ ] 9.8 User management tab: List users, delete with full cascade (recipes, images, all related data)
+- [x] 9.8 User management tab: List users, delete with full cascade (recipes, images, all related data)
 - [ ] 9.9 Search source health review: Audit failed sources, attempt AI repair, replace unfixable sources
+- [ ] 9.10 Danger Zone tab: Reset database with confirmation (wipe data, clear images/cache, re-run migrations)
 
 ---
 
@@ -110,6 +112,75 @@ From Figma:
   - "Last tested: [relative time]"
   - Warning badge if broken: "Failed X times - auto-disabled"
 - "Test All Sources" button at bottom
+
+### Danger Zone Tab (Session F - New)
+
+**Purpose:** Provide a complete database reset option for development/testing or when users want to start completely fresh.
+
+**UI Layout:**
+- "Danger Zone" heading with warning icon
+- Subheading: "Destructive operations that cannot be undone"
+- Red-tinted warning card containing:
+  - "Reset Database" section title
+  - Description: "Completely reset the application to factory state"
+  - Bullet list of what will be deleted:
+    - All recipes (scraped and remixed)
+    - All recipe images
+    - All user profiles
+    - All favorites, collections, and view history
+    - All cached AI data
+    - All search source test results (selectors retained)
+  - "Reset Database" danger button
+
+**Confirmation Modal (Two-Step):**
+
+*Step 1 - Initial Warning:*
+- Large warning icon
+- "Reset Database?"
+- "This will permanently delete ALL data from the application:"
+- Data summary showing counts of what will be deleted
+- Warning text: "This action cannot be undone."
+- Cancel button
+- "I understand, continue" button
+
+*Step 2 - Type Confirmation:*
+- "Type RESET to confirm"
+- Text input field
+- Cancel button
+- "Reset Database" danger button (disabled until RESET typed)
+
+**What Reset Does:**
+
+1. **Clear all database tables** (in order to respect FK constraints):
+   - AIDiscoverySuggestion
+   - ServingAdjustment
+   - RecipeViewHistory
+   - RecipeCollectionItem
+   - RecipeCollection
+   - RecipeFavorite
+   - RecipeTip
+   - RecipeTimer
+   - RecipeIngredient
+   - RecipeStep
+   - Recipe
+   - Profile
+   - (SearchSource selectors and AIPrompt configs are RETAINED)
+
+2. **Clear media files:**
+   - Delete all files in `MEDIA_ROOT/recipe_images/`
+
+3. **Clear cache:**
+   - Flush Django cache (if configured)
+   - Clear any temporary files
+
+4. **Re-run migrations:**
+   - Run `python manage.py migrate` to ensure clean schema
+   - Run seed data commands to restore default SearchSources and AIPrompts
+
+5. **Clear session:**
+   - Invalidate current session (user will need to create new profile)
+
+---
 
 ### Users Tab (Session D - New)
 
@@ -975,6 +1046,697 @@ def test_cannot_delete_current_profile():
 
 ---
 
+## Database Reset Feature (Session F)
+
+### Overview
+
+The Danger Zone tab provides a complete factory reset option. This is useful for:
+- Development and testing environments
+- Users who want to start completely fresh
+- Clearing demo data before production use
+
+### Backend API
+
+**1. Get Reset Preview (`GET /api/system/reset-preview/`)**
+
+Returns counts of all data that will be deleted:
+
+```python
+# apps/core/api.py
+from ninja import Router
+from django.db.models import Count
+from apps.profiles.models import Profile
+from apps.recipes.models import Recipe, RecipeFavorite, RecipeCollection
+
+router = Router(tags=['system'])
+
+@router.get('/reset-preview/')
+def get_reset_preview(request):
+    """Get summary of data that will be deleted on reset."""
+    return {
+        'data_counts': {
+            'profiles': Profile.objects.count(),
+            'recipes': Recipe.objects.count(),
+            'recipe_images': Recipe.objects.exclude(image='').exclude(image__isnull=True).count(),
+            'favorites': RecipeFavorite.objects.count(),
+            'collections': RecipeCollection.objects.count(),
+            'collection_items': RecipeCollectionItem.objects.count(),
+            'view_history': RecipeViewHistory.objects.count(),
+            'ai_suggestions': AIDiscoverySuggestion.objects.count(),
+            'serving_adjustments': ServingAdjustment.objects.count(),
+        },
+        'preserved': [
+            'Search source configurations',
+            'AI prompt templates',
+            'Application settings',
+        ],
+        'warnings': [
+            'All user data will be permanently deleted',
+            'All recipe images will be removed from storage',
+            'This action cannot be undone',
+        ]
+    }
+```
+
+**2. Execute Reset (`POST /api/system/reset/`)**
+
+Performs the complete database reset:
+
+```python
+# apps/core/api.py
+import os
+import shutil
+from django.conf import settings
+from django.core.management import call_command
+from django.contrib.sessions.models import Session
+
+@router.post('/reset/', response={200: dict, 400: ErrorSchema})
+def reset_database(request, data: ResetConfirmSchema):
+    """
+    Completely reset the database to factory state.
+
+    Requires confirmation_text="RESET" to proceed.
+    """
+    if data.confirmation_text != 'RESET':
+        return 400, {'error': 'invalid_confirmation', 'message': 'Type RESET to confirm'}
+
+    try:
+        # 1. Clear database tables (order matters for FK constraints)
+        AIDiscoverySuggestion.objects.all().delete()
+        ServingAdjustment.objects.all().delete()
+        RecipeViewHistory.objects.all().delete()
+        RecipeCollectionItem.objects.all().delete()
+        RecipeCollection.objects.all().delete()
+        RecipeFavorite.objects.all().delete()
+        RecipeTip.objects.all().delete()
+        RecipeTimer.objects.all().delete()
+        RecipeIngredient.objects.all().delete()
+        RecipeStep.objects.all().delete()
+        Recipe.objects.all().delete()
+        Profile.objects.all().delete()
+
+        # Reset SearchSource failure counters (keep selectors)
+        SearchSource.objects.all().update(
+            consecutive_failures=0,
+            needs_attention=False,
+            last_tested=None
+        )
+
+        # 2. Clear recipe images
+        images_dir = os.path.join(settings.MEDIA_ROOT, 'recipe_images')
+        if os.path.exists(images_dir):
+            shutil.rmtree(images_dir)
+            os.makedirs(images_dir)  # Recreate empty directory
+
+        # 3. Clear Django cache
+        from django.core.cache import cache
+        cache.clear()
+
+        # 4. Clear all sessions
+        Session.objects.all().delete()
+
+        # 5. Re-run migrations (ensures clean state)
+        call_command('migrate', verbosity=0)
+
+        # 6. Re-seed default data
+        call_command('seed_search_sources', verbosity=0)
+        call_command('seed_ai_prompts', verbosity=0)
+
+        return {
+            'success': True,
+            'message': 'Database reset complete',
+            'actions_performed': [
+                'Deleted all user profiles',
+                'Deleted all recipes and images',
+                'Cleared all favorites and collections',
+                'Cleared all view history',
+                'Cleared all AI cache data',
+                'Reset search source counters',
+                'Cleared application cache',
+                'Cleared all sessions',
+                'Re-ran database migrations',
+                'Restored default seed data',
+            ]
+        }
+
+    except Exception as e:
+        return 400, {'error': 'reset_failed', 'message': str(e)}
+```
+
+**3. Schema:**
+
+```python
+# apps/core/schemas.py
+from ninja import Schema
+
+class ResetConfirmSchema(Schema):
+    confirmation_text: str  # Must be "RESET"
+```
+
+### React Frontend
+
+**1. Add Danger Zone Tab to Settings.tsx**
+
+```typescript
+type Tab = 'api' | 'prompts' | 'sources' | 'selectors' | 'users' | 'danger'
+
+// Tab navigation
+<button
+  onClick={() => setActiveTab('danger')}
+  className={cn(
+    "tab-button",
+    activeTab === 'danger' && "text-destructive"
+  )}
+>
+  <AlertTriangle className="h-4 w-4" />
+  Danger Zone
+</button>
+
+// Danger tab content
+{activeTab === 'danger' && (
+  <DangerZoneTab onReset={handleDatabaseReset} />
+)}
+```
+
+**2. DangerZoneTab Component (`frontend/src/components/DangerZoneTab.tsx`)**
+
+```typescript
+interface DangerZoneTabProps {
+  onReset: () => Promise<void>
+}
+
+export function DangerZoneTab({ onReset }: DangerZoneTabProps) {
+  const [showModal, setShowModal] = useState(false)
+  const [preview, setPreview] = useState<ResetPreview | null>(null)
+  const [step, setStep] = useState<1 | 2>(1)
+  const [confirmText, setConfirmText] = useState('')
+  const [isResetting, setIsResetting] = useState(false)
+
+  const handleResetClick = async () => {
+    const data = await api.system.getResetPreview()
+    setPreview(data)
+    setStep(1)
+    setShowModal(true)
+  }
+
+  const handleContinue = () => {
+    setStep(2)
+  }
+
+  const handleConfirmReset = async () => {
+    if (confirmText !== 'RESET') return
+
+    setIsResetting(true)
+    try {
+      await api.system.reset({ confirmation_text: 'RESET' })
+      toast.success('Database reset complete')
+      // Redirect to home/profile creation
+      window.location.href = '/'
+    } catch (error) {
+      toast.error('Failed to reset database')
+    } finally {
+      setIsResetting(false)
+      setShowModal(false)
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-2 text-destructive">
+        <AlertTriangle className="h-5 w-5" />
+        <h2 className="text-lg font-medium">Danger Zone</h2>
+      </div>
+
+      <p className="text-sm text-muted-foreground">
+        Destructive operations that cannot be undone
+      </p>
+
+      <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-6">
+        <h3 className="font-medium text-destructive">Reset Database</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Completely reset the application to factory state
+        </p>
+
+        <ul className="mt-4 space-y-1 text-sm text-muted-foreground">
+          <li>• All recipes (scraped and remixed)</li>
+          <li>• All recipe images</li>
+          <li>• All user profiles</li>
+          <li>• All favorites, collections, and view history</li>
+          <li>• All cached AI data</li>
+        </ul>
+
+        <p className="mt-4 text-xs text-muted-foreground">
+          Search source configurations and AI prompts will be preserved.
+        </p>
+
+        <Button
+          variant="destructive"
+          className="mt-4"
+          onClick={handleResetClick}
+        >
+          Reset Database
+        </Button>
+      </div>
+
+      {/* Reset Confirmation Modal */}
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent>
+          {step === 1 ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-destructive">
+                  <AlertTriangle className="h-5 w-5" />
+                  Reset Database?
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                <p className="text-sm">
+                  This will permanently delete ALL data from the application:
+                </p>
+
+                {preview && (
+                  <div className="rounded-lg border bg-muted/50 p-3">
+                    <ul className="space-y-1 text-sm">
+                      <li>• {preview.data_counts.profiles} profiles</li>
+                      <li>• {preview.data_counts.recipes} recipes ({preview.data_counts.recipe_images} images)</li>
+                      <li>• {preview.data_counts.favorites} favorites</li>
+                      <li>• {preview.data_counts.collections} collections</li>
+                      <li>• {preview.data_counts.view_history} view history entries</li>
+                      <li>• {preview.data_counts.ai_suggestions + preview.data_counts.serving_adjustments} cached AI entries</li>
+                    </ul>
+                  </div>
+                )}
+
+                <p className="text-sm font-medium text-destructive">
+                  This action cannot be undone.
+                </p>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowModal(false)}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleContinue}>
+                  I understand, continue
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-destructive">
+                  <AlertTriangle className="h-5 w-5" />
+                  Confirm Reset
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                <p className="text-sm">
+                  Type <code className="rounded bg-muted px-1 font-mono">RESET</code> to confirm:
+                </p>
+
+                <Input
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  placeholder="Type RESET"
+                  className="font-mono"
+                />
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => { setStep(1); setConfirmText(''); }}>
+                  Back
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleConfirmReset}
+                  disabled={confirmText !== 'RESET' || isResetting}
+                >
+                  {isResetting ? 'Resetting...' : 'Reset Database'}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+```
+
+### Legacy Frontend
+
+**1. Add Danger Zone Tab to Settings Template**
+
+```html
+<!-- apps/legacy/templates/legacy/settings.html -->
+
+<!-- Add tab button -->
+<button type="button" class="tab-toggle-btn tab-danger" data-tab="danger">
+    Danger Zone
+</button>
+
+<!-- Danger Zone Tab Content -->
+<div id="tab-danger" class="tab-content hidden">
+    <div class="card danger-zone-card">
+        <div class="danger-header">
+            <svg class="icon-warning">...</svg>
+            <h2>Danger Zone</h2>
+        </div>
+        <p class="danger-description">
+            Destructive operations that cannot be undone
+        </p>
+
+        <div class="danger-action">
+            <h3>Reset Database</h3>
+            <p>Completely reset the application to factory state</p>
+            <ul class="delete-list">
+                <li>All recipes (scraped and remixed)</li>
+                <li>All recipe images</li>
+                <li>All user profiles</li>
+                <li>All favorites, collections, and view history</li>
+                <li>All cached AI data</li>
+            </ul>
+            <p class="preserved-note">
+                Search source configurations and AI prompts will be preserved.
+            </p>
+            <button type="button" class="btn btn-danger" onclick="showResetModal()">
+                Reset Database
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Modal Step 1 -->
+<div id="reset-modal-step1" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+        <div class="modal-header danger">
+            <svg class="icon-warning">...</svg>
+            <h3>Reset Database?</h3>
+        </div>
+        <div class="modal-body">
+            <p>This will permanently delete ALL data from the application:</p>
+            <div id="reset-data-summary" class="data-summary">
+                <!-- Populated by JS -->
+            </div>
+            <p class="warning-text">This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeResetModal()">
+                Cancel
+            </button>
+            <button type="button" class="btn btn-danger" onclick="showResetStep2()">
+                I understand, continue
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Modal Step 2 -->
+<div id="reset-modal-step2" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+        <div class="modal-header danger">
+            <svg class="icon-warning">...</svg>
+            <h3>Confirm Reset</h3>
+        </div>
+        <div class="modal-body">
+            <p>Type <code>RESET</code> to confirm:</p>
+            <input type="text" id="reset-confirm-input" class="text-input mono" placeholder="Type RESET">
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="showResetStep1()">
+                Back
+            </button>
+            <button type="button" class="btn btn-danger" id="confirm-reset-btn" disabled onclick="executeReset()">
+                Reset Database
+            </button>
+        </div>
+    </div>
+</div>
+```
+
+**2. Settings JavaScript**
+
+```javascript
+// apps/legacy/static/legacy/js/pages/settings.js
+
+var resetPreview = null;
+
+function showResetModal() {
+    fetch('/api/system/reset-preview/')
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            resetPreview = data;
+            renderResetSummary(data);
+            document.getElementById('reset-modal-step1').classList.remove('hidden');
+        })
+        .catch(function(error) {
+            Cookie.toast.error('Failed to load reset preview');
+        });
+}
+
+function renderResetSummary(preview) {
+    var counts = preview.data_counts;
+    document.getElementById('reset-data-summary').innerHTML = [
+        '<ul>',
+        '<li>• ' + counts.profiles + ' profiles</li>',
+        '<li>• ' + counts.recipes + ' recipes (' + counts.recipe_images + ' images)</li>',
+        '<li>• ' + counts.favorites + ' favorites</li>',
+        '<li>• ' + counts.collections + ' collections</li>',
+        '<li>• ' + counts.view_history + ' view history entries</li>',
+        '<li>• ' + (counts.ai_suggestions + counts.serving_adjustments) + ' cached AI entries</li>',
+        '</ul>'
+    ].join('');
+}
+
+function closeResetModal() {
+    document.getElementById('reset-modal-step1').classList.add('hidden');
+    document.getElementById('reset-modal-step2').classList.add('hidden');
+    document.getElementById('reset-confirm-input').value = '';
+    document.getElementById('confirm-reset-btn').disabled = true;
+}
+
+function showResetStep2() {
+    document.getElementById('reset-modal-step1').classList.add('hidden');
+    document.getElementById('reset-modal-step2').classList.remove('hidden');
+    document.getElementById('reset-confirm-input').value = '';
+    document.getElementById('confirm-reset-btn').disabled = true;
+}
+
+function showResetStep1() {
+    document.getElementById('reset-modal-step2').classList.add('hidden');
+    document.getElementById('reset-modal-step1').classList.remove('hidden');
+}
+
+// Enable confirm button only when RESET is typed
+document.getElementById('reset-confirm-input').addEventListener('input', function(e) {
+    document.getElementById('confirm-reset-btn').disabled = e.target.value !== 'RESET';
+});
+
+function executeReset() {
+    var confirmText = document.getElementById('reset-confirm-input').value;
+    if (confirmText !== 'RESET') return;
+
+    var btn = document.getElementById('confirm-reset-btn');
+    btn.disabled = true;
+    btn.textContent = 'Resetting...';
+
+    fetch('/api/system/reset/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation_text: 'RESET' })
+    })
+    .then(function(response) {
+        if (response.ok) {
+            Cookie.toast.success('Database reset complete');
+            // Redirect to home/profile creation
+            window.location.href = '/legacy/';
+        } else {
+            return response.json().then(function(data) {
+                throw new Error(data.message || 'Failed to reset database');
+            });
+        }
+    })
+    .catch(function(error) {
+        Cookie.toast.error(error.message);
+        btn.disabled = false;
+        btn.textContent = 'Reset Database';
+    });
+}
+```
+
+### CSS Additions
+
+```css
+/* Danger Zone styling */
+.tab-danger {
+    color: var(--color-danger);
+}
+
+.danger-zone-card {
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.danger-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-danger);
+}
+
+.danger-header h2 {
+    margin: 0;
+}
+
+.danger-description {
+    color: var(--color-text-muted);
+    margin-top: 4px;
+}
+
+.danger-action {
+    margin-top: 24px;
+    padding: 16px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.danger-action h3 {
+    color: var(--color-danger);
+    margin: 0 0 8px 0;
+}
+
+.delete-list {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0;
+}
+
+.delete-list li {
+    font-size: 14px;
+    color: var(--color-text-muted);
+    padding: 2px 0;
+}
+
+.delete-list li::before {
+    content: "•";
+    margin-right: 8px;
+}
+
+.preserved-note {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    margin-top: 12px;
+}
+
+.modal-header.danger {
+    color: var(--color-danger);
+}
+
+.text-input.mono {
+    font-family: monospace;
+}
+```
+
+### Testing
+
+```python
+def test_reset_preview_returns_counts():
+    """Reset preview shows accurate data counts."""
+    Profile.objects.create(name='Test')
+    Recipe.objects.create(title='Test Recipe')
+
+    response = client.get('/api/system/reset-preview/')
+    data = response.json()
+
+    assert data['data_counts']['profiles'] == 1
+    assert data['data_counts']['recipes'] == 1
+
+def test_reset_requires_confirmation():
+    """Reset fails without RESET confirmation."""
+    response = client.post('/api/system/reset/', json={'confirmation_text': 'wrong'})
+    assert response.status_code == 400
+    assert Profile.objects.exists()  # Data not deleted
+
+def test_reset_clears_all_data():
+    """Reset deletes all user data."""
+    profile = Profile.objects.create(name='Test')
+    recipe = Recipe.objects.create(title='Test', image='recipe_images/test.jpg')
+    RecipeFavorite.objects.create(profile=profile, recipe=recipe)
+
+    response = client.post('/api/system/reset/', json={'confirmation_text': 'RESET'})
+
+    assert response.status_code == 200
+    assert not Profile.objects.exists()
+    assert not Recipe.objects.exists()
+    assert not RecipeFavorite.objects.exists()
+
+def test_reset_preserves_search_sources():
+    """Reset keeps search source configurations."""
+    source = SearchSource.objects.create(name='Test', host='example.com')
+
+    client.post('/api/system/reset/', json={'confirmation_text': 'RESET'})
+
+    assert SearchSource.objects.filter(id=source.id).exists()
+
+def test_reset_clears_images(tmp_path, settings):
+    """Reset removes all recipe images from storage."""
+    settings.MEDIA_ROOT = tmp_path
+    image_dir = tmp_path / 'recipe_images'
+    image_dir.mkdir()
+    (image_dir / 'test.jpg').write_bytes(b'fake image')
+
+    Recipe.objects.create(title='Test', image='recipe_images/test.jpg')
+
+    client.post('/api/system/reset/', json={'confirmation_text': 'RESET'})
+
+    assert not (image_dir / 'test.jpg').exists()
+    assert image_dir.exists()  # Directory recreated empty
+
+def test_reset_invalidates_session():
+    """Reset clears all sessions."""
+    # Create a session
+    session = client.session
+    session['profile_id'] = 1
+    session.save()
+
+    client.post('/api/system/reset/', json={'confirmation_text': 'RESET'})
+
+    from django.contrib.sessions.models import Session
+    assert not Session.objects.exists()
+```
+
+### Acceptance Criteria (9.10)
+
+1. Settings page has "Danger Zone" tab on both React and Legacy
+2. Tab displays with red/warning styling to indicate danger
+3. Reset Database button shows two-step confirmation modal
+4. Step 1 shows data summary (counts of what will be deleted)
+5. Step 2 requires typing "RESET" to enable confirm button
+6. Reset operation deletes:
+   - All profiles
+   - All recipes and images
+   - All favorites and collections
+   - All view history
+   - All AI cached data
+7. Reset preserves:
+   - Search source configurations
+   - AI prompt templates
+8. Reset clears recipe_images directory
+9. Reset clears Django cache
+10. Reset invalidates all sessions
+11. Reset re-runs migrations
+12. Reset re-seeds default data
+13. After reset, user is redirected to home/profile creation
+14. Toast notification confirms success/failure
+15. Works consistently on both React and Legacy interfaces
+
+---
+
 ## Error Handling
 
 ### API Error Responses
@@ -1442,6 +2204,12 @@ For production, consider enabling automatic repair in the search flow:
 [ ] User deletion - cascade removes all related data
 [ ] User deletion - recipe images cleaned up from filesystem
 [ ] User deletion - confirmation modal shows data summary
+[ ] Settings Danger Zone tab - reset database option visible
+[ ] Database reset - two-step confirmation modal works
+[ ] Database reset - deletes all profiles, recipes, images, cache
+[ ] Database reset - preserves search sources and AI prompts
+[ ] Database reset - re-seeds default data after reset
+[ ] Database reset - invalidates sessions, redirects to home
 [ ] API error - toast notification with clear message
 [ ] Loading state - skeleton/spinner shown during fetch
 [ ] Toast on success - "Recipe saved" etc. appears
@@ -1474,3 +2242,5 @@ For production, consider enabling automatic repair in the search flow:
 - [ ] Data properly isolated per profile
 - [ ] User management works on both interfaces
 - [ ] Profile deletion cascades all data including images
+- [ ] Danger Zone tab with database reset works on both interfaces
+- [ ] Database reset performs complete factory reset with confirmation

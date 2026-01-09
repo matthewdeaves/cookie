@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="screen" data-page="settings">
+<div class="screen" data-page="settings" data-profile-id="{{ current_profile_id|default:'' }}">
     <!-- Header -->
     <header class="header">
         <a href="{% url 'legacy:home' %}" class="header-back">
@@ -22,9 +22,9 @@
     </header>
 
     <div class="container container-wide p-4">
-        <!-- Tab toggle (4 tabs) -->
+        <!-- Tab toggle (5 tabs) -->
         <div class="flex justify-center mb-6">
-            <div class="tab-toggle tab-toggle-4">
+            <div class="tab-toggle tab-toggle-5">
                 <button type="button" class="tab-toggle-btn active" data-tab="general">
                     General
                 </button>
@@ -36,6 +36,9 @@
                 </button>
                 <button type="button" class="tab-toggle-btn" data-tab="selectors">
                     Selectors
+                </button>
+                <button type="button" class="tab-toggle-btn" data-tab="users">
+                    Users
                 </button>
             </div>
         </div>
@@ -274,6 +277,64 @@
                     <!-- Populated by JavaScript -->
                     <div class="loading-placeholder">Loading selectors...</div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Users Tab Content -->
+        <div id="tab-users" class="tab-content hidden">
+            <div class="card">
+                <div class="users-header">
+                    <div>
+                        <h2 class="settings-section-title">User Management</h2>
+                        <p class="users-subheading">Manage user profiles and their data</p>
+                    </div>
+                    <span class="profile-count" id="profile-count">Loading...</span>
+                </div>
+
+                <div id="profiles-list" class="profiles-list">
+                    <!-- Populated by JavaScript -->
+                    <div class="loading-placeholder">Loading profiles...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Profile Modal -->
+    <div id="delete-profile-modal" class="modal-overlay hidden" onclick="closeDeleteModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header modal-header-danger">
+                <svg class="modal-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                    <path d="M12 9v4"></path>
+                    <path d="M12 17h.01"></path>
+                </svg>
+                <h3 class="modal-title">Delete Profile?</h3>
+            </div>
+            <div class="modal-body">
+                <div id="delete-profile-info" class="profile-preview">
+                    <!-- Populated by JavaScript -->
+                </div>
+                <div id="delete-data-summary" class="data-summary">
+                    <!-- Populated by JavaScript -->
+                </div>
+                <p class="warning-text">
+                    This action cannot be undone. All data will be permanently deleted.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn" onclick="executeDeleteProfile()">
+                    <span class="btn-icon-wrapper">
+                        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                        </svg>
+                        <span id="delete-btn-text">Delete Profile</span>
+                    </span>
+                </button>
             </div>
         </div>
     </div>
