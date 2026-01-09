@@ -281,8 +281,9 @@ The Settings page provides access to sensitive configuration:
 - AI prompt customization
 - Search source management
 - User/profile deletion
+- **Database reset (Danger Zone)** - complete factory reset capability
 
-In a production multi-user environment, these settings should be restricted to administrators only, not all users.
+In a production multi-user environment, these settings should be restricted to administrators only, not all users. The database reset feature in particular is extremely destructive and should never be accessible to regular users.
 
 ### Current Implementation
 

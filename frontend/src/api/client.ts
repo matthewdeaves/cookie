@@ -303,6 +303,32 @@ export interface TestAllSourcesResult {
   }[]
 }
 
+// System/Admin
+export interface ResetDataCounts {
+  profiles: number
+  recipes: number
+  recipe_images: number
+  favorites: number
+  collections: number
+  collection_items: number
+  view_history: number
+  ai_suggestions: number
+  serving_adjustments: number
+  cached_search_images: number
+}
+
+export interface ResetPreview {
+  data_counts: ResetDataCounts
+  preserved: string[]
+  warnings: string[]
+}
+
+export interface ResetResult {
+  success: boolean
+  message: string
+  actions_performed: string[]
+}
+
 async function request<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -571,6 +597,16 @@ export const api = {
     testAll: () =>
       request<TestAllSourcesResult>('/sources/test-all/', {
         method: 'POST',
+      }),
+  },
+
+  system: {
+    resetPreview: () => request<ResetPreview>('/system/reset-preview/'),
+
+    reset: (confirmationText: string) =>
+      request<ResetResult>('/system/reset/', {
+        method: 'POST',
+        body: JSON.stringify({ confirmation_text: confirmationText }),
       }),
   },
 }

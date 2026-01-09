@@ -31,7 +31,7 @@
 - [ ] 9.7 Final cross-browser/device testing
 - [x] 9.8 User management tab: List users, delete with full cascade (recipes, images, all related data)
 - [x] 9.9 Search source health review: Audit failed sources, attempt AI repair, replace unfixable sources
-- [ ] 9.10 Danger Zone tab: Reset database with confirmation (wipe data, clear images/cache, re-run migrations)
+- [x] 9.10 Danger Zone tab: Reset database with confirmation (wipe data, clear images/cache, re-run migrations)
 - [ ] 9.11 Browser fingerprint spoofer review: Audit configuration, optimize settings, ensure best practices
 
 ---

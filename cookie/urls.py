@@ -4,6 +4,7 @@ from django.urls import path, include
 from ninja import NinjaAPI
 
 from apps.ai.api import router as ai_router
+from apps.core.api import router as system_router
 from apps.profiles.api import router as profiles_router
 from apps.recipes.api import router as recipes_router
 from apps.recipes.api_user import (
@@ -21,6 +22,7 @@ api.add_router('/favorites', favorites_router)
 api.add_router('/collections', collections_router)
 api.add_router('/history', history_router)
 api.add_router('/sources', sources_router)
+api.add_router('/system', system_router)
 
 
 @api.get('/health')

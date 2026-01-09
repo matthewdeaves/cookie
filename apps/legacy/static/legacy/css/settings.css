@@ -1051,3 +1051,152 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* ============================================
+   6-TAB TOGGLE
+   ============================================ */
+
+.tab-toggle-6 {
+    display: -webkit-inline-flex;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.tab-toggle-6 .tab-toggle-btn {
+    padding: 0.375rem 0.375rem;
+    font-size: 0.65rem;
+}
+
+@media (min-width: 480px) {
+    .tab-toggle-6 {
+        gap: 0.375rem;
+    }
+    .tab-toggle-6 .tab-toggle-btn {
+        padding: 0.5rem 0.625rem;
+        font-size: 0.7rem;
+    }
+}
+
+@media (min-width: 640px) {
+    .tab-toggle-6 {
+        gap: 0.5rem;
+    }
+    .tab-toggle-6 .tab-toggle-btn {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Danger Zone tab button */
+.tab-toggle-btn.tab-danger {
+    color: #ef4444;
+}
+
+.tab-toggle-btn.tab-danger:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.tab-toggle-btn.tab-danger.active {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* ============================================
+   DANGER ZONE TAB
+   ============================================ */
+
+.danger-zone-card {
+    border-color: rgba(239, 68, 68, 0.5);
+    background-color: rgba(239, 68, 68, 0.02);
+}
+
+.danger-header {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.danger-icon {
+    color: #ef4444;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+}
+
+.danger-title {
+    color: #ef4444;
+    margin: 0;
+}
+
+.danger-description {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    margin: 0 0 1.5rem 0;
+}
+
+.danger-action {
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+}
+
+.danger-action-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #ef4444;
+    margin: 0 0 0.25rem 0;
+}
+
+.danger-action-desc {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    margin: 0 0 1rem 0;
+}
+
+.delete-list {
+    margin: 0;
+    padding: 0 0 0 1.25rem;
+    list-style: disc;
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+}
+
+.delete-list li {
+    padding: 0.125rem 0;
+}
+
+.preserved-note {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    margin: 1rem 0;
+}
+
+/* ============================================
+   RESET MODAL
+   ============================================ */
+
+.reset-warning-intro {
+    font-size: 0.875rem;
+    color: var(--foreground);
+    margin: 0 0 1rem 0;
+}
+
+.reset-confirm-text {
+    font-size: 0.875rem;
+    color: var(--foreground);
+    margin: 0 0 0.75rem 0;
+}
+
+.reset-code {
+    padding: 0.125rem 0.375rem;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.875rem;
+    background-color: var(--muted);
+    border-radius: 0.25rem;
+}
+
+.reset-input {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
