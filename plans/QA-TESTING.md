@@ -2005,7 +2005,7 @@ The OpenRouter Python SDK provides a `models.list()` method that returns all ava
    - Parses JSON error response from server
    - Displays specific error message if validation fails
 
-**Status:** Fixed - awaiting verification.
+**Status:** Verified
 
 ---
 

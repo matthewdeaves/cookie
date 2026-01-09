@@ -8,15 +8,57 @@
 
 ## Session Scope
 
-| Session | Tasks | Focus |
-|---------|-------|-------|
-| A | 8B.1 | Recipe remix: Backend API + React UI |
-| | ✓ | Verify: Remix creates recipe with `is_remix=True` |
-| B | 8B.2 | Recipe remix: Legacy UI |
-| C | 8B.3-8B.4 | Serving adjustment + tips generation |
-| D | 8B.5-8B.6 | Discover feed + search ranking |
-| E | 8B.7-8B.8 | Timer naming + remix suggestions |
-| F | 8B.9-8B.10 | Selector repair + tests |
+| Session | Tasks | Focus | Status |
+|---------|-------|-------|--------|
+| A | 8B.1 | Recipe remix: Backend API + React UI | ✓ Complete |
+| B | 8B.2 | Recipe remix: Legacy UI | ✓ Complete |
+| C | 8B.3-8B.4 | Serving adjustment + tips generation | ✓ Complete |
+| D | 8B.4-fix, 8B.5-8B.6 | Tips auto-generation + Discover feed + search ranking | **Next** |
+| E | 8B.7 | Timer naming (8B.8 remix suggestions already complete) | Pending |
+| F | 8B.9-8B.10 | Selector repair + tests | Pending |
+
+---
+
+## Session D Implementation Summary
+
+### What Already Exists (foundation complete)
+- AI prompts seeded: `discover_favorites`, `discover_seasonal`, `discover_new`, `search_ranking`, `tips_generation`
+- Validators defined in `apps/ai/services/validator.py` for all prompt types
+- OpenRouterService working in `apps/ai/services/openrouter.py`
+- Tips service exists in `apps/ai/services/tips.py`
+- React `Home.tsx` has Discover tab UI (currently shows placeholder)
+
+### Task 1: Tips Auto-Generation (8B.4-fix)
+
+**Backend:**
+1. Update `apps/scraping/scraper.py` to call `generate_tips()` after successful import
+2. Make it non-blocking (fire-and-forget) so import response isn't delayed
+3. Add `regenerate` parameter to `/api/ai/tips/` endpoint
+
+**Frontend:**
+1. React `RecipeDetail.tsx`: Change "Generate Tips" to "Regenerate Tips", show tips by default
+2. Legacy `recipe_detail.html`: Same changes
+
+### Task 2: Discover AI Suggestions (8B.5)
+
+**Backend:**
+1. Create `AIDiscoverySuggestion` model in `apps/ai/models.py` (see Feature 4-6 spec)
+2. Create `apps/ai/services/discover.py` with `get_discover_suggestions(profile)`
+3. Add `GET /api/ai/discover/` endpoint to `apps/ai/api.py`
+
+**Frontend:**
+1. React `Home.tsx`: Replace "AI Recommendations Coming Soon" with actual discover feed
+2. Legacy `home.html`: Add discover section (can defer to Session E if needed)
+
+### Task 3: Search Result Ranking (8B.6)
+
+**Backend:**
+1. Create `apps/ai/services/ranking.py` with `rank_results(query, results)`
+2. Integrate into `apps/scraping/search.py` - after multi-site search, pass through AI ranking
+3. Make ranking optional (skip if no API key configured)
+
+**Frontend:**
+- No changes needed (ranking is transparent to user)
 
 ---
 
@@ -24,8 +66,8 @@
 
 - [x] 8B.1 React: Recipe remix feature with AI suggestions modal
 - [x] 8B.2 Legacy: Recipe remix feature
-- [ ] 8B.3 Serving adjustment API (AI-only, cached per-profile)
-- [ ] 8B.4 Tips generation service (cached in ai_tips field)
+- [x] 8B.3 Serving adjustment API (AI-only, cached per-profile)
+- [x] 8B.4 Tips generation service (auto-generated on import, cached in ai_tips field)
 - [ ] 8B.5 Discover AI suggestions (3 types combined into feed)
 - [ ] 8B.6 Search result ranking
 - [ ] 8B.7 Timer naming
@@ -154,10 +196,22 @@ Response:
 ## Feature 3: Tips Generation
 
 ### Flow
-1. Recipe scraped/imported
-2. Background task generates tips via AI
+1. Recipe scraped/imported successfully
+2. **Auto-generate tips** immediately after import (non-blocking, fire-and-forget)
 3. Tips cached in `Recipe.ai_tips` field (JSONField)
-4. Displayed in "Cooking Tips" tab on recipe detail
+4. Tips ready and displayed when user views recipe detail
+5. "Regenerate Tips" button allows user to refresh tips
+
+### Auto-Generation Integration
+```python
+# In scraper.py after successful import:
+from apps.ai.services.tips import generate_tips
+
+# After recipe saved successfully
+if ai_available:
+    # Fire-and-forget - don't block the import response
+    asyncio.create_task(generate_tips(recipe.id))
+```
 
 ### Prompt Input
 - Recipe title
@@ -168,11 +222,18 @@ Response:
 - Array of 3-5 tip strings
 - Example: ["Let the dough rest for fluffier results", "Don't overmix the batter"]
 
+### Frontend Display
+- **Tips tab**: Shows tips immediately if available (no "Generate" button needed)
+- **Regenerate button**: Clears existing tips and generates fresh ones
+- **Loading state**: Show spinner while regenerating
+- **Empty state**: Only shown if AI unavailable or generation failed
+
 ### API Endpoint
 ```
 POST   /api/ai/tips/
 {
-    "recipe_id": 123
+    "recipe_id": 123,
+    "regenerate": false  // Optional: force regeneration
 }
 
 Response:
@@ -398,13 +459,13 @@ apps/recipes/
 ## Frontend Integration
 
 ### React Components to Update
-- `RecipeDetail.tsx` - Add Remix button, serving adjuster visibility logic
+- `RecipeDetail.tsx` - Add Remix button, serving adjuster, tips display with "Regenerate Tips" button
 - `PlayMode.tsx` - Add AI timer naming
 - `Home.tsx` - Add Discover feed when on "Discover" toggle
 - `Search.tsx` - Integrate AI ranking (transparent to user)
 
 ### Legacy Pages to Update
-- `recipe_detail.html` - Add Remix button, serving adjuster
+- `recipe_detail.html` - Add Remix button, serving adjuster, tips display with "Regenerate Tips" button
 - `play_mode.html` - Add AI timer naming
 - `home.html` - Add Discover feed
 - Search ranking applied server-side (transparent)
@@ -430,8 +491,8 @@ const showAIFeatures = settings.ai_available;
 3. Remix shows "User Generated" badge
 4. Serving adjustment works when API key + servings present
 5. Serving adjustment hidden otherwise (no error, just hidden)
-6. Tips are generated and cached per recipe
-7. Tips tab shows AI-generated tips
+6. Tips are auto-generated on recipe import (non-blocking)
+7. Tips tab shows tips immediately when available, with "Regenerate Tips" button
 8. Discover shows mixed feed from all 3 AI types
 9. Discover refreshes daily (24-hour cache)
 10. New users see seasonal suggestions only
@@ -450,7 +511,7 @@ const showAIFeatures = settings.ai_available;
 [ ] Create remix - new Recipe with is_remix=True, host="user-generated"
 [ ] Remix visibility - only visible to creating profile
 [ ] Serving adjustment - scales ingredients via AI
-[ ] Tips tab - shows 3-5 AI-generated tips
+[ ] Tips auto-generated on import, displayed immediately with "Regenerate" button
 [ ] Discover feed - shows suggestions from favorites/seasonal/new types
 [ ] New user discover - only seasonal suggestions (no favorites)
 [ ] Search ranking - results reordered by AI relevance
