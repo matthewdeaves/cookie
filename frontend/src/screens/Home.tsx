@@ -10,6 +10,7 @@ import {
   type DiscoverSuggestion,
 } from '../api/client'
 import RecipeCard from '../components/RecipeCard'
+import { RecipeGridSkeleton } from '../components/Skeletons'
 import { cn } from '../lib/utils'
 
 interface HomeProps {
@@ -240,9 +241,7 @@ export default function Home({
           )}
 
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <span className="text-muted-foreground">Loading...</span>
-            </div>
+            <RecipeGridSkeleton count={6} />
           ) : activeTab === 'favorites' || !aiAvailable ? (
             <>
               {/* Recently Viewed */}

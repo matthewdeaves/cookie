@@ -3,6 +3,7 @@ import { ArrowLeft, Heart } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type Recipe, type Favorite } from '../api/client'
 import RecipeCard from '../components/RecipeCard'
+import { RecipeGridSkeleton } from '../components/Skeletons'
 
 interface FavoritesProps {
   onBack: () => void
@@ -57,9 +58,7 @@ export default function Favorites({ onBack, onRecipeClick }: FavoritesProps) {
       <main className="px-4 py-6">
         <div className="mx-auto max-w-4xl">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <span className="text-muted-foreground">Loading...</span>
-            </div>
+            <RecipeGridSkeleton count={8} />
           ) : favorites.length > 0 ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
               {favorites.map((favorite) => (

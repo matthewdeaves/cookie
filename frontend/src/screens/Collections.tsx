@@ -3,6 +3,7 @@ import { ArrowLeft, FolderPlus, Plus, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type Collection } from '../api/client'
 import { cn } from '../lib/utils'
+import { CollectionGridSkeleton } from '../components/Skeletons'
 
 interface CollectionsProps {
   onBack: () => void
@@ -170,9 +171,7 @@ export default function Collections({
           )}
 
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <span className="text-muted-foreground">Loading...</span>
-            </div>
+            <CollectionGridSkeleton count={8} />
           ) : collections.length > 0 ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
               {collections.map((collection) => (

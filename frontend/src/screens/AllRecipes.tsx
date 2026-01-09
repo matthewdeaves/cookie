@@ -3,6 +3,7 @@ import { ArrowLeft, BookOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type HistoryItem } from '../api/client'
 import RecipeCard from '../components/RecipeCard'
+import { RecipeGridSkeleton } from '../components/Skeletons'
 
 interface AllRecipesProps {
   onBack: () => void
@@ -47,9 +48,7 @@ export default function AllRecipes({ onBack, onRecipeClick }: AllRecipesProps) {
       <main className="px-4 py-6">
         <div className="mx-auto max-w-4xl">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <span className="text-muted-foreground">Loading...</span>
-            </div>
+            <RecipeGridSkeleton count={8} />
           ) : history.length > 0 ? (
             <>
               <p className="mb-4 text-sm text-muted-foreground">

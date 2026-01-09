@@ -21,6 +21,7 @@ import { cn } from '../lib/utils'
 import AddToCollectionDropdown from '../components/AddToCollectionDropdown'
 import RemixModal from '../components/RemixModal'
 import { useAIStatus } from '../contexts/AIStatusContext'
+import { RecipeDetailSkeleton } from '../components/Skeletons'
 
 interface RecipeDetailProps {
   recipeId: number
@@ -196,11 +197,7 @@ export default function RecipeDetail({
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <span className="text-muted-foreground">Loading...</span>
-      </div>
-    )
+    return <RecipeDetailSkeleton />
   }
 
   if (!recipe) {

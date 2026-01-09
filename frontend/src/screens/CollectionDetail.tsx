@@ -3,6 +3,7 @@ import { ArrowLeft, Trash2, X, FolderOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type CollectionDetail as CollectionDetailType, type Recipe } from '../api/client'
 import RecipeCard from '../components/RecipeCard'
+import { LoadingSpinner } from '../components/Skeletons'
 
 interface CollectionDetailProps {
   collectionId: number
@@ -70,8 +71,8 @@ export default function CollectionDetail({
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <span className="text-muted-foreground">Loading...</span>
+      <div className="min-h-screen bg-background">
+        <LoadingSpinner className="min-h-screen" />
       </div>
     )
   }
