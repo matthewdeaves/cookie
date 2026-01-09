@@ -209,39 +209,41 @@ export default function Home({
             </div>
           </form>
 
-          {/* Tab toggle */}
-          <div className="mb-6 flex justify-center">
-            <div className="inline-flex rounded-lg bg-muted p-1">
-              <button
-                onClick={() => setActiveTab('favorites')}
-                className={cn(
-                  'rounded-md px-4 py-2 text-sm font-medium transition-colors',
-                  activeTab === 'favorites'
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                My Favorites
-              </button>
-              <button
-                onClick={() => setActiveTab('discover')}
-                className={cn(
-                  'rounded-md px-4 py-2 text-sm font-medium transition-colors',
-                  activeTab === 'discover'
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                Discover
-              </button>
+          {/* Tab toggle - only show if AI is available (8B.11 graceful degradation) */}
+          {aiAvailable && (
+            <div className="mb-6 flex justify-center">
+              <div className="inline-flex rounded-lg bg-muted p-1">
+                <button
+                  onClick={() => setActiveTab('favorites')}
+                  className={cn(
+                    'rounded-md px-4 py-2 text-sm font-medium transition-colors',
+                    activeTab === 'favorites'
+                      ? 'bg-background text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  My Favorites
+                </button>
+                <button
+                  onClick={() => setActiveTab('discover')}
+                  className={cn(
+                    'rounded-md px-4 py-2 text-sm font-medium transition-colors',
+                    activeTab === 'discover'
+                      ? 'bg-background text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  Discover
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <span className="text-muted-foreground">Loading...</span>
             </div>
-          ) : activeTab === 'favorites' ? (
+          ) : activeTab === 'favorites' || !aiAvailable ? (
             <>
               {/* Recently Viewed */}
               {history.length > 0 && (

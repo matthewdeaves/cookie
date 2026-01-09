@@ -445,8 +445,9 @@ export default function RecipeDetail({
               { key: 'ingredients', label: 'Ingredients' },
               { key: 'instructions', label: 'Instructions' },
               { key: 'nutrition', label: 'Nutrition' },
-              { key: 'tips', label: 'Tips' },
-            ] as const
+              // Only show Tips tab when AI is available (8B.11 graceful degradation)
+              ...(settings?.ai_available ? [{ key: 'tips' as const, label: 'Tips' }] : []),
+            ]
           ).map(({ key, label }) => (
             <button
               key={key}
