@@ -21,6 +21,15 @@ def is_ranking_available() -> bool:
         return False
 
 
+def _sort_by_image(results: list[dict]) -> list[dict]:
+    """Sort results to prioritize those with images.
+
+    This provides a basic image-first sorting when AI ranking
+    is unavailable or fails.
+    """
+    return sorted(results, key=lambda r: (0 if r.get('image_url') else 1))
+
+
 def rank_results(query: str, results: list[dict]) -> list[dict]:
     """Rank search results using AI.
 
@@ -47,14 +56,14 @@ def rank_results(query: str, results: list[dict]) -> list[dict]:
 
     # Check if ranking is available
     if not is_ranking_available():
-        logger.debug('AI ranking skipped: No API key configured')
-        return results
+        logger.debug('AI ranking skipped: No API key configured, using image-first sorting')
+        return _sort_by_image(results)
 
     try:
         prompt = AIPrompt.get_prompt('search_ranking')
     except AIPrompt.DoesNotExist:
-        logger.warning('search_ranking prompt not found')
-        return results
+        logger.warning('search_ranking prompt not found, using image-first sorting')
+        return _sort_by_image(results)
 
     # Format results for the AI
     # Limit to first 40 results to keep prompt size manageable
@@ -102,11 +111,11 @@ def rank_results(query: str, results: list[dict]) -> list[dict]:
         return ranked_results
 
     except (AIUnavailableError, AIResponseError, ValidationError) as e:
-        logger.warning(f'AI ranking failed for query "{query}": {e}')
-        return results
+        logger.warning(f'AI ranking failed for query "{query}": {e}, using image-first sorting')
+        return _sort_by_image(results)
     except Exception as e:
-        logger.error(f'Unexpected error in AI ranking: {e}')
-        return results
+        logger.error(f'Unexpected error in AI ranking: {e}, using image-first sorting')
+        return _sort_by_image(results)
 
 
 def _apply_ranking(results: list[dict], ranking: list[int]) -> list[dict]:
