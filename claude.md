@@ -2,6 +2,30 @@
 
 ## Critical Rules
 
+### Docker is the ONLY Environment
+
+**⚠️ STOP - READ THIS FIRST ⚠️**
+
+The host machine has NO Python/Django installed. ALL backend commands MUST run inside Docker:
+
+```bash
+# Tests
+docker compose exec web python -m pytest
+
+# Django shell
+docker compose exec web python manage.py shell
+
+# Any management command
+docker compose exec web python manage.py <command>
+
+# Frontend tests
+docker compose exec frontend npm test
+```
+
+**If you see `ModuleNotFoundError: No module named 'django'`, you ran on the host instead of the container.**
+
+---
+
 ### Figma Design Interpretation
 
 1. **Settings AI Prompts page is FOR LAYOUT ONLY** - The 4 prompts shown (Recipe Remix, Serving Adjustment, Tips Generation, Nutrition Analysis) are just examples to show how the settings page should look. DO NOT use this to determine which AI features exist.
@@ -113,10 +137,14 @@ Settings → Safari → Clear History and Website Data
 
 30. **Testing framework** - pytest for all tests (unit + integration). Use Django's test client for API tests.
 
-31. **ALWAYS run tests in Docker** - Never run tests on the host. Docker is the canonical environment.
-    - Backend: `docker compose exec web python -m pytest`
-    - Frontend: `docker compose exec frontend npm test` (runs and exits)
-    - Frontend watch mode: `docker compose exec frontend npm run test:watch`
+31. **ALL backend commands run in Docker** - The host has NO Python/Django environment. NEVER run Python, pytest, manage.py, or any backend command on the host. Docker is the ONLY environment.
+    - **Backend tests:** `docker compose exec web python -m pytest`
+    - **Django shell:** `docker compose exec web python manage.py shell`
+    - **Management commands:** `docker compose exec web python manage.py <command>`
+    - **Frontend tests:** `docker compose exec frontend npm test` (runs and exits)
+    - **Frontend watch:** `docker compose exec frontend npm run test:watch`
+
+    ⚠️ If you see `ModuleNotFoundError: No module named 'django'`, you forgot to use the container!
 
 32. **Selector AI fallback** - When a search source's CSS selector fails, AI analyzes the HTML and suggests a new selector. Auto-updates the source setting on success.
 
