@@ -12,9 +12,12 @@ COPY . .
 # Create staticfiles directory
 RUN mkdir -p /app/staticfiles
 
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Expose port
 EXPOSE 8000
 
-# Run gunicorn with auto-reload for development
-# --threads 2: Allows concurrent requests and background threading
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--reload", "--workers", "2", "--threads", "2", "cookie.wsgi:application"]
+# Run entrypoint (migrate + collectstatic + gunicorn)
+ENTRYPOINT ["/entrypoint.sh"]

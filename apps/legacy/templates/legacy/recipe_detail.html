@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="screen" data-page="recipe-detail" data-recipe-id="{{ recipe.id }}" data-profile-id="{{ profile.id }}">
+<div class="screen" data-page="recipe-detail" data-recipe-id="{{ recipe.id }}" data-profile-id="{{ profile.id }}" data-scraped-at="{{ recipe.scraped_at|date:'c' }}" data-has-tips="{% if recipe.ai_tips %}true{% else %}false{% endif %}">
     <!-- Hero Image -->
     <div class="hero">
         {% if recipe.image %}
@@ -272,6 +272,13 @@
                     </li>
                     {% endfor %}
                 </ol>
+                {% if ai_available %}
+                <div class="tips-regenerate">
+                    <button type="button" id="regenerate-tips-btn" class="btn btn-secondary">
+                        Regenerate Tips
+                    </button>
+                </div>
+                {% endif %}
                 {% else %}
                 <div class="tips-empty">
                     <div class="tips-empty-icon">
@@ -300,7 +307,8 @@
                         <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
                     </svg>
                 </div>
-                <p class="tips-loading-text">Generating cooking tips...</p>
+                <p id="tips-loading-text" class="tips-loading-text">Generating cooking tips...</p>
+                <p id="tips-loading-subtext" class="tips-loading-subtext hidden">Tips are being generated in the background</p>
             </div>
         </div>
     </div>

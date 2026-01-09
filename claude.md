@@ -50,6 +50,35 @@
 13. **ES5 JavaScript only** - No const/let, arrow functions, template literals, async/await
 14. **Timers are REQUIRED** - Play mode must have working timers on legacy
 
+### Container Restart After Legacy Changes (IMPORTANT)
+
+**After ANY change to legacy frontend files (JS, CSS), restart containers:**
+
+```bash
+docker compose down && docker compose up -d
+```
+
+The entrypoint script automatically runs `collectstatic` on every container start.
+
+**Why restart is required:**
+- Static files are served from `./staticfiles/` on the host (mounted into nginx)
+- `collectstatic` copies from `apps/legacy/static/` to `./staticfiles/`
+- The entrypoint runs this automatically, but only on container start
+
+**Quick verification before QA:**
+```bash
+# Check static file has your changes
+grep "unique string from your change" ./staticfiles/legacy/js/pages/detail.js
+
+# Check container logs show collectstatic ran
+docker compose logs web | grep "Collecting static"
+```
+
+**Template changes (.html)** - No restart needed, Django serves directly.
+
+**Remind user to clear iPad Safari cache** after deploying changes:
+Settings → Safari → Clear History and Website Data
+
 ### Data Model
 
 15. **Full recipe-scrapers support** - Database schema supports ALL fields from the library (ingredient_groups, equipment, dietary_restrictions, etc.)

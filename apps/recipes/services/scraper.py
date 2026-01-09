@@ -5,6 +5,7 @@ Recipe scraper service using curl_cffi and recipe-scrapers.
 import hashlib
 import logging
 import re
+import threading
 from io import BytesIO
 from pathlib import Path
 from urllib.parse import urlparse
@@ -143,7 +144,38 @@ class RecipeScraper:
             filename = self._generate_image_filename(url, data.get('image_url', ''))
             await sync_to_async(recipe.image.save)(filename, image_file, save=True)
 
+        # Fire-and-forget: Generate AI tips in background thread (non-blocking)
+        thread = threading.Thread(
+            target=self._generate_tips_background,
+            args=(recipe.id,),
+            daemon=True
+        )
+        thread.start()
+
         return recipe
+
+    def _generate_tips_background(self, recipe_id: int):
+        """Generate AI tips for a recipe in background thread."""
+        try:
+            import django
+            django.setup()  # Ensure Django is configured in thread
+
+            from apps.core.models import AppSettings
+            from apps.ai.services.tips import generate_tips
+
+            # Check if AI is available
+            settings_obj = AppSettings.get()
+            if not settings_obj.openrouter_api_key:
+                logger.debug(f'Skipping tips generation for recipe {recipe_id}: No API key')
+                return
+
+            # Generate tips
+            generate_tips(recipe_id)
+            logger.info(f'Auto-generated tips for recipe {recipe_id}')
+
+        except Exception as e:
+            # Log but don't fail - tips generation is optional
+            logger.warning(f'Failed to auto-generate tips for recipe {recipe_id}: {e}')
 
     async def _fetch_html(self, url: str) -> str:
         """

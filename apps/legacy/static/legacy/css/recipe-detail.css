@@ -980,6 +980,16 @@
     margin: 0;
 }
 
+.tips-loading-subtext {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    margin-top: 0.5rem;
+}
+
+.tips-loading-subtext.hidden {
+    display: none;
+}
+
 @-webkit-keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
@@ -997,4 +1007,15 @@
 /* Generate Tips Button */
 #generate-tips-btn {
     margin-top: 1rem;
+}
+
+/* Regenerate Tips */
+.tips-regenerate {
+    text-align: center;
+    padding-top: 1.5rem;
+    margin-top: 1rem;
+}
+
+#regenerate-tips-btn {
+    margin: 0 auto;
 }

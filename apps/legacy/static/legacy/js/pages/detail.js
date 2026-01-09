@@ -21,6 +21,16 @@ Cookie.pages.detail = (function() {
     var scalingNotes = [];
     var adjustedTimes = null;  // {prep: int|null, cook: int|null, total: int|null}
 
+    // Tips polling state
+    var tipsPollingState = {
+        isPolling: false,
+        pollInterval: null,
+        pollStartTime: null
+    };
+    var TIPS_POLL_INTERVAL = 3000;  // 3 seconds
+    var TIPS_MAX_POLL_DURATION = 30000;  // 30 seconds
+    var TIPS_RECENT_THRESHOLD = 60000;  // 60 seconds
+
     /**
      * Initialize the page
      */
@@ -32,6 +42,26 @@ Cookie.pages.detail = (function() {
         profileId = parseInt(pageEl.getAttribute('data-profile-id'), 10);
 
         setupEventListeners();
+
+        // Check if we should poll for tips (recently imported recipe with no tips)
+        var scrapedAt = pageEl.getAttribute('data-scraped-at');
+        var hasTips = pageEl.getAttribute('data-has-tips') === 'true';
+
+        if (scrapedAt && !hasTips) {
+            // iOS 9 Safari compatible date parsing
+            // Convert "2026-01-09T09:18:29.135626+00:00" to Safari-parseable format
+            var scrapedDate = new Date(scrapedAt
+                .replace('T', ' ')              // Replace T with space
+                .replace(/\.\d+/, '')           // Remove microseconds (.135626)
+                .replace(/[+-]\d{2}:\d{2}$/, '') // Remove timezone (+00:00 or -05:00)
+                .replace('Z', '')               // Remove Z suffix if present
+                .replace(/-/g, '/'));           // Convert dashes to slashes for Safari
+            var recipeAge = Date.now() - scrapedDate.getTime();
+
+            if (!isNaN(recipeAge) && recipeAge < TIPS_RECENT_THRESHOLD) {
+                startTipsPolling();
+            }
+        }
     }
 
     /**
@@ -183,7 +213,17 @@ Cookie.pages.detail = (function() {
         // Generate tips button
         var generateTipsBtn = document.getElementById('generate-tips-btn');
         if (generateTipsBtn) {
-            generateTipsBtn.addEventListener('click', handleGenerateTips);
+            generateTipsBtn.addEventListener('click', function() {
+                handleGenerateTips(false);
+            });
+        }
+
+        // Regenerate tips button
+        var regenerateTipsBtn = document.getElementById('regenerate-tips-btn');
+        if (regenerateTipsBtn) {
+            regenerateTipsBtn.addEventListener('click', function() {
+                handleGenerateTips(true);
+            });
         }
     }
 
@@ -1014,9 +1054,88 @@ Cookie.pages.detail = (function() {
     }
 
     /**
-     * Handle generate tips button click
+     * Start polling for tips (for recently imported recipes)
      */
-    function handleGenerateTips() {
+    function startTipsPolling() {
+        if (tipsPollingState.isPolling) return;
+
+        tipsPollingState.isPolling = true;
+        tipsPollingState.pollStartTime = Date.now();
+
+        // Show loading state with polling message
+        var tipsContent = document.getElementById('tips-content');
+        var tipsLoading = document.getElementById('tips-loading');
+        var tipsSubtext = document.getElementById('tips-loading-subtext');
+
+        if (tipsContent) {
+            tipsContent.classList.add('hidden');
+        }
+        if (tipsLoading) {
+            tipsLoading.classList.remove('hidden');
+        }
+        if (tipsSubtext) {
+            tipsSubtext.classList.remove('hidden');
+        }
+
+        // Start polling interval
+        tipsPollingState.pollInterval = setInterval(function() {
+            var elapsed = Date.now() - tipsPollingState.pollStartTime;
+
+            // Stop if we've been polling too long
+            if (elapsed > TIPS_MAX_POLL_DURATION) {
+                stopTipsPolling(true);
+                return;
+            }
+
+            // Poll for recipe data
+            Cookie.ajax.get('/api/recipes/' + recipeId + '/', function(error, data) {
+                if (error) {
+                    // Ignore errors, will retry on next interval
+                    return;
+                }
+
+                if (data && data.ai_tips && data.ai_tips.length > 0) {
+                    // Tips are ready! Render them
+                    renderTips(data.ai_tips);
+                    stopTipsPolling(false);
+                }
+            });
+        }, TIPS_POLL_INTERVAL);
+    }
+
+    /**
+     * Stop polling for tips
+     */
+    function stopTipsPolling(showEmptyState) {
+        if (tipsPollingState.pollInterval) {
+            clearInterval(tipsPollingState.pollInterval);
+            tipsPollingState.pollInterval = null;
+        }
+        tipsPollingState.isPolling = false;
+
+        var tipsLoading = document.getElementById('tips-loading');
+        var tipsSubtext = document.getElementById('tips-loading-subtext');
+
+        if (tipsLoading) {
+            tipsLoading.classList.add('hidden');
+        }
+        if (tipsSubtext) {
+            tipsSubtext.classList.add('hidden');
+        }
+
+        // If timed out, show the empty state
+        if (showEmptyState) {
+            var tipsContent = document.getElementById('tips-content');
+            if (tipsContent) {
+                tipsContent.classList.remove('hidden');
+            }
+        }
+    }
+
+    /**
+     * Handle generate/regenerate tips button click
+     */
+    function handleGenerateTips(regenerate) {
         if (isGeneratingTips) return;
 
         isGeneratingTips = true;
@@ -1032,7 +1151,10 @@ Cookie.pages.detail = (function() {
             tipsLoading.classList.remove('hidden');
         }
 
-        Cookie.ajax.post('/api/ai/tips', { recipe_id: recipeId }, function(err, response) {
+        Cookie.ajax.post('/api/ai/tips', {
+            recipe_id: recipeId,
+            regenerate: regenerate || false
+        }, function(err, response) {
             isGeneratingTips = false;
 
             if (err) {
@@ -1050,9 +1172,7 @@ Cookie.pages.detail = (function() {
             // Render tips
             renderTips(response.tips);
 
-            if (!response.cached) {
-                Cookie.toast.success('Tips generated!');
-            }
+            Cookie.toast.success(regenerate ? 'Tips regenerated!' : 'Tips generated!');
         });
     }
 
@@ -1084,8 +1204,21 @@ Cookie.pages.detail = (function() {
         }
         html += '</ol>';
 
+        // Add regenerate button
+        html += '<div class="tips-regenerate">';
+        html += '<button type="button" id="regenerate-tips-btn" class="btn btn-secondary">Regenerate Tips</button>';
+        html += '</div>';
+
         tipsContent.innerHTML = html;
         tipsContent.classList.remove('hidden');
+
+        // Re-bind regenerate button event listener
+        var regenerateBtn = document.getElementById('regenerate-tips-btn');
+        if (regenerateBtn) {
+            regenerateBtn.addEventListener('click', function() {
+                handleGenerateTips(true);
+            });
+        }
     }
 
     return {

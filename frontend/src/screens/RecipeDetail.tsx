@@ -56,10 +56,56 @@ export default function RecipeDetail({
   const [scalingLoading, setScalingLoading] = useState(false)
   const [tips, setTips] = useState<string[]>([])
   const [tipsLoading, setTipsLoading] = useState(false)
+  const [tipsPolling, setTipsPolling] = useState(false)
 
   useEffect(() => {
     loadData()
   }, [recipeId])
+
+  // Poll for tips if recipe is recently imported and has no tips yet
+  useEffect(() => {
+    if (!recipe) return
+
+    const recipeAge = Date.now() - new Date(recipe.scraped_at).getTime()
+    const isRecent = recipeAge < 60000 // 60 seconds
+
+    // Only poll for recent recipes with no tips
+    if (!isRecent || tips.length > 0) {
+      setTipsPolling(false)
+      return
+    }
+
+    setTipsPolling(true)
+    const startTime = Date.now()
+    const POLL_INTERVAL = 3000 // 3 seconds
+    const MAX_POLL_DURATION = 30000 // 30 seconds
+
+    const interval = setInterval(async () => {
+      // Stop if we've been polling too long
+      if (Date.now() - startTime > MAX_POLL_DURATION) {
+        clearInterval(interval)
+        setTipsPolling(false)
+        return
+      }
+
+      try {
+        const updated = await api.recipes.get(recipe.id)
+        if (updated.ai_tips && updated.ai_tips.length > 0) {
+          setTips(updated.ai_tips)
+          setRecipe((prev) => prev ? { ...prev, ai_tips: updated.ai_tips } : prev)
+          clearInterval(interval)
+          setTipsPolling(false)
+        }
+      } catch {
+        // Ignore polling errors, will retry on next interval
+      }
+    }, POLL_INTERVAL)
+
+    return () => {
+      clearInterval(interval)
+      setTipsPolling(false)
+    }
+  }, [recipe?.id, recipe?.scraped_at, tips.length])
 
   const loadData = async () => {
     try {
@@ -121,18 +167,16 @@ export default function RecipeDetail({
     }
   }
 
-  const handleGenerateTips = async () => {
+  const handleGenerateTips = async (regenerate: boolean = false) => {
     if (!recipe || tipsLoading) return
 
     setTipsLoading(true)
     try {
-      const result = await api.ai.tips(recipe.id)
+      const result = await api.ai.tips(recipe.id, regenerate)
       setTips(result.tips)
       // Update the recipe object too
       setRecipe({ ...recipe, ai_tips: result.tips })
-      if (!result.cached) {
-        toast.success('Tips generated!')
-      }
+      toast.success(regenerate ? 'Tips regenerated!' : 'Tips generated!')
     } catch (error) {
       console.error('Failed to generate tips:', error)
       toast.error('Failed to generate tips')
@@ -420,6 +464,7 @@ export default function RecipeDetail({
             scalingNotes={scaledData?.notes || []}
             aiAvailable={settings?.ai_available}
             loading={tipsLoading}
+            polling={tipsPolling}
             onGenerateTips={handleGenerateTips}
           />
         )}
@@ -579,14 +624,17 @@ function TipsTab({
   scalingNotes,
   aiAvailable,
   loading,
+  polling,
   onGenerateTips,
 }: {
   tips: string[]
   scalingNotes: string[]
   aiAvailable?: boolean
   loading: boolean
-  onGenerateTips: () => void
+  polling: boolean
+  onGenerateTips: (regenerate: boolean) => void
 }) {
+  // Show loading state when manually generating tips
   if (loading) {
     return (
       <div className="text-center">
@@ -596,7 +644,21 @@ function TipsTab({
     )
   }
 
-  const hasContent = tips.length > 0 || scalingNotes.length > 0
+  const hasTips = tips.length > 0
+  const hasContent = hasTips || scalingNotes.length > 0
+
+  // Show polling state when waiting for background generation
+  if (!hasContent && polling) {
+    return (
+      <div className="text-center">
+        <Sparkles className="mx-auto mb-3 h-8 w-8 animate-pulse text-primary" />
+        <p className="text-foreground">Generating cooking tips...</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Tips are being generated in the background
+        </p>
+      </div>
+    )
+  }
 
   if (!hasContent) {
     return (
@@ -605,7 +667,7 @@ function TipsTab({
         <p className="mb-2 text-foreground">No cooking tips yet</p>
         {aiAvailable ? (
           <button
-            onClick={onGenerateTips}
+            onClick={() => onGenerateTips(false)}
             className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Generate Tips
@@ -637,7 +699,7 @@ function TipsTab({
       )}
 
       {/* Tips */}
-      {tips.length > 0 && (
+      {hasTips && (
         <ol className="space-y-3">
           {tips.map((tip, index) => (
             <li key={index} className="flex items-start gap-3">
@@ -650,14 +712,14 @@ function TipsTab({
         </ol>
       )}
 
-      {/* Show generate button if no tips but has scaling notes */}
-      {tips.length === 0 && aiAvailable && (
+      {/* Regenerate/Generate button */}
+      {aiAvailable && (
         <div className="text-center pt-4">
           <button
-            onClick={onGenerateTips}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            onClick={() => onGenerateTips(hasTips)}
+            className="rounded-lg bg-muted px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
           >
-            Generate Tips
+            {hasTips ? 'Regenerate Tips' : 'Generate Tips'}
           </button>
         </div>
       )}
