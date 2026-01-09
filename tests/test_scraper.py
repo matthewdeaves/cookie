@@ -191,7 +191,7 @@ class TestScraperParseRecipe:
             self.scraper._parse_recipe('<html></html>', 'https://example.com')
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 class TestScraperIntegration:
     """Integration tests for recipe scraper."""
 

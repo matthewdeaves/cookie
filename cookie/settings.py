@@ -53,6 +53,23 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            # Increase lock wait timeout from default 5s to 20s
+            'timeout': 20,
+            # Acquire write lock at transaction START (not mid-transaction)
+            # This prevents "database is locked" errors during concurrent writes
+            # by allowing failed lock acquisitions to be retried
+            'transaction_mode': 'IMMEDIATE',
+            # PRAGMA settings applied on each new connection:
+            # - journal_mode=WAL: Allow concurrent reads during writes
+            # - synchronous=NORMAL: Safe for WAL mode, better performance
+            # - busy_timeout=5000: Wait up to 5s for locks at SQLite level
+            'init_command': (
+                'PRAGMA journal_mode=WAL;'
+                'PRAGMA synchronous=NORMAL;'
+                'PRAGMA busy_timeout=5000;'
+            ),
+        },
     }
 }
 
