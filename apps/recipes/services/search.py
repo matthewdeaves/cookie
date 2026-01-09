@@ -402,6 +402,24 @@ class RecipeSearch:
             r'/terms',
             r'/newsletter',
             r'/subscribe',
+            # Article/blog paths (QA-053)
+            r'/article/',
+            r'/articles/',
+            r'/blog/',
+            r'/post/',
+            r'/posts/',
+            r'/news/',
+            r'/story/',
+            r'/stories/',
+            r'/feature/',
+            r'/features/',
+            r'/guide/',
+            r'/guides/',
+            r'/review/',
+            r'/reviews/',
+            r'/roundup/',
+            r'/list/',
+            r'/listicle/',
         ]
 
         for pattern in exclude_patterns:

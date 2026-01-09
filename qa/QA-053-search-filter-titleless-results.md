@@ -125,6 +125,7 @@ High - Users encountering errors when trying to import search results
 **`apps/recipes/services/search.py`**
 - Added title check after rating extraction (line 292-294)
 - If title becomes empty after stripping rating text, result is filtered out
+- Added article/blog URL exclusion patterns to `_looks_like_recipe_url()` to filter non-recipe pages
 
 **`apps/ai/services/ranking.py`**
 - Added `_filter_valid()` helper to filter results without titles
