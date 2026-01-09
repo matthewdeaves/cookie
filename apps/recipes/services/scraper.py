@@ -10,6 +10,7 @@ from io import BytesIO
 from pathlib import Path
 from urllib.parse import urlparse
 
+from PIL import Image
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -327,6 +328,8 @@ class RecipeScraper:
     async def _download_image(self, image_url: str) -> ContentFile | None:
         """
         Download recipe image and return as ContentFile.
+
+        WebP images are converted to JPEG for iOS 9 compatibility.
         """
         if not image_url:
             return None
@@ -342,12 +345,48 @@ class RecipeScraper:
                 if response.status_code == 200:
                     content_type = response.headers.get('content-type', '')
                     if 'image' in content_type or self._is_image_url(image_url):
-                        return ContentFile(response.content)
+                        content = response.content
+                        # Convert WebP to JPEG for iOS 9 compatibility
+                        content = self._convert_webp_to_jpeg(content)
+                        return ContentFile(content)
 
         except Exception as e:
             logger.warning(f"Failed to download image {image_url}: {e}")
 
         return None
+
+    def _convert_webp_to_jpeg(self, content: bytes) -> bytes:
+        """Convert WebP images to JPEG for iOS 9 compatibility.
+
+        Also resizes very large images to reduce file size.
+        """
+        try:
+            img = Image.open(BytesIO(content))
+
+            # Check if conversion is needed (WebP or very large)
+            needs_conversion = img.format == 'WEBP'
+            needs_resize = img.width > 1200 or img.height > 1200
+
+            if not needs_conversion and not needs_resize:
+                return content
+
+            # Resize if too large (max 1200px on longest side)
+            if needs_resize:
+                img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
+
+            # Convert to RGB if needed (for JPEG)
+            if img.mode in ('RGBA', 'P'):
+                img = img.convert('RGB')
+
+            # Save as JPEG
+            output = BytesIO()
+            img.save(output, format='JPEG', quality=85, optimize=True)
+            logger.info(f"Converted image: {img.format} -> JPEG, resized: {needs_resize}")
+            return output.getvalue()
+
+        except Exception as e:
+            logger.warning(f"Image conversion failed: {e}, using original")
+            return content
 
     def _is_image_url(self, url: str) -> bool:
         """Check if URL looks like an image."""
@@ -356,18 +395,14 @@ class RecipeScraper:
         return parsed.path.lower().endswith(image_extensions)
 
     def _generate_image_filename(self, recipe_url: str, image_url: str) -> str:
-        """Generate a unique filename for the recipe image."""
+        """Generate a unique filename for the recipe image.
+
+        Always uses .jpg extension since images are converted to JPEG
+        for iOS 9 compatibility.
+        """
         # Create hash from URLs for uniqueness
         url_hash = hashlib.md5(
             f"{recipe_url}{image_url}".encode()
         ).hexdigest()[:12]
 
-        # Get extension from image URL
-        ext = '.jpg'  # default
-        if image_url:
-            parsed = urlparse(image_url)
-            path_ext = Path(parsed.path).suffix.lower()
-            if path_ext in ('.jpg', '.jpeg', '.png', '.gif', '.webp'):
-                ext = path_ext
-
-        return f"recipe_{url_hash}{ext}"
+        return f"recipe_{url_hash}.jpg"
