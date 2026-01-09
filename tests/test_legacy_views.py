@@ -63,16 +63,18 @@ class TestLegacyHome:
         assert 'data-page="home"' in content
         assert 'Search recipes' in content
 
-    def test_home_shows_favorites_tab(self, client):
-        """Home shows favorites/discover tabs."""
+    def test_home_shows_favorites_section(self, client):
+        """Home shows favorites section."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         client.post(f'/api/profiles/{profile.id}/select/')
 
         response = client.get('/legacy/home/')
         assert response.status_code == 200
         content = response.content.decode()
-        assert 'My Favorites' in content
-        assert 'Discover' in content
+        # Check for favorites section (always present)
+        assert 'My Favorite Recipes' in content
+        # Check for empty state message when no favorites
+        assert 'No favorites yet' in content
 
     def test_home_shows_favorite_recipes(self, client):
         """Home displays user's favorite recipes."""

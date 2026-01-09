@@ -257,13 +257,14 @@ class TestDeleteRecipe:
 class TestScrapeRecipe:
     """Tests for POST /api/recipes/scrape/"""
 
-    @patch('apps.recipes.api.get_current_profile_or_none')
+    @patch('apps.recipes.api.aget_current_profile_or_none')
     @patch('apps.recipes.api.RecipeScraper')
     async def test_scrape_recipe_success(self, mock_scraper_class, mock_get_profile, db):
         """Test scraping a recipe successfully."""
         from asgiref.sync import sync_to_async
         from apps.profiles.models import Profile
         from datetime import datetime
+        from unittest.mock import AsyncMock
 
         # Create profile synchronously using sync_to_async
         @sync_to_async
@@ -272,7 +273,7 @@ class TestScrapeRecipe:
 
         test_profile = await create_profile()
 
-        # Mock the profile lookup to return our test profile
+        # Mock the async profile lookup to return our test profile
         mock_get_profile.return_value = test_profile
 
         # Create a simple object with all fields RecipeOut needs
@@ -334,7 +335,7 @@ class TestScrapeRecipe:
         assert data['title'] == 'Test Recipe'
         assert data['host'] == 'example.com'
 
-    @patch('apps.recipes.api.get_current_profile_or_none')
+    @patch('apps.recipes.api.aget_current_profile_or_none')
     @patch('apps.recipes.api.RecipeScraper')
     async def test_scrape_recipe_fetch_error(self, mock_scraper_class, mock_get_profile, db):
         """Test scraping returns 502 on fetch error."""
@@ -348,7 +349,7 @@ class TestScrapeRecipe:
 
         test_profile = await create_profile()
 
-        # Mock the profile lookup
+        # Mock the async profile lookup
         mock_get_profile.return_value = test_profile
 
         mock_scraper = MagicMock()
@@ -368,7 +369,7 @@ class TestScrapeRecipe:
         data = response.json()
         assert 'Connection failed' in data['detail']
 
-    @patch('apps.recipes.api.get_current_profile_or_none')
+    @patch('apps.recipes.api.aget_current_profile_or_none')
     @patch('apps.recipes.api.RecipeScraper')
     async def test_scrape_recipe_parse_error(self, mock_scraper_class, mock_get_profile, db):
         """Test scraping returns 400 on parse error."""
@@ -382,7 +383,7 @@ class TestScrapeRecipe:
 
         test_profile = await create_profile()
 
-        # Mock the profile lookup
+        # Mock the async profile lookup
         mock_get_profile.return_value = test_profile
 
         mock_scraper = MagicMock()
