@@ -298,15 +298,23 @@ Cookie Recipe App Design/  # Figma export (reference during frontend phases)
 
 ### Run Tests After Each Task
 
+**⚠️ ALL backend commands must run in Docker - the host has no Python/Django environment.**
+
 ```bash
-# Run all tests
-pytest
+# Run all backend tests
+docker compose exec web python -m pytest
 
 # Run specific test file
-pytest tests/test_recipes.py
+docker compose exec web python -m pytest tests/test_recipes.py
 
 # Run with verbose output
-pytest -v
+docker compose exec web python -m pytest -v
+
+# Django shell (for debugging)
+docker compose exec web python manage.py shell
+
+# Frontend tests
+docker compose exec frontend npm test
 ```
 
 ### Manual Testing Checkpoints
