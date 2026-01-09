@@ -203,6 +203,7 @@ export interface SearchResult {
   image_url: string
   cached_image_url: string | null
   description: string
+  rating_count: number | null
 }
 
 export interface SearchResponse {

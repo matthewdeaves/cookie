@@ -96,6 +96,16 @@ class TestSearchResultDataclass:
         )
         assert result.image_url == ''
         assert result.description == ''
+        assert result.rating_count is None
+
+    def test_search_result_with_rating_count(self):
+        result = SearchResult(
+            url='https://example.com/recipe/123',
+            title='Test Recipe',
+            host='example.com',
+            rating_count=1392,
+        )
+        assert result.rating_count == 1392
 
 
 class TestParseSearchResults:
@@ -181,6 +191,90 @@ class TestParseSearchResults:
             'https://example.com/search',
         )
         assert result is None
+
+    def test_extract_rating_from_title(self):
+        """Test that rating count is extracted and stripped from title."""
+        from bs4 import BeautifulSoup
+        html = '''
+        <div class="recipe-card">
+            <a href="/recipe/123/butter-chicken">
+                <h3>Chicken Makhani (Indian Butter Chicken)1,392Ratings</h3>
+            </a>
+        </div>
+        '''
+        soup = BeautifulSoup(html, 'html.parser')
+        element = soup.find('div')
+        result = self.search._extract_result_from_element(
+            element,
+            'example.com',
+            'https://example.com/search',
+        )
+        assert result is not None
+        assert result.title == 'Chicken Makhani (Indian Butter Chicken)'
+        assert result.rating_count == 1392
+
+    def test_extract_rating_with_space(self):
+        """Test rating extraction with space before 'Ratings'."""
+        from bs4 import BeautifulSoup
+        html = '''
+        <div class="recipe-card">
+            <a href="/recipe/456/cookies">
+                <h3>Chocolate Chip Cookies 500 Ratings</h3>
+            </a>
+        </div>
+        '''
+        soup = BeautifulSoup(html, 'html.parser')
+        element = soup.find('div')
+        result = self.search._extract_result_from_element(
+            element,
+            'example.com',
+            'https://example.com/search',
+        )
+        assert result is not None
+        assert result.title == 'Chocolate Chip Cookies'
+        assert result.rating_count == 500
+
+    def test_extract_no_rating(self):
+        """Test that titles without ratings leave rating_count as None."""
+        from bs4 import BeautifulSoup
+        html = '''
+        <div class="recipe-card">
+            <a href="/recipe/789/brownies">
+                <h3>Fudgy Brownies</h3>
+            </a>
+        </div>
+        '''
+        soup = BeautifulSoup(html, 'html.parser')
+        element = soup.find('div')
+        result = self.search._extract_result_from_element(
+            element,
+            'example.com',
+            'https://example.com/search',
+        )
+        assert result is not None
+        assert result.title == 'Fudgy Brownies'
+        assert result.rating_count is None
+
+    def test_extract_single_rating(self):
+        """Test rating extraction with singular 'Rating'."""
+        from bs4 import BeautifulSoup
+        html = '''
+        <div class="recipe-card">
+            <a href="/recipe/111/cake">
+                <h3>Simple Cake1 Rating</h3>
+            </a>
+        </div>
+        '''
+        soup = BeautifulSoup(html, 'html.parser')
+        element = soup.find('div')
+        result = self.search._extract_result_from_element(
+            element,
+            'example.com',
+            'https://example.com/search',
+        )
+        assert result is not None
+        assert result.title == 'Simple Cake'
+        assert result.rating_count == 1
 
 
 @pytest.mark.django_db(transaction=True)

@@ -26,6 +26,7 @@ class SearchResult:
     host: str
     image_url: str = ''
     description: str = ''
+    rating_count: Optional[int] = None
 
 
 class RecipeSearch:
@@ -130,6 +131,7 @@ class RecipeSearch:
                 'host': r.host,
                 'image_url': r.image_url,
                 'description': r.description,
+                'rating_count': r.rating_count,
             }
             for r in unique_results
         ]
@@ -274,6 +276,19 @@ class RecipeSearch:
         if not title:
             return None
 
+        # Extract and strip rating count from title (e.g., "Recipe Name1,392Ratings")
+        rating_count = None
+        rating_match = re.search(r'([\d,]+)\s*[Rr]atings?\s*$', title)
+        if rating_match:
+            # Extract the number and remove commas
+            rating_str = rating_match.group(1).replace(',', '')
+            try:
+                rating_count = int(rating_str)
+                # Remove rating text from title
+                title = title[:rating_match.start()].strip()
+            except ValueError:
+                pass
+
         # Extract image
         image_url = ''
         img = element.find('img')
@@ -294,6 +309,7 @@ class RecipeSearch:
             host=host,
             image_url=image_url,
             description=description,
+            rating_count=rating_count,
         )
 
     def _fallback_parse(

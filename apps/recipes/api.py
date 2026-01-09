@@ -111,6 +111,7 @@ class SearchResultOut(Schema):
     image_url: str  # External URL (fallback)
     cached_image_url: Optional[str] = None  # Local cached URL
     description: str
+    rating_count: Optional[int] = None
 
 
 class SearchOut(Schema):

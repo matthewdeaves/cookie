@@ -20,7 +20,7 @@ Expects: result (dict with url, title, host, image_url, description)
     <!-- Content -->
     <div class="search-result-content">
         <h3 class="search-result-title">{{ result.title }}</h3>
-        <p class="search-result-host">{{ result.host }}</p>
+        <p class="search-result-host">{{ result.host }}{% if result.rating_count %} · {{ result.rating_count }} Ratings{% endif %}</p>
         {% if result.description %}
         <p class="search-result-description">{{ result.description }}</p>
         {% endif %}

@@ -275,7 +275,12 @@ function SearchResultCard({
         <h3 className="mb-1 line-clamp-2 text-sm font-medium text-card-foreground">
           {result.title}
         </h3>
-        <p className="mb-2 text-xs text-muted-foreground">{result.host}</p>
+        <p className="mb-2 text-xs text-muted-foreground">
+          {result.host}
+          {result.rating_count && (
+            <span> · {result.rating_count.toLocaleString()} Ratings</span>
+          )}
+        </p>
         {result.description && (
           <p className="mb-3 line-clamp-2 text-xs text-muted-foreground">
             {result.description}
