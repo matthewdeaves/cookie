@@ -61,6 +61,7 @@ export default function ProfileSelector({
       }
       const profile = await api.profiles.create(data)
       setProfiles([...profiles, profile])
+      onProfileSelect(profile)
       setShowCreateForm(false)
       setNewName('')
       setSelectedColor(PROFILE_COLORS[0])

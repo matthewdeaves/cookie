@@ -1,5 +1,7 @@
 # QA-037: Auto-Navigate to Home After Profile Creation
 
+**Status: FIXED** (2026-01-09)
+
 ## Issue
 After creating a new profile, the user stays on the profile selector screen. They should automatically be taken to the home/search page.
 
@@ -91,3 +93,24 @@ The `selectProfile()` function (lines 113-126) handles:
 ### Effort Estimate
 
 Very small - 1 line addition per platform.
+
+---
+
+## Fix Implementation
+
+### React (`frontend/src/screens/ProfileSelector.tsx`)
+Added `onProfileSelect(profile)` after `setProfiles()` in `handleCreateProfile()`:
+```typescript
+const profile = await api.profiles.create(data)
+setProfiles([...profiles, profile])
+onProfileSelect(profile)  // NEW: Auto-select and navigate
+```
+
+### Legacy (`apps/legacy/static/legacy/js/pages/profile-selector.js`)
+Added `selectProfile(profile.id)` after `addProfileToGrid()` in `handleCreateProfile()`:
+```javascript
+addProfileToGrid(profile);
+selectProfile(profile.id);  // NEW: Auto-select and navigate
+```
+
+Note: Removed `hideCreateForm()` call in Legacy since `selectProfile()` navigates away from the page.

@@ -187,8 +187,8 @@ Cookie.pages.profileSelector = (function() {
             // Add new profile to grid
             addProfileToGrid(profile);
 
-            // Hide form
-            hideCreateForm();
+            // Auto-select the new profile and navigate to home
+            selectProfile(profile.id);
         });
     }
 
