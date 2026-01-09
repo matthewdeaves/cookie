@@ -1,5 +1,6 @@
 """Profile utilities."""
 
+from asgiref.sync import sync_to_async
 from django.http import Http404
 
 from .models import Profile
@@ -36,3 +37,22 @@ def get_current_profile_or_none(request):
         return Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
         return None
+
+
+async def aget_current_profile_or_none(request):
+    """
+    Async version of get_current_profile_or_none.
+
+    Use this in async views/endpoints.
+    """
+    @sync_to_async
+    def _get_profile():
+        profile_id = request.session.get('profile_id')
+        if not profile_id:
+            return None
+        try:
+            return Profile.objects.get(id=profile_id)
+        except Profile.DoesNotExist:
+            return None
+
+    return await _get_profile()

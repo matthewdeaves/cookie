@@ -62,6 +62,13 @@ class Recipe(models.Model):
     # AI-generated content
     ai_tips = models.JSONField(default=list, blank=True)
 
+    # Profile ownership - each recipe belongs to a profile
+    profile = models.ForeignKey(
+        'profiles.Profile',
+        on_delete=models.CASCADE,
+        related_name='recipes',
+    )
+
     # Remix tracking
     is_remix = models.BooleanField(default=False)
     remix_profile = models.ForeignKey(
@@ -81,6 +88,7 @@ class Recipe(models.Model):
             models.Index(fields=['host']),
             models.Index(fields=['is_remix']),
             models.Index(fields=['scraped_at']),
+            models.Index(fields=['profile']),
         ]
 
     def __str__(self):

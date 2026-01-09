@@ -196,6 +196,12 @@ class TestScraperIntegration:
     """Integration tests for recipe scraper."""
 
     @pytest.fixture
+    def test_profile(self, db):
+        """Create a test profile for recipe ownership."""
+        from apps.profiles.models import Profile
+        return Profile.objects.create(name='Test User', avatar_color='#d97850')
+
+    @pytest.fixture
     def mock_html_response(self):
         """Mock HTML with JSON-LD recipe data."""
         return '''
@@ -227,7 +233,7 @@ class TestScraperIntegration:
         '''
 
     @patch('apps.recipes.services.scraper.AsyncSession')
-    async def test_scrape_url_creates_recipe(self, mock_session_class, mock_html_response):
+    async def test_scrape_url_creates_recipe(self, mock_session_class, mock_html_response, test_profile):
         """Test that scraping a URL creates a Recipe record."""
         from apps.recipes.models import Recipe
 
@@ -249,18 +255,19 @@ class TestScraperIntegration:
         mock_session.get.side_effect = [mock_response, mock_img_response]
 
         scraper = RecipeScraper()
-        recipe = await scraper.scrape_url('https://www.example.com/recipe/test')
+        recipe = await scraper.scrape_url('https://www.example.com/recipe/test', test_profile)
 
         assert recipe.id is not None
         assert recipe.title == 'Simple Test Cookies'
         assert recipe.host == 'example.com'
+        assert recipe.profile_id == test_profile.id
         assert len(recipe.ingredients) == 2
         assert recipe.prep_time == 15
         assert recipe.cook_time == 12
         assert recipe.total_time == 27
 
     @patch('apps.recipes.services.scraper.AsyncSession')
-    async def test_scrape_url_fetch_failure(self, mock_session_class):
+    async def test_scrape_url_fetch_failure(self, mock_session_class, test_profile):
         """Test that fetch failure raises FetchError."""
         mock_session = MagicMock()
         mock_session.get = AsyncMock(side_effect=Exception('Connection failed'))
@@ -271,10 +278,10 @@ class TestScraperIntegration:
         scraper = RecipeScraper()
 
         with pytest.raises(FetchError, match='Failed to fetch'):
-            await scraper.scrape_url('https://example.com/recipe')
+            await scraper.scrape_url('https://example.com/recipe', test_profile)
 
     @patch('apps.recipes.services.scraper.AsyncSession')
-    async def test_scrape_url_with_image_download(self, mock_session_class, mock_html_response):
+    async def test_scrape_url_with_image_download(self, mock_session_class, mock_html_response, test_profile):
         """Test that recipe images are downloaded and saved."""
         from apps.recipes.models import Recipe
 
@@ -296,7 +303,7 @@ class TestScraperIntegration:
         mock_session_class.return_value = mock_session
 
         scraper = RecipeScraper()
-        recipe = await scraper.scrape_url('https://www.example.com/recipe/test')
+        recipe = await scraper.scrape_url('https://www.example.com/recipe/test', test_profile)
 
         assert recipe.image_url == 'https://example.com/cookie.jpg'
         # Image should be attached

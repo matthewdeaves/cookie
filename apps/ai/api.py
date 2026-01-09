@@ -228,8 +228,22 @@ class RemixOut(Schema):
 
 @router.post('/remix-suggestions', response={200: RemixSuggestionsOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
 def remix_suggestions(request, data: RemixSuggestionsIn):
-    """Get 6 AI-generated remix suggestions for a recipe."""
+    """Get 6 AI-generated remix suggestions for a recipe.
+
+    Only works for recipes owned by the requesting profile.
+    """
+    from apps.profiles.utils import get_current_profile_or_none
+    profile = get_current_profile_or_none(request)
+
     try:
+        # Verify recipe ownership
+        recipe = Recipe.objects.get(id=data.recipe_id)
+        if not profile or recipe.profile_id != profile.id:
+            return 404, {
+                'error': 'not_found',
+                'message': f'Recipe {data.recipe_id} not found',
+            }
+
         suggestions = get_remix_suggestions(data.recipe_id)
         return {'suggestions': suggestions}
     except Recipe.DoesNotExist:
@@ -251,16 +265,36 @@ def remix_suggestions(request, data: RemixSuggestionsIn):
 
 @router.post('/remix', response={200: RemixOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
 def create_remix_endpoint(request, data: CreateRemixIn):
-    """Create a remixed recipe using AI."""
-    try:
-        profile = Profile.objects.get(id=data.profile_id)
-    except Profile.DoesNotExist:
+    """Create a remixed recipe using AI.
+
+    Only works for recipes owned by the requesting profile.
+    The remix will be owned by the same profile.
+    """
+    from apps.profiles.utils import get_current_profile_or_none
+    profile = get_current_profile_or_none(request)
+
+    if not profile:
+        return 404, {
+            'error': 'not_found',
+            'message': 'Profile not found',
+        }
+
+    # Verify the profile_id in the request matches the session profile
+    if data.profile_id != profile.id:
         return 404, {
             'error': 'not_found',
             'message': f'Profile {data.profile_id} not found',
         }
 
     try:
+        # Verify recipe ownership
+        recipe = Recipe.objects.get(id=data.recipe_id)
+        if recipe.profile_id != profile.id:
+            return 404, {
+                'error': 'not_found',
+                'message': f'Recipe {data.recipe_id} not found',
+            }
+
         remix = create_remix(
             recipe_id=data.recipe_id,
             modification=data.modification,
@@ -329,10 +363,21 @@ class ScaleOut(Schema):
 
 @router.post('/scale', response={200: ScaleOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
 def scale_recipe_endpoint(request, data: ScaleIn):
-    """Scale a recipe to a different number of servings."""
-    try:
-        profile = Profile.objects.get(id=data.profile_id)
-    except Profile.DoesNotExist:
+    """Scale a recipe to a different number of servings.
+
+    Only works for recipes owned by the requesting profile.
+    """
+    from apps.profiles.utils import get_current_profile_or_none
+    profile = get_current_profile_or_none(request)
+
+    if not profile:
+        return 404, {
+            'error': 'not_found',
+            'message': 'Profile not found',
+        }
+
+    # Verify the profile_id in the request matches the session profile
+    if data.profile_id != profile.id:
         return 404, {
             'error': 'not_found',
             'message': f'Profile {data.profile_id} not found',
@@ -340,6 +385,12 @@ def scale_recipe_endpoint(request, data: ScaleIn):
 
     try:
         recipe = Recipe.objects.get(id=data.recipe_id)
+        # Verify recipe ownership
+        if recipe.profile_id != profile.id:
+            return 404, {
+                'error': 'not_found',
+                'message': f'Recipe {data.recipe_id} not found',
+            }
     except Recipe.DoesNotExist:
         return 404, {
             'error': 'not_found',
@@ -411,8 +462,20 @@ def tips_endpoint(request, data: TipsIn):
     """Generate cooking tips for a recipe.
 
     Pass regenerate=True to clear existing tips and generate fresh ones.
+    Only works for recipes owned by the requesting profile.
     """
+    from apps.profiles.utils import get_current_profile_or_none
+    profile = get_current_profile_or_none(request)
+
     try:
+        # Verify recipe ownership
+        recipe = Recipe.objects.get(id=data.recipe_id)
+        if not profile or recipe.profile_id != profile.id:
+            return 404, {
+                'error': 'not_found',
+                'message': f'Recipe {data.recipe_id} not found',
+            }
+
         # Clear existing tips if regenerate requested
         if data.regenerate:
             clear_tips(data.recipe_id)

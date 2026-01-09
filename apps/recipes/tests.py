@@ -26,6 +26,7 @@ class BaseTestCase(TestCase):
             avatar_color='#d97850',
         )
         self.recipe = Recipe.objects.create(
+            profile=self.profile,
             title='Chocolate Chip Cookies',
             host='example.com',
             canonical_url='https://example.com/cookies',
@@ -33,6 +34,7 @@ class BaseTestCase(TestCase):
             instructions=['Mix ingredients', 'Bake at 350F'],
         )
         self.recipe2 = Recipe.objects.create(
+            profile=self.profile,
             title='Vanilla Cake',
             host='example.com',
             canonical_url='https://example.com/cake',
@@ -418,7 +420,13 @@ class NoProfileTests(TestCase):
 
     def setUp(self):
         self.client = Client()
+        # Create a profile to own the recipe (not selected in session)
+        self.temp_profile = Profile.objects.create(
+            name='Temp User',
+            avatar_color='#d97850',
+        )
         self.recipe = Recipe.objects.create(
+            profile=self.temp_profile,
             title='Test Recipe',
             host='example.com',
             canonical_url='https://example.com/recipe',

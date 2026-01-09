@@ -7,7 +7,9 @@ from apps.profiles.models import Profile
 class TestRecipeModel:
     def test_create_recipe_minimal(self):
         """Test creating a recipe with minimal required fields."""
+        profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             host='allrecipes.com',
             title='Chocolate Chip Cookies',
         )
@@ -18,7 +20,9 @@ class TestRecipeModel:
 
     def test_create_recipe_full(self):
         """Test creating a recipe with all fields populated."""
+        profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             source_url='https://www.allrecipes.com/recipe/10813/best-chocolate-chip-cookies/',
             canonical_url='https://www.allrecipes.com/recipe/10813/best-chocolate-chip-cookies/',
             host='allrecipes.com',
@@ -63,7 +67,9 @@ class TestRecipeModel:
 
     def test_recipe_default_json_fields(self):
         """Test that JSON fields have correct default values."""
+        profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             host='test.com',
             title='Test Recipe',
         )
@@ -84,10 +90,12 @@ class TestRecipeModel:
             avatar_color='#FF5733',
         )
         original = Recipe.objects.create(
+            profile=profile,
             host='allrecipes.com',
             title='Original Recipe',
         )
         remix = Recipe.objects.create(
+            profile=profile,
             host='cookie.local',
             title='My Remix',
             is_remix=True,
@@ -105,6 +113,7 @@ class TestRecipeModel:
         assert ['host'] in index_fields
         assert ['is_remix'] in index_fields
         assert ['scraped_at'] in index_fields
+        assert ['profile'] in index_fields
 
 
 @pytest.mark.django_db

@@ -49,12 +49,13 @@ class RecipeScraper:
     def __init__(self):
         self.timeout = self.DEFAULT_TIMEOUT
 
-    async def scrape_url(self, url: str) -> 'Recipe':
+    async def scrape_url(self, url: str, profile: 'Profile') -> 'Recipe':
         """
         Scrape a recipe from a URL and save it to the database.
 
         Args:
             url: The recipe URL to scrape
+            profile: The profile that will own this recipe
 
         Returns:
             Recipe model instance
@@ -106,6 +107,7 @@ class RecipeScraper:
 
         # Create recipe record
         recipe = Recipe(
+            profile=profile,
             source_url=url,
             canonical_url=data.get('canonical_url', ''),
             host=data['host'],

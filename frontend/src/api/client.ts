@@ -230,8 +230,18 @@ async function request<T>(
   const response = await fetch(url, config)
 
   if (!response.ok) {
-    const error = await response.text()
-    throw new Error(error || `Request failed with status ${response.status}`)
+    // Read body as text first (can only be read once)
+    const errorText = await response.text()
+    let errorMessage = errorText || `Request failed with status ${response.status}`
+
+    // Try to parse as JSON to extract detail/message
+    try {
+      const errorData = JSON.parse(errorText)
+      errorMessage = errorData.detail || errorData.message || errorMessage
+    } catch {
+      // Not JSON, use text as-is
+    }
+    throw new Error(errorMessage)
   }
 
   // Handle 204 No Content

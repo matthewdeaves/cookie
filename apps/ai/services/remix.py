@@ -132,6 +132,7 @@ def create_remix(
 
     # Create the remixed recipe
     remix = Recipe.objects.create(
+        profile=profile,  # Owner of the remix
         title=validated['title'],
         description=validated['description'],
         ingredients=validated['ingredients'],

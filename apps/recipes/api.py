@@ -6,11 +6,10 @@ import asyncio
 from typing import List, Optional
 
 from asgiref.sync import sync_to_async
-from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from ninja import Router, Schema
 
-from apps.profiles.utils import get_current_profile_or_none
+from apps.profiles.utils import aget_current_profile_or_none, get_current_profile_or_none
 
 from .models import Recipe
 from .services.image_cache import SearchImageCache
@@ -141,16 +140,14 @@ def list_recipes(
     - **limit**: Number of recipes to return (default 50)
     - **offset**: Offset for pagination
 
-    Remixes are only visible to the profile that created them.
+    Returns only recipes owned by the current profile.
     """
     profile = get_current_profile_or_none(request)
-    qs = Recipe.objects.all().order_by('-scraped_at')
+    if not profile:
+        return []
 
-    # Filter remix visibility: non-remixes OR remixes owned by current profile
-    if profile:
-        qs = qs.filter(Q(is_remix=False) | Q(remix_profile=profile))
-    else:
-        qs = qs.filter(is_remix=False)
+    # Only show recipes owned by this profile
+    qs = Recipe.objects.filter(profile=profile).order_by('-scraped_at')
 
     if host:
         qs = qs.filter(host=host)
@@ -160,20 +157,25 @@ def list_recipes(
     return qs[offset:offset + limit]
 
 
-@router.post('/scrape/', response={201: RecipeOut, 400: ErrorOut, 502: ErrorOut})
+@router.post('/scrape/', response={201: RecipeOut, 400: ErrorOut, 403: ErrorOut, 502: ErrorOut})
 async def scrape_recipe(request, payload: ScrapeIn):
     """
     Scrape a recipe from a URL.
 
     The URL is fetched, parsed for recipe data, and saved to the database.
     If the recipe has an image, it will be downloaded and stored locally.
+    The recipe will be owned by the current profile.
 
     Note: Re-scraping the same URL will create a new recipe record.
     """
+    profile = await aget_current_profile_or_none(request)
+    if not profile:
+        return 403, {'detail': 'Profile required to scrape recipes'}
+
     scraper = RecipeScraper()
 
     try:
-        recipe = await scraper.scrape_url(payload.url)
+        recipe = await scraper.scrape_url(payload.url, profile)
         return 201, recipe
     except FetchError as e:
         return 502, {'detail': str(e)}
@@ -286,16 +288,14 @@ def get_recipe(request, recipe_id: int):
     """
     Get a recipe by ID.
 
-    Remixes are only visible to the profile that created them.
+    Only returns recipes owned by the current profile.
     """
-    recipe = get_object_or_404(Recipe, id=recipe_id)
+    profile = get_current_profile_or_none(request)
+    if not profile:
+        return 404, {'detail': 'Recipe not found'}
 
-    # Check remix visibility
-    if recipe.is_remix:
-        profile = get_current_profile_or_none(request)
-        if not profile or recipe.remix_profile_id != profile.id:
-            return 404, {'detail': 'Recipe not found'}
-
+    # Only allow access to recipes owned by this profile
+    recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)
     return recipe
 
 
@@ -304,15 +304,13 @@ def delete_recipe(request, recipe_id: int):
     """
     Delete a recipe by ID.
 
-    Remixes can only be deleted by the profile that created them.
+    Only the owning profile can delete a recipe.
     """
-    recipe = get_object_or_404(Recipe, id=recipe_id)
+    profile = get_current_profile_or_none(request)
+    if not profile:
+        return 404, {'detail': 'Recipe not found'}
 
-    # Check remix visibility
-    if recipe.is_remix:
-        profile = get_current_profile_or_none(request)
-        if not profile or recipe.remix_profile_id != profile.id:
-            return 404, {'detail': 'Recipe not found'}
-
+    # Only allow deletion of recipes owned by this profile
+    recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)
     recipe.delete()
     return 204, None

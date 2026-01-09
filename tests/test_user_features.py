@@ -33,18 +33,20 @@ def profile_b(db):
 
 
 @pytest.fixture
-def recipe(db):
-    """Create a test recipe."""
+def recipe(db, profile_a):
+    """Create a test recipe owned by profile_a."""
     return Recipe.objects.create(
+        profile=profile_a,
         host='test.com',
         title='Test Recipe',
     )
 
 
 @pytest.fixture
-def recipe2(db):
-    """Create a second test recipe."""
+def recipe2(db, profile_a):
+    """Create a second test recipe owned by profile_a."""
     return Recipe.objects.create(
+        profile=profile_a,
         host='test.com',
         title='Another Recipe',
     )
@@ -305,7 +307,7 @@ class TestHistoryAPI:
         select_profile(client, profile_a)
         # Create 10 recipes and view history
         for i in range(10):
-            recipe = Recipe.objects.create(host='test.com', title=f'Recipe {i}')
+            recipe = Recipe.objects.create(profile=profile_a, host='test.com', title=f'Recipe {i}')
             RecipeViewHistory.objects.create(profile=profile_a, recipe=recipe)
 
         response = client.get('/api/history/?limit=5')
@@ -412,36 +414,34 @@ class TestProfileIsolation:
 
 
 # =============================================================================
-# Remix Visibility Tests
+# Recipe Profile Isolation Tests
 # =============================================================================
 
 @pytest.mark.django_db
-class TestRemixVisibility:
-    """Tests for remix recipe visibility."""
+class TestRecipeProfileIsolation:
+    """Tests for recipe isolation per profile."""
 
-    def test_remix_visible_to_owner(self, client, profile_a):
-        """Remixes are visible to the creating profile."""
+    def test_recipe_visible_to_owner(self, client, profile_a):
+        """Recipes are visible to the owning profile."""
         select_profile(client, profile_a)
-        remix = Recipe.objects.create(
-            host='cookie.local',
-            title='My Remix',
-            is_remix=True,
-            remix_profile=profile_a,
+        recipe = Recipe.objects.create(
+            profile=profile_a,
+            host='example.com',
+            title='My Recipe',
         )
 
         response = client.get('/api/recipes/')
         assert response.status_code == 200
         titles = [r['title'] for r in response.json()]
-        assert 'My Remix' in titles
+        assert 'My Recipe' in titles
 
-    def test_remix_hidden_from_other_profiles(self, client, profile_a, profile_b):
-        """Remixes are hidden from other profiles."""
-        # Profile A creates a remix
+    def test_recipe_hidden_from_other_profiles(self, client, profile_a, profile_b):
+        """Recipes are hidden from other profiles."""
+        # Profile A creates a recipe
         Recipe.objects.create(
-            host='cookie.local',
-            title='Profile A Remix',
-            is_remix=True,
-            remix_profile=profile_a,
+            profile=profile_a,
+            host='example.com',
+            title='Profile A Recipe',
         )
 
         # Profile B should not see it
@@ -449,105 +449,98 @@ class TestRemixVisibility:
         response = client.get('/api/recipes/')
         assert response.status_code == 200
         titles = [r['title'] for r in response.json()]
-        assert 'Profile A Remix' not in titles
+        assert 'Profile A Recipe' not in titles
 
-    def test_remix_hidden_when_no_profile(self, client, profile_a):
-        """Remixes are hidden when no profile is selected."""
+    def test_recipes_hidden_when_no_profile(self, client, profile_a):
+        """Recipes are hidden when no profile is selected."""
         Recipe.objects.create(
-            host='cookie.local',
-            title='Hidden Remix',
-            is_remix=True,
-            remix_profile=profile_a,
+            profile=profile_a,
+            host='example.com',
+            title='Hidden Recipe',
         )
 
         response = client.get('/api/recipes/')
         assert response.status_code == 200
-        titles = [r['title'] for r in response.json()]
-        assert 'Hidden Remix' not in titles
+        # No recipes returned without profile selected
+        assert response.json() == []
 
-    def test_non_remix_visible_to_all(self, client, profile_a, profile_b, recipe):
-        """Non-remix recipes are visible to all profiles."""
-        # No profile selected - should see the test recipe
+    def test_recipe_only_visible_to_owner(self, client, profile_a, profile_b, recipe):
+        """Recipes are only visible to their owning profile."""
+        # No profile selected - should not see the test recipe
         response = client.get('/api/recipes/')
         assert response.status_code == 200
-        recipe_ids = [r['id'] for r in response.json()]
-        assert recipe.id in recipe_ids
+        assert response.json() == []
 
-        # Profile A - should see the test recipe
+        # Profile A (owner) - should see the test recipe
         select_profile(client, profile_a)
         response = client.get('/api/recipes/')
         recipe_ids = [r['id'] for r in response.json()]
         assert recipe.id in recipe_ids
 
-        # Profile B - should see the test recipe
+        # Profile B (not owner) - should not see the test recipe
         select_profile(client, profile_b)
         response = client.get('/api/recipes/')
         recipe_ids = [r['id'] for r in response.json()]
-        assert recipe.id in recipe_ids
+        assert recipe.id not in recipe_ids
 
-    def test_get_remix_by_id_owner(self, client, profile_a):
-        """Owner can get their remix by ID."""
+    def test_get_recipe_by_id_owner(self, client, profile_a):
+        """Owner can get their recipe by ID."""
         select_profile(client, profile_a)
-        remix = Recipe.objects.create(
-            host='cookie.local',
-            title='My Remix',
-            is_remix=True,
-            remix_profile=profile_a,
+        recipe = Recipe.objects.create(
+            profile=profile_a,
+            host='example.com',
+            title='My Recipe',
         )
 
-        response = client.get(f'/api/recipes/{remix.id}/')
+        response = client.get(f'/api/recipes/{recipe.id}/')
         assert response.status_code == 200
-        assert response.json()['title'] == 'My Remix'
+        assert response.json()['title'] == 'My Recipe'
 
-    def test_get_remix_by_id_other_profile(self, client, profile_a, profile_b):
-        """Other profiles get 404 when accessing remix by ID."""
-        remix = Recipe.objects.create(
-            host='cookie.local',
-            title='Profile A Remix',
-            is_remix=True,
-            remix_profile=profile_a,
+    def test_get_recipe_by_id_other_profile(self, client, profile_a, profile_b):
+        """Other profiles get 404 when accessing recipe by ID."""
+        recipe = Recipe.objects.create(
+            profile=profile_a,
+            host='example.com',
+            title='Profile A Recipe',
         )
 
         select_profile(client, profile_b)
-        response = client.get(f'/api/recipes/{remix.id}/')
+        response = client.get(f'/api/recipes/{recipe.id}/')
         assert response.status_code == 404
 
-    def test_get_remix_by_id_no_profile(self, client, profile_a):
-        """No profile selected gets 404 when accessing remix by ID."""
-        remix = Recipe.objects.create(
-            host='cookie.local',
-            title='Hidden Remix',
-            is_remix=True,
-            remix_profile=profile_a,
+    def test_get_recipe_by_id_no_profile(self, client, profile_a):
+        """No profile selected gets 404 when accessing recipe by ID."""
+        recipe = Recipe.objects.create(
+            profile=profile_a,
+            host='example.com',
+            title='Hidden Recipe',
         )
 
-        response = client.get(f'/api/recipes/{remix.id}/')
+        response = client.get(f'/api/recipes/{recipe.id}/')
         assert response.status_code == 404
 
-    def test_delete_remix_owner(self, client, profile_a):
-        """Owner can delete their remix."""
+    def test_delete_recipe_owner(self, client, profile_a):
+        """Owner can delete their recipe."""
         select_profile(client, profile_a)
-        remix = Recipe.objects.create(
-            host='cookie.local',
-            title='My Remix',
-            is_remix=True,
-            remix_profile=profile_a,
+        recipe = Recipe.objects.create(
+            profile=profile_a,
+            host='example.com',
+            title='My Recipe',
         )
 
-        response = client.delete(f'/api/recipes/{remix.id}/')
+        response = client.delete(f'/api/recipes/{recipe.id}/')
         assert response.status_code == 204
-        assert not Recipe.objects.filter(id=remix.id).exists()
+        assert not Recipe.objects.filter(id=recipe.id).exists()
 
-    def test_delete_remix_other_profile(self, client, profile_a, profile_b):
-        """Other profiles cannot delete someone else's remix."""
-        remix = Recipe.objects.create(
-            host='cookie.local',
-            title='Profile A Remix',
-            is_remix=True,
-            remix_profile=profile_a,
+    def test_delete_recipe_other_profile(self, client, profile_a, profile_b):
+        """Other profiles cannot delete someone else's recipe."""
+        recipe = Recipe.objects.create(
+            profile=profile_a,
+            host='example.com',
+            title='Profile A Recipe',
         )
 
         select_profile(client, profile_b)
-        response = client.delete(f'/api/recipes/{remix.id}/')
+        response = client.delete(f'/api/recipes/{recipe.id}/')
         assert response.status_code == 404
-        assert Recipe.objects.filter(id=remix.id).exists()
+        assert Recipe.objects.filter(id=recipe.id).exists()

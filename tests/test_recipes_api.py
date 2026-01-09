@@ -14,10 +14,11 @@ def client():
 
 
 @pytest.fixture
-def sample_recipe(db):
+def sample_recipe(db, test_profile):
     """Create a sample recipe for testing."""
     from apps.recipes.models import Recipe
     return Recipe.objects.create(
+        profile=test_profile,
         host='allrecipes.com',
         title='Test Chocolate Chip Cookies',
         source_url='https://www.allrecipes.com/recipe/12345/test-cookies/',
@@ -44,21 +45,25 @@ def multiple_recipes(db, test_profile):
     from apps.recipes.models import Recipe
     recipes = []
     recipes.append(Recipe.objects.create(
+        profile=test_profile,
         host='allrecipes.com',
         title='Cookies Recipe',
         is_remix=False,
     ))
     recipes.append(Recipe.objects.create(
+        profile=test_profile,
         host='allrecipes.com',
         title='Brownies Recipe',
         is_remix=False,
     ))
     recipes.append(Recipe.objects.create(
+        profile=test_profile,
         host='bbcgoodfood.com',
         title='Scones Recipe',
         is_remix=False,
     ))
     recipes.append(Recipe.objects.create(
+        profile=test_profile,
         host='cookie.local',
         title='My Remix Recipe',
         is_remix=True,
@@ -77,8 +82,11 @@ class TestListRecipes:
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_list_recipes_returns_recipes(self, client, sample_recipe):
+    def test_list_recipes_returns_recipes(self, client, sample_recipe, test_profile):
         """Test listing recipes returns existing recipes."""
+        # Select the profile that owns the recipes
+        client.post(f'/api/profiles/{test_profile.id}/select/')
+
         response = client.get('/api/recipes/')
         assert response.status_code == 200
         data = response.json()
@@ -86,8 +94,11 @@ class TestListRecipes:
         assert data[0]['title'] == 'Test Chocolate Chip Cookies'
         assert data[0]['host'] == 'allrecipes.com'
 
-    def test_list_recipes_filter_by_host(self, client, multiple_recipes):
+    def test_list_recipes_filter_by_host(self, client, multiple_recipes, test_profile):
         """Test filtering recipes by host."""
+        # Select the profile that owns the recipes
+        client.post(f'/api/profiles/{test_profile.id}/select/')
+
         response = client.get('/api/recipes/?host=allrecipes.com')
         assert response.status_code == 200
         data = response.json()
@@ -106,17 +117,22 @@ class TestListRecipes:
         assert data[0]['is_remix'] is True
         assert data[0]['title'] == 'My Remix Recipe'
 
-    def test_list_recipes_filter_non_remixes(self, client, multiple_recipes):
+    def test_list_recipes_filter_non_remixes(self, client, multiple_recipes, test_profile):
         """Test filtering non-remix recipes."""
+        # Select the profile that owns the recipes
+        client.post(f'/api/profiles/{test_profile.id}/select/')
+
         response = client.get('/api/recipes/?is_remix=false')
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 3
         assert all(r['is_remix'] is False for r in data)
 
-    def test_list_recipes_pagination(self, client, multiple_recipes):
-        """Test pagination with limit and offset (without profile, only non-remixes visible)."""
-        # Without profile selected, only 3 non-remix recipes are visible
+    def test_list_recipes_pagination(self, client, multiple_recipes, test_profile):
+        """Test pagination with limit and offset."""
+        # Select the profile that owns the recipes
+        client.post(f'/api/profiles/{test_profile.id}/select/')
+
         response = client.get('/api/recipes/?limit=2&offset=0')
         assert response.status_code == 200
         data = response.json()
@@ -125,15 +141,18 @@ class TestListRecipes:
         response = client.get('/api/recipes/?limit=2&offset=2')
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 1  # Only 3 recipes visible without profile
+        assert len(data) == 2  # 4 total recipes (3 non-remix + 1 remix)
 
 
 @pytest.mark.django_db
 class TestGetRecipe:
     """Tests for GET /api/recipes/{id}/"""
 
-    def test_get_recipe_success(self, client, sample_recipe):
+    def test_get_recipe_success(self, client, sample_recipe, test_profile):
         """Test getting a recipe by ID."""
+        # Select the profile that owns the recipe
+        client.post(f'/api/profiles/{test_profile.id}/select/')
+
         response = client.get(f'/api/recipes/{sample_recipe.id}/')
         assert response.status_code == 200
         data = response.json()
@@ -147,15 +166,17 @@ class TestGetRecipe:
         assert data['total_time'] == 27
         assert data['rating'] == 4.5
 
-    def test_get_recipe_not_found(self, client):
+    def test_get_recipe_not_found(self, client, test_profile):
         """Test getting a non-existent recipe returns 404."""
+        client.post(f'/api/profiles/{test_profile.id}/select/')
         response = client.get('/api/recipes/99999/')
         assert response.status_code == 404
 
-    def test_get_recipe_full_fields(self, client, db):
+    def test_get_recipe_full_fields(self, client, db, test_profile):
         """Test that all recipe fields are returned."""
         from apps.recipes.models import Recipe
         recipe = Recipe.objects.create(
+            profile=test_profile,
             host='test.com',
             title='Full Recipe',
             source_url='https://test.com/recipe',
@@ -188,6 +209,9 @@ class TestGetRecipe:
             is_remix=False,
         )
 
+        # Select the profile that owns the recipe
+        client.post(f'/api/profiles/{test_profile.id}/select/')
+
         response = client.get(f'/api/recipes/{recipe.id}/')
         assert response.status_code == 200
         data = response.json()
@@ -208,9 +232,12 @@ class TestGetRecipe:
 class TestDeleteRecipe:
     """Tests for DELETE /api/recipes/{id}/"""
 
-    def test_delete_recipe_success(self, client, sample_recipe):
+    def test_delete_recipe_success(self, client, sample_recipe, test_profile):
         """Test deleting a recipe."""
         from apps.recipes.models import Recipe
+
+        # Select the profile that owns the recipe
+        client.post(f'/api/profiles/{test_profile.id}/select/')
 
         recipe_id = sample_recipe.id
         response = client.delete(f'/api/recipes/{recipe_id}/')
@@ -219,37 +246,83 @@ class TestDeleteRecipe:
         # Verify it's deleted
         assert not Recipe.objects.filter(id=recipe_id).exists()
 
-    def test_delete_recipe_not_found(self, client):
+    def test_delete_recipe_not_found(self, client, test_profile):
         """Test deleting a non-existent recipe returns 404."""
+        client.post(f'/api/profiles/{test_profile.id}/select/')
         response = client.delete('/api/recipes/99999/')
         assert response.status_code == 404
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 class TestScrapeRecipe:
     """Tests for POST /api/recipes/scrape/"""
 
+    @patch('apps.recipes.api.get_current_profile_or_none')
     @patch('apps.recipes.api.RecipeScraper')
-    async def test_scrape_recipe_success(self, mock_scraper_class, client):
+    async def test_scrape_recipe_success(self, mock_scraper_class, mock_get_profile, db):
         """Test scraping a recipe successfully."""
-        from apps.recipes.models import Recipe
+        from asgiref.sync import sync_to_async
+        from apps.profiles.models import Profile
+        from datetime import datetime
 
-        # Create a mock recipe that will be returned
-        mock_recipe = Recipe(
-            id=1,
-            host='example.com',
-            title='Test Recipe',
-            source_url='https://example.com/recipe/123',
-        )
-        mock_recipe.scraped_at = mock_recipe.updated_at = __import__('django.utils.timezone', fromlist=['now']).now()
+        # Create profile synchronously using sync_to_async
+        @sync_to_async
+        def create_profile():
+            return Profile.objects.create(name='Test User', avatar_color='#123456')
+
+        test_profile = await create_profile()
+
+        # Mock the profile lookup to return our test profile
+        mock_get_profile.return_value = test_profile
+
+        # Create a simple object with all fields RecipeOut needs
+        # (avoids MagicMock's dynamic attribute creation issue)
+        class MockRecipe:
+            id = 1
+            source_url = 'https://example.com/recipe/123'
+            canonical_url = 'https://example.com/recipe/123'
+            host = 'example.com'
+            site_name = ''
+            title = 'Test Recipe'
+            author = ''
+            description = ''
+            image_url = ''
+            image = None
+            ingredients = []
+            ingredient_groups = []
+            instructions = []
+            instructions_text = ''
+            prep_time = None
+            cook_time = None
+            total_time = None
+            yields = ''
+            servings = None
+            category = ''
+            cuisine = ''
+            cooking_method = ''
+            keywords = []
+            dietary_restrictions = []
+            equipment = []
+            nutrition = {}
+            rating = None
+            rating_count = None
+            language = ''
+            links = []
+            ai_tips = []
+            is_remix = False
+            remix_profile_id = None
+            scraped_at = datetime.now()
+            updated_at = datetime.now()
+
+        mock_recipe = MockRecipe()
 
         mock_scraper = MagicMock()
         mock_scraper.scrape_url = AsyncMock(return_value=mock_recipe)
         mock_scraper_class.return_value = mock_scraper
 
-        # Use async client
         from django.test import AsyncClient
         async_client = AsyncClient()
+
         response = await async_client.post(
             '/api/recipes/scrape/',
             {'url': 'https://example.com/recipe/123'},
@@ -261,10 +334,22 @@ class TestScrapeRecipe:
         assert data['title'] == 'Test Recipe'
         assert data['host'] == 'example.com'
 
+    @patch('apps.recipes.api.get_current_profile_or_none')
     @patch('apps.recipes.api.RecipeScraper')
-    async def test_scrape_recipe_fetch_error(self, mock_scraper_class, client):
+    async def test_scrape_recipe_fetch_error(self, mock_scraper_class, mock_get_profile, db):
         """Test scraping returns 502 on fetch error."""
+        from asgiref.sync import sync_to_async
         from apps.recipes.services.scraper import FetchError
+        from apps.profiles.models import Profile
+
+        @sync_to_async
+        def create_profile():
+            return Profile.objects.create(name='Test User', avatar_color='#123456')
+
+        test_profile = await create_profile()
+
+        # Mock the profile lookup
+        mock_get_profile.return_value = test_profile
 
         mock_scraper = MagicMock()
         mock_scraper.scrape_url = AsyncMock(side_effect=FetchError('Connection failed'))
@@ -272,6 +357,7 @@ class TestScrapeRecipe:
 
         from django.test import AsyncClient
         async_client = AsyncClient()
+
         response = await async_client.post(
             '/api/recipes/scrape/',
             {'url': 'https://example.com/recipe/123'},
@@ -282,10 +368,22 @@ class TestScrapeRecipe:
         data = response.json()
         assert 'Connection failed' in data['detail']
 
+    @patch('apps.recipes.api.get_current_profile_or_none')
     @patch('apps.recipes.api.RecipeScraper')
-    async def test_scrape_recipe_parse_error(self, mock_scraper_class, client):
+    async def test_scrape_recipe_parse_error(self, mock_scraper_class, mock_get_profile, db):
         """Test scraping returns 400 on parse error."""
+        from asgiref.sync import sync_to_async
         from apps.recipes.services.scraper import ParseError
+        from apps.profiles.models import Profile
+
+        @sync_to_async
+        def create_profile():
+            return Profile.objects.create(name='Test User', avatar_color='#123456')
+
+        test_profile = await create_profile()
+
+        # Mock the profile lookup
+        mock_get_profile.return_value = test_profile
 
         mock_scraper = MagicMock()
         mock_scraper.scrape_url = AsyncMock(side_effect=ParseError('Recipe has no title'))
@@ -293,6 +391,7 @@ class TestScrapeRecipe:
 
         from django.test import AsyncClient
         async_client = AsyncClient()
+
         response = await async_client.post(
             '/api/recipes/scrape/',
             {'url': 'https://example.com/recipe/123'},
@@ -302,6 +401,20 @@ class TestScrapeRecipe:
         assert response.status_code == 400
         data = response.json()
         assert 'no title' in data['detail']
+
+    async def test_scrape_recipe_requires_profile(self, db):
+        """Test scraping requires a profile."""
+        from django.test import AsyncClient
+        async_client = AsyncClient()
+        response = await async_client.post(
+            '/api/recipes/scrape/',
+            {'url': 'https://example.com/recipe/123'},
+            content_type='application/json',
+        )
+
+        assert response.status_code == 403
+        data = response.json()
+        assert 'Profile required' in data['detail']
 
 
 @pytest.mark.django_db
@@ -404,7 +517,7 @@ class TestRecipeScrapeCreatesNewRecords:
     """Test that re-scraping same URL creates new records."""
 
     @patch('apps.recipes.services.scraper.AsyncSession')
-    async def test_scrape_same_url_twice_creates_two_records(self, mock_session_class):
+    async def test_scrape_same_url_twice_creates_two_records(self, mock_session_class, test_profile):
         """Test that scraping same URL twice creates two recipes."""
         from apps.recipes.models import Recipe
         from apps.recipes.services.scraper import RecipeScraper
@@ -442,9 +555,9 @@ class TestRecipeScrapeCreatesNewRecords:
         url = 'https://example.com/recipe/test'
         scraper = RecipeScraper()
 
-        # Scrape twice
-        recipe1 = await scraper.scrape_url(url)
-        recipe2 = await scraper.scrape_url(url)
+        # Scrape twice (with profile required)
+        recipe1 = await scraper.scrape_url(url, test_profile)
+        recipe2 = await scraper.scrape_url(url, test_profile)
 
         # Should be two different records
         assert recipe1.id != recipe2.id

@@ -111,12 +111,8 @@ def recipe_detail(request, recipe_id):
         del request.session['profile_id']
         return redirect('legacy:profile_selector')
 
-    # Get the recipe
-    recipe = get_object_or_404(Recipe, id=recipe_id)
-
-    # Check remix visibility
-    if recipe.is_remix and recipe.remix_profile_id != profile.id:
-        return redirect('legacy:home')
+    # Get the recipe (must belong to this profile)
+    recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)
 
     # Record view history
     RecipeViewHistory.objects.update_or_create(
@@ -173,12 +169,8 @@ def play_mode(request, recipe_id):
         del request.session['profile_id']
         return redirect('legacy:profile_selector')
 
-    # Get the recipe
-    recipe = get_object_or_404(Recipe, id=recipe_id)
-
-    # Check remix visibility
-    if recipe.is_remix and recipe.remix_profile_id != profile.id:
-        return redirect('legacy:home')
+    # Get the recipe (must belong to this profile)
+    recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)
 
     # Prepare instructions
     instructions = recipe.instructions

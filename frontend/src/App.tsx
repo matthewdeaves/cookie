@@ -137,7 +137,8 @@ function App() {
       setCurrentScreen('recipe-detail')
     } catch (error) {
       console.error('Failed to import recipe:', error)
-      toast.error('Failed to import recipe. Please check the URL.')
+      const message = error instanceof Error ? error.message : 'Failed to import recipe'
+      toast.error(message)
       throw error
     }
   }

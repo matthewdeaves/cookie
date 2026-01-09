@@ -78,6 +78,7 @@ class TestLegacyHome:
         """Home displays user's favorite recipes."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -94,6 +95,7 @@ class TestLegacyHome:
         """Home displays recently viewed recipes."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Viewed Recipe',
             host='example.com',
             site_name='Example',
@@ -266,6 +268,7 @@ class TestLegacyRecipeCard:
         """Recipe card displays the recipe title."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Chocolate Chip Cookies',
             host='example.com',
             site_name='Example',
@@ -281,6 +284,7 @@ class TestLegacyRecipeCard:
         """Recipe card displays the source host."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='allrecipes.com',
             site_name='Allrecipes',
@@ -296,6 +300,7 @@ class TestLegacyRecipeCard:
         """Recipe card displays total time when available."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -312,6 +317,7 @@ class TestLegacyRecipeCard:
         """Recipe card displays rating when available."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -328,6 +334,7 @@ class TestLegacyRecipeCard:
         """Recipe card displays remix badge for remixed recipes."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Remixed Recipe',
             host='user-generated',
             site_name='User Generated',
@@ -349,7 +356,9 @@ class TestLegacyRecipeDetail:
 
     def test_recipe_detail_redirects_without_profile(self, client):
         """Recipe detail redirects to profile selector when no profile in session."""
+        profile = Profile.objects.create(name='Temp', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -362,6 +371,7 @@ class TestLegacyRecipeDetail:
         """Recipe detail renders successfully with profile."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Chocolate Chip Cookies',
             host='example.com',
             site_name='Example',
@@ -383,6 +393,7 @@ class TestLegacyRecipeDetail:
         """Recipe detail shows all four tabs."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -400,6 +411,7 @@ class TestLegacyRecipeDetail:
         """Recipe detail displays ingredients list."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -416,6 +428,7 @@ class TestLegacyRecipeDetail:
         """Recipe detail displays instructions."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -432,6 +445,7 @@ class TestLegacyRecipeDetail:
         """Recipe detail displays nutrition info when available."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -449,6 +463,7 @@ class TestLegacyRecipeDetail:
         """Recipe detail creates/updates view history."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -466,6 +481,7 @@ class TestLegacyRecipeDetail:
         """Recipe detail shows correct favorite button state."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -482,6 +498,7 @@ class TestLegacyRecipeDetail:
         """Recipe detail shows user's collections in modal."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -502,10 +519,11 @@ class TestLegacyRecipeDetail:
         assert response.status_code == 404
 
     def test_recipe_detail_hides_other_remix(self, client):
-        """Recipe detail redirects when trying to view another user's remix."""
+        """Recipe detail returns 404 when trying to view another user's recipe."""
         profile1 = Profile.objects.create(name='User1', avatar_color='#d97850')
         profile2 = Profile.objects.create(name='User2', avatar_color='#6b8e5f')
         remix = Recipe.objects.create(
+            profile=profile2,
             title='Private Remix',
             host='user-generated',
             site_name='User Generated',
@@ -515,12 +533,13 @@ class TestLegacyRecipeDetail:
         client.post(f'/api/profiles/{profile1.id}/select/')
 
         response = client.get(f'/legacy/recipe/{remix.id}/')
-        assert response.status_code == 302  # Redirects to home
+        assert response.status_code == 404  # Recipe not found for this profile
 
     def test_recipe_detail_shows_own_remix(self, client):
         """Recipe detail shows user's own remix."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         remix = Recipe.objects.create(
+            profile=profile,
             title='My Remix',
             host='user-generated',
             site_name='User Generated',
@@ -538,6 +557,7 @@ class TestLegacyRecipeDetail:
         """Recipe detail includes page-specific CSS and JS."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -553,6 +573,7 @@ class TestLegacyRecipeDetail:
         """Recipe detail shows static servings when AI not configured."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -573,7 +594,9 @@ class TestLegacyPlayMode:
 
     def test_play_mode_redirects_without_profile(self, client):
         """Play mode redirects to profile selector when no profile in session."""
+        profile = Profile.objects.create(name='Temp', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -587,6 +610,7 @@ class TestLegacyPlayMode:
         """Play mode renders successfully with profile."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Chocolate Chip Cookies',
             host='example.com',
             site_name='Example',
@@ -604,6 +628,7 @@ class TestLegacyPlayMode:
         """Play mode displays the first instruction on load."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -619,6 +644,7 @@ class TestLegacyPlayMode:
         """Play mode shows step counter."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -636,6 +662,7 @@ class TestLegacyPlayMode:
         """Play mode shows previous/next buttons."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -654,6 +681,7 @@ class TestLegacyPlayMode:
         """Play mode includes timer panel."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -670,6 +698,7 @@ class TestLegacyPlayMode:
         """Play mode shows quick timer buttons (+5, +10, +15 min)."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -687,6 +716,7 @@ class TestLegacyPlayMode:
         """Play mode shows exit button linking back to recipe detail."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -703,6 +733,7 @@ class TestLegacyPlayMode:
         """Play mode shows empty state when no instructions."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -718,6 +749,7 @@ class TestLegacyPlayMode:
         """Play mode falls back to instructions_text if instructions list is empty."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -738,12 +770,13 @@ class TestLegacyPlayMode:
         response = client.get('/legacy/recipe/99999/play/')
         assert response.status_code == 404
 
-    def test_play_mode_hides_other_remix(self, client):
-        """Play mode redirects when trying to view another user's remix."""
+    def test_play_mode_hides_other_recipe(self, client):
+        """Play mode returns 404 when trying to view another user's recipe."""
         profile1 = Profile.objects.create(name='User1', avatar_color='#d97850')
         profile2 = Profile.objects.create(name='User2', avatar_color='#6b8e5f')
-        remix = Recipe.objects.create(
-            title='Private Remix',
+        recipe = Recipe.objects.create(
+            profile=profile2,
+            title='Private Recipe',
             host='user-generated',
             site_name='User Generated',
             is_remix=True,
@@ -752,13 +785,14 @@ class TestLegacyPlayMode:
         )
         client.post(f'/api/profiles/{profile1.id}/select/')
 
-        response = client.get(f'/legacy/recipe/{remix.id}/play/')
-        assert response.status_code == 302  # Redirects to home
+        response = client.get(f'/legacy/recipe/{recipe.id}/play/')
+        assert response.status_code == 404  # Recipe not found for this profile
 
     def test_play_mode_includes_js(self, client):
         """Play mode includes required JavaScript files."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -776,6 +810,7 @@ class TestLegacyPlayMode:
         """Play mode includes play-mode.css."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
@@ -812,6 +847,7 @@ class TestLegacyFavorites:
         """Favorites page displays user's favorited recipes."""
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         recipe = Recipe.objects.create(
+            profile=profile,
             title='My Favorite Recipe',
             host='example.com',
             site_name='Example',
@@ -829,6 +865,7 @@ class TestLegacyFavorites:
         profile = Profile.objects.create(name='Test', avatar_color='#d97850')
         for i in range(3):
             recipe = Recipe.objects.create(
+                profile=profile,
                 title=f'Recipe {i}',
                 host='example.com',
                 site_name='Example',
@@ -908,6 +945,7 @@ class TestLegacyCollections:
         from apps.recipes.models import RecipeCollectionItem
         for i in range(2):
             recipe = Recipe.objects.create(
+                profile=profile,
                 title=f'Recipe {i}',
                 host='example.com',
                 site_name='Example',
@@ -987,6 +1025,7 @@ class TestLegacyCollectionDetail:
         collection = RecipeCollection.objects.create(profile=profile, name='Test Collection')
         from apps.recipes.models import RecipeCollectionItem
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Recipe in Collection',
             host='example.com',
             site_name='Example',
@@ -1038,6 +1077,7 @@ class TestLegacyCollectionDetail:
         collection = RecipeCollection.objects.create(profile=profile, name='Test')
         from apps.recipes.models import RecipeCollectionItem
         recipe = Recipe.objects.create(
+            profile=profile,
             title='Test Recipe',
             host='example.com',
             site_name='Example',
