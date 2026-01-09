@@ -1,7 +1,7 @@
 # QA-045: Recipe Scaling Shows "(was X min)" for Unchanged Times
 
 ## Status
-**OPEN** - Ready for implementation
+**FIXED** - Implemented frontend comparison
 
 ## Issue
 
@@ -133,16 +133,16 @@ Have the backend return `null` for times that didn't change, only returning valu
 ## Acceptance Criteria
 
 ### Modern Frontend (React)
-- [ ] "(was X min)" only shows when adjusted time differs from original
-- [ ] Each time field (prep, cook, total) evaluated independently
-- [ ] If all times unchanged, no "(was X)" labels appear anywhere
-- [ ] If only some times changed, only those show the label
+- [x] "(was X min)" only shows when adjusted time differs from original
+- [x] Each time field (prep, cook, total) evaluated independently
+- [x] If all times unchanged, no "(was X)" labels appear anywhere
+- [x] If only some times changed, only those show the label
 
 ### Legacy Frontend (Django/JS)
-- [ ] "(was X min)" only shows when adjusted time differs from original
-- [ ] Each time field (prep, cook, total) evaluated independently
-- [ ] If all times unchanged, no "(was X)" labels appear anywhere
-- [ ] If only some times changed, only those show the label
+- [x] "(was X min)" only shows when adjusted time differs from original
+- [x] Each time field (prep, cook, total) evaluated independently
+- [x] If all times unchanged, no "(was X)" labels appear anywhere
+- [x] If only some times changed, only those show the label
 
 ## Priority
 

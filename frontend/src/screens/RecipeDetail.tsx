@@ -330,7 +330,8 @@ export default function RecipeDetail({
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <span className="text-muted-foreground">Prep:</span>
                 <span className="text-foreground">
-                  {scaledData?.prep_time_adjusted ? (
+                  {scaledData?.prep_time_adjusted &&
+                  scaledData.prep_time_adjusted !== recipe.prep_time ? (
                     <>
                       {formatTime(scaledData.prep_time_adjusted)}
                       <span className="ml-1 text-muted-foreground">
@@ -338,7 +339,7 @@ export default function RecipeDetail({
                       </span>
                     </>
                   ) : (
-                    formatTime(recipe.prep_time)
+                    formatTime(scaledData?.prep_time_adjusted ?? recipe.prep_time)
                   )}
                 </span>
               </div>
@@ -350,7 +351,8 @@ export default function RecipeDetail({
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <span className="text-muted-foreground">Cook:</span>
                 <span className="text-foreground">
-                  {scaledData?.cook_time_adjusted ? (
+                  {scaledData?.cook_time_adjusted &&
+                  scaledData.cook_time_adjusted !== recipe.cook_time ? (
                     <>
                       {formatTime(scaledData.cook_time_adjusted)}
                       <span className="ml-1 text-muted-foreground">
@@ -358,7 +360,7 @@ export default function RecipeDetail({
                       </span>
                     </>
                   ) : (
-                    formatTime(recipe.cook_time)
+                    formatTime(scaledData?.cook_time_adjusted ?? recipe.cook_time)
                   )}
                 </span>
               </div>
@@ -370,7 +372,8 @@ export default function RecipeDetail({
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <span className="text-muted-foreground">Total:</span>
                 <span className="text-foreground">
-                  {scaledData?.total_time_adjusted ? (
+                  {scaledData?.total_time_adjusted &&
+                  scaledData.total_time_adjusted !== recipe.total_time ? (
                     <>
                       {formatTime(scaledData.total_time_adjusted)}
                       <span className="ml-1 text-muted-foreground">
@@ -378,7 +381,7 @@ export default function RecipeDetail({
                       </span>
                     </>
                   ) : (
-                    formatTime(recipe.total_time)
+                    formatTime(scaledData?.total_time_adjusted ?? recipe.total_time)
                   )}
                 </span>
               </div>

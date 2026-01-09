@@ -694,13 +694,25 @@ Cookie.pages.detail = (function() {
             if (el) {
                 var valueEl = el.querySelector('.time-value');
                 if (valueEl) {
-                    // Store original if not already stored
-                    if (!valueEl.getAttribute('data-original')) {
-                        valueEl.setAttribute('data-original', valueEl.textContent);
+                    // Get original minutes from data attribute (set in template)
+                    var originalMinutesAttr = el.getAttribute('data-original-minutes');
+                    var originalMinutes = originalMinutesAttr ? parseInt(originalMinutesAttr, 10) : null;
+                    var adjustedMinutes = parseInt(adjusted, 10);
+                    var adjustedFormatted = formatTime(adjustedMinutes);
+
+                    // Only show "(was X)" if time actually changed
+                    // Compare integers if we have original minutes, otherwise times are equal (no attr = stale cache)
+                    var timeChanged = (originalMinutes !== null) && (adjustedMinutes !== originalMinutes);
+
+                    if (timeChanged) {
+                        var originalFormatted = formatTime(originalMinutes);
+                        valueEl.innerHTML = adjustedFormatted + ' <span class="time-was">(was ' + originalFormatted + ')</span>';
+                        valueEl.classList.add('time-adjusted');
+                    } else {
+                        // Time unchanged - just show the value, no "(was X)"
+                        valueEl.textContent = adjustedFormatted;
+                        valueEl.classList.remove('time-adjusted');
                     }
-                    var original = valueEl.getAttribute('data-original');
-                    valueEl.innerHTML = formatTime(adjusted) + ' <span class="time-was">(was ' + original + ')</span>';
-                    valueEl.classList.add('time-adjusted');
                 }
             }
         }

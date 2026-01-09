@@ -123,7 +123,7 @@
         <div id="meta-content" class="meta-content">
             <div class="meta-items">
                 {% if recipe.prep_time %}
-                <div class="meta-item" data-time-type="prep">
+                <div class="meta-item" data-time-type="prep" data-original-minutes="{{ recipe.prep_time }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
@@ -134,7 +134,7 @@
                 {% endif %}
 
                 {% if recipe.cook_time %}
-                <div class="meta-item" data-time-type="cook">
+                <div class="meta-item" data-time-type="cook" data-original-minutes="{{ recipe.cook_time }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
@@ -145,7 +145,7 @@
                 {% endif %}
 
                 {% if recipe.total_time %}
-                <div class="meta-item" data-time-type="total">
+                <div class="meta-item" data-time-type="total" data-original-minutes="{{ recipe.total_time }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
@@ -449,5 +449,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'legacy/js/pages/detail.js' %}?v=046b"></script>
+<script src="{% static 'legacy/js/pages/detail.js' %}?v=045d"></script>
 {% endblock %}
