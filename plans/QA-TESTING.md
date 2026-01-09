@@ -59,7 +59,7 @@
 | QA-048 | Search results missing space before "Ratings" | Modern + Legacy | Verified | - |
 | QA-051 | Legacy search results don't display rating count | Legacy | Verified | - |
 | QA-052 | Search results not sorted with images first | Legacy | Verified | - |
-| QA-053 | Search results should filter out recipes without titles | Modern + Legacy | Open | - |
+| QA-053 | Search results should filter out recipes without titles | Modern + Legacy | Fixed | - |
 | QA-049 | Recipe import fails (403 error not shown to user) | Modern | Verified | - |
 | QA-050 | Tips tab should be hidden without valid API key | Modern + Legacy | Verified | - |
 

@@ -21,13 +21,23 @@ def is_ranking_available() -> bool:
         return False
 
 
+def _filter_valid(results: list[dict]) -> list[dict]:
+    """Filter out results without titles (QA-053).
+
+    Results without titles will fail to import, so they should
+    never be shown to users.
+    """
+    return [r for r in results if r.get('title')]
+
+
 def _sort_by_image(results: list[dict]) -> list[dict]:
-    """Sort results to prioritize those with images.
+    """Filter and sort results to prioritize those with images.
 
     This provides a basic image-first sorting when AI ranking
-    is unavailable or fails.
+    is unavailable or fails. Also filters out invalid results.
     """
-    return sorted(results, key=lambda r: (0 if r.get('image_url') else 1))
+    valid_results = _filter_valid(results)
+    return sorted(valid_results, key=lambda r: (0 if r.get('image_url') else 1))
 
 
 def rank_results(query: str, results: list[dict]) -> list[dict]:
@@ -51,6 +61,9 @@ def rank_results(query: str, results: list[dict]) -> list[dict]:
         This function is non-blocking and will gracefully fall back
         to the original order if AI is unavailable or errors occur.
     """
+    # Filter out results without titles first (QA-053)
+    results = _filter_valid(results)
+
     if not results or len(results) <= 1:
         return results
 

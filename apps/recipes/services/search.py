@@ -289,6 +289,10 @@ class RecipeSearch:
             except ValueError:
                 pass
 
+        # Title may have become empty after stripping rating (QA-053)
+        if not title:
+            return None
+
         # Extract image
         image_url = ''
         img = element.find('img')

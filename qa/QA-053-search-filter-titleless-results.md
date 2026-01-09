@@ -1,7 +1,7 @@
 # QA-053: Search Results Should Filter Out Recipes Without Titles
 
 ## Status
-**IN PROGRESS** - Research complete, implementing fix
+**FIXED** - Pending verification on device
 
 ## Issue
 
@@ -117,3 +117,21 @@ def rank_results(query: str, results: list[dict]) -> list[dict]:
 ## Priority
 
 High - Users encountering errors when trying to import search results
+
+## Implementation
+
+### Files Changed
+
+**`apps/recipes/services/search.py`**
+- Added title check after rating extraction (line 292-294)
+- If title becomes empty after stripping rating text, result is filtered out
+
+**`apps/ai/services/ranking.py`**
+- Added `_filter_valid()` helper to filter results without titles
+- Updated `_sort_by_image()` to filter before sorting
+- Added filtering at start of `rank_results()` for defense in depth
+
+### Verification Checklist
+- [ ] Search for "prawn" and load several pages - no titleless results appear
+- [ ] All displayed results can be imported successfully
+- [ ] Results still sorted with images first
