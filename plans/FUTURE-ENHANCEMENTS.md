@@ -16,6 +16,7 @@
 | FE-005 | Migrate from SQLite to MySQL/PostgreSQL | Medium | Medium |
 | FE-006 | Multi-selection for AI remix suggestions | Low | Low |
 | FE-007 | ~~Add nginx to production container for dev/prod parity~~ | ~~High~~ | ~~Medium~~ |
+| FE-008 | ~~Docker Hub: Only maintain latest image, no version history~~ | ~~Low~~ | ~~Low~~ |
 
 ---
 
@@ -696,3 +697,99 @@ services:
 - [ ] SPA client-side routing → works (e.g., `/recipe/123`)
 - [ ] Healthcheck passes
 - [ ] Container starts cleanly with both processes
+
+---
+
+## FE-008: Docker Hub - Only Maintain Latest Image
+
+**Status:** ✅ Implemented
+**Priority:** Low (storage optimization)
+
+### Problem
+
+The current CD workflow (`.github/workflows/cd.yml`) creates multiple Docker image tags on each release:
+- `latest`
+- `1.2.3` (full semver)
+- `1.2` (major.minor)
+- `1` (major only)
+
+Over time, Docker Hub accumulates many image versions. For a self-hosted personal app, only `latest` is needed on Docker Hub. Version history is preserved in git tags.
+
+### Clarification: Git Tags vs Docker Hub Tags
+
+| Location | What's Stored | Keep History? |
+|----------|---------------|---------------|
+| **Git repo** | Code versions (v1.0.0, v1.1.0, etc.) | ✅ Yes - full tag history |
+| **Docker Hub** | Built container images | ❌ No - only `latest` needed |
+
+Users who need a specific version can:
+1. Check out the git tag
+2. Build locally with `bin/prod build`
+
+### Current Implementation
+
+```yaml
+# cd.yml - Extract metadata step
+tags: |
+  type=semver,pattern={{version}}
+  type=semver,pattern={{major}}.{{minor}}
+  type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
+  type=raw,value=latest,enable=${{ !contains(github.ref, '-') }}
+```
+
+### Proposed Solution
+
+#### Step 1: Only Push `latest` Tag
+
+Simplify the metadata step:
+
+```yaml
+- name: Extract metadata
+  id: meta
+  uses: docker/metadata-action@v5
+  with:
+    images: ${{ env.IMAGE_NAME }}
+    tags: |
+      type=raw,value=latest
+```
+
+#### Step 2: One-Time Cleanup of Existing Tags
+
+Delete old versioned tags from Docker Hub (one-time manual task):
+
+**Option A: Docker Hub UI**
+- Go to https://hub.docker.com/repository/docker/mndeaves/cookie/tags
+- Delete all tags except `latest`
+
+**Option B: Docker Hub API**
+```bash
+# Get auth token
+TOKEN=$(curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"username": "USERNAME", "password": "TOKEN"}' \
+  https://hub.docker.com/v2/users/login/ | jq -r .token)
+
+# List and delete old tags
+curl -s -H "Authorization: JWT $TOKEN" \
+  "https://hub.docker.com/v2/repositories/mndeaves/cookie/tags?page_size=100" \
+  | jq -r '.results[].name | select(. != "latest")' \
+  | xargs -I {} curl -X DELETE \
+    -H "Authorization: JWT $TOKEN" \
+    "https://hub.docker.com/v2/repositories/mndeaves/cookie/tags/{}/"
+```
+
+### Implementation Steps
+
+1. Update `.github/workflows/cd.yml` - change tags to only `latest`
+2. Manually delete old tags from Docker Hub (one-time)
+
+### Files to Change
+
+- `.github/workflows/cd.yml` - Simplify tag metadata
+
+### Benefits
+
+- Single image to maintain on Docker Hub
+- No confusion about versions - always use `latest`
+- Git tags preserve full version history for code
+- Users can build any version locally from git tags
