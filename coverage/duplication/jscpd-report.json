@@ -1,0 +1,837 @@
+{
+  "statistics": {
+    "detectionDate": "2026-01-10T09:39:42.101Z",
+    "formats": {
+      "javascript": {
+        "sources": {
+          "src/screens/Search.tsx": {
+            "lines": 196,
+            "tokens": 1352,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/RecipeDetail.tsx": {
+            "lines": 522,
+            "tokens": 4045,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/ProfileSelector.tsx": {
+            "lines": 81,
+            "tokens": 550,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/PlayMode.tsx": {
+            "lines": 110,
+            "tokens": 665,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/Home.tsx": {
+            "lines": 297,
+            "tokens": 2155,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/Favorites.tsx": {
+            "lines": 38,
+            "tokens": 308,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/Collections.tsx": {
+            "lines": 114,
+            "tokens": 824,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/CollectionDetail.tsx": {
+            "lines": 81,
+            "tokens": 583,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/AllRecipes.tsx": {
+            "lines": 41,
+            "tokens": 362,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/contexts/AIStatusContext.tsx": {
+            "lines": 0,
+            "tokens": 11,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/TimerWidget.tsx": {
+            "lines": 59,
+            "tokens": 353,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/TimerPanel.tsx": {
+            "lines": 79,
+            "tokens": 727,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/Skeletons.tsx": {
+            "lines": 184,
+            "tokens": 1368,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/RemixModal.tsx": {
+            "lines": 73,
+            "tokens": 467,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/RecipeCard.tsx": {
+            "lines": 33,
+            "tokens": 189,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/AddToCollectionDropdown.tsx": {
+            "lines": 50,
+            "tokens": 383,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/App.tsx": {
+            "lines": 67,
+            "tokens": 463,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 2025,
+          "tokens": 14805,
+          "sources": 17,
+          "clones": 0,
+          "duplicatedLines": 0,
+          "duplicatedTokens": 0,
+          "percentage": 0,
+          "percentageTokens": 0,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      },
+      "tsx": {
+        "sources": {
+          "src/screens/Search.tsx": {
+            "lines": 305,
+            "tokens": 2346,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 15,
+            "duplicatedTokens": 86,
+            "percentage": 4.92,
+            "percentageTokens": 3.67,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/RecipeDetail.tsx": {
+            "lines": 738,
+            "tokens": 5878,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 8,
+            "duplicatedTokens": 119,
+            "percentage": 1.08,
+            "percentageTokens": 2.02,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/ProfileSelector.tsx": {
+            "lines": 192,
+            "tokens": 1426,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/PlayMode.tsx": {
+            "lines": 232,
+            "tokens": 1683,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/Home.tsx": {
+            "lines": 446,
+            "tokens": 3445,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 15,
+            "duplicatedTokens": 121,
+            "percentage": 3.36,
+            "percentageTokens": 3.51,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/Favorites.tsx": {
+            "lines": 97,
+            "tokens": 805,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 29,
+            "duplicatedTokens": 207,
+            "percentage": 29.9,
+            "percentageTokens": 25.71,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/Collections.tsx": {
+            "lines": 222,
+            "tokens": 1698,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 14,
+            "duplicatedTokens": 86,
+            "percentage": 6.31,
+            "percentageTokens": 5.06,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/CollectionDetail.tsx": {
+            "lines": 192,
+            "tokens": 1482,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 14,
+            "duplicatedTokens": 86,
+            "percentage": 7.29,
+            "percentageTokens": 5.8,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/AllRecipes.tsx": {
+            "lines": 90,
+            "tokens": 747,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 14,
+            "duplicatedTokens": 86,
+            "percentage": 15.56,
+            "percentageTokens": 11.51,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/contexts/AIStatusContext.tsx": {
+            "lines": 79,
+            "tokens": 624,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/TimerWidget.tsx": {
+            "lines": 92,
+            "tokens": 603,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/TimerPanel.tsx": {
+            "lines": 166,
+            "tokens": 1611,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/Skeletons.tsx": {
+            "lines": 200,
+            "tokens": 1437,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 18,
+            "duplicatedTokens": 146,
+            "percentage": 9,
+            "percentageTokens": 10.16,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/RemixModal.tsx": {
+            "lines": 200,
+            "tokens": 1481,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/RecipeCard.tsx": {
+            "lines": 111,
+            "tokens": 789,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 23,
+            "duplicatedTokens": 205,
+            "percentage": 20.72,
+            "percentageTokens": 25.98,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/AddToCollectionDropdown.tsx": {
+            "lines": 144,
+            "tokens": 1171,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/main.tsx": {
+            "lines": 9,
+            "tokens": 68,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/App.tsx": {
+            "lines": 348,
+            "tokens": 2686,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 3863,
+          "tokens": 29980,
+          "sources": 18,
+          "clones": 6,
+          "duplicatedLines": 75,
+          "duplicatedTokens": 571,
+          "percentage": 1.94,
+          "percentageTokens": 1.9,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      },
+      "typescript": {
+        "sources": {
+          "src/lib/utils.ts": {
+            "lines": 5,
+            "tokens": 58,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/lib/audio.ts": {
+            "lines": 133,
+            "tokens": 765,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/hooks/useWakeLock.ts": {
+            "lines": 169,
+            "tokens": 1094,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/hooks/useTimers.ts": {
+            "lines": 237,
+            "tokens": 2048,
+            "sources": 1,
+            "clones": 4,
+            "duplicatedLines": 68,
+            "duplicatedTokens": 652,
+            "percentage": 28.69,
+            "percentageTokens": 31.84,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/api/client.ts": {
+            "lines": 611,
+            "tokens": 4395,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 1155,
+          "tokens": 8360,
+          "sources": 5,
+          "clones": 2,
+          "duplicatedLines": 34,
+          "duplicatedTokens": 326,
+          "percentage": 2.94,
+          "percentageTokens": 3.9,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      }
+    },
+    "total": {
+      "lines": 7043,
+      "tokens": 53145,
+      "sources": 40,
+      "clones": 8,
+      "duplicatedLines": 109,
+      "duplicatedTokens": 897,
+      "percentage": 1.55,
+      "percentageTokens": 1.69,
+      "newDuplicatedLines": 0,
+      "newClones": 0
+    }
+  },
+  "duplicates": [
+    {
+      "format": "tsx",
+      "lines": 16,
+      "fragment": ")\n    }\n  }\n\n  const handleRemoveFavorite = async (recipe: Recipe) => {\n    try {\n      await api.favorites.remove(recipe.id)\n      setFavorites(favorites.filter((f) => f.recipe.id !== recipe.id))\n      toast.success('Removed from favorites')\n    } catch (error) {\n      console.error('Failed to remove favorite:', error)\n      toast.error('Failed to remove from favorites')\n    }\n  }\n\n  return",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/screens/Favorites.tsx",
+        "start": 29,
+        "end": 44,
+        "startLoc": {
+          "line": 29,
+          "column": 6,
+          "position": 293
+        },
+        "endLoc": {
+          "line": 44,
+          "column": 7,
+          "position": 414
+        }
+      },
+      "secondFile": {
+        "name": "src/screens/Home.tsx",
+        "start": 107,
+        "end": 122,
+        "startLoc": {
+          "line": 107,
+          "column": 2,
+          "position": 979
+        },
+        "endLoc": {
+          "line": 122,
+          "column": 6,
+          "position": 1100
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 15,
+      "fragment": ")\n  }\n\n  return (\n    <div className=\"min-h-screen bg-background\">\n      {/* Header */}\n      <header className=\"flex items-center justify-between border-b border-border px-4 py-3\">\n        <div className=\"flex items-center gap-4\">\n          <button\n            onClick={onBack}\n            className=\"rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground\"\n          >\n            <ArrowLeft className=\"h-5 w-5\" />\n          </button>\n          <div",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/screens/CollectionDetail.tsx",
+        "start": 91,
+        "end": 105,
+        "startLoc": {
+          "line": 91,
+          "column": 5,
+          "position": 749
+        },
+        "endLoc": {
+          "line": 105,
+          "column": 4,
+          "position": 835
+        }
+      },
+      "secondFile": {
+        "name": "src/screens/Collections.tsx",
+        "start": 89,
+        "end": 103,
+        "startLoc": {
+          "line": 89,
+          "column": 13,
+          "position": 773
+        },
+        "endLoc": {
+          "line": 103,
+          "column": 3,
+          "position": 859
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 15,
+      "fragment": ")\n    }\n  }\n\n  return (\n    <div className=\"min-h-screen bg-background\">\n      {/* Header */}\n      <header className=\"flex items-center gap-4 border-b border-border px-4 py-3\">\n        <button\n          onClick={onBack}\n          className=\"rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground\"\n        >\n          <ArrowLeft className=\"h-5 w-5\" />\n        </button>\n        <h1 className=\"text-xl font-medium text-foreground\">All",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/screens/AllRecipes.tsx",
+        "start": 30,
+        "end": 44,
+        "startLoc": {
+          "line": 30,
+          "column": 6,
+          "position": 292
+        },
+        "endLoc": {
+          "line": 44,
+          "column": 4,
+          "position": 378
+        }
+      },
+      "secondFile": {
+        "name": "src/screens/Favorites.tsx",
+        "start": 40,
+        "end": 54,
+        "startLoc": {
+          "line": 40,
+          "column": 34,
+          "position": 404
+        },
+        "endLoc": {
+          "line": 54,
+          "column": 10,
+          "position": 490
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 24,
+      "fragment": "const intervalId = window.setInterval(() => {\n      setTimers((prev) =>\n        prev.map((timer) => {\n          if (timer.id !== id) return timer\n          if (!timer.isRunning) return timer\n\n          const newRemaining = timer.remaining - 1\n\n          if (newRemaining <= 0) {\n            // Timer completed\n            clearInterval(intervalsRef.current.get(id))\n            intervalsRef.current.delete(id)\n            onCompleteRef.current?.({ ...timer, remaining: 0, isRunning: false })\n            return { ...timer, remaining: 0, isRunning: false }\n          }\n\n          return { ...timer, remaining: newRemaining }\n        })\n      )\n    }, 1000)\n\n    intervalsRef.current.set(id, intervalId)\n\n    setTimers",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/hooks/useTimers.ts",
+        "start": 91,
+        "end": 114,
+        "startLoc": {
+          "line": 91,
+          "column": 5,
+          "position": 791
+        },
+        "endLoc": {
+          "line": 114,
+          "column": 10,
+          "position": 1016
+        }
+      },
+      "secondFile": {
+        "name": "src/hooks/useTimers.ts",
+        "start": 45,
+        "end": 67,
+        "startLoc": {
+          "line": 45,
+          "column": 7,
+          "position": 434
+        },
+        "endLoc": {
+          "line": 67,
+          "column": 2,
+          "position": 658
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 12,
+      "fragment": "= useCallback((id: string) => {\n    // Clear interval\n    const intervalId = intervalsRef.current.get(id)\n    if (intervalId) {\n      clearInterval(intervalId)\n      intervalsRef.current.delete(id)\n    }\n\n    setTimers((prev) =>\n      prev.map((timer) =>\n        timer.id === id\n          ? { ...timer, remaining",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/hooks/useTimers.ts",
+        "start": 136,
+        "end": 147,
+        "startLoc": {
+          "line": 136,
+          "column": 2,
+          "position": 1214
+        },
+        "endLoc": {
+          "line": 147,
+          "column": 10,
+          "position": 1315
+        }
+      },
+      "secondFile": {
+        "name": "src/hooks/useTimers.ts",
+        "start": 121,
+        "end": 131,
+        "startLoc": {
+          "line": 121,
+          "column": 2,
+          "position": 1083
+        },
+        "endLoc": {
+          "line": 131,
+          "column": 10,
+          "position": 1183
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 10,
+      "fragment": "() {\n  return (\n    <div className=\"overflow-hidden rounded-lg bg-card shadow-sm\">\n      {/* Image placeholder */}\n      <Skeleton className=\"aspect-[4/3] rounded-none\" />\n      {/* Content */}\n      <div className=\"p-3 space-y-2\">\n        {/* Title */}\n        <Skeleton className=\"h-4 w-3/4\" />\n        {/* Meta */",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/components/Skeletons.tsx",
+        "start": 169,
+        "end": 178,
+        "startLoc": {
+          "line": 169,
+          "column": 21,
+          "position": 1185
+        },
+        "endLoc": {
+          "line": 178,
+          "column": 11,
+          "position": 1258
+        }
+      },
+      "secondFile": {
+        "name": "src/components/Skeletons.tsx",
+        "start": 20,
+        "end": 29,
+        "startLoc": {
+          "line": 20,
+          "column": 19,
+          "position": 77
+        },
+        "endLoc": {
+          "line": 29,
+          "column": 15,
+          "position": 150
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 9,
+      "fragment": "const formatTime = (minutes: number | null) => {\n    if (!minutes) return null\n    if (minutes < 60) return `${minutes} min`\n    const hours = Math.floor(minutes / 60)\n    const mins = minutes % 60\n    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`\n  }\n\n  const handleFavoriteClick",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/components/RecipeCard.tsx",
+        "start": 20,
+        "end": 28,
+        "startLoc": {
+          "line": 20,
+          "column": 3,
+          "position": 156
+        },
+        "endLoc": {
+          "line": 28,
+          "column": 20,
+          "position": 275
+        }
+      },
+      "secondFile": {
+        "name": "src/screens/RecipeDetail.tsx",
+        "start": 141,
+        "end": 149,
+        "startLoc": {
+          "line": 141,
+          "column": 3,
+          "position": 1176
+        },
+        "endLoc": {
+          "line": 149,
+          "column": 25,
+          "position": 1295
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 16,
+      "fragment": ">\n      {/* Image */}\n      <div className=\"relative aspect-[4/3] overflow-hidden bg-muted\">\n        {imageUrl ? (\n          <img\n            src={imageUrl}\n            alt={recipe.title}\n            className=\"h-full w-full object-cover transition-transform group-hover:scale-105\"\n          />\n        ) : (\n          <div className=\"flex h-full w-full items-center justify-center text-muted-foreground\">\n            No image\n          </div>\n        )}\n\n        {",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/components/RecipeCard.tsx",
+        "start": 40,
+        "end": 55,
+        "startLoc": {
+          "line": 40,
+          "column": 5,
+          "position": 351
+        },
+        "endLoc": {
+          "line": 55,
+          "column": 2,
+          "position": 437
+        }
+      },
+      "secondFile": {
+        "name": "src/screens/Search.tsx",
+        "start": 257,
+        "end": 271,
+        "startLoc": {
+          "line": 257,
+          "column": 2,
+          "position": 2015
+        },
+        "endLoc": {
+          "line": 271,
+          "column": 3,
+          "position": 2100
+        }
+      }
+    }
+  ]
+}

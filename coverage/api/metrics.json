@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-10T09:15:23.180699+00:00",
+  "generated_at": "2026-01-10T09:40:28.449920+00:00",
   "repo": "mndeaves/cookie",
   "coverage": {
     "frontend": {
@@ -24,6 +24,29 @@
       "rating": "C",
       "badge_url": "https://mndeaves.github.io/cookie/coverage/badges/frontend-complexity.svg"
     }
+  },
+  "duplication": {
+    "percentage": 1.55,
+    "clones_count": 8,
+    "rating": "A",
+    "badge_url": "https://mndeaves.github.io/cookie/coverage/badges/duplication.svg"
+  },
+  "security": {
+    "frontend": {
+      "vulnerabilities": 6,
+      "rating": "B",
+      "badge_url": "https://mndeaves.github.io/cookie/coverage/badges/frontend-security.svg"
+    },
+    "backend": {
+      "vulnerabilities": 0,
+      "rating": "A",
+      "badge_url": "https://mndeaves.github.io/cookie/coverage/badges/backend-security.svg"
+    }
+  },
+  "bundle": {
+    "size_kb": 1216.81,
+    "rating": "C",
+    "badge_url": "https://mndeaves.github.io/cookie/coverage/badges/bundle-size.svg"
   },
   "links": {
     "dashboard": "https://mndeaves.github.io/cookie/coverage/",
