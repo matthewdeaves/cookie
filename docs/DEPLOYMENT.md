@@ -37,26 +37,26 @@ For network access from other devices, use your machine's IP address (e.g., `htt
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│                       Production Container                            │
-│                                                                       │
+│                       Production Container                           │
+│                                                                      │
 │  ┌─────────────────────────────────────────────────────────────────┐ │
-│  │                         nginx (port 80)                          │ │
-│  │                                                                  │ │
+│  │                         nginx (port 80)                         │ │
+│  │                                                                 │ │
 │  │  /api/, /admin/, /legacy/  ───►  gunicorn (127.0.0.1:8000)      │ │
-│  │  /static/                  ───►  /app/staticfiles/               │ │
-│  │  /media/                   ───►  /app/data/media/                │ │
-│  │  /                         ───►  React SPA (/app/frontend/dist/) │ │
-│  │                                                                  │ │
-│  │  Browser Detection: iOS <11, IE, Edge Legacy ───► /legacy/       │ │
+│  │  /static/                  ───►  /app/staticfiles/              │ │
+│  │  /media/                   ───►  /app/data/media/               │ │
+│  │  /                         ───►  React SPA (/app/frontend/dist/)│ │
+│  │                                                                 │ │
+│  │  Browser Detection: iOS <11, IE, Edge Legacy ───► /legacy/      │ │
 │  └─────────────────────────────────────────────────────────────────┘ │
-│                              │                                        │
-│                              ▼                                        │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐      │
-│  │   Gunicorn  │───▶│   Django    │───▶│  SQLite + WAL Mode  │      │
-│  │  (2 workers │    │  (Python    │    │  (/app/data/db)     │      │
-│  │  4 threads) │    │   3.12)     │    └─────────────────────┘      │
+│                              │                                       │
+│                              ▼                                       │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐       │
+│  │   Gunicorn  │───▶│   Django    │───▶│  SQLite + WAL Mode  │       │
+│  │  (2 workers │    │  (Python    │    │  (/app/data/db)     │       │
+│  │  4 threads) │    │   3.12)     │    └─────────────────────┘       │
 │  └─────────────┘    └─────────────┘                                  │
-│                                                                       │
+│                                                                      │
 └──────────────────────────────────────────────────────────────────────┘
          │
          ▼ Port 80
@@ -144,7 +144,8 @@ The Dockerfile uses a 3-stage build for minimal image size:
 | `DATA_DIR` | `/app/data` | Base directory for persistent data |
 | `GUNICORN_WORKERS` | `2` | Number of Gunicorn worker processes |
 | `GUNICORN_THREADS` | `4` | Threads per worker |
-| `OPENROUTER_API_KEY` | (optional) | API key for AI features |
+
+AI features (OpenRouter API key) are configured through the Settings UI, not environment variables.
 
 ### Volume Mounts
 
@@ -153,14 +154,6 @@ The Dockerfile uses a 3-stage build for minimal image size:
 | `/app/data` | Database, media uploads, secret key | **Yes** |
 
 **Important**: Always mount `/app/data` as a volume for data persistence.
-
-### Resource Recommendations
-
-| Deployment Size | CPU | RAM | Storage |
-|-----------------|-----|-----|---------|
-| Personal (1-2 users) | 0.5 vCPU | 256MB | 1GB |
-| Small (5-10 users) | 1 vCPU | 512MB | 5GB |
-| Medium (20-50 users) | 2 vCPU | 1GB | 10GB |
 
 ---
 
