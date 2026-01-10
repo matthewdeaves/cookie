@@ -1,0 +1,79 @@
+[tool.ruff]
+# Target Python 3.12
+target-version = "py312"
+
+# Line length to match common standards
+line-length = 120
+
+# Directories to analyze
+src = ["apps", "cookie"]
+
+# Exclude common non-source directories
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "migrations",
+    "staticfiles",
+    "node_modules",
+]
+
+[tool.ruff.lint]
+# Enable these rule sets
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "SIM",    # flake8-simplify
+    "DJ",     # flake8-django
+]
+
+# Ignore specific rules (relax initially, tighten over time)
+ignore = [
+    "E501",   # line too long (handled by line-length setting with tolerance)
+    "E402",   # module level import not at top (sometimes needed for logging setup)
+    "B008",   # do not perform function calls in argument defaults (common in Django/Ninja)
+    "B904",   # raise from within except (too strict for now)
+    "B905",   # zip without strict= (fix incrementally)
+    "SIM103", # return condition directly (readability preference)
+    "SIM108", # use ternary operator (readability preference)
+    "SIM102", # nested if statements (readability preference)
+    "SIM105", # use contextlib.suppress (readability preference)
+    "SIM110", # use any/all instead of loop (readability preference)
+    "SIM114", # combine if branches (readability preference)
+    "SIM116", # use dict instead of if/elif (readability preference)
+    "SIM117", # use single with statement (readability preference)
+    "SIM118", # use key in dict (readability preference)
+    "I001",   # import sorting (fix incrementally)
+    "F401",   # unused imports (fix incrementally)
+    "F821",   # undefined name (forward references in type hints)
+    "UP006",  # use list instead of List (fix incrementally)
+    "UP007",  # use X | Y for Union (fix incrementally)
+    "UP009",  # use builtin TimeoutError (fix incrementally)
+    "UP035",  # use typing imports from collections.abc (fix incrementally)
+    "UP041",  # replace aliased errors with TimeoutError (fix incrementally)
+    "UP045",  # use X | None for Optional (fix incrementally)
+    "C401",   # unnecessary generator (fix incrementally)
+    "C408",   # unnecessary dict call (fix incrementally)
+    "DJ001",  # avoid null=True on string fields (Django recommendation, review later)
+    "DJ008",  # model should define __str__ (fix incrementally)
+]
+
+# Allow autofix for all enabled rules
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "cookie"]
+known-third-party = ["django", "ninja"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests can have more relaxed rules
+"tests/**/*.py" = ["B011", "SIM"]
+# Settings file has specific patterns
+"cookie/settings.py" = ["F401"]

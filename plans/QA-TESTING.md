@@ -69,7 +69,7 @@
 | QA-058 | AllRecipes article pages cause "Recipe has no title" on import | Modern + Legacy | Verified | - |
 | QA-059 | Phase 10 CI/CD code review items (6 minor issues) | All | New | - |
 | QA-060 | GitHub Pages root landing page returns 404 | Infrastructure | Fixed | - |
-| QA-061 | CI/CD code quality tooling gaps and improvements | Infrastructure | Fixed | Phase 1-2 complete |
+| QA-061 | CI/CD code quality tooling gaps and improvements | Infrastructure | Fixed | Phase 1-3 complete |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -2537,7 +2537,7 @@ If issues are found, log them using this format:
 
 **Issue:** QA-061 - CI/CD code quality tooling has gaps in coverage
 **Affects:** Infrastructure (CI/CD, GitHub Actions)
-**Status:** Fixed (Phase 1-2 complete)
+**Status:** Fixed (Phase 1-3 complete)
 **Priority:** Medium
 
 ---
@@ -2728,18 +2728,21 @@ Issues:
 
 ##### Phase 3: Add Python Backend Linting
 
-- [ ] **Task 3.1**: Add ruff to requirements.txt
-  - `ruff>=0.1.0` (fast Python linter, replaces flake8/isort/black)
+- [x] **Task 3.1**: Add ruff to requirements.txt
+  - `ruff>=0.8.0` (fast Python linter, replaces flake8/isort/black)
+  - **Done**: Added to requirements.txt
 
-- [ ] **Task 3.2**: Create pyproject.toml with ruff config
+- [x] **Task 3.2**: Create pyproject.toml with ruff config
   - Or add `[tool.ruff]` section
   - Configure for Django project
   - Set line-length, select rules
+  - **Done**: Created pyproject.toml with Django-optimized config, relaxed rules initially
 
-- [ ] **Task 3.3**: Add backend-lint job to CI
+- [x] **Task 3.3**: Add backend-lint job to CI
   - File: `.github/workflows/ci.yml`
   - Command: `ruff check apps/ cookie/`
   - Make it a required check (fail CI on errors)
+  - **Done**: Added backend-lint job, included in ci-success required checks
 
 ##### Phase 4: Add Python Duplication Detection
 
@@ -2799,11 +2802,10 @@ Issues:
 | `frontend/vitest.config.ts` | Frontend test config | Exists |
 | `pytest.ini` | Backend test config | Exists |
 | `requirements.txt` | Python dependencies | Exists |
-| `pyproject.toml` | Python project config | **Missing** |
+| `pyproject.toml` | Python project config | Exists (ruff) |
 | `.jscpd.json` | Duplication detection config | **Missing** |
-| `apps/legacy/static/legacy/.eslintrc.json` | Legacy JS linting | **Missing** |
+| `apps/legacy/static/legacy/.eslintrc.json` | Legacy JS linting | Exists |
 | `mypy.ini` | Python type checking | **Missing** |
-| `ruff.toml` | Python linting | **Missing** |
 
 ---
 
