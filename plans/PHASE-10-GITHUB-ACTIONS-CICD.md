@@ -18,6 +18,7 @@ Configure GitHub Actions to run all tests on every PR and commit to main branch,
 | D | 10.5-10.6 | Django settings + CD workflow | `cookie/settings.py`, `.github/workflows/cd.yml` |
 | E | 10.8 | Production container hardening | `Dockerfile.prod`, `entrypoint.prod.sh`, `cookie/settings.py` |
 | F | 10.9 | Dev/Prod coexistence + tooling review | `bin/*`, `docker-compose.yml`, `docker-compose.prod.yml` |
+| G | 10.10-10.13 | GitHub Actions polish | `.github/workflows/cd.yml`, `.github/workflows/ci.yml`, `.github/workflows/release.yml`, `.github/dependabot.yml` |
 
 **Manual (outside Claude Code sessions):** 10.7 - Configure GitHub repository secrets, Pages, and branch protection in the GitHub web UI.
 
@@ -1904,3 +1905,492 @@ esac
 | `bin/both` | Create new script (optional) |
 | `docker-compose.yml` | Change nginx port to 9876 |
 | `docker-compose.prod.yml` | Create new file |
+
+---
+
+## Phase 10.10: Tag-Based Docker Releases Only
+
+**Problem:** Currently CD triggers on every commit to main, creating unnecessary Docker Hub images with SHA tags for every minor change.
+
+**Solution:** Only build and push Docker images when semantic version tags are pushed (e.g., `v1.0.0`, `v1.1.0`).
+
+### Updated File: `.github/workflows/cd.yml`
+
+```yaml
+name: CD
+
+on:
+  # Only trigger on semantic version tags
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'  # Matches v1.0.0, v1.0.0-beta, v2.1.3-rc.1, etc.
+  # Allow manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Custom tag for Docker image (e.g., "test" or "dev")'
+        required: false
+        type: string
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: mndeaves/cookie
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            # For tags: v1.2.3 -> 1.2.3, 1.2, 1, latest
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
+            type=raw,value=latest,enable=${{ !contains(github.ref, '-') }}
+            # For manual dispatch with custom tag
+            type=raw,value=${{ inputs.tag }},enable=${{ inputs.tag != '' }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.prod
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Update Docker Hub description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ env.IMAGE_NAME }}
+          short-description: "Cookie - Self-hosted recipe manager"
+          readme-filepath: ./README.md
+        continue-on-error: true
+```
+
+### Tag Mapping Examples
+
+| Git Tag | Docker Tags Created |
+|---------|---------------------|
+| `v1.0.0` | `1.0.0`, `1.0`, `1`, `latest` |
+| `v1.0.1` | `1.0.1`, `1.0`, `1`, `latest` |
+| `v1.1.0` | `1.1.0`, `1.1`, `1`, `latest` |
+| `v2.0.0` | `2.0.0`, `2.0`, `2`, `latest` |
+| `v1.0.0-beta` | `1.0.0-beta` (no `latest`) |
+| `v0.9.0` | `0.9.0`, `0.9` (no major `0` tag) |
+
+### Release Workflow
+
+```bash
+# Create and push a release tag
+git tag -a v1.0.0 -m "Release v1.0.0"
+git push origin v1.0.0
+
+# CD workflow automatically triggers and pushes to Docker Hub
+```
+
+### Key Changes from Previous Version
+
+1. **Removed `workflow_run` trigger** - No longer chains from CI
+2. **Added tag pattern trigger** - Only `v*.*.*` tags trigger builds
+3. **Semver tag parsing** - Uses `docker/metadata-action` semver support
+4. **Prerelease handling** - Tags with `-beta`, `-rc.1` etc. don't get `latest`
+5. **Manual dispatch preserved** - Can still manually trigger for testing
+
+---
+
+## Phase 10.11: Path Filters for CI
+
+**Problem:** CI runs on every push even for documentation-only changes, wasting CI minutes.
+
+**Solution:** Add path filters to skip CI for non-code changes.
+
+### Updated Triggers in `.github/workflows/ci.yml`
+
+Replace the existing `on:` block:
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'plans/**'
+      - 'LICENSE'
+      - '.gitignore'
+      - '**.txt'
+      - '!requirements.txt'  # But DO run for requirements.txt changes
+  pull_request:
+    branches: [main, master]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'plans/**'
+      - 'LICENSE'
+      - '.gitignore'
+      - '**.txt'
+      - '!requirements.txt'
+  # Allow manual trigger to run CI anyway
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+```
+
+### Path Filter Behavior
+
+| Files Changed | CI Runs? |
+|---------------|----------|
+| `apps/core/views.py` | Yes |
+| `frontend/src/App.tsx` | Yes |
+| `requirements.txt` | Yes |
+| `README.md` | No |
+| `plans/PHASE-10.md` | No |
+| `docs/api.md` | No |
+| `README.md` + `apps/core/views.py` | Yes (mixed changes) |
+
+### Notes
+
+- **Mixed changes:** If a commit includes both code and docs, CI still runs
+- **Manual override:** `workflow_dispatch` allows running CI manually when needed
+- **requirements.txt exception:** Dependency changes should trigger CI despite `.txt` extension
+
+---
+
+## Phase 10.12: Dependabot Configuration
+
+**Problem:** Dependencies become outdated and potentially vulnerable over time.
+
+**Solution:** Configure Dependabot to automatically create PRs for dependency updates.
+
+### New File: `.github/dependabot.yml`
+
+```yaml
+# Dependabot configuration
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+
+version: 2
+updates:
+  # Python dependencies (pip)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Australia/Sydney"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(python):"
+    labels:
+      - "dependencies"
+      - "python"
+    # Group minor/patch updates to reduce PR noise
+    groups:
+      python-minor:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # JavaScript dependencies (npm)
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Australia/Sydney"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(npm):"
+    labels:
+      - "dependencies"
+      - "javascript"
+    # Group minor/patch updates to reduce PR noise
+    groups:
+      npm-minor:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Keep React ecosystem updates together
+      react:
+        patterns:
+          - "react*"
+          - "@types/react*"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Australia/Sydney"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci:"
+    labels:
+      - "dependencies"
+      - "github-actions"
+```
+
+### Dependabot Behavior
+
+| Ecosystem | Schedule | Grouping |
+|-----------|----------|----------|
+| Python (pip) | Weekly, Mondays 9am AEST | Minor/patch grouped |
+| JavaScript (npm) | Weekly, Mondays 9am AEST | Minor/patch grouped, React grouped |
+| GitHub Actions | Weekly, Mondays 9am AEST | Individual PRs |
+
+### Expected PRs
+
+After enabling, expect PRs like:
+
+- `deps(python): Bump python-minor group with 3 updates`
+- `deps(npm): Bump react group with 2 updates`
+- `deps(npm): Bump vite from 5.0.0 to 6.0.0` (major updates are individual)
+- `ci: Bump actions/checkout from 4 to 5`
+
+### Security Updates
+
+Dependabot security updates are **separate** from version updates and are enabled by default in GitHub repository settings. They create immediate PRs for known vulnerabilities regardless of schedule.
+
+---
+
+## Phase 10.13: GitHub Releases Workflow
+
+**Problem:** When pushing version tags, there's no GitHub Release created with changelog.
+
+**Solution:** Automatically create GitHub Releases with auto-generated changelogs when version tags are pushed.
+
+### New File: `.github/workflows/release.yml`
+
+```yaml
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for changelog
+
+      - name: Get previous tag
+        id: prev_tag
+        run: |
+          # Get the tag before the current one
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "tag=$PREV_TAG" >> $GITHUB_OUTPUT
+          echo "Previous tag: $PREV_TAG"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          CURRENT_TAG=${GITHUB_REF#refs/tags/}
+          PREV_TAG="${{ steps.prev_tag.outputs.tag }}"
+
+          echo "Generating changelog from $PREV_TAG to $CURRENT_TAG"
+
+          # Start changelog
+          {
+            echo "## What's Changed"
+            echo ""
+
+            # Get commits between tags (or all commits if no previous tag)
+            if [ -n "$PREV_TAG" ]; then
+              COMMITS=$(git log --pretty=format:"- %s (%h)" "$PREV_TAG".."$CURRENT_TAG" --no-merges)
+            else
+              COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
+            fi
+
+            # Categorize commits
+            echo "### Features"
+            echo "$COMMITS" | grep -iE "^- (feat|feature|add)" || echo "_No new features_"
+            echo ""
+
+            echo "### Bug Fixes"
+            echo "$COMMITS" | grep -iE "^- (fix|bugfix|hotfix)" || echo "_No bug fixes_"
+            echo ""
+
+            echo "### Other Changes"
+            echo "$COMMITS" | grep -viE "^- (feat|feature|add|fix|bugfix|hotfix)" | head -20 || echo "_No other changes_"
+            echo ""
+
+            echo "---"
+            echo ""
+            echo "### Docker"
+            echo "\`\`\`bash"
+            echo "docker pull mndeaves/cookie:${CURRENT_TAG#v}"
+            echo "# or"
+            echo "docker pull mndeaves/cookie:latest"
+            echo "\`\`\`"
+            echo ""
+
+            if [ -n "$PREV_TAG" ]; then
+              echo "**Full Changelog**: https://github.com/mndeaves/cookie/compare/$PREV_TAG...$CURRENT_TAG"
+            fi
+          } > changelog.md
+
+          cat changelog.md
+
+      - name: Determine prerelease
+        id: prerelease
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          if [[ "$TAG" == *"-"* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            echo "Tag $TAG is a prerelease"
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            echo "Tag $TAG is a stable release"
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: changelog.md
+          draft: false
+          prerelease: ${{ steps.prerelease.outputs.is_prerelease == 'true' }}
+          generate_release_notes: false  # We generate our own
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+### Release Workflow Behavior
+
+| Git Tag | Release Type | Docker Pull Command |
+|---------|--------------|---------------------|
+| `v1.0.0` | Stable | `docker pull mndeaves/cookie:1.0.0` |
+| `v1.1.0-beta` | Prerelease | `docker pull mndeaves/cookie:1.1.0-beta` |
+| `v2.0.0-rc.1` | Prerelease | `docker pull mndeaves/cookie:2.0.0-rc.1` |
+
+### Generated Release Notes Example
+
+```markdown
+## What's Changed
+
+### Features
+- feat: Add recipe import from URL (a1b2c3d)
+- feat(ui): Add dark mode toggle (e4f5g6h)
+
+### Bug Fixes
+- fix: Recipe scaling calculation error (i7j8k9l)
+- fix(api): Handle empty ingredient lists (m0n1o2p)
+
+### Other Changes
+- docs: Update API documentation (q3r4s5t)
+- refactor: Clean up unused imports (u6v7w8x)
+
+---
+
+### Docker
+```bash
+docker pull mndeaves/cookie:1.0.0
+# or
+docker pull mndeaves/cookie:latest
+```
+
+**Full Changelog**: https://github.com/mndeaves/cookie/compare/v0.9.0...v1.0.0
+```
+
+### Commit Message Convention
+
+For best changelog categorization, use conventional commits:
+
+| Prefix | Category |
+|--------|----------|
+| `feat:` or `feature:` | Features |
+| `fix:` or `bugfix:` | Bug Fixes |
+| `docs:`, `refactor:`, `test:`, `ci:`, etc. | Other Changes |
+
+---
+
+## Session G Verification Checklist
+
+### 10.10: Tag-Based Docker Releases
+- [ ] Push `v1.0.0` tag triggers CD workflow
+- [ ] Docker Hub receives `1.0.0`, `1.0`, `1`, `latest` tags
+- [ ] Push `v1.0.0-beta` tag creates only `1.0.0-beta` (no `latest`)
+- [ ] Regular commits to main do NOT trigger CD
+- [ ] Manual workflow_dispatch still works
+
+### 10.11: Path Filters
+- [ ] Commit only to `README.md` does NOT trigger CI
+- [ ] Commit only to `plans/*.md` does NOT trigger CI
+- [ ] Commit to `apps/core/views.py` triggers CI
+- [ ] Commit to `requirements.txt` triggers CI
+- [ ] Mixed commit (docs + code) triggers CI
+- [ ] Manual workflow_dispatch triggers CI
+
+### 10.12: Dependabot
+- [ ] `.github/dependabot.yml` exists and is valid
+- [ ] Dependabot shows in GitHub Security tab
+- [ ] First batch of PRs appears after Monday 9am AEST
+- [ ] PRs have correct labels (`dependencies`, `python`/`javascript`)
+
+### 10.13: GitHub Releases
+- [ ] Push `v1.0.0` creates GitHub Release
+- [ ] Release notes contain categorized changelog
+- [ ] Docker pull commands are included
+- [ ] Prerelease tags marked as prerelease
+- [ ] Link to full changelog works
+
+---
+
+## Session G File Summary
+
+| File | Action | Description |
+|------|--------|-------------|
+| `.github/workflows/cd.yml` | Modify | Tag-based triggers, semver Docker tags |
+| `.github/workflows/ci.yml` | Modify | Add path-ignore filters |
+| `.github/workflows/release.yml` | Create | GitHub Release automation |
+| `.github/dependabot.yml` | Create | Dependency update configuration |
