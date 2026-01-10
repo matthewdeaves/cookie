@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-10T13:01:07.321405+00:00",
+  "generated_at": "2026-01-10T13:16:39.547975+00:00",
   "repo": "mndeaves/cookie",
   "coverage": {
     "frontend": {
@@ -44,7 +44,7 @@
     }
   },
   "bundle": {
-    "size_kb": 1216.81,
+    "size_kb": 1216.82,
     "rating": "C",
     "badge_url": "https://mndeaves.github.io/cookie/coverage/badges/bundle-size.svg"
   },
