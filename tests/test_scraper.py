@@ -197,7 +197,7 @@ class TestScraperIntegration:
     """Integration tests for recipe scraper."""
 
     @pytest.fixture
-    def test_profile(self, db):
+    def test_profile(self):
         """Create a test profile for recipe ownership."""
         from apps.profiles.models import Profile
         return Profile.objects.create(name='Test User', avatar_color='#d97850')

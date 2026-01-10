@@ -1,7 +1,7 @@
 # QA-061: Flaky Scraper Integration Tests in CI
 
 ## Status
-**OPEN** - Intermittent CI failures
+**FIXED** - Applied `@pytest.mark.django_db(transaction=True)` and removed redundant `db` fixture parameters
 
 ## Phase
 Testing Infrastructure

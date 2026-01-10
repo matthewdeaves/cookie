@@ -483,7 +483,7 @@ class TestBatchCachedUrlLookup:
         result = await image_cache.get_cached_urls_batch([])
         assert result == {}
 
-    async def test_get_cached_urls_batch_no_matches(self, image_cache, db):
+    async def test_get_cached_urls_batch_no_matches(self, image_cache):
         """Test batch lookup with no cached images returns empty dict."""
         urls = [
             'https://example.com/uncached1.jpg',
@@ -493,7 +493,7 @@ class TestBatchCachedUrlLookup:
         assert result == {}
 
     async def test_get_cached_urls_batch_returns_cached(
-        self, image_cache, sample_jpeg_bytes, db
+        self, image_cache, sample_jpeg_bytes
     ):
         """Test batch lookup returns URLs for cached images."""
         from asgiref.sync import sync_to_async
@@ -530,7 +530,7 @@ class TestBatchCachedUrlLookup:
         assert '/media/search_images/' in result[url2]
 
     async def test_get_cached_urls_batch_excludes_pending(
-        self, image_cache, db
+        self, image_cache
     ):
         """Test batch lookup excludes pending images."""
         from asgiref.sync import sync_to_async
@@ -551,7 +551,7 @@ class TestBatchCachedUrlLookup:
         assert url not in result
 
     async def test_get_cached_urls_batch_excludes_failed(
-        self, image_cache, db
+        self, image_cache
     ):
         """Test batch lookup excludes failed images."""
         from asgiref.sync import sync_to_async
@@ -572,7 +572,7 @@ class TestBatchCachedUrlLookup:
         assert url not in result
 
     async def test_get_cached_urls_batch_excludes_empty_images(
-        self, image_cache, db
+        self, image_cache
     ):
         """Test batch lookup excludes records with empty image field."""
         from asgiref.sync import sync_to_async

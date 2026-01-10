@@ -259,7 +259,7 @@ class TestScrapeRecipe:
 
     @patch('apps.recipes.api.aget_current_profile_or_none')
     @patch('apps.recipes.api.RecipeScraper')
-    async def test_scrape_recipe_success(self, mock_scraper_class, mock_get_profile, db):
+    async def test_scrape_recipe_success(self, mock_scraper_class, mock_get_profile):
         """Test scraping a recipe successfully."""
         from asgiref.sync import sync_to_async
         from apps.profiles.models import Profile
@@ -337,7 +337,7 @@ class TestScrapeRecipe:
 
     @patch('apps.recipes.api.aget_current_profile_or_none')
     @patch('apps.recipes.api.RecipeScraper')
-    async def test_scrape_recipe_fetch_error(self, mock_scraper_class, mock_get_profile, db):
+    async def test_scrape_recipe_fetch_error(self, mock_scraper_class, mock_get_profile):
         """Test scraping returns 502 on fetch error."""
         from asgiref.sync import sync_to_async
         from apps.recipes.services.scraper import FetchError
@@ -371,7 +371,7 @@ class TestScrapeRecipe:
 
     @patch('apps.recipes.api.aget_current_profile_or_none')
     @patch('apps.recipes.api.RecipeScraper')
-    async def test_scrape_recipe_parse_error(self, mock_scraper_class, mock_get_profile, db):
+    async def test_scrape_recipe_parse_error(self, mock_scraper_class, mock_get_profile):
         """Test scraping returns 400 on parse error."""
         from asgiref.sync import sync_to_async
         from apps.recipes.services.scraper import ParseError
@@ -403,7 +403,7 @@ class TestScrapeRecipe:
         data = response.json()
         assert 'no title' in data['detail']
 
-    async def test_scrape_recipe_requires_profile(self, db):
+    async def test_scrape_recipe_requires_profile(self):
         """Test scraping requires a profile."""
         from django.test import AsyncClient
         async_client = AsyncClient()
