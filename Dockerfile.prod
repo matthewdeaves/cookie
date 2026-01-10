@@ -39,10 +39,13 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn whitenoise
 # ===========================================
 FROM python:3.12-slim AS production
 
-# Install runtime dependencies only
+# Install runtime dependencies including nginx and curl (for healthcheck)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi8 \
-    && rm -rf /var/lib/apt/lists/*
+    nginx \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -f /etc/nginx/sites-enabled/default
 
 # Security: Create non-root user
 RUN useradd --create-home --shell /bin/bash app
@@ -65,12 +68,12 @@ COPY --from=frontend-builder --chown=app:app /frontend/dist /app/frontend/dist
 RUN mkdir -p /app/staticfiles /app/data/media && \
     chown -R app:app /app/staticfiles /app/data
 
-# Copy and setup entrypoint
-COPY --chown=app:app entrypoint.prod.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Copy nginx config
+COPY nginx/nginx.prod.conf /etc/nginx/nginx.conf
 
-# Switch to non-root user
-USER app
+# Copy and setup entrypoint
+COPY entrypoint.prod.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Environment defaults for out-of-the-box deployment
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -80,12 +83,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     GUNICORN_WORKERS=2 \
     GUNICORN_THREADS=4
 
-# Expose port
-EXPOSE 8000
+# Expose nginx port
+EXPOSE 80
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/system/health/')" || exit 1
+# Health check via nginx
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD curl -f http://localhost/api/system/health/ || exit 1
 
 # Run entrypoint
 ENTRYPOINT ["/entrypoint.sh"]

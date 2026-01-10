@@ -22,77 +22,72 @@ This guide covers deploying Cookie to production environments using the official
 # Pull and run with persistent data
 docker run -d \
   --name cookie \
-  -p 8000:8000 \
+  -p 80:80 \
   -v cookie-data:/app/data \
-  -e ALLOWED_HOSTS=cookie.example.com \
-  -e CSRF_TRUSTED_ORIGINS=https://cookie.example.com \
   mndeaves/cookie:latest
 ```
 
-The app will be available at `http://localhost:8000`.
+The app will be available at `http://localhost`.
+
+For network access from other devices, use your machine's IP address (e.g., `http://192.168.1.100`).
 
 ---
 
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     Production Container                         │
-│                                                                   │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐  │
-│  │   Gunicorn  │───▶│   Django    │───▶│  SQLite + WAL Mode  │  │
-│  │  (2 workers │    │  (Python    │    │  (/app/data/db)     │  │
-│  │  4 threads) │    │   3.12)     │    └─────────────────────┘  │
-│  └─────────────┘    └─────────────┘                              │
-│         │                  │                                      │
-│         ▼                  ▼                                      │
-│  ┌─────────────┐    ┌─────────────┐                              │
-│  │ WhiteNoise  │    │   Media     │                              │
-│  │ (static CSS │    │  (/app/data │                              │
-│  │  JS, fonts) │    │   /media)   │                              │
-│  └─────────────┘    └─────────────┘                              │
-│                                                                   │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                       Production Container                            │
+│                                                                       │
+│  ┌─────────────────────────────────────────────────────────────────┐ │
+│  │                         nginx (port 80)                          │ │
+│  │                                                                  │ │
+│  │  /api/, /admin/, /legacy/  ───►  gunicorn (127.0.0.1:8000)      │ │
+│  │  /static/                  ───►  /app/staticfiles/               │ │
+│  │  /media/                   ───►  /app/data/media/                │ │
+│  │  /                         ───►  React SPA (/app/frontend/dist/) │ │
+│  │                                                                  │ │
+│  │  Browser Detection: iOS <11, IE, Edge Legacy ───► /legacy/       │ │
+│  └─────────────────────────────────────────────────────────────────┘ │
+│                              │                                        │
+│                              ▼                                        │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐      │
+│  │   Gunicorn  │───▶│   Django    │───▶│  SQLite + WAL Mode  │      │
+│  │  (2 workers │    │  (Python    │    │  (/app/data/db)     │      │
+│  │  4 threads) │    │   3.12)     │    └─────────────────────┘      │
+│  └─────────────┘    └─────────────┘                                  │
+│                                                                       │
+└──────────────────────────────────────────────────────────────────────┘
          │
-         ▼ Port 8000
-┌─────────────────┐
-│  Reverse Proxy  │  (Nginx, Caddy, Traefik, or cloud LB)
-│  - SSL/TLS      │
-│  - Rate limiting│
-└─────────────────┘
-         │
-         ▼ Port 443
-      Internet
+         ▼ Port 80
+      Internet / LAN
+
+Optional: Add reverse proxy (Caddy, Traefik) for SSL/TLS
 ```
 
 ### Technology Stack
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| **Runtime** | Python 3.12-slim | Minimal base image (~150MB) |
+| **Web Server** | nginx | Routing, static files, browser detection |
+| **Runtime** | Python 3.12-slim | Minimal base image |
 | **Framework** | Django 5.x | Web framework |
 | **API** | Django Ninja | Fast async API endpoints |
 | **WSGI Server** | Gunicorn 23.x | Production-grade Python server |
-| **Static Files** | WhiteNoise 6.x | Efficient static file serving |
 | **Database** | SQLite + WAL | Embedded database with concurrent reads |
 | **Frontend** | React + TypeScript | Single-page application |
+| **Legacy Frontend** | ES5 JavaScript | iOS 9+ compatibility |
 
-### Why WhiteNoise?
+### Why nginx in the Container?
 
-WhiteNoise is a production-stable static file server for Python web apps:
+The production container includes nginx for:
 
-- **PyPI Status**: Production/Stable (status 5)
-- **Current Version**: 6.11.0 (actively maintained)
-- **Compatibility**: Django 4.2 - 6.0, Python 3.9 - 3.14
-- **Used by**: Heroku, Render, Railway, and major PaaS providers
+- **Static file serving** with proper cache headers (1-year for hashed assets)
+- **Browser detection** to automatically redirect legacy browsers (iOS <11, IE, Edge Legacy) to `/legacy/`
+- **Dev/prod parity** - both environments use nginx for routing
+- **Efficient proxying** to gunicorn for Django requests
 
-**Features:**
-- Automatic gzip + Brotli compression
-- Far-future cache headers with content hashing
-- No separate nginx needed for static files
-- Works seamlessly behind CDNs
-
-For this app serving ~300KB of frontend assets, WhiteNoise is more than adequate. For extremely high traffic (>10K concurrent users), consider adding a CDN.
+This single-container approach simplifies deployment while maintaining production-grade performance.
 
 ---
 
@@ -106,8 +101,9 @@ For this app serving ~300KB of frontend assets, WhiteNoise is more than adequate
 | **Repository** | `mndeaves/cookie` |
 | **Architectures** | `linux/amd64`, `linux/arm64` |
 | **Base Image** | `python:3.12-slim` |
-| **Image Size** | ~410MB |
-| **User** | `app` (non-root, UID 1000) |
+| **Exposed Port** | `80` (nginx) |
+| **Image Size** | ~420MB |
+| **Processes** | nginx (foreground) + gunicorn (background) |
 
 ### Tags
 
@@ -173,47 +169,52 @@ The Dockerfile uses a 3-stage build for minimal image size:
 ### Option 1: Docker Run (Simplest)
 
 ```bash
-# Create data volume
-docker volume create cookie-data
-
-# Run container
+# Run container on port 80
 docker run -d \
   --name cookie \
   --restart unless-stopped \
-  -p 8000:8000 \
+  -p 80:80 \
   -v cookie-data:/app/data \
-  -e ALLOWED_HOSTS=localhost,cookie.example.com \
+  mndeaves/cookie:latest
+```
+
+For custom domain with SSL (via reverse proxy):
+
+```bash
+docker run -d \
+  --name cookie \
+  --restart unless-stopped \
+  -p 8080:80 \
+  -v cookie-data:/app/data \
+  -e ALLOWED_HOSTS=cookie.example.com \
   -e CSRF_TRUSTED_ORIGINS=https://cookie.example.com \
   mndeaves/cookie:latest
 ```
 
 ### Option 2: Docker Compose (Recommended)
 
-Create `docker-compose.yml`:
+Create `docker-compose.prod.yml`:
 
 ```yaml
-version: '3.8'
-
 services:
   cookie:
     image: mndeaves/cookie:latest
     container_name: cookie
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "80:80"
     volumes:
       - cookie-data:/app/data
     environment:
-      - ALLOWED_HOSTS=localhost,cookie.example.com
-      - CSRF_TRUSTED_ORIGINS=https://cookie.example.com
+      - ALLOWED_HOSTS=*
       # Optional: AI features
       # - OPENROUTER_API_KEY=sk-or-...
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/system/health/')"]
+      test: ["CMD", "curl", "-f", "http://localhost/api/system/health/"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 40s
 
 volumes:
   cookie-data:
@@ -222,14 +223,20 @@ volumes:
 Run with:
 
 ```bash
-docker compose up -d
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Or use the helper script:
+
+```bash
+bin/prod up      # Start
+bin/prod logs    # View logs
+bin/prod update  # Pull latest and restart
 ```
 
 ### Option 3: Docker Compose with Caddy (SSL)
 
 ```yaml
-version: '3.8'
-
 services:
   cookie:
     image: mndeaves/cookie:latest
@@ -240,7 +247,7 @@ services:
       - ALLOWED_HOSTS=cookie.example.com
       - CSRF_TRUSTED_ORIGINS=https://cookie.example.com
     expose:
-      - "8000"
+      - "80"
 
   caddy:
     image: caddy:2-alpine
@@ -263,7 +270,7 @@ Create `Caddyfile`:
 
 ```
 cookie.example.com {
-    reverse_proxy cookie:8000
+    reverse_proxy cookie:80
 }
 ```
 
@@ -290,7 +297,7 @@ spec:
       - name: cookie
         image: mndeaves/cookie:latest
         ports:
-        - containerPort: 8000
+        - containerPort: 80
         env:
         - name: ALLOWED_HOSTS
           value: "cookie.example.com"
@@ -302,8 +309,8 @@ spec:
         livenessProbe:
           httpGet:
             path: /api/system/health/
-            port: 8000
-          initialDelaySeconds: 10
+            port: 80
+          initialDelaySeconds: 15
           periodSeconds: 30
         resources:
           requests:
@@ -326,7 +333,7 @@ spec:
     app: cookie
   ports:
   - port: 80
-    targetPort: 8000
+    targetPort: 80
 ```
 
 **Note**: SQLite with WAL mode works well for single-replica deployments. For multi-replica, you'd need PostgreSQL.
@@ -335,11 +342,13 @@ spec:
 
 ## Reverse Proxy Setup
 
-### Nginx
+Since the container already includes nginx on port 80, you typically don't need an additional reverse proxy for basic deployments. However, for SSL/TLS termination, you can add one:
+
+### Nginx (External)
 
 ```nginx
 upstream cookie {
-    server 127.0.0.1:8000;
+    server 127.0.0.1:8080;  # Map container to 8080 to avoid conflict
 }
 
 server {
@@ -355,25 +364,14 @@ server {
     ssl_certificate /etc/letsencrypt/live/cookie.example.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/cookie.example.com/privkey.pem;
 
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-
     location / {
         proxy_pass http://cookie;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-
-        # WebSocket support (if needed in future)
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
     }
 
-    # Optional: increase body size for recipe image uploads
     client_max_body_size 10M;
 }
 ```
@@ -382,12 +380,11 @@ server {
 
 ```
 cookie.example.com {
-    reverse_proxy localhost:8000
+    reverse_proxy localhost:8080
 
     header {
         X-Frame-Options "SAMEORIGIN"
         X-Content-Type-Options "nosniff"
-        X-XSS-Protection "1; mode=block"
     }
 }
 ```
@@ -403,7 +400,7 @@ services:
       - "traefik.http.routers.cookie.rule=Host(`cookie.example.com`)"
       - "traefik.http.routers.cookie.entrypoints=websecure"
       - "traefik.http.routers.cookie.tls.certresolver=letsencrypt"
-      - "traefik.http.services.cookie.loadbalancer.server.port=8000"
+      - "traefik.http.services.cookie.loadbalancer.server.port=80"
 ```
 
 ---
@@ -471,7 +468,7 @@ find $BACKUP_DIR -name "cookie-*.tar.gz" -mtime +7 -delete
 ### Health Check Endpoint
 
 ```bash
-curl http://localhost:8000/api/system/health/
+curl http://localhost/api/system/health/
 # {"status": "healthy", "database": "ok"}
 ```
 
@@ -512,7 +509,7 @@ docker logs --tail 100 cookie
 docker logs cookie
 
 # Common issues:
-# 1. Port already in use - change -p 8000:8000 to -p 8001:8000
+# 1. Port 80 already in use - change -p 80:80 to -p 8080:80
 # 2. Volume permissions - ensure /app/data is writable
 ```
 
@@ -555,6 +552,14 @@ docker start cookie
 
 ## Updating
 
+Using the helper script:
+
+```bash
+bin/prod update  # Pulls latest and restarts
+```
+
+Or manually:
+
 ```bash
 # Pull latest image
 docker pull mndeaves/cookie:latest
@@ -565,18 +570,16 @@ docker rm cookie
 docker run -d \
   --name cookie \
   --restart unless-stopped \
-  -p 8000:8000 \
+  -p 80:80 \
   -v cookie-data:/app/data \
-  -e ALLOWED_HOSTS=cookie.example.com \
-  -e CSRF_TRUSTED_ORIGINS=https://cookie.example.com \
   mndeaves/cookie:latest
 ```
 
 Or with Docker Compose:
 
 ```bash
-docker compose pull
-docker compose up -d
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 ---

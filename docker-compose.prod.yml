@@ -9,16 +9,16 @@ services:
     image: mndeaves/cookie:latest
     container_name: cookie-prod
     ports:
-      - "80:8000"
+      - "80:80"
     volumes:
       - cookie-prod-data:/app/data
     environment:
       - DEBUG=false
-      - ALLOWED_HOSTS=localhost,127.0.0.1
+      - ALLOWED_HOSTS=*
       - CSRF_TRUSTED_ORIGINS=http://localhost,http://127.0.0.1
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/system/health/')"]
+      test: ["CMD", "curl", "-f", "http://localhost/api/system/health/"]
       interval: 30s
       timeout: 10s
       retries: 3

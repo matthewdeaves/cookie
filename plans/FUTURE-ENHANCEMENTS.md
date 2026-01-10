@@ -15,6 +15,7 @@
 | FE-004 | Settings page access control (admin-only restriction) | Medium | Medium |
 | FE-005 | Migrate from SQLite to MySQL/PostgreSQL | Medium | Medium |
 | FE-006 | Multi-selection for AI remix suggestions | Low | Low |
+| FE-007 | ~~Add nginx to production container for dev/prod parity~~ | ~~High~~ | ~~Medium~~ |
 
 ---
 
@@ -478,3 +479,220 @@ Allow users to select multiple AI suggestions to combine into a single remix:
 
 - `frontend/src/components/RemixModal.tsx` - Multi-select UI
 - `apps/ai/services/remix.py` - Handle combined suggestions in prompt
+
+---
+
+## FE-007: Add Nginx to Production Container
+
+**Status:** ✅ Implemented
+**Priority:** High (currently production container doesn't serve frontend properly)
+
+### Problem
+
+The production container only runs gunicorn serving Django directly. This causes:
+1. **No frontend at `/`** - Modern browsers get 404 at root URL
+2. **No browser detection** - Legacy browsers (iOS < 11, IE, Edge Legacy) aren't redirected to `/legacy/`
+3. **Dev/prod disparity** - Development uses nginx for routing, production doesn't
+
+### Current Implementation
+
+**Development (`docker-compose.yml`):**
+- 3 containers: nginx, Django (web), Vite dev server (frontend)
+- nginx handles all routing via `nginx/nginx.conf`:
+  - `/api/`, `/legacy/`, `/admin/` → Django
+  - `/` with browser detection → Vite (modern) or redirect to `/legacy/` (old browsers)
+  - Static files, media, Vite HMR
+
+**Production (`docker-compose.prod.yml` + `Dockerfile.prod`):**
+- Single container running gunicorn only
+- Frontend built and copied to `/app/frontend/dist`
+- Static files collected to `/app/staticfiles`
+- No nginx, no browser detection, no frontend routing
+- `entrypoint.prod.sh` starts only gunicorn
+
+### Proposed Solution
+
+Add nginx to the production container, running alongside gunicorn:
+
+1. **Install nginx in Dockerfile.prod**
+2. **Create production nginx config** (`nginx/nginx.prod.conf`)
+3. **Update entrypoint** to start both nginx and gunicorn
+4. **Expose port 80** (nginx) instead of 8000 (gunicorn)
+
+### Implementation Details
+
+#### 1. Dockerfile.prod Changes
+
+```dockerfile
+# Add nginx to the production image
+FROM python:3.12-slim AS production
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libffi8 \
+    nginx \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy nginx config
+COPY nginx/nginx.prod.conf /etc/nginx/nginx.conf
+
+# Expose nginx port
+EXPOSE 80
+```
+
+#### 2. Production Nginx Config (`nginx/nginx.prod.conf`)
+
+```nginx
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    upstream django {
+        server 127.0.0.1:8000;  # Local gunicorn
+    }
+
+    server {
+        listen 80;
+        server_name _;
+
+        # API requests -> Django
+        location /api/ {
+            proxy_pass http://django;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # Legacy frontend -> Django
+        location /legacy/ {
+            proxy_pass http://django;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            add_header Cache-Control "no-cache, no-store, must-revalidate";
+        }
+
+        # Static files (Django collected)
+        location /static/ {
+            alias /app/staticfiles/;
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
+
+        # Media files
+        location /media/ {
+            alias /app/data/media/;
+        }
+
+        # Modern frontend with legacy browser detection
+        location / {
+            # Same browser detection as dev nginx.conf
+            set $legacy_browser 0;
+
+            if ($http_user_agent ~* "(?:iPhone|iPad|iPod).*OS [1-9]_") {
+                set $legacy_browser 1;
+            }
+            if ($http_user_agent ~* "(?:iPhone|iPad|iPod).*OS 10_") {
+                set $legacy_browser 1;
+            }
+            if ($http_user_agent ~* "MSIE |Trident/") {
+                set $legacy_browser 1;
+            }
+            if ($http_user_agent ~* "Edge/[0-9]") {
+                set $legacy_browser 1;
+            }
+
+            if ($legacy_browser = 1) {
+                return 302 /legacy/;
+            }
+
+            # Serve built frontend
+            root /app/frontend/dist;
+            try_files $uri $uri/ /index.html;
+        }
+    }
+}
+```
+
+#### 3. Entrypoint Changes (`entrypoint.prod.sh`)
+
+```bash
+# Start gunicorn in background
+echo "Starting Gunicorn on 127.0.0.1:8000..."
+gunicorn \
+    --bind 127.0.0.1:8000 \
+    --workers ${GUNICORN_WORKERS:-2} \
+    --threads ${GUNICORN_THREADS:-4} \
+    --worker-class gthread \
+    --worker-tmp-dir /dev/shm \
+    --access-logfile - \
+    --error-logfile - \
+    cookie.wsgi:application &
+
+# Start nginx in foreground
+echo "Starting Nginx on 0.0.0.0:80..."
+exec nginx -g 'daemon off;'
+```
+
+#### 4. docker-compose.prod.yml Changes
+
+```yaml
+services:
+  web:
+    image: mndeaves/cookie:latest
+    container_name: cookie-prod
+    ports:
+      - "80:80"  # Changed from 8000
+    # ... rest unchanged
+```
+
+### Files to Change
+
+| File | Change |
+|------|--------|
+| `Dockerfile.prod` | Install nginx, copy config, expose port 80 |
+| `nginx/nginx.prod.conf` | New file - production nginx config |
+| `entrypoint.prod.sh` | Start both gunicorn and nginx |
+| `docker-compose.prod.yml` | Map port 80:80 instead of 80:8000, update healthcheck |
+
+### Benefits
+
+- **Dev/prod parity** - Same nginx routing logic in both environments
+- **Single source of truth** - Browser detection rules in nginx configs only
+- **Efficient static serving** - nginx serves frontend assets directly
+- **Proper SPA routing** - `try_files` handles client-side routes
+- **Single container** - No orchestration complexity
+
+### Considerations
+
+- **Two processes in one container** - nginx (foreground) + gunicorn (background)
+  - Alternative: Use supervisord or s6-overlay for proper process management
+  - Simple approach: nginx foreground, gunicorn background works for this use case
+- **Container size** - nginx adds ~10MB to image
+- **Healthcheck update** - Should check nginx (port 80) not gunicorn (port 8000)
+- **Config duplication** - Some overlap between `nginx.conf` and `nginx.prod.conf`
+  - Could use templating or shared includes to reduce duplication
+
+### Alternative Approaches Considered
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| Django middleware for browser detection | No nginx needed | Slower, Django handles all requests |
+| Separate nginx container in prod | Clean separation | Requires docker-compose in prod |
+| Whitenoise for everything | Simple | No browser detection, less efficient |
+| **Nginx in same container** | Dev/prod parity, efficient | Two processes |
+
+### Testing Checklist
+
+- [ ] Modern browser (Firefox, Chrome) → serves React frontend at `/`
+- [ ] Legacy browser (iOS 9 iPad) → redirects to `/legacy/`
+- [ ] API calls (`/api/*`) → proxied to Django
+- [ ] Static files → served with cache headers
+- [ ] SPA client-side routing → works (e.g., `/recipe/123`)
+- [ ] Healthcheck passes
+- [ ] Container starts cleanly with both processes

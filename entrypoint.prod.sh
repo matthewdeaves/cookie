@@ -31,9 +31,10 @@ python manage.py migrate --noinput
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
-echo "Starting Gunicorn on 0.0.0.0:8000..."
-exec gunicorn \
-    --bind 0.0.0.0:8000 \
+# Start Gunicorn in background (binds to localhost only, nginx proxies to it)
+echo "Starting Gunicorn on 127.0.0.1:8000..."
+gunicorn \
+    --bind 127.0.0.1:8000 \
     --workers ${GUNICORN_WORKERS:-2} \
     --threads ${GUNICORN_THREADS:-4} \
     --worker-class gthread \
@@ -42,4 +43,11 @@ exec gunicorn \
     --error-logfile - \
     --capture-output \
     --enable-stdio-inheritance \
-    cookie.wsgi:application
+    cookie.wsgi:application &
+
+# Wait for gunicorn to start
+sleep 2
+
+# Start Nginx in foreground
+echo "Starting Nginx on 0.0.0.0:80..."
+exec nginx -g 'daemon off;'

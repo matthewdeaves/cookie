@@ -41,7 +41,7 @@ case "${1:-}" in
     up|start)
         echo -e "${GREEN}Starting development stack...${NC}"
         docker compose up -d
-        echo -e "${GREEN}Stack started. Access at http://localhost${NC}"
+        echo -e "${GREEN}Stack started. Access at http://localhost:3000${NC}"
         ;;
     down|stop)
         echo -e "${YELLOW}Stopping development stack...${NC}"
