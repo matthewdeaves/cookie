@@ -14,6 +14,7 @@
 | FE-003 | OAuth/social login for production deployment mode | High | High |
 | FE-004 | Settings page access control (admin-only restriction) | Medium | Medium |
 | FE-005 | Migrate from SQLite to MySQL/PostgreSQL | Medium | Medium |
+| FE-006 | Multi-selection for AI remix suggestions | Low | Low |
 
 ---
 
@@ -441,3 +442,39 @@ Migrate to MySQL or PostgreSQL for better concurrency:
 - Slightly more complex setup for new developers
 - Need to decide between MySQL and PostgreSQL
 - Data migration from existing SQLite databases
+
+---
+
+## FE-006: Multi-Selection for AI Remix Suggestions
+
+**Status:** Backlog
+
+### Problem
+
+When creating a recipe remix, the AI generates several variation suggestions (e.g., "Make it spicier", "Add Mediterranean flavors", "Make it vegetarian"). Currently, users can only select one suggestion at a time.
+
+### Current Implementation
+
+- Remix modal displays AI-generated suggestions as selectable options
+- User picks a single suggestion or enters custom text
+- AI generates the remixed recipe based on that one instruction
+
+### Proposed Solution
+
+Allow users to select multiple AI suggestions to combine into a single remix:
+
+1. **Multi-select UI:** Change suggestion selection from radio buttons to checkboxes
+2. **Combined prompt:** When multiple suggestions are selected, combine them into the remix prompt (e.g., "Make it spicier AND vegetarian")
+3. **Visual feedback:** Show selected count and allow deselection
+4. **Optional limit:** May want to cap at 3-4 selections to keep remixes coherent
+
+### Benefits
+
+- More creative remix possibilities
+- Better matches user intent when they want multiple modifications
+- More efficient than creating multiple sequential remixes
+
+### Files to Change
+
+- `frontend/src/components/RemixModal.tsx` - Multi-select UI
+- `apps/ai/services/remix.py` - Handle combined suggestions in prompt
