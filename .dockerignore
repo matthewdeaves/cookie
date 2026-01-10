@@ -1,0 +1,59 @@
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Testing
+tests/
+pytest.ini
+conftest.py
+.pytest_cache/
+.coverage
+htmlcov/
+coverage/
+coverage.xml
+coverage.json
+
+# Documentation and planning
+plans/
+qa/
+*.md
+!README.md
+
+# Git
+.git/
+.gitignore
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node/Frontend build artifacts (use from builder stage)
+frontend/node_modules/
+frontend/coverage/
+frontend/.vite/
+
+# Local development
+.env
+.env.local
+*.log
+data/
+media/
+
+# Docker
+Dockerfile
+Dockerfile.prod
+docker-compose*.yml
+
+# CI/CD
+.github/
+
+# Misc
+*.bak
+*.tmp
+.DS_Store
+Thumbs.db

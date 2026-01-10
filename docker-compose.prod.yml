@@ -1,0 +1,29 @@
+# Production Docker Compose for local testing of production image
+# Usage: docker compose -f docker-compose.prod.yml up
+#
+# This uses the published Docker Hub image to test production behavior locally.
+# For development, use: docker compose up (uses docker-compose.yml)
+
+services:
+  web:
+    image: mndeaves/cookie:latest
+    container_name: cookie-prod
+    ports:
+      - "80:8000"
+    volumes:
+      - cookie-prod-data:/app/data
+    environment:
+      - DEBUG=false
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+      - CSRF_TRUSTED_ORIGINS=http://localhost,http://127.0.0.1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/system/health/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  cookie-prod-data:
+    name: cookie-prod-data

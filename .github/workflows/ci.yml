@@ -280,6 +280,266 @@ jobs:
           path: frontend/complexity/
           retention-days: 30
 
+  frontend-duplication:
+    name: Frontend Duplication (jscpd)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run copy-paste detection
+        run: |
+          mkdir -p duplication
+          npx jscpd src/ \
+            --min-tokens 50 \
+            --min-lines 5 \
+            --reporters json,console \
+            --output duplication/ \
+            --format 'typescript,tsx' \
+            --ignore '**/test/**,**/*.test.*' || true
+
+          # Generate summary
+          node << 'EOF'
+          const fs = require('fs');
+
+          let report = { statistics: { total: { percentage: 0, duplicatedLines: 0, lines: 0 } } };
+          try {
+            report = JSON.parse(fs.readFileSync('duplication/jscpd-report.json', 'utf8'));
+          } catch (e) {
+            console.log('No duplication report found, creating empty summary');
+          }
+
+          const stats = report.statistics?.total || { percentage: 0, duplicatedLines: 0, lines: 0 };
+          const summary = {
+            duplication_percentage: Math.round(stats.percentage * 100) / 100,
+            duplicated_lines: stats.duplicatedLines || 0,
+            total_lines: stats.lines || 0,
+            clones_count: report.duplicates?.length || 0,
+            rating: stats.percentage <= 3 ? 'A' : stats.percentage <= 5 ? 'B' : stats.percentage <= 10 ? 'C' : 'D'
+          };
+
+          fs.writeFileSync('duplication/summary.json', JSON.stringify(summary, null, 2));
+          console.log('Duplication summary:', JSON.stringify(summary, null, 2));
+          EOF
+
+      - name: Upload duplication artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-duplication
+          path: frontend/duplication/
+          retention-days: 30
+
+  frontend-security:
+    name: Frontend Security (npm audit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: |
+          mkdir -p security
+          npm audit --json > security/npm-audit.json || true
+          npm audit > security/npm-audit.txt || true
+
+          # Generate summary
+          node << 'EOF'
+          const fs = require('fs');
+
+          let audit = { metadata: { vulnerabilities: { total: 0, critical: 0, high: 0, moderate: 0, low: 0 } } };
+          try {
+            audit = JSON.parse(fs.readFileSync('security/npm-audit.json', 'utf8'));
+          } catch (e) {
+            console.log('Could not parse audit JSON');
+          }
+
+          const vulns = audit.metadata?.vulnerabilities || { total: 0, critical: 0, high: 0, moderate: 0, low: 0 };
+          const summary = {
+            total_vulnerabilities: vulns.total || 0,
+            critical: vulns.critical || 0,
+            high: vulns.high || 0,
+            moderate: vulns.moderate || 0,
+            low: vulns.low || 0,
+            rating: vulns.critical > 0 ? 'D' : vulns.high > 0 ? 'C' : vulns.moderate > 0 ? 'B' : 'A'
+          };
+
+          fs.writeFileSync('security/summary.json', JSON.stringify(summary, null, 2));
+          console.log('Security summary:', JSON.stringify(summary, null, 2));
+          EOF
+
+      - name: Upload security artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-security
+          path: frontend/security/
+          retention-days: 30
+
+  backend-security:
+    name: Backend Security (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pip-audit
+
+      - name: Run pip-audit
+        run: |
+          mkdir -p security
+          pip-audit --format json --output security/pip-audit.json || true
+          pip-audit > security/pip-audit.txt || true
+
+          # Generate summary
+          python3 << 'EOF'
+          import json
+
+          vulnerabilities = []
+          try:
+              with open('security/pip-audit.json') as f:
+                  data = json.load(f)
+                  # pip-audit format: {"dependencies": [...], "fixes": [...]}
+                  # Each dependency with vulns has: {"name": "...", "vulns": [...]}
+                  if isinstance(data, dict):
+                      for dep in data.get('dependencies', []):
+                          vulns = dep.get('vulns', [])
+                          vulnerabilities.extend(vulns)
+                  elif isinstance(data, list):
+                      vulnerabilities = data
+          except Exception as e:
+              print(f"Note: Could not parse pip-audit output: {e}")
+
+          # Count vulnerabilities (pip-audit doesn't provide severity, so count total)
+          total = len(vulnerabilities)
+
+          # Rating based on count (pip-audit doesn't have severity levels)
+          if total == 0:
+              rating = 'A'
+          elif total <= 2:
+              rating = 'B'
+          elif total <= 5:
+              rating = 'C'
+          else:
+              rating = 'D'
+
+          summary = {
+              'total_vulnerabilities': total,
+              'rating': rating
+          }
+
+          with open('security/summary.json', 'w') as f:
+              json.dump(summary, f, indent=2)
+
+          print(f"Security summary: {json.dumps(summary, indent=2)}")
+          EOF
+
+      - name: Upload security artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-security
+          path: security/
+          retention-days: 30
+
+  frontend-bundle:
+    name: Frontend Bundle Analysis
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and analyze bundle
+        run: |
+          mkdir -p bundle
+          npm run build
+
+          # Analyze bundle sizes
+          node << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+
+          const distDir = 'dist/assets';
+          let totalSize = 0;
+          let jsSize = 0;
+          let cssSize = 0;
+          const files = [];
+
+          if (fs.existsSync(distDir)) {
+            fs.readdirSync(distDir).forEach(file => {
+              const filePath = path.join(distDir, file);
+              const stats = fs.statSync(filePath);
+              const sizeKB = Math.round(stats.size / 1024 * 100) / 100;
+              totalSize += stats.size;
+
+              if (file.endsWith('.js')) jsSize += stats.size;
+              if (file.endsWith('.css')) cssSize += stats.size;
+
+              files.push({ name: file, size_kb: sizeKB });
+            });
+          }
+
+          const summary = {
+            total_size_kb: Math.round(totalSize / 1024 * 100) / 100,
+            js_size_kb: Math.round(jsSize / 1024 * 100) / 100,
+            css_size_kb: Math.round(cssSize / 1024 * 100) / 100,
+            files: files.sort((a, b) => b.size_kb - a.size_kb),
+            rating: totalSize < 500000 ? 'A' : totalSize < 1000000 ? 'B' : totalSize < 2000000 ? 'C' : 'D'
+          };
+
+          fs.writeFileSync('bundle/summary.json', JSON.stringify(summary, null, 2));
+          console.log('Bundle summary:', JSON.stringify(summary, null, 2));
+          EOF
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-bundle
+          path: frontend/bundle/
+          retention-days: 30
+
   ci-success:
     name: CI Success
     runs-on: ubuntu-latest
