@@ -65,6 +65,7 @@
 | QA-056 | Test URL uses /article/ which is correctly excluded | Tests | Verified | - |
 | QA-049 | Recipe import fails (403 error not shown to user) | Modern | Verified | - |
 | QA-050 | Tips tab should be hidden without valid API key | Modern + Legacy | Verified | - |
+| QA-057 | Discover tab shows "no suggestions" for new users without history | Modern + Legacy | Verified | - |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -1439,6 +1440,94 @@ _To be investigated during research phase_
 - [x] Clicking profile avatar navigates to profile chooser
 - [x] Behavior matches the switch profile icon
 - [x] Works on Modern frontend (desktop browser)
+
+---
+
+### QA-057: Discover tab shows "no suggestions" for new users
+
+**Issue:** QA-057 - Discover tab shows "no suggestions" for new users without history
+**Affects:** Modern + Legacy
+**Status:** Verified
+
+**Problem:**
+On both frontends, the Discover tab shows "No suggestions yet" even for users who have history but no favorites. Per claude.md rule #20, new users (even without favorites/history) should see seasonal/holiday suggestions based on the current date.
+
+**Steps to reproduce:**
+1. Log in as user "matt" (or any profile)
+2. Navigate to Home screen
+3. Click on "Discover" tab
+4. Observe "No suggestions yet" message
+
+**Expected behavior:**
+Discover should show seasonal/holiday suggestions based on the current date, even for users without favorites or history.
+
+**Research Findings:**
+
+_Root cause identified:_
+The AI prompts for discover features (`discover_seasonal`, `discover_favorites`, `discover_new`) tell the AI to return a **single object**, but the validator expects an **array of 1-5 items**.
+
+Prompt system instructions say:
+```
+Always respond with valid JSON in this exact format:
+{
+  "search_query": "...",
+  "title": "...",
+  "description": "..."
+}
+```
+
+But validator schema in `apps/ai/services/validator.py` expects:
+```python
+'discover_seasonal': {
+    'type': 'array',
+    'items': { ... },
+    'minItems': 1,
+    'maxItems': 5,
+}
+```
+
+The service code in `apps/ai/services/discover.py` also iterates over the validated response:
+```python
+for item in validated:
+    suggestion = AIDiscoverySuggestion.objects.create(...)
+```
+
+Logs confirm all three discover functions fail validation:
+```
+WARNING discover - Failed to generate seasonal suggestions: AI response validation failed for discover_seasonal
+WARNING discover - Failed to generate recommended suggestions: AI response validation failed for discover_favorites
+WARNING discover - Failed to generate try-new suggestions: AI response validation failed for discover_new
+```
+
+_Solution:_
+Update all three discover prompts to request an array of 3-5 suggestions instead of a single object.
+
+**Implementation Plan:**
+
+Create migration `0009_fix_discover_prompts.py` that updates:
+1. `discover_seasonal` - Change system prompt to request array of 3-5 seasonal/holiday suggestions
+2. `discover_favorites` - Change system prompt to request array of 3-5 recommendations based on history
+3. `discover_new` - Change system prompt to request array of 3-5 adventurous suggestions
+
+New prompt format for each:
+```
+Always respond with valid JSON as an array of 3-5 suggestions:
+[
+  {"search_query": "...", "title": "...", "description": "..."},
+  {"search_query": "...", "title": "...", "description": "..."},
+  ...
+]
+```
+
+**Files modified:**
+- `apps/ai/migrations/0009_fix_discover_prompts.py` - Migration to update all three prompt templates
+
+**Tasks:**
+- [x] Create migration to update all three discover prompts to request arrays
+- [x] Test with new user (no history) - should get seasonal suggestions
+- [x] Test with user with history - should get all three types
+- [x] Verify on Modern frontend
+- [x] Verify on Legacy frontend
 
 ---
 
