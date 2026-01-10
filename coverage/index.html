@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cookie - Code Quality Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #f5f5f5;
+      color: #333;
+    }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; color: #1a1a1a; }
+    .subtitle { color: #666; margin-bottom: 2rem; }
+    h2 { font-size: 1.5rem; margin: 2rem 0 1rem; color: #1a1a1a; border-bottom: 2px solid #e1e4e8; padding-bottom: 0.5rem; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .card p { color: #666; margin-bottom: 1rem; font-size: 0.9rem; }
+    .card a {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: #0066cc;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    .card a:hover { background: #0052a3; }
+    .badge { height: 20px; }
+    .metric { font-size: 2rem; font-weight: 700; color: #1a1a1a; }
+    .metric-label { font-size: 0.85rem; color: #666; }
+    .metrics-row { display: flex; gap: 2rem; margin: 1rem 0; }
+    .metric-item { text-align: center; }
+    .api-note {
+      background: #e8f4fd;
+      border: 1px solid #b8daff;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 2rem;
+    }
+    .api-note code {
+      background: #fff;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+    .footer {
+      margin-top: 2rem;
+      text-align: center;
+      color: #999;
+      font-size: 0.875rem;
+    }
+    .footer a { color: #666; }
+  </style>
+</head>
+<body>
+  <h1>Cookie Code Quality Dashboard</h1>
+  <p class="subtitle">Test coverage and code complexity metrics</p>
+
+  <h2>Test Coverage</h2>
+  <div class="cards">
+    <div class="card">
+      <h3>
+        Frontend (React/TypeScript)
+        <img src="badges/frontend-coverage.svg" alt="Frontend coverage" class="badge">
+      </h3>
+      <p>React components, API client, utilities, and hooks</p>
+      <a href="frontend/index.html">View Detailed Report</a>
+    </div>
+    <div class="card">
+      <h3>
+        Backend (Django/Python)
+        <img src="badges/backend-coverage.svg" alt="Backend coverage" class="badge">
+      </h3>
+      <p>Django apps, API endpoints, models, and services</p>
+      <a href="backend/htmlcov/index.html">View Detailed Report</a>
+    </div>
+  </div>
+
+  <h2>Code Complexity</h2>
+  <div class="cards">
+    <div class="card">
+      <h3>
+        Backend Complexity
+        <img src="badges/backend-complexity.svg" alt="Backend complexity" class="badge">
+        <img src="badges/backend-maintainability.svg" alt="Backend maintainability" class="badge">
+      </h3>
+      <p>Cyclomatic complexity and maintainability index (radon)</p>
+      <div class="metrics-row">
+        <div class="metric-item">
+          <div class="metric" id="backend-cc">-</div>
+          <div class="metric-label">Avg. Complexity</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric" id="backend-mi">-</div>
+          <div class="metric-label">Maintainability</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>
+        Frontend Complexity
+        <img src="badges/frontend-complexity.svg" alt="Frontend complexity" class="badge">
+      </h3>
+      <p>ESLint complexity analysis (max cyclomatic: 10)</p>
+      <div class="metrics-row">
+        <div class="metric-item">
+          <div class="metric" id="frontend-warnings">-</div>
+          <div class="metric-label">Warnings</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="api-note">
+    <strong>API Endpoint:</strong> Fetch metrics programmatically for your blog or dashboard:<br>
+    <code>GET <a href="api/metrics.json">https://mndeaves.github.io/cookie/coverage/api/metrics.json</a></code>
+  </div>
+
+  <p class="footer">
+    Last updated: <span id="date"></span><br>
+    <a href="https://github.com/mndeaves/cookie">View on GitHub</a>
+  </p>
+
+  <script>
+    document.getElementById('date').textContent = new Date().toLocaleString();
+
+    // Load metrics from API
+    fetch('api/metrics.json')
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('backend-cc').textContent = data.complexity.backend.cyclomatic_complexity || '-';
+        document.getElementById('backend-mi').textContent = data.complexity.backend.maintainability_index || '-';
+        document.getElementById('frontend-warnings').textContent = data.complexity.frontend.complexity_warnings || '0';
+      })
+      .catch(() => {});
+  </script>
+</body>
+</html>
