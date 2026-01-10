@@ -69,6 +69,7 @@
 | QA-058 | AllRecipes article pages cause "Recipe has no title" on import | Modern + Legacy | Verified | - |
 | QA-059 | Phase 10 CI/CD code review items (6 minor issues) | All | New | - |
 | QA-060 | GitHub Pages root landing page returns 404 | Infrastructure | Fixed | - |
+| QA-061 | CI/CD code quality tooling gaps and improvements | Infrastructure | Fixed | Phase 1-2 complete |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -2529,3 +2530,324 @@ If issues are found, log them using this format:
 | Toast notifications | [ ] | [ ] |
 | Per-profile visibility | [ ] | [ ] |
 | Error handling | [ ] | [ ] |
+
+---
+
+### QA-061: CI/CD Code Quality Tooling Gaps and Improvements
+
+**Issue:** QA-061 - CI/CD code quality tooling has gaps in coverage
+**Affects:** Infrastructure (CI/CD, GitHub Actions)
+**Status:** Fixed (Phase 1-2 complete)
+**Priority:** Medium
+
+---
+
+#### Problem Summary
+
+A comprehensive audit of the CI/CD code quality tooling revealed several gaps where code is not being analyzed, reports that could be exposed but aren't linked, and missing tools that would improve code quality enforcement.
+
+The codebase has three distinct areas:
+- **Backend**: Django/Python (`apps/` directory)
+- **Frontend Modern**: React/TypeScript (`frontend/` directory)
+- **Frontend Legacy**: Vanilla JS/CSS for iOS 9 (`apps/legacy/static/legacy/`)
+
+---
+
+#### Research Findings
+
+##### Current Tooling Inventory
+
+| Category | Tool | Target | Scopes | Status |
+|----------|------|--------|--------|--------|
+| **Test Coverage** | Vitest | Frontend Modern | `src/**/*.{ts,tsx}` | Working |
+| **Test Coverage** | pytest-cov | Backend | `apps/`, `cookie/` | Working |
+| **Complexity** | radon | Backend | `apps/`, `cookie/` | Working (CC, MI, HAL, RAW) |
+| **Complexity** | ESLint | Frontend Modern | `src/` | Working |
+| **Complexity** | - | Legacy JS | - | **Missing** |
+| **Security** | npm audit | Frontend Modern | All npm deps | Working |
+| **Security** | pip-audit | Backend | All pip deps | Working |
+| **Duplication** | jscpd | Frontend Modern | `src/` (TS only) | Partial |
+| **Duplication** | - | Legacy JS | - | **Missing** |
+| **Duplication** | - | Backend Python | - | **Missing** |
+| **Bundle** | Vite build | Frontend Modern | `dist/assets/` | Working |
+| **Linting** | ESLint | Frontend Modern | `src/**/*.{ts,tsx}` | Working |
+| **Linting** | - | Backend Python | - | **Missing** |
+| **Linting** | - | Legacy JS | - | **Missing** |
+| **Type Check** | TypeScript | Frontend Modern | All TS files | Working |
+| **Type Check** | - | Backend Python | - | **Missing** |
+
+##### GitHub Pages Reports - Current vs Potential
+
+**Currently Published:**
+| Report | URL | Status |
+|--------|-----|--------|
+| Dashboard | `/coverage/` | Linked |
+| Frontend Coverage HTML | `/coverage/frontend/` | Linked |
+| Backend Coverage HTML | `/coverage/backend/htmlcov/` | Linked |
+| Metrics JSON API | `/coverage/api/metrics.json` | Linked |
+| Badges (9 total) | `/coverage/badges/*.svg` | Linked |
+
+**Generated But NOT Linked:**
+| Report | Location in Artifacts | Potential URL | Issue |
+|--------|----------------------|---------------|-------|
+| Radon HTML Report | `complexity/backend/radon_report.html` | `/coverage/complexity/radon_report.html` | Copied to site but no link in dashboard |
+| Radon CC JSON | `complexity/backend/cc.json` | `/coverage/complexity/cc.json` | Raw data, no viewer |
+| Radon MI JSON | `complexity/backend/mi.json` | `/coverage/complexity/mi.json` | Raw data, no viewer |
+| ESLint Complexity JSON | `complexity/frontend/eslint-complexity.json` | `/coverage/complexity/eslint-complexity.json` | Raw data, no viewer |
+| jscpd JSON | `duplication/frontend/jscpd-report.json` | `/coverage/duplication/jscpd-report.json` | Raw data, no viewer |
+| npm audit JSON | `security/frontend/npm-audit.json` | `/coverage/security/npm-audit.json` | Raw data, no viewer |
+| pip-audit JSON | `security/backend/pip-audit.json` | `/coverage/security/pip-audit.json` | Raw data, no viewer |
+| Bundle JSON | `bundle/frontend/bundle-analysis.json` | `/coverage/bundle/bundle-analysis.json` | Raw data, no viewer |
+
+**Could Generate But Don't:**
+| Report | Tool Change Needed |
+|--------|-------------------|
+| jscpd HTML | Add `--reporters html` to ci.yml |
+
+##### Coverage Gaps Detail
+
+**1. Legacy Frontend JavaScript (15 files) - CRITICAL GAP**
+
+Location: `apps/legacy/static/legacy/js/`
+
+Files not analyzed:
+```
+js/accessibility.js
+js/ajax.js
+js/alerts.js
+js/animations.js
+js/buttons.js
+js/polyfills.js
+js/sounds.js
+js/state.js
+js/timers.js
+js/pages/discover.js
+js/pages/home.js
+js/pages/profile.js
+js/pages/recipe-detail.js
+js/pages/recipes-list.js
+js/pages/search.js
+```
+
+Missing analysis:
+- No linting (ESLint not configured for legacy)
+- No complexity analysis
+- No duplication detection
+- No tests
+
+**2. Legacy Frontend CSS (6 files)**
+
+Location: `apps/legacy/static/legacy/css/`
+
+Files not analyzed:
+```
+css/layout.css
+css/components.css
+css/discover.css
+css/play-mode.css
+css/profile.css
+css/recipe-detail.css
+```
+
+Missing: No CSS linting (stylelint)
+
+**3. Python Backend - Missing Tools**
+
+Current state:
+- Tests: pytest with coverage
+- Complexity: radon (all metrics)
+- Security: pip-audit
+
+Missing:
+- No linter (flake8, ruff, pylint, or black)
+- No type checker (mypy)
+- No duplication detection
+
+**4. jscpd Configuration**
+
+Current: Inline CLI args in ci.yml
+```bash
+npx jscpd src/ --min-tokens 50 --min-lines 5 \
+  --reporters json,console --format 'typescript,tsx' \
+  --ignore '**/test/**,**/*.test.*'
+```
+
+Issues:
+- No `.jscpd.json` config file (harder to maintain)
+- Only scans TypeScript, not legacy JS
+- No HTML report generated
+
+---
+
+#### Tasks
+
+##### Phase 1: Expose Existing Reports (Quick Wins)
+
+- [x] **Task 1.1**: Link radon HTML report in dashboard
+  - File: `.github/workflows/coverage.yml`
+  - Add "View Details" button linking to `/coverage/complexity/radon_report.html`
+  - **Done**: Added HTML report generation to ci.yml backend-complexity job and linked in dashboard
+
+- [x] **Task 1.2**: Generate jscpd HTML report
+  - File: `.github/workflows/ci.yml` (frontend-duplication job)
+  - Change: `--reporters json,console` → `--reporters json,console,html`
+  - Add link in dashboard to `/coverage/duplication/html/`
+  - **Done**: Added html reporter to jscpd command
+
+- [x] **Task 1.3**: Update dashboard with new report links
+  - File: `.github/workflows/coverage.yml` (dashboard HTML generation)
+  - Add "View Details" buttons for:
+    - Backend Complexity → radon HTML
+    - Code Duplication → jscpd HTML
+  - **Done**: Added View Detailed Report buttons and area tags for clarity
+
+##### Phase 2: Add Legacy JavaScript Analysis
+
+- [x] **Task 2.1**: Create ESLint config for legacy JS
+  - Create: `apps/legacy/static/legacy/.eslintrc.json`
+  - Configure for ES5/browser globals (iOS 9 compatible)
+  - Rules: complexity, no-unused-vars, no-undef
+  - **Done**: Created .eslintrc.json with ES5 config and legacy globals
+
+- [x] **Task 2.2**: Add legacy-lint job to CI
+  - File: `.github/workflows/ci.yml`
+  - New job: `legacy-lint`
+  - Scope: `apps/legacy/static/legacy/js/**/*.js`
+  - **Done**: Added legacy-lint job with ESLint ES5 analysis
+
+- [x] **Task 2.3**: Add legacy JS to jscpd duplication scan
+  - Either update CI inline args or create `.jscpd.json`
+  - Add format: `javascript`
+  - Add path: `apps/legacy/static/legacy/js/`
+  - **Done**: Added legacy-duplication job scanning legacy JS files
+
+- [x] **Task 2.4**: Add legacy complexity analysis
+  - Use ESLint complexity rules (same as modern frontend)
+  - Report as separate artifact
+  - **Done**: legacy-lint job includes complexity warnings tracking
+
+##### Phase 3: Add Python Backend Linting
+
+- [ ] **Task 3.1**: Add ruff to requirements.txt
+  - `ruff>=0.1.0` (fast Python linter, replaces flake8/isort/black)
+
+- [ ] **Task 3.2**: Create pyproject.toml with ruff config
+  - Or add `[tool.ruff]` section
+  - Configure for Django project
+  - Set line-length, select rules
+
+- [ ] **Task 3.3**: Add backend-lint job to CI
+  - File: `.github/workflows/ci.yml`
+  - Command: `ruff check apps/ cookie/`
+  - Make it a required check (fail CI on errors)
+
+##### Phase 4: Add Python Duplication Detection
+
+- [ ] **Task 4.1**: Configure jscpd for Python
+  - Add `python` to formats in jscpd config
+  - Or use pylint's duplicate-code checker
+
+- [ ] **Task 4.2**: Add backend-duplication job to CI
+  - Scan: `apps/`, `cookie/`
+  - Generate JSON + summary
+  - Add to metrics dashboard
+
+##### Phase 5: Add Python Type Checking (Optional)
+
+- [ ] **Task 5.1**: Add mypy to requirements.txt
+  - `mypy>=1.0`
+  - `django-stubs` for Django type hints
+
+- [ ] **Task 5.2**: Create mypy.ini or pyproject.toml config
+  - Start with `--ignore-missing-imports`
+  - Gradually enable strict mode
+
+- [ ] **Task 5.3**: Add backend-typecheck job to CI
+  - Initially as warning-only (allow failures)
+  - Upgrade to required after fixing type errors
+
+##### Phase 6: Create Centralized Config Files
+
+- [ ] **Task 6.1**: Create `.jscpd.json` config file
+  - Move inline args from ci.yml to config file
+  - Easier to maintain and document
+
+- [ ] **Task 6.2**: Create or enhance `pyproject.toml`
+  - Consolidate Python tool configs
+  - ruff, mypy, pytest, coverage settings
+
+- [ ] **Task 6.3**: Document all quality tools in README or CONTRIBUTING.md
+
+##### Phase 7: Gate Complexity Metrics
+
+- [ ] **Task 7.1**: Add complexity thresholds to CI
+  - Backend: Fail if average CC > 10 or MI < 50
+  - Frontend: Fail if any complexity warnings
+
+- [ ] **Task 7.2**: Update dashboard to show threshold status
+  - Show "PASS/FAIL" indicators for each metric
+
+---
+
+#### Configuration File Locations
+
+| File | Purpose | Status |
+|------|---------|--------|
+| `.github/workflows/ci.yml` | Main CI workflow | Exists |
+| `.github/workflows/coverage.yml` | Metrics publishing | Exists |
+| `frontend/eslint.config.js` | Modern frontend ESLint | Exists |
+| `frontend/vitest.config.ts` | Frontend test config | Exists |
+| `pytest.ini` | Backend test config | Exists |
+| `requirements.txt` | Python dependencies | Exists |
+| `pyproject.toml` | Python project config | **Missing** |
+| `.jscpd.json` | Duplication detection config | **Missing** |
+| `apps/legacy/static/legacy/.eslintrc.json` | Legacy JS linting | **Missing** |
+| `mypy.ini` | Python type checking | **Missing** |
+| `ruff.toml` | Python linting | **Missing** |
+
+---
+
+#### Metrics Dashboard Enhancement
+
+Current dashboard sections:
+1. Test Coverage (frontend + backend) - with detailed reports
+2. Code Complexity (frontend + backend) - **needs detail links**
+3. Security (frontend + backend) - summary only
+4. Code Quality (duplication + bundle) - **needs detail links**
+
+Proposed additions:
+- Link to radon HTML for backend complexity details
+- Link to jscpd HTML for duplication details
+- Add Legacy JS health section (when implemented)
+- Add Python linting status (when implemented)
+
+---
+
+#### Verification Checklist
+
+After implementing each phase:
+
+- [ ] CI workflow runs successfully
+- [ ] New reports appear in GitHub Pages
+- [ ] Dashboard links work correctly
+- [ ] Metrics JSON API includes new data
+- [ ] Badges update correctly
+- [ ] No false positives blocking legitimate code
+
+---
+
+#### Notes
+
+- **Priority**: Phase 1 (quick wins) should be done first as it requires minimal changes
+- **Legacy JS**: The 15 JavaScript files in `apps/legacy/static/legacy/js/` are actively used for iOS 9 support and should have basic quality checks
+- **Python linting**: ruff is recommended over flake8 due to performance and feature parity
+- **Backwards compatibility**: Legacy ESLint config must use ES5 rules (no arrow functions, etc.)
+- **CI time impact**: Adding new jobs will increase CI runtime; consider parallel execution
+
+---
+
+#### Related Issues
+
+- QA-059: Phase 10 CI/CD code review items (6 minor issues)
+- QA-060: GitHub Pages root landing page returns 404 (Fixed)
+

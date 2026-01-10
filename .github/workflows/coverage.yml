@@ -91,6 +91,24 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
 
+      - name: Download legacy lint
+        uses: actions/download-artifact@v7
+        with:
+          name: legacy-lint
+          path: legacy/lint
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Download legacy duplication
+        uses: actions/download-artifact@v7
+        with:
+          name: legacy-duplication
+          path: legacy/duplication
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -107,6 +125,7 @@ jobs:
           mkdir -p site/coverage/bundle
           mkdir -p site/coverage/badges
           mkdir -p site/coverage/api
+          mkdir -p site/coverage/legacy
 
           # Copy coverage reports if they exist
           if [ -d "coverage/frontend" ]; then
@@ -138,6 +157,15 @@ jobs:
           fi
           if [ -d "bundle/frontend" ]; then
             cp -r bundle/frontend/* site/coverage/bundle/ 2>/dev/null || true
+          fi
+
+          # Copy legacy reports
+          if [ -d "legacy/lint" ]; then
+            cp -r legacy/lint/* site/coverage/legacy/ 2>/dev/null || true
+          fi
+          if [ -d "legacy/duplication" ]; then
+            mkdir -p site/coverage/legacy/duplication
+            cp -r legacy/duplication/* site/coverage/legacy/duplication/ 2>/dev/null || true
           fi
 
           # Generate all metrics and badges
@@ -261,6 +289,30 @@ jobs:
                   bundle_rating = d.get('rating', 'N/A')
           except: pass
 
+          # Extract legacy metrics
+          legacy_errors = 0
+          legacy_warnings = 0
+          legacy_complexity_warnings = 0
+          legacy_lint_rating = 'N/A'
+          legacy_duplication_pct = 0
+          legacy_duplication_rating = 'N/A'
+
+          try:
+              with open('legacy/lint/summary.json') as f:
+                  d = json.load(f)
+                  legacy_errors = d.get('errors', 0)
+                  legacy_warnings = d.get('warnings', 0)
+                  legacy_complexity_warnings = d.get('complexity_warnings', 0)
+                  legacy_lint_rating = d.get('rating', 'N/A')
+          except: pass
+
+          try:
+              with open('legacy/duplication/summary.json') as f:
+                  d = json.load(f)
+                  legacy_duplication_pct = d.get('duplication_percentage', 0)
+                  legacy_duplication_rating = d.get('rating', 'N/A')
+          except: pass
+
           # Generate badges
           download_badge('frontend-coverage', f'{frontend_cov}%25', get_color(frontend_cov), 'coverage')
           download_badge('backend-coverage', f'{backend_cov}%25', get_color(backend_cov), 'coverage')
@@ -271,6 +323,8 @@ jobs:
           download_badge('frontend-security', f'{frontend_security_rating}', get_rating_color(frontend_security_rating), 'security')
           download_badge('backend-security', f'{backend_security_rating}', get_rating_color(backend_security_rating), 'security')
           download_badge('bundle-size', f'{bundle_rating}', get_rating_color(bundle_rating), 'bundle')
+          download_badge('legacy-lint', f'{legacy_lint_rating}', get_rating_color(legacy_lint_rating), 'legacy%20lint')
+          download_badge('legacy-duplication', f'{legacy_duplication_rating}', get_rating_color(legacy_duplication_rating), 'legacy%20dup')
 
           # Create metrics.json API file for blog integration
           metrics = {
@@ -323,6 +377,20 @@ jobs:
                   'rating': bundle_rating,
                   'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/bundle-size.svg'
               },
+              'legacy': {
+                  'lint': {
+                      'errors': legacy_errors,
+                      'warnings': legacy_warnings,
+                      'complexity_warnings': legacy_complexity_warnings,
+                      'rating': legacy_lint_rating,
+                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/legacy-lint.svg'
+                  },
+                  'duplication': {
+                      'percentage': legacy_duplication_pct,
+                      'rating': legacy_duplication_rating,
+                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/legacy-duplication.svg'
+                  }
+              },
               'links': {
                   'dashboard': 'https://matthewdeaves.github.io/cookie/coverage/',
                   'frontend_coverage': 'https://matthewdeaves.github.io/cookie/coverage/frontend/',
@@ -342,6 +410,8 @@ jobs:
           print(f"Duplication: {duplication_pct}% ({duplication_rating})")
           print(f"Security: Frontend={frontend_vulns} ({frontend_security_rating}), Backend={backend_vulns} ({backend_security_rating})")
           print(f"Bundle Size: {bundle_size_kb}KB ({bundle_rating})")
+          print(f"Legacy Lint: {legacy_errors} errors, {legacy_warnings} warnings ({legacy_lint_rating})")
+          print(f"Legacy Duplication: {legacy_duplication_pct}% ({legacy_duplication_rating})")
           EOF
 
           # Create index.html dashboard
@@ -419,6 +489,8 @@ jobs:
               }
               .footer a { color: #666; }
               .badge-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+              .area-tag { font-size: 0.7rem; background: #e0e7ff; color: #3730a3; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 500; vertical-align: middle; }
+              code { background: #f3f4f6; padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.85rem; }
             </style>
           </head>
           <body>
@@ -428,19 +500,19 @@ jobs:
             <h2>Test Coverage</h2>
             <div class="cards">
               <div class="card">
-                <h3>Frontend (React/TypeScript)</h3>
+                <h3>Frontend Coverage <span class="area-tag">React/TypeScript</span></h3>
                 <div class="badge-row">
                   <img src="badges/frontend-coverage.svg" alt="Frontend coverage" class="badge">
                 </div>
-                <p>React components, API client, utilities, and hooks</p>
+                <p>Vitest coverage for <code>frontend/src/</code> - components, API client, utilities, hooks</p>
                 <a href="frontend/index.html" class="btn">View Detailed Report</a>
               </div>
               <div class="card">
-                <h3>Backend (Django/Python)</h3>
+                <h3>Backend Coverage <span class="area-tag">Django/Python</span></h3>
                 <div class="badge-row">
                   <img src="badges/backend-coverage.svg" alt="Backend coverage" class="badge">
                 </div>
-                <p>Django apps, API endpoints, models, and services</p>
+                <p>pytest-cov coverage for <code>apps/</code> and <code>cookie/</code> - API endpoints, models, services</p>
                 <a href="backend/htmlcov/index.html" class="btn">View Detailed Report</a>
               </div>
             </div>
@@ -448,12 +520,12 @@ jobs:
             <h2>Code Complexity</h2>
             <div class="cards">
               <div class="card">
-                <h3>Backend Complexity</h3>
+                <h3>Backend Complexity <span class="area-tag">Django/Python</span></h3>
                 <div class="badge-row">
                   <img src="badges/backend-complexity.svg" alt="Backend complexity" class="badge">
                   <img src="badges/backend-maintainability.svg" alt="Backend maintainability" class="badge">
                 </div>
-                <p>Cyclomatic complexity and maintainability index (radon)</p>
+                <p>Cyclomatic complexity and maintainability index (radon) for <code>apps/</code> and <code>cookie/</code></p>
                 <div class="metrics-row">
                   <div class="metric-item">
                     <div class="metric" id="backend-cc">-</div>
@@ -464,13 +536,14 @@ jobs:
                     <div class="metric-label">Maintainability</div>
                   </div>
                 </div>
+                <a href="complexity/radon_report.html" class="btn">View Detailed Report</a>
               </div>
               <div class="card">
-                <h3>Frontend Complexity</h3>
+                <h3>Frontend Complexity <span class="area-tag">React/TypeScript</span></h3>
                 <div class="badge-row">
                   <img src="badges/frontend-complexity.svg" alt="Frontend complexity" class="badge">
                 </div>
-                <p>ESLint complexity analysis (max cyclomatic: 10)</p>
+                <p>ESLint complexity analysis (max cyclomatic: 10) for <code>frontend/src/</code></p>
                 <div class="metrics-row">
                   <div class="metric-item">
                     <div class="metric" id="frontend-warnings">-</div>
@@ -483,11 +556,11 @@ jobs:
             <h2>Security</h2>
             <div class="cards">
               <div class="card">
-                <h3>Frontend Dependencies</h3>
+                <h3>Frontend Security <span class="area-tag">npm packages</span></h3>
                 <div class="badge-row">
                   <img src="badges/frontend-security.svg" alt="Frontend security" class="badge">
                 </div>
-                <p>npm audit - checks for known vulnerabilities in npm packages</p>
+                <p>npm audit - checks <code>frontend/package.json</code> for known vulnerabilities</p>
                 <div class="metrics-row">
                   <div class="metric-item">
                     <div class="metric metric-sm" id="frontend-vulns">-</div>
@@ -496,11 +569,11 @@ jobs:
                 </div>
               </div>
               <div class="card">
-                <h3>Backend Dependencies</h3>
+                <h3>Backend Security <span class="area-tag">pip packages</span></h3>
                 <div class="badge-row">
                   <img src="badges/backend-security.svg" alt="Backend security" class="badge">
                 </div>
-                <p>pip-audit - checks for known vulnerabilities in Python packages</p>
+                <p>pip-audit - checks <code>requirements.txt</code> for known vulnerabilities</p>
                 <div class="metrics-row">
                   <div class="metric-item">
                     <div class="metric metric-sm" id="backend-vulns">-</div>
@@ -513,11 +586,11 @@ jobs:
             <h2>Code Quality</h2>
             <div class="cards">
               <div class="card">
-                <h3>Code Duplication</h3>
+                <h3>Code Duplication <span class="area-tag">TypeScript</span></h3>
                 <div class="badge-row">
                   <img src="badges/duplication.svg" alt="Duplication" class="badge">
                 </div>
-                <p>jscpd - copy/paste detection in TypeScript/React code</p>
+                <p>jscpd - copy/paste detection in <code>frontend/src/</code></p>
                 <div class="metrics-row">
                   <div class="metric-item">
                     <div class="metric metric-sm" id="duplication-pct">-</div>
@@ -528,19 +601,59 @@ jobs:
                     <div class="metric-label">Clones Found</div>
                   </div>
                 </div>
+                <a href="duplication/html/index.html" class="btn">View Detailed Report</a>
               </div>
               <div class="card">
-                <h3>Bundle Size</h3>
+                <h3>Bundle Size <span class="area-tag">React/TypeScript</span></h3>
                 <div class="badge-row">
                   <img src="badges/bundle-size.svg" alt="Bundle size" class="badge">
                 </div>
-                <p>Vite build output - JavaScript and CSS bundle analysis</p>
+                <p>Vite build output - JavaScript and CSS bundle from <code>frontend/dist/</code></p>
                 <div class="metrics-row">
                   <div class="metric-item">
                     <div class="metric metric-sm" id="bundle-size">-</div>
                     <div class="metric-label">Total Size (KB)</div>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <h2>Legacy Frontend</h2>
+            <div class="cards">
+              <div class="card">
+                <h3>Legacy Lint <span class="area-tag">ES5/Vanilla JS</span></h3>
+                <div class="badge-row">
+                  <img src="badges/legacy-lint.svg" alt="Legacy lint" class="badge">
+                </div>
+                <p>ESLint ES5 analysis for <code>apps/legacy/static/legacy/js/</code> (iOS 9 compatible)</p>
+                <div class="metrics-row">
+                  <div class="metric-item">
+                    <div class="metric metric-sm" id="legacy-errors">-</div>
+                    <div class="metric-label">Errors</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric metric-sm" id="legacy-warnings">-</div>
+                    <div class="metric-label">Warnings</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric metric-sm" id="legacy-complexity">-</div>
+                    <div class="metric-label">Complexity</div>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <h3>Legacy Duplication <span class="area-tag">ES5/Vanilla JS</span></h3>
+                <div class="badge-row">
+                  <img src="badges/legacy-duplication.svg" alt="Legacy duplication" class="badge">
+                </div>
+                <p>jscpd - copy/paste detection in <code>apps/legacy/static/legacy/js/</code></p>
+                <div class="metrics-row">
+                  <div class="metric-item">
+                    <div class="metric metric-sm" id="legacy-dup-pct">-</div>
+                    <div class="metric-label">Duplication %</div>
+                  </div>
+                </div>
+                <a href="legacy/duplication/html/index.html" class="btn">View Detailed Report</a>
               </div>
             </div>
 
@@ -576,6 +689,12 @@ jobs:
 
                   // Bundle
                   document.getElementById('bundle-size').textContent = data.bundle?.size_kb ?? '-';
+
+                  // Legacy
+                  document.getElementById('legacy-errors').textContent = data.legacy?.lint?.errors ?? '-';
+                  document.getElementById('legacy-warnings').textContent = data.legacy?.lint?.warnings ?? '-';
+                  document.getElementById('legacy-complexity').textContent = data.legacy?.lint?.complexity_warnings ?? '-';
+                  document.getElementById('legacy-dup-pct').textContent = (data.legacy?.duplication?.percentage ?? '-') + '%';
                 })
                 .catch(() => {});
             </script>

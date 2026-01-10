@@ -1,0 +1,62 @@
+{
+  "env": {
+    "browser": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 5,
+    "sourceType": "script"
+  },
+  "globals": {
+    "CookieApp": "writable",
+    "CookieState": "writable",
+    "CookieToast": "writable",
+    "CookieTimer": "writable",
+    "CookieWakeLock": "writable",
+    "CookieAjax": "writable",
+    "CookieTimeDetect": "writable",
+    "CookieAIError": "writable",
+    "RECIPE_INSTRUCTIONS": "readonly",
+    "AI_AVAILABLE": "readonly"
+  },
+  "rules": {
+    "complexity": ["warn", 15],
+    "max-depth": ["warn", 4],
+    "max-nested-callbacks": ["warn", 4],
+    "max-lines-per-function": ["warn", 100],
+    "no-unused-vars": ["warn", { "vars": "all", "args": "none" }],
+    "no-undef": "error",
+    "no-redeclare": "warn",
+    "no-shadow": "warn",
+    "eqeqeq": ["warn", "smart"],
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-with": "error",
+    "no-caller": "error",
+    "no-extend-native": "error",
+    "no-extra-bind": "warn",
+    "no-loop-func": "warn",
+    "no-self-compare": "error",
+    "no-sequences": "warn",
+    "no-throw-literal": "error",
+    "no-useless-call": "warn",
+    "no-useless-concat": "warn",
+    "prefer-promise-reject-errors": "off",
+    "wrap-iife": ["error", "any"],
+    "no-var": "off",
+    "prefer-const": "off",
+    "prefer-arrow-callback": "off",
+    "prefer-template": "off",
+    "object-shorthand": "off",
+    "prefer-rest-params": "off",
+    "prefer-spread": "off"
+  },
+  "overrides": [
+    {
+      "files": ["polyfills.js"],
+      "rules": {
+        "no-extend-native": "off"
+      }
+    }
+  ]
+}
