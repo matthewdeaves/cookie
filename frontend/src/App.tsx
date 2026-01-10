@@ -47,35 +47,22 @@ function AppContent() {
     }
   }, [theme])
 
-  // Update theme when profile changes
-  useEffect(() => {
-    if (currentProfile) {
-      setTheme(currentProfile.theme as 'light' | 'dark')
-    }
-  }, [currentProfile])
 
   // Load favorites when profile is set
   useEffect(() => {
-    if (currentProfile) {
-      loadFavorites()
-    } else {
-      setFavoriteRecipeIds(new Set())
-    }
-  }, [currentProfile])
+    if (!currentProfile) return
 
-  const loadFavorites = async () => {
-    try {
-      const favorites = await api.favorites.list()
-      setFavoriteRecipeIds(new Set(favorites.map((f) => f.recipe.id)))
-    } catch (error) {
-      console.error('Failed to load favorites:', error)
-    }
-  }
+    api.favorites
+      .list()
+      .then((favorites) => setFavoriteRecipeIds(new Set(favorites.map((f) => f.recipe.id))))
+      .catch((error) => console.error('Failed to load favorites:', error))
+  }, [currentProfile])
 
   const handleProfileSelect = async (profile: Profile) => {
     try {
       await api.profiles.select(profile.id)
       setCurrentProfile(profile)
+      setTheme(profile.theme as 'light' | 'dark')
       setCurrentScreen('home')
     } catch (error) {
       console.error('Failed to select profile:', error)
@@ -102,6 +89,7 @@ function AppContent() {
 
   const handleLogout = () => {
     setCurrentProfile(null)
+    setFavoriteRecipeIds(new Set())
     setCurrentScreen('profile-selector')
   }
 
