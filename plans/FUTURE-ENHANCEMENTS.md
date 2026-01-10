@@ -13,6 +13,7 @@
 | FE-002 | Automatic selector repair on search failure | Low | Medium |
 | FE-003 | OAuth/social login for production deployment mode | High | High |
 | FE-004 | Settings page access control (admin-only restriction) | Medium | Medium |
+| FE-005 | Migrate from SQLite to MySQL/PostgreSQL | Medium | Medium |
 
 ---
 
@@ -338,3 +339,105 @@ The implementation approach depends on the authentication model chosen:
 - Consider whether Django's built-in admin site is sufficient
 - If implementing custom, ensure API endpoints are also protected
 - Mobile/tablet UX matters - Django admin is not touch-friendly
+
+---
+
+## FE-005: Migrate from SQLite to MySQL/PostgreSQL
+
+**Status:** Backlog
+
+### Problem
+
+SQLite has concurrency limitations that cause issues in production and testing:
+- Table-level locking prevents concurrent writes
+- In-memory databases have isolation issues with background threads
+- CI tests fail intermittently due to "database table is locked" errors
+- Background tasks (e.g., AI tip generation) conflict with request handling
+
+### Current Implementation
+
+- SQLite for development and production
+- In-memory SQLite for CI tests (`file:memorydb_default?mode=memory&cache=shared`)
+- Background threads using daemon threads for fire-and-forget tasks
+- Race conditions between test teardown and background DB access
+
+### Observed Issues
+
+1. **CI Test Flakiness:** `test_scrape_same_url_twice_creates_two_records` fails intermittently
+   - Background tip generation thread locks `core_appsettings` table
+   - pytest teardown can't flush database while thread holds lock
+   - Workaround: Mock threading module in affected tests
+
+2. **Concurrent Request Handling:** Multiple simultaneous requests may conflict
+   - Recipe scraping + tip generation + user requests
+   - SQLite serializes all writes
+
+### Proposed Solution
+
+Migrate to MySQL or PostgreSQL for better concurrency:
+
+**Option A: MySQL**
+- Widely used, good Django support
+- Row-level locking (InnoDB)
+- Good performance for read-heavy workloads
+- `mysqlclient` or `PyMySQL` driver
+
+**Option B: PostgreSQL**
+- More advanced features (JSONB, full-text search)
+- Excellent concurrency (MVCC)
+- Better for complex queries
+- `psycopg2` or `psycopg3` driver
+
+### Implementation Steps
+
+1. **Docker Setup:**
+   - Add MySQL/PostgreSQL service to `docker-compose.yml`
+   - Configure persistent volume for data
+   - Health check for container readiness
+
+2. **Django Configuration:**
+   ```python
+   DATABASES = {
+       'default': {
+           'ENGINE': 'django.db.backends.mysql',  # or postgresql
+           'NAME': os.environ.get('DB_NAME', 'cookie'),
+           'USER': os.environ.get('DB_USER', 'cookie'),
+           'PASSWORD': os.environ.get('DB_PASSWORD'),
+           'HOST': os.environ.get('DB_HOST', 'db'),
+           'PORT': os.environ.get('DB_PORT', '3306'),
+       }
+   }
+   ```
+
+3. **CI Updates:**
+   - Add database service to GitHub Actions workflow
+   - Use real database instead of in-memory SQLite
+   - Remove threading mocks from tests (no longer needed)
+
+4. **Migration:**
+   - Export existing SQLite data
+   - Import to new database
+   - Test all functionality
+
+### Files to Change
+
+- `docker-compose.yml` - Add database service
+- `cookie/settings.py` - Database configuration
+- `.github/workflows/ci.yml` - CI database service
+- `requirements.txt` - Add database driver
+- `tests/test_recipes_api.py` - Remove threading workarounds
+
+### Benefits
+
+- Eliminates "database table is locked" errors
+- Better concurrent request handling
+- Production-ready database
+- Enables future scaling (connection pooling, read replicas)
+- Removes need for test workarounds
+
+### Considerations
+
+- Local development requires running database container
+- Slightly more complex setup for new developers
+- Need to decide between MySQL and PostgreSQL
+- Data migration from existing SQLite databases
