@@ -128,6 +128,20 @@ def populated_database(db, test_profile):
 
 
 @pytest.mark.django_db
+class TestHealthCheck:
+    """Tests for GET /api/system/health/"""
+
+    def test_health_check_returns_healthy(self, client):
+        """Test health check returns healthy status when database is accessible."""
+        response = client.get('/api/system/health/')
+        assert response.status_code == 200
+
+        data = response.json()
+        assert data['status'] == 'healthy'
+        assert data['database'] == 'ok'
+
+
+@pytest.mark.django_db
 class TestResetPreview:
     """Tests for GET /api/system/reset-preview/"""
 

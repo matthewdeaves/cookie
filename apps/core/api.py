@@ -25,6 +25,23 @@ from apps.ai.models import AIDiscoverySuggestion, AIPrompt
 router = Router(tags=['system'])
 
 
+class HealthSchema(Schema):
+    status: str
+    database: str
+
+
+@router.get('/health/', response=HealthSchema)
+def health_check(request):
+    """Simple health check for container orchestration."""
+    from django.db import connection
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+        return {'status': 'healthy', 'database': 'ok'}
+    except Exception:
+        return {'status': 'unhealthy', 'database': 'error'}
+
+
 class DataCountsSchema(Schema):
     profiles: int
     recipes: int
