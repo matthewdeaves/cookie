@@ -109,6 +109,15 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
 
+      - name: Download backend duplication
+        uses: actions/download-artifact@v7
+        with:
+          name: backend-duplication
+          path: duplication/backend
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -153,7 +162,12 @@ jobs:
 
           # Copy duplication and bundle reports
           if [ -d "duplication/frontend" ]; then
-            cp -r duplication/frontend/* site/coverage/duplication/ 2>/dev/null || true
+            mkdir -p site/coverage/duplication/frontend
+            cp -r duplication/frontend/* site/coverage/duplication/frontend/ 2>/dev/null || true
+          fi
+          if [ -d "duplication/backend" ]; then
+            mkdir -p site/coverage/duplication/backend
+            cp -r duplication/backend/* site/coverage/duplication/backend/ 2>/dev/null || true
           fi
           if [ -d "bundle/frontend" ]; then
             cp -r bundle/frontend/* site/coverage/bundle/ 2>/dev/null || true
@@ -243,7 +257,7 @@ jobs:
                   frontend_complexity_rating = d.get('rating', 'N/A')
           except: pass
 
-          # Extract duplication metrics
+          # Extract duplication metrics (frontend)
           duplication_pct = 0
           duplication_rating = 'N/A'
           duplication_clones = 0
@@ -254,6 +268,19 @@ jobs:
                   duplication_pct = d.get('duplication_percentage', 0)
                   duplication_rating = d.get('rating', 'N/A')
                   duplication_clones = d.get('clones_count', 0)
+          except: pass
+
+          # Extract duplication metrics (backend)
+          backend_duplication_pct = 0
+          backend_duplication_rating = 'N/A'
+          backend_duplication_clones = 0
+
+          try:
+              with open('duplication/backend/summary.json') as f:
+                  d = json.load(f)
+                  backend_duplication_pct = d.get('duplication_percentage', 0)
+                  backend_duplication_rating = d.get('rating', 'N/A')
+                  backend_duplication_clones = d.get('clones_count', 0)
           except: pass
 
           # Extract security metrics
@@ -320,6 +347,7 @@ jobs:
           download_badge('backend-maintainability', f'{backend_mi_rating}', get_rating_color(backend_mi_rating), 'maintainability')
           download_badge('frontend-complexity', f'{frontend_complexity_rating}', get_rating_color(frontend_complexity_rating), 'complexity')
           download_badge('duplication', f'{duplication_rating}', get_rating_color(duplication_rating), 'duplication')
+          download_badge('backend-duplication', f'{backend_duplication_rating}', get_rating_color(backend_duplication_rating), 'duplication')
           download_badge('frontend-security', f'{frontend_security_rating}', get_rating_color(frontend_security_rating), 'security')
           download_badge('backend-security', f'{backend_security_rating}', get_rating_color(backend_security_rating), 'security')
           download_badge('bundle-size', f'{bundle_rating}', get_rating_color(bundle_rating), 'bundle')
@@ -355,10 +383,18 @@ jobs:
                   }
               },
               'duplication': {
-                  'percentage': duplication_pct,
-                  'clones_count': duplication_clones,
-                  'rating': duplication_rating,
-                  'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/duplication.svg'
+                  'frontend': {
+                      'percentage': duplication_pct,
+                      'clones_count': duplication_clones,
+                      'rating': duplication_rating,
+                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/duplication.svg'
+                  },
+                  'backend': {
+                      'percentage': backend_duplication_pct,
+                      'clones_count': backend_duplication_clones,
+                      'rating': backend_duplication_rating,
+                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/backend-duplication.svg'
+                  }
               },
               'security': {
                   'frontend': {
@@ -407,7 +443,7 @@ jobs:
           print(f"Backend Coverage: {backend_cov}%")
           print(f"Backend Complexity: CC={backend_cc} ({backend_cc_rating}), MI={backend_mi} ({backend_mi_rating})")
           print(f"Frontend Complexity: {frontend_complexity_warnings} warnings ({frontend_complexity_rating})")
-          print(f"Duplication: {duplication_pct}% ({duplication_rating})")
+          print(f"Duplication: Frontend={duplication_pct}% ({duplication_rating}), Backend={backend_duplication_pct}% ({backend_duplication_rating})")
           print(f"Security: Frontend={frontend_vulns} ({frontend_security_rating}), Backend={backend_vulns} ({backend_security_rating})")
           print(f"Bundle Size: {bundle_size_kb}KB ({bundle_rating})")
           print(f"Legacy Lint: {legacy_errors} errors, {legacy_warnings} warnings ({legacy_lint_rating})")
@@ -583,10 +619,10 @@ jobs:
               </div>
             </div>
 
-            <h2>Code Quality</h2>
+            <h2>Code Duplication</h2>
             <div class="cards">
               <div class="card">
-                <h3>Code Duplication <span class="area-tag">TypeScript</span></h3>
+                <h3>Frontend Duplication <span class="area-tag">React/TypeScript</span></h3>
                 <div class="badge-row">
                   <img src="badges/duplication.svg" alt="Duplication" class="badge">
                 </div>
@@ -601,10 +637,32 @@ jobs:
                     <div class="metric-label">Clones Found</div>
                   </div>
                 </div>
-                <a href="duplication/html/index.html" class="btn">View Detailed Report</a>
+                <a href="duplication/frontend/html/index.html" class="btn">View Detailed Report</a>
               </div>
               <div class="card">
-                <h3>Bundle Size <span class="area-tag">React/TypeScript</span></h3>
+                <h3>Backend Duplication <span class="area-tag">Django/Python</span></h3>
+                <div class="badge-row">
+                  <img src="badges/backend-duplication.svg" alt="Backend Duplication" class="badge">
+                </div>
+                <p>jscpd - copy/paste detection in <code>apps/</code> and <code>cookie/</code></p>
+                <div class="metrics-row">
+                  <div class="metric-item">
+                    <div class="metric metric-sm" id="backend-duplication-pct">-</div>
+                    <div class="metric-label">Duplication %</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric metric-sm" id="backend-duplication-clones">-</div>
+                    <div class="metric-label">Clones Found</div>
+                  </div>
+                </div>
+                <a href="duplication/backend/html/index.html" class="btn">View Detailed Report</a>
+              </div>
+            </div>
+
+            <h2>Bundle Size</h2>
+            <div class="cards">
+              <div class="card">
+                <h3>Frontend Bundle <span class="area-tag">React/TypeScript</span></h3>
                 <div class="badge-row">
                   <img src="badges/bundle-size.svg" alt="Bundle size" class="badge">
                 </div>
@@ -684,8 +742,10 @@ jobs:
                   document.getElementById('backend-vulns').textContent = data.security?.backend?.vulnerabilities ?? '-';
 
                   // Duplication
-                  document.getElementById('duplication-pct').textContent = (data.duplication?.percentage ?? '-') + '%';
-                  document.getElementById('duplication-clones').textContent = data.duplication?.clones_count ?? '-';
+                  document.getElementById('duplication-pct').textContent = (data.duplication?.frontend?.percentage ?? '-') + '%';
+                  document.getElementById('duplication-clones').textContent = data.duplication?.frontend?.clones_count ?? '-';
+                  document.getElementById('backend-duplication-pct').textContent = (data.duplication?.backend?.percentage ?? '-') + '%';
+                  document.getElementById('backend-duplication-clones').textContent = data.duplication?.backend?.clones_count ?? '-';
 
                   // Bundle
                   document.getElementById('bundle-size').textContent = data.bundle?.size_kb ?? '-';

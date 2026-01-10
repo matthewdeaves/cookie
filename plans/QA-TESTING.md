@@ -69,7 +69,7 @@
 | QA-058 | AllRecipes article pages cause "Recipe has no title" on import | Modern + Legacy | Verified | - |
 | QA-059 | Phase 10 CI/CD code review items (6 minor issues) | All | New | - |
 | QA-060 | GitHub Pages root landing page returns 404 | Infrastructure | Fixed | - |
-| QA-061 | CI/CD code quality tooling gaps and improvements | Infrastructure | Fixed | Phase 1-3 complete |
+| QA-061 | CI/CD code quality tooling gaps and improvements | Infrastructure | Fixed | Phase 1-4 complete |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -2537,7 +2537,7 @@ If issues are found, log them using this format:
 
 **Issue:** QA-061 - CI/CD code quality tooling has gaps in coverage
 **Affects:** Infrastructure (CI/CD, GitHub Actions)
-**Status:** Fixed (Phase 1-3 complete)
+**Status:** Fixed (Phase 1-4 complete)
 **Priority:** Medium
 
 ---
@@ -2746,48 +2746,73 @@ Issues:
 
 ##### Phase 4: Add Python Duplication Detection
 
-- [ ] **Task 4.1**: Configure jscpd for Python
+- [x] **Task 4.1**: Configure jscpd for Python
   - Add `python` to formats in jscpd config
   - Or use pylint's duplicate-code checker
+  - **Done**: Using jscpd with format 'python', ignoring migrations/tests/__pycache__
 
-- [ ] **Task 4.2**: Add backend-duplication job to CI
+- [x] **Task 4.2**: Add backend-duplication job to CI
   - Scan: `apps/`, `cookie/`
   - Generate JSON + summary
   - Add to metrics dashboard
+  - **Done**: Added backend-duplication job, updated coverage.yml to display metrics and link reports
 
-##### Phase 5: Add Python Type Checking (Optional)
+##### Phase 5: Dashboard Polish and Report Linking
 
-- [ ] **Task 5.1**: Add mypy to requirements.txt
+- [ ] **Task 5.1**: Improve dashboard section labels
+  - Each section should clearly indicate the codebase area it covers
+  - Add explicit labels like "Django/Python Backend", "React/TypeScript Frontend", "ES5/Vanilla JS Legacy"
+  - Ensure all metrics are grouped by codebase area
+
+- [ ] **Task 5.2**: Link all available detailed reports
+  - radon HTML report → Backend Complexity
+  - jscpd HTML reports → Duplication sections (frontend + backend)
+  - Legacy ESLint output → Legacy lint warnings (create HTML report if needed)
+  - Ensure all "View Detailed Report" buttons work
+
+- [ ] **Task 5.3**: Add Legacy JavaScript metrics section
+  - Display legacy lint warning count
+  - Show legacy duplication stats
+  - Link to detailed reports
+
+- [ ] **Task 5.4**: Verify all reports are accessible
+  - Test all report links on deployed GitHub Pages site
+  - Ensure no 404s for linked reports
+  - Confirm all artifacts are being uploaded and downloaded correctly
+
+##### Phase 6: Add Python Type Checking (Optional)
+
+- [ ] **Task 6.1**: Add mypy to requirements.txt
   - `mypy>=1.0`
   - `django-stubs` for Django type hints
 
-- [ ] **Task 5.2**: Create mypy.ini or pyproject.toml config
+- [ ] **Task 6.2**: Create mypy.ini or pyproject.toml config
   - Start with `--ignore-missing-imports`
   - Gradually enable strict mode
 
-- [ ] **Task 5.3**: Add backend-typecheck job to CI
+- [ ] **Task 6.3**: Add backend-typecheck job to CI
   - Initially as warning-only (allow failures)
   - Upgrade to required after fixing type errors
 
-##### Phase 6: Create Centralized Config Files
+##### Phase 7: Create Centralized Config Files
 
-- [ ] **Task 6.1**: Create `.jscpd.json` config file
+- [ ] **Task 7.1**: Create `.jscpd.json` config file
   - Move inline args from ci.yml to config file
   - Easier to maintain and document
 
-- [ ] **Task 6.2**: Create or enhance `pyproject.toml`
+- [ ] **Task 7.2**: Create or enhance `pyproject.toml`
   - Consolidate Python tool configs
   - ruff, mypy, pytest, coverage settings
 
-- [ ] **Task 6.3**: Document all quality tools in README or CONTRIBUTING.md
+- [ ] **Task 7.3**: Document all quality tools in README or CONTRIBUTING.md
 
-##### Phase 7: Gate Complexity Metrics
+##### Phase 8: Gate Complexity Metrics
 
-- [ ] **Task 7.1**: Add complexity thresholds to CI
+- [ ] **Task 8.1**: Add complexity thresholds to CI
   - Backend: Fail if average CC > 10 or MI < 50
   - Frontend: Fail if any complexity warnings
 
-- [ ] **Task 7.2**: Update dashboard to show threshold status
+- [ ] **Task 8.2**: Update dashboard to show threshold status
   - Show "PASS/FAIL" indicators for each metric
 
 ---

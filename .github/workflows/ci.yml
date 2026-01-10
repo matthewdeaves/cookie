@@ -680,6 +680,59 @@ jobs:
           path: legacy-duplication/
           retention-days: 30
 
+  backend-duplication:
+    name: Backend Duplication (jscpd)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Run copy-paste detection on Python
+        run: |
+          mkdir -p backend-duplication
+          npx jscpd apps/ cookie/ \
+            --min-tokens 50 \
+            --min-lines 5 \
+            --reporters json,console,html \
+            --output backend-duplication/ \
+            --format 'python' \
+            --ignore '**/migrations/**,**/tests.py,**/__pycache__/**' || true
+
+          # Generate summary
+          node << 'EOF'
+          const fs = require('fs');
+
+          let report = { statistics: { total: { percentage: 0, duplicatedLines: 0, lines: 0 } } };
+          try {
+            report = JSON.parse(fs.readFileSync('backend-duplication/jscpd-report.json', 'utf8'));
+          } catch (e) {
+            console.log('No duplication report found, creating empty summary');
+          }
+
+          const stats = report.statistics?.total || { percentage: 0, duplicatedLines: 0, lines: 0 };
+          const summary = {
+            duplication_percentage: Math.round(stats.percentage * 100) / 100,
+            duplicated_lines: stats.duplicatedLines || 0,
+            total_lines: stats.lines || 0,
+            clones_count: report.duplicates?.length || 0,
+            rating: stats.percentage <= 3 ? 'A' : stats.percentage <= 5 ? 'B' : stats.percentage <= 10 ? 'C' : 'D'
+          };
+
+          fs.writeFileSync('backend-duplication/summary.json', JSON.stringify(summary, null, 2));
+          console.log('Backend duplication summary:', JSON.stringify(summary, null, 2));
+          EOF
+
+      - name: Upload backend duplication artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-duplication
+          path: backend-duplication/
+          retention-days: 30
+
   frontend-security:
     name: Frontend Security (npm audit)
     runs-on: ubuntu-latest
@@ -882,7 +935,7 @@ jobs:
   ci-success:
     name: CI Success
     runs-on: ubuntu-latest
-    needs: [frontend-lint, frontend-typecheck, frontend-test, backend-test, backend-lint, backend-complexity, frontend-complexity, frontend-duplication, legacy-lint, legacy-duplication]
+    needs: [frontend-lint, frontend-typecheck, frontend-test, backend-test, backend-lint, backend-complexity, frontend-complexity, frontend-duplication, backend-duplication, legacy-lint, legacy-duplication]
     if: always()
     steps:
       - name: Check all jobs passed
@@ -908,8 +961,11 @@ jobs:
             echo "Legacy JS quality checks failed"
             exit 1
           fi
-          # Backend complexity is informational (warn but don't fail)
+          # Backend analysis jobs are informational (warn but don't fail)
           if [[ "${{ needs.backend-complexity.result }}" != "success" ]]; then
             echo "Warning: Backend complexity analysis had issues, but continuing..."
+          fi
+          if [[ "${{ needs.backend-duplication.result }}" != "success" ]]; then
+            echo "Warning: Backend duplication analysis had issues, but continuing..."
           fi
           echo "All CI jobs passed successfully"
