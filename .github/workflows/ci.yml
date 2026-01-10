@@ -76,6 +76,12 @@ jobs:
             --ext .js \
             --format json > legacy-reports/eslint-report.json || true
 
+          # Generate HTML report
+          npx eslint apps/legacy/static/legacy/js/ \
+            --config apps/legacy/static/legacy/.eslintrc.json \
+            --ext .js \
+            --format html > legacy-reports/eslint-report.html || true
+
           # Generate summary
           node << 'EOF'
           const fs = require('fs');

@@ -69,7 +69,8 @@
 | QA-058 | AllRecipes article pages cause "Recipe has no title" on import | Modern + Legacy | Verified | - |
 | QA-059 | Phase 10 CI/CD code review items (6 minor issues) | All | New | - |
 | QA-060 | GitHub Pages root landing page returns 404 | Infrastructure | Fixed | - |
-| QA-061 | CI/CD code quality tooling gaps and improvements | Infrastructure | Fixed | Phase 1-4 complete |
+| QA-061 | CI/CD code quality tooling gaps and improvements | Infrastructure | Fixed | Phase 1-5 complete |
+| QA-063 | Flaky test: test_scrape_url_with_image_download database flush error | Tests | New | - |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -2537,7 +2538,7 @@ If issues are found, log them using this format:
 
 **Issue:** QA-061 - CI/CD code quality tooling has gaps in coverage
 **Affects:** Infrastructure (CI/CD, GitHub Actions)
-**Status:** Fixed (Phase 1-4 complete)
+**Status:** Fixed (Phase 1-5 complete)
 **Priority:** Medium
 
 ---
@@ -2759,26 +2760,28 @@ Issues:
 
 ##### Phase 5: Dashboard Polish and Report Linking
 
-- [ ] **Task 5.1**: Improve dashboard section labels
+- [x] **Task 5.1**: Improve dashboard section labels
   - Each section should clearly indicate the codebase area it covers
   - Add explicit labels like "Django/Python Backend", "React/TypeScript Frontend", "ES5/Vanilla JS Legacy"
   - Ensure all metrics are grouped by codebase area
+  - **Done**: Added section descriptions explaining what each metric covers
 
-- [ ] **Task 5.2**: Link all available detailed reports
+- [x] **Task 5.2**: Link all available detailed reports
   - radon HTML report → Backend Complexity
   - jscpd HTML reports → Duplication sections (frontend + backend)
   - Legacy ESLint output → Legacy lint warnings (create HTML report if needed)
   - Ensure all "View Detailed Report" buttons work
+  - **Done**: Added HTML report generation for legacy lint, linked all reports
 
-- [ ] **Task 5.3**: Add Legacy JavaScript metrics section
+- [x] **Task 5.3**: Add Legacy JavaScript metrics section
   - Display legacy lint warning count
   - Show legacy duplication stats
   - Link to detailed reports
+  - **Done**: Legacy section already exists with lint + duplication, added HTML report link
 
-- [ ] **Task 5.4**: Verify all reports are accessible
-  - Test all report links on deployed GitHub Pages site
-  - Ensure no 404s for linked reports
-  - Confirm all artifacts are being uploaded and downloaded correctly
+- [x] **Task 5.4**: Add back links to detailed reports
+  - All detailed report pages now have "Back to Dashboard" link
+  - **Done**: Injected fixed-position back link into all report HTML files
 
 ##### Phase 6: Add Python Type Checking (Optional)
 

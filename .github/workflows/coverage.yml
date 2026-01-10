@@ -182,6 +182,28 @@ jobs:
             cp -r legacy/duplication/* site/coverage/legacy/duplication/ 2>/dev/null || true
           fi
 
+          # Inject "Back to Dashboard" link into all report HTML files
+          python3 << 'PYEOF'
+          import os
+          import glob
+
+          back_link = '<div style="position:fixed;top:10px;right:10px;z-index:9999;"><a href="/cookie/coverage/" style="background:#0066cc;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;box-shadow:0 2px 4px rgba(0,0,0,0.2);">&#8592; Back to Dashboard</a></div>'
+
+          for html_file in glob.glob('site/coverage/**/*.html', recursive=True):
+              if html_file.endswith('index.html') and 'site/coverage/index.html' == html_file:
+                  continue  # Skip main dashboard
+              try:
+                  with open(html_file, 'r', encoding='utf-8', errors='ignore') as f:
+                      content = f.read()
+                  if '</body>' in content and back_link not in content:
+                      content = content.replace('</body>', back_link + '</body>')
+                      with open(html_file, 'w', encoding='utf-8') as f:
+                          f.write(content)
+                      print(f"Injected back link: {html_file}")
+              except Exception as e:
+                  print(f"Skipped {html_file}: {e}")
+          PYEOF
+
           # Generate all metrics and badges
           python3 << 'EOF'
           import urllib.request
@@ -531,9 +553,10 @@ jobs:
           </head>
           <body>
             <h1>Cookie Code Quality Dashboard</h1>
-            <p class="subtitle">Comprehensive code quality metrics: coverage, complexity, security, duplication, and bundle size</p>
+            <p class="subtitle">Comprehensive code quality metrics across all parts of the codebase</p>
 
             <h2>Test Coverage</h2>
+            <p style="color:#666;margin-bottom:1rem;">Unit test coverage for the frontend React app and backend Django API</p>
             <div class="cards">
               <div class="card">
                 <h3>Frontend Coverage <span class="area-tag">React/TypeScript</span></h3>
@@ -554,6 +577,7 @@ jobs:
             </div>
 
             <h2>Code Complexity</h2>
+            <p style="color:#666;margin-bottom:1rem;">Cyclomatic complexity and maintainability analysis to identify hard-to-maintain code</p>
             <div class="cards">
               <div class="card">
                 <h3>Backend Complexity <span class="area-tag">Django/Python</span></h3>
@@ -590,6 +614,7 @@ jobs:
             </div>
 
             <h2>Security</h2>
+            <p style="color:#666;margin-bottom:1rem;">Dependency vulnerability scanning for npm (frontend) and pip (backend) packages</p>
             <div class="cards">
               <div class="card">
                 <h3>Frontend Security <span class="area-tag">npm packages</span></h3>
@@ -620,6 +645,7 @@ jobs:
             </div>
 
             <h2>Code Duplication</h2>
+            <p style="color:#666;margin-bottom:1rem;">Copy-paste detection to identify repeated code that should be refactored</p>
             <div class="cards">
               <div class="card">
                 <h3>Frontend Duplication <span class="area-tag">React/TypeScript</span></h3>
@@ -660,6 +686,7 @@ jobs:
             </div>
 
             <h2>Bundle Size</h2>
+            <p style="color:#666;margin-bottom:1rem;">Production build output size - tracking JS/CSS bundle sizes for the React frontend</p>
             <div class="cards">
               <div class="card">
                 <h3>Frontend Bundle <span class="area-tag">React/TypeScript</span></h3>
@@ -676,7 +703,8 @@ jobs:
               </div>
             </div>
 
-            <h2>Legacy Frontend</h2>
+            <h2>Legacy Frontend (iOS 9 Compatible)</h2>
+            <p style="color:#666;margin-bottom:1rem;">Code quality for the ES5 vanilla JavaScript frontend serving older iOS devices</p>
             <div class="cards">
               <div class="card">
                 <h3>Legacy Lint <span class="area-tag">ES5/Vanilla JS</span></h3>
@@ -698,6 +726,7 @@ jobs:
                     <div class="metric-label">Complexity</div>
                   </div>
                 </div>
+                <a href="legacy/eslint-report.html" class="btn">View Detailed Report</a>
               </div>
               <div class="card">
                 <h3>Legacy Duplication <span class="area-tag">ES5/Vanilla JS</span></h3>
