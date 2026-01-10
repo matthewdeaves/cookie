@@ -77,9 +77,10 @@
 </head>
 <body>
   <h1>Cookie Code Quality Dashboard</h1>
-  <p class="subtitle">Comprehensive code quality metrics: coverage, complexity, security, duplication, and bundle size</p>
+  <p class="subtitle">Comprehensive code quality metrics across all parts of the codebase</p>
 
   <h2>Test Coverage</h2>
+  <p style="color:#666;margin-bottom:1rem;">Unit test coverage for the frontend React app and backend Django API</p>
   <div class="cards">
     <div class="card">
       <h3>Frontend Coverage <span class="area-tag">React/TypeScript</span></h3>
@@ -100,6 +101,7 @@
   </div>
 
   <h2>Code Complexity</h2>
+  <p style="color:#666;margin-bottom:1rem;">Cyclomatic complexity and maintainability analysis to identify hard-to-maintain code</p>
   <div class="cards">
     <div class="card">
       <h3>Backend Complexity <span class="area-tag">Django/Python</span></h3>
@@ -136,6 +138,7 @@
   </div>
 
   <h2>Security</h2>
+  <p style="color:#666;margin-bottom:1rem;">Dependency vulnerability scanning for npm (frontend) and pip (backend) packages</p>
   <div class="cards">
     <div class="card">
       <h3>Frontend Security <span class="area-tag">npm packages</span></h3>
@@ -166,6 +169,7 @@
   </div>
 
   <h2>Code Duplication</h2>
+  <p style="color:#666;margin-bottom:1rem;">Copy-paste detection to identify repeated code that should be refactored</p>
   <div class="cards">
     <div class="card">
       <h3>Frontend Duplication <span class="area-tag">React/TypeScript</span></h3>
@@ -206,6 +210,7 @@
   </div>
 
   <h2>Bundle Size</h2>
+  <p style="color:#666;margin-bottom:1rem;">Production build output size - tracking JS/CSS bundle sizes for the React frontend</p>
   <div class="cards">
     <div class="card">
       <h3>Frontend Bundle <span class="area-tag">React/TypeScript</span></h3>
@@ -222,7 +227,8 @@
     </div>
   </div>
 
-  <h2>Legacy Frontend</h2>
+  <h2>Legacy Frontend (iOS 9 Compatible)</h2>
+  <p style="color:#666;margin-bottom:1rem;">Code quality for the ES5 vanilla JavaScript frontend serving older iOS devices</p>
   <div class="cards">
     <div class="card">
       <h3>Legacy Lint <span class="area-tag">ES5/Vanilla JS</span></h3>
@@ -244,6 +250,7 @@
           <div class="metric-label">Complexity</div>
         </div>
       </div>
+      <a href="legacy/eslint-report.html" class="btn">View Detailed Report</a>
     </div>
     <div class="card">
       <h3>Legacy Duplication <span class="area-tag">ES5/Vanilla JS</span></h3>
