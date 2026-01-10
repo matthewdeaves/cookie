@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-01-10T09:40:28.449920+00:00",
+  "generated_at": "2026-01-10T10:15:05.525854+00:00",
   "repo": "mndeaves/cookie",
   "coverage": {
     "frontend": {
-      "percentage": 14.48,
+      "percentage": 15.21,
       "badge_url": "https://mndeaves.github.io/cookie/coverage/badges/frontend-coverage.svg"
     },
     "backend": {
-      "percentage": 47.1,
+      "percentage": 47.0,
       "badge_url": "https://mndeaves.github.io/cookie/coverage/badges/backend-coverage.svg"
     }
   },
@@ -33,8 +33,8 @@
   },
   "security": {
     "frontend": {
-      "vulnerabilities": 6,
-      "rating": "B",
+      "vulnerabilities": 0,
+      "rating": "A",
       "badge_url": "https://mndeaves.github.io/cookie/coverage/badges/frontend-security.svg"
     },
     "backend": {
