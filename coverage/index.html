@@ -71,6 +71,8 @@
     }
     .footer a { color: #666; }
     .badge-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .area-tag { font-size: 0.7rem; background: #e0e7ff; color: #3730a3; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 500; vertical-align: middle; }
+    code { background: #f3f4f6; padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.85rem; }
   </style>
 </head>
 <body>
@@ -80,19 +82,19 @@
   <h2>Test Coverage</h2>
   <div class="cards">
     <div class="card">
-      <h3>Frontend (React/TypeScript)</h3>
+      <h3>Frontend Coverage <span class="area-tag">React/TypeScript</span></h3>
       <div class="badge-row">
         <img src="badges/frontend-coverage.svg" alt="Frontend coverage" class="badge">
       </div>
-      <p>React components, API client, utilities, and hooks</p>
+      <p>Vitest coverage for <code>frontend/src/</code> - components, API client, utilities, hooks</p>
       <a href="frontend/index.html" class="btn">View Detailed Report</a>
     </div>
     <div class="card">
-      <h3>Backend (Django/Python)</h3>
+      <h3>Backend Coverage <span class="area-tag">Django/Python</span></h3>
       <div class="badge-row">
         <img src="badges/backend-coverage.svg" alt="Backend coverage" class="badge">
       </div>
-      <p>Django apps, API endpoints, models, and services</p>
+      <p>pytest-cov coverage for <code>apps/</code> and <code>cookie/</code> - API endpoints, models, services</p>
       <a href="backend/htmlcov/index.html" class="btn">View Detailed Report</a>
     </div>
   </div>
@@ -100,12 +102,12 @@
   <h2>Code Complexity</h2>
   <div class="cards">
     <div class="card">
-      <h3>Backend Complexity</h3>
+      <h3>Backend Complexity <span class="area-tag">Django/Python</span></h3>
       <div class="badge-row">
         <img src="badges/backend-complexity.svg" alt="Backend complexity" class="badge">
         <img src="badges/backend-maintainability.svg" alt="Backend maintainability" class="badge">
       </div>
-      <p>Cyclomatic complexity and maintainability index (radon)</p>
+      <p>Cyclomatic complexity and maintainability index (radon) for <code>apps/</code> and <code>cookie/</code></p>
       <div class="metrics-row">
         <div class="metric-item">
           <div class="metric" id="backend-cc">-</div>
@@ -116,13 +118,14 @@
           <div class="metric-label">Maintainability</div>
         </div>
       </div>
+      <a href="complexity/radon_report.html" class="btn">View Detailed Report</a>
     </div>
     <div class="card">
-      <h3>Frontend Complexity</h3>
+      <h3>Frontend Complexity <span class="area-tag">React/TypeScript</span></h3>
       <div class="badge-row">
         <img src="badges/frontend-complexity.svg" alt="Frontend complexity" class="badge">
       </div>
-      <p>ESLint complexity analysis (max cyclomatic: 10)</p>
+      <p>ESLint complexity analysis (max cyclomatic: 10) for <code>frontend/src/</code></p>
       <div class="metrics-row">
         <div class="metric-item">
           <div class="metric" id="frontend-warnings">-</div>
@@ -135,11 +138,11 @@
   <h2>Security</h2>
   <div class="cards">
     <div class="card">
-      <h3>Frontend Dependencies</h3>
+      <h3>Frontend Security <span class="area-tag">npm packages</span></h3>
       <div class="badge-row">
         <img src="badges/frontend-security.svg" alt="Frontend security" class="badge">
       </div>
-      <p>npm audit - checks for known vulnerabilities in npm packages</p>
+      <p>npm audit - checks <code>frontend/package.json</code> for known vulnerabilities</p>
       <div class="metrics-row">
         <div class="metric-item">
           <div class="metric metric-sm" id="frontend-vulns">-</div>
@@ -148,11 +151,11 @@
       </div>
     </div>
     <div class="card">
-      <h3>Backend Dependencies</h3>
+      <h3>Backend Security <span class="area-tag">pip packages</span></h3>
       <div class="badge-row">
         <img src="badges/backend-security.svg" alt="Backend security" class="badge">
       </div>
-      <p>pip-audit - checks for known vulnerabilities in Python packages</p>
+      <p>pip-audit - checks <code>requirements.txt</code> for known vulnerabilities</p>
       <div class="metrics-row">
         <div class="metric-item">
           <div class="metric metric-sm" id="backend-vulns">-</div>
@@ -165,11 +168,11 @@
   <h2>Code Quality</h2>
   <div class="cards">
     <div class="card">
-      <h3>Code Duplication</h3>
+      <h3>Code Duplication <span class="area-tag">TypeScript</span></h3>
       <div class="badge-row">
         <img src="badges/duplication.svg" alt="Duplication" class="badge">
       </div>
-      <p>jscpd - copy/paste detection in TypeScript/React code</p>
+      <p>jscpd - copy/paste detection in <code>frontend/src/</code></p>
       <div class="metrics-row">
         <div class="metric-item">
           <div class="metric metric-sm" id="duplication-pct">-</div>
@@ -180,19 +183,59 @@
           <div class="metric-label">Clones Found</div>
         </div>
       </div>
+      <a href="duplication/html/index.html" class="btn">View Detailed Report</a>
     </div>
     <div class="card">
-      <h3>Bundle Size</h3>
+      <h3>Bundle Size <span class="area-tag">React/TypeScript</span></h3>
       <div class="badge-row">
         <img src="badges/bundle-size.svg" alt="Bundle size" class="badge">
       </div>
-      <p>Vite build output - JavaScript and CSS bundle analysis</p>
+      <p>Vite build output - JavaScript and CSS bundle from <code>frontend/dist/</code></p>
       <div class="metrics-row">
         <div class="metric-item">
           <div class="metric metric-sm" id="bundle-size">-</div>
           <div class="metric-label">Total Size (KB)</div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <h2>Legacy Frontend</h2>
+  <div class="cards">
+    <div class="card">
+      <h3>Legacy Lint <span class="area-tag">ES5/Vanilla JS</span></h3>
+      <div class="badge-row">
+        <img src="badges/legacy-lint.svg" alt="Legacy lint" class="badge">
+      </div>
+      <p>ESLint ES5 analysis for <code>apps/legacy/static/legacy/js/</code> (iOS 9 compatible)</p>
+      <div class="metrics-row">
+        <div class="metric-item">
+          <div class="metric metric-sm" id="legacy-errors">-</div>
+          <div class="metric-label">Errors</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric metric-sm" id="legacy-warnings">-</div>
+          <div class="metric-label">Warnings</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric metric-sm" id="legacy-complexity">-</div>
+          <div class="metric-label">Complexity</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Legacy Duplication <span class="area-tag">ES5/Vanilla JS</span></h3>
+      <div class="badge-row">
+        <img src="badges/legacy-duplication.svg" alt="Legacy duplication" class="badge">
+      </div>
+      <p>jscpd - copy/paste detection in <code>apps/legacy/static/legacy/js/</code></p>
+      <div class="metrics-row">
+        <div class="metric-item">
+          <div class="metric metric-sm" id="legacy-dup-pct">-</div>
+          <div class="metric-label">Duplication %</div>
+        </div>
+      </div>
+      <a href="legacy/duplication/html/index.html" class="btn">View Detailed Report</a>
     </div>
   </div>
 
@@ -228,6 +271,12 @@
 
         // Bundle
         document.getElementById('bundle-size').textContent = data.bundle?.size_kb ?? '-';
+
+        // Legacy
+        document.getElementById('legacy-errors').textContent = data.legacy?.lint?.errors ?? '-';
+        document.getElementById('legacy-warnings').textContent = data.legacy?.lint?.warnings ?? '-';
+        document.getElementById('legacy-complexity').textContent = data.legacy?.lint?.complexity_warnings ?? '-';
+        document.getElementById('legacy-dup-pct').textContent = (data.legacy?.duplication?.percentage ?? '-') + '%';
       })
       .catch(() => {});
   </script>

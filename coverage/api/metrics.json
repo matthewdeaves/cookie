@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-10T15:21:02.730041+00:00",
+  "generated_at": "2026-01-10T16:03:24.656405+00:00",
   "repo": "matthewdeaves/cookie",
   "coverage": {
     "frontend": {
@@ -47,6 +47,20 @@
     "size_kb": 1806.08,
     "rating": "C",
     "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/bundle-size.svg"
+  },
+  "legacy": {
+    "lint": {
+      "errors": 0,
+      "warnings": 17,
+      "complexity_warnings": 2,
+      "rating": "C",
+      "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/legacy-lint.svg"
+    },
+    "duplication": {
+      "percentage": 6.67,
+      "rating": "B",
+      "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/legacy-duplication.svg"
+    }
   },
   "links": {
     "dashboard": "https://matthewdeaves.github.io/cookie/coverage/",

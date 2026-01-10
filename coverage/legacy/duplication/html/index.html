@@ -1,0 +1,241 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Copy/Paste Detector Report</title><link href="styles/tailwind.css" rel="stylesheet"><link href="styles/prism.css" rel="stylesheet"></head><body class="bg-gray-100"><header class="bg-white shadow py-4"><div class="container mx-auto px-4"><h1 class="text-3xl font-semibold text-gray-800">jscpd - copy/paste report</h1></div></header><main class="container mx-auto my-8 p-4 bg-white shadow rounded"><section class="mb-8" id="dashboard"><h2 class="text-2xl font-semibold text-gray-700 mb-4">Dashboard</h2><div class="grid grid-cols-4 gap-4"><div class="bg-blue-200 p-4 rounded text-center"><h3 class="text-lg font-semibold text-blue-800 mb-2">Total Files</h3><span class="text-4xl font-bold text-blue-800">16</span></div><div class="bg-green-200 p-4 rounded text-center"><h3 class="text-lg font-semibold text-green-800 mb-2">Total Lines of Code</h3><span class="text-4xl font-bold text-green-800">3477</span></div><div class="bg-yellow-200 p-4 rounded text-center"><h3 class="text-lg font-semibold text-yellow-800 mb-2">Number of Clones</h3><span class="text-4xl font-bold text-yellow-800">18</span></div><div class="bg-red-200 p-4 rounded text-center"><h3 class="text-lg font-semibold text-red-800 mb-2">Duplicated Lines</h3><span class="text-4xl font-bold text-red-800">232 (6.67%)</span></div></div></section><section class="mb-8" id="formats"><h2 class="text-2xl font-semibold text-gray-700 mb-4">Formats with Duplications</h2><table class="w-full table-auto"><thead><tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal"><th class="py-3 px-6 text-left">Format</th><th class="py-3 px-6 text-left">Files</th><th class="py-3 px-6 text-left">Lines</th><th class="py-3 px-6 text-left">Clones</th><th class="py-3 px-6 text-left">Duplicated Lines</th><th class="py-3 px-6 text-left">Duplicated Tokens</th></tr></thead><tbody><tr class="bg-white border-b border-gray-200 text-gray-800 text-sm"><td class="py-3 px-6"><a class="text-blue-600 hover:underline" href="#javascript-clones">javascript</a></td><td class="py-3 px-6">16</td><td class="py-3 px-6">3477</td><td class="py-3 px-6">18</td><td class="py-3 px-6">232</td><td class="py-3 px-6">1758</td></tr></tbody></table></section><section class="mb-8" id="txt-clones"><a name="javascript-clones"></a><h2 class="text-2xl font-semibold text-gray-700 mb-4">javascript</h2><div class="divide-y divide-gray-200 border-b-2"><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/pages/search.js (Line 499:13 - Line 506:3), apps/legacy/static/legacy/js/pages/search.js (Line 149:6 - Line 156:6)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn0" onclick="toggleCodeBlock('cloneGroup0', 'expandBtn0', 'collapseBtn0')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn0" onclick="toggleCodeBlock('cloneGroup0', 'expandBtn0', 'collapseBtn0')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup0"><code class="language-javascript text-sm text-gray-800">);
+                url += '&amp;page=' + page;
+                if (state.selectedSource) {
+                    url += '&amp;sources=' + encodeURIComponent(state.selectedSource);
+                }
+
+                Cookie.ajax.get(url, function(error, response) {
+                    if</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/pages/profile-selector.js (Line 138:9 - Line 142:3), apps/legacy/static/legacy/js/pages/profile-selector.js (Line 59:12 - Line 63:27)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn1" onclick="toggleCodeBlock('cloneGroup1', 'expandBtn1', 'collapseBtn1')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn1" onclick="toggleCodeBlock('cloneGroup1', 'expandBtn1', 'collapseBtn1')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup1"><code class="language-javascript text-sm text-gray-800">.querySelectorAll('.color-swatch');
+        for (var i = 0; i &lt; swatches.length; i++) {
+            swatches[i].classList.remove('selected');
+        }
+        if</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/pages/profile-selector.js (Line 223:5 - Line 233:16), apps/legacy/static/legacy/js/pages/search.js (Line 589:5 - Line 599:7)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn2" onclick="toggleCodeBlock('cloneGroup2', 'expandBtn2', 'collapseBtn2')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn2" onclick="toggleCodeBlock('cloneGroup2', 'expandBtn2', 'collapseBtn2')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup2"><code class="language-javascript text-sm text-gray-800">}
+
+    return {
+        init: init
+    };
+})();
+
+// Auto-init on page load
+(function() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', Cookie.pages.profileSelector</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/pages/play.js (Line 381:20 - Line 440:8), apps/legacy/static/legacy/js/pages/play.js (Line 320:17 - Line 380:8)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn3" onclick="toggleCodeBlock('cloneGroup3', 'expandBtn3', 'collapseBtn3')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn3" onclick="toggleCodeBlock('cloneGroup3', 'expandBtn3', 'collapseBtn3')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup3"><code class="language-javascript text-sm text-gray-800">(e) {
+        var btn = e.currentTarget;
+        var duration = parseInt(btn.getAttribute('data-duration'), 10);
+        var label = btn.getAttribute('data-label');
+        var instruction = instructions[currentStep] || '';
+
+        // If AI is available, try to get an AI-generated name
+        if (typeof AI_AVAILABLE !== 'undefined' &amp;&amp; AI_AVAILABLE &amp;&amp; instruction) {
+            // Disable button while loading
+            btn.disabled = true;
+            btn.classList.add('loading');
+
+            // Convert seconds to minutes for the API
+            var durationMinutes = Math.ceil(duration / 60);
+
+            // Call AI API using XMLHttpRequest (ES5 compatible)
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/ai/timer-name', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    btn.disabled = false;
+                    btn.classList.remove('loading');
+
+                    if (xhr.status === 200) {
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            if (response.label) {
+                                addTimer(response.label, duration);
+                                return;
+                            }
+                        } catch (parseError) {
+                            // JSON parse error, fall through to default
+                        }
+                    }
+                    // AI failed, use default label
+                    addTimer(label, duration);
+                }
+            };
+
+            xhr.onerror = function() {
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                addTimer(label, duration);
+            };
+
+            xhr.send(JSON.stringify({
+                step_text: instruction,
+                duration_minutes: durationMinutes
+            }));
+        } else {
+            // No AI available, use default label
+            addTimer(label, duration);
+        }
+    }
+
+    /**
+     * Add a new timer
+     */</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/pages/play.js (Line 572:10 - Line 583:5), apps/legacy/static/legacy/js/pages/profile-selector.js (Line 222:2 - Line 599:7)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn4" onclick="toggleCodeBlock('cloneGroup4', 'expandBtn4', 'collapseBtn4')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn4" onclick="toggleCodeBlock('cloneGroup4', 'expandBtn4', 'collapseBtn4')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup4"><code class="language-javascript text-sm text-gray-800">;
+    }
+
+    return {
+        init: init
+    };
+})();
+
+// Auto-init on page load
+(function() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', Cookie.pages.play</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/pages/home.js (Line 273:5 - Line 282:8), apps/legacy/static/legacy/js/pages/search.js (Line 387:5 - Line 396:8)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn5" onclick="toggleCodeBlock('cloneGroup5', 'expandBtn5', 'collapseBtn5')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn5" onclick="toggleCodeBlock('cloneGroup5', 'expandBtn5', 'collapseBtn5')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup5"><code class="language-javascript text-sm text-gray-800">function escapeHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    /**
+     * Handle favorite button click
+     */</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/pages/home.js (Line 360:2 - Line 372:5), apps/legacy/static/legacy/js/pages/search.js (Line 587:66 - Line 599:7)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn6" onclick="toggleCodeBlock('cloneGroup6', 'expandBtn6', 'collapseBtn6')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn6" onclick="toggleCodeBlock('cloneGroup6', 'expandBtn6', 'collapseBtn6')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup6"><code class="language-javascript text-sm text-gray-800">;
+        }
+    }
+
+    return {
+        init: init
+    };
+})();
+
+// Auto-init on page load
+(function() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', Cookie.pages.home</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/pages/favorites.js (Line 31:5 - Line 38:15), apps/legacy/static/legacy/js/pages/home.js (Line 283:5 - Line 289:4)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn7" onclick="toggleCodeBlock('cloneGroup7', 'expandBtn7', 'collapseBtn7')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn7" onclick="toggleCodeBlock('cloneGroup7', 'expandBtn7', 'collapseBtn7')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup7"><code class="language-javascript text-sm text-gray-800">function handleFavoriteClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var btn = e.currentTarget;
+        var recipeId = btn.getAttribute('data-recipe-id');
+
+        removeFavorite</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/pages/favorites.js (Line 38:4 - Line 51:31), apps/legacy/static/legacy/js/pages/home.js (Line 316:2 - Line 328:4)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn8" onclick="toggleCodeBlock('cloneGroup8', 'expandBtn8', 'collapseBtn8')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn8" onclick="toggleCodeBlock('cloneGroup8', 'expandBtn8', 'collapseBtn8')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup8"><code class="language-javascript text-sm text-gray-800">);
+    }
+
+    /**
+     * Remove recipe from favorites
+     */
+    function removeFavorite(recipeId, btn) {
+        Cookie.ajax.delete('/api/favorites/' + recipeId + '/', function(err) {
+            if (err) {
+                Cookie.toast.error('Failed to remove from favorites');
+                return;
+            }
+
+            // Animate and remove the card</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/pages/favorites.js (Line 52:13 - Line 56:5), apps/legacy/static/legacy/js/pages/home.js (Line 337:13 - Line 341:11)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn9" onclick="toggleCodeBlock('cloneGroup9', 'expandBtn9', 'collapseBtn9')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn9" onclick="toggleCodeBlock('cloneGroup9', 'expandBtn9', 'collapseBtn9')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup9"><code class="language-javascript text-sm text-gray-800">var card = btn.closest('.recipe-card');
+            if (card) {
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.9)';
+                card</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/pages/favorites.js (Line 86:13 - Line 98:10), apps/legacy/static/legacy/js/pages/home.js (Line 360:13 - Line 599:7)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn10" onclick="toggleCodeBlock('cloneGroup10', 'expandBtn10', 'collapseBtn10')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn10" onclick="toggleCodeBlock('cloneGroup10', 'expandBtn10', 'collapseBtn10')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup10"><code class="language-javascript text-sm text-gray-800">window.location.reload();
+        }
+    }
+
+    return {
+        init: init
+    };
+})();
+
+// Auto-init on page load
+(function() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', Cookie.pages.favorites</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/pages/collections.js (Line 139:2 - Line 150:12), apps/legacy/static/legacy/js/pages/profile-selector.js (Line 222:7 - Line 599:7)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn11" onclick="toggleCodeBlock('cloneGroup11', 'expandBtn11', 'collapseBtn11')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn11" onclick="toggleCodeBlock('cloneGroup11', 'expandBtn11', 'collapseBtn11')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup11"><code class="language-javascript text-sm text-gray-800">);
+    }
+
+    return {
+        init: init
+    };
+})();
+
+// Auto-init on page load
+(function() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', Cookie.pages.collections</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/pages/collection-detail.js (Line 119:19 - Line 126:3), apps/legacy/static/legacy/js/pages/home.js (Line 283:20 - Line 289:4)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn12" onclick="toggleCodeBlock('cloneGroup12', 'expandBtn12', 'collapseBtn12')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn12" onclick="toggleCodeBlock('cloneGroup12', 'expandBtn12', 'collapseBtn12')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup12"><code class="language-javascript text-sm text-gray-800">(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var btn = e.currentTarget;
+        var recipeId = btn.getAttribute('data-recipe-id');
+
+        if</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/pages/collection-detail.js (Line 162:9 - Line 171:9), apps/legacy/static/legacy/js/pages/favorites.js (Line 75:6 - Line 84:6)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn13" onclick="toggleCodeBlock('cloneGroup13', 'expandBtn13', 'collapseBtn13')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn13" onclick="toggleCodeBlock('cloneGroup13', 'expandBtn13', 'collapseBtn13')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup13"><code class="language-javascript text-sm text-gray-800">.length;
+            countEl.textContent = count + ' recipe' + (count !== 1 ? 's' : '');
+        }
+    }
+
+    /**
+     * Check if page should show empty state
+     */
+    function checkEmpty() {
+        var wrappers</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/pages/collection-detail.js (Line 172:9 - Line 185:17), apps/legacy/static/legacy/js/pages/favorites.js (Line 85:6 - Line 599:7)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn14" onclick="toggleCodeBlock('cloneGroup14', 'expandBtn14', 'collapseBtn14')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn14" onclick="toggleCodeBlock('cloneGroup14', 'expandBtn14', 'collapseBtn14')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup14"><code class="language-javascript text-sm text-gray-800">.length === 0) {
+            window.location.reload();
+        }
+    }
+
+    return {
+        init: init
+    };
+})();
+
+// Auto-init on page load
+(function() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', Cookie.pages.collectionDetail</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/time-detect.js (Line 63:7 - Line 89:8), apps/legacy/static/legacy/js/timer.js (Line 365:15 - Line 385:14)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn15" onclick="toggleCodeBlock('cloneGroup15', 'expandBtn15', 'collapseBtn15')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn15" onclick="toggleCodeBlock('cloneGroup15', 'expandBtn15', 'collapseBtn15')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup15"><code class="language-javascript text-sm text-gray-800">(seconds) {
+        if (seconds &gt;= 3600) {
+            var hrs = Math.floor(seconds / 3600);
+            var mins = Math.floor((seconds % 3600) / 60);
+            if (mins &gt; 0) {
+                return hrs + 'h ' + mins + 'm';
+            }
+            return hrs + 'h';
+        }
+
+        var mins = Math.floor(seconds / 60);
+        var secs = seconds % 60;
+
+        if (mins === 0) {
+            return secs + ' sec';
+        }
+        if (secs === 0) {
+            return mins + ' min';
+        }
+        return mins + 'm ' + secs + 's';
+    }
+
+    /**
+     * Check if text contains any time mentions
+     * @param {string} text - Text to check
+     * @returns {boolean} - True if time mentions found
+     */</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/polyfills.js (Line 55:56 - Line 68:2), apps/legacy/static/legacy/js/polyfills.js (Line 31:51 - Line 44:6)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn16" onclick="toggleCodeBlock('cloneGroup16', 'expandBtn16', 'collapseBtn16')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn16" onclick="toggleCodeBlock('cloneGroup16', 'expandBtn16', 'collapseBtn16')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup16"><code class="language-javascript text-sm text-gray-800">);
+        }
+        if (typeof predicate !== 'function') {
+            throw new TypeError('predicate must be a function');
+        }
+        var list = Object(this);
+        var length = list.length &gt;&gt;&gt; 0;
+        var thisArg = arguments[1];
+        var value;
+
+        for (var i = 0; i &lt; length; i++) {
+            value = list[i];
+            if (predicate.call(thisArg, value, i, list)) {
+                return i</code></pre></div><div class="py-4"><p class="text-gray-600">apps/legacy/static/legacy/js/ajax.js (Line 22:8 - Line 27:3), apps/legacy/static/legacy/js/pages/play.js (Line 337:21 - Line 342:4)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn17" onclick="toggleCodeBlock('cloneGroup17', 'expandBtn17', 'collapseBtn17')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn17" onclick="toggleCodeBlock('cloneGroup17', 'expandBtn17', 'collapseBtn17')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup17"><code class="language-javascript text-sm text-gray-800">, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if</code></pre></div><!-- Add more clone groups for .txt format as needed         // Add more clone groups for .txt format as needed--></div></section><!-- Add more sections for other formats and clone groups as needed--></main><footer class="bg-white shadow mt-8 py-4"><div class="container mx-auto px-4 text-center"><p class="text-sm text-gray-600">This report is generated by jscpd, an open-source copy/paste detector.</p><p class="text-sm text-gray-600">jscpd is licensed under the MIT License.</p><a class="text-blue-500 text-sm" href="https://github.com/kucherenko/jscpd" target="_blank" rel="noopener noreferrer">View jscpd on GitHub</a></div></footer><script src="js/prism.js"></script><script>function toggleCodeBlock(codeBlockId, expandBtnId, collapseBtnId) {
+  const codeBlock = document.getElementById(codeBlockId);
+  const expandBtn = document.getElementById(expandBtnId);
+  const collapseBtn = document.getElementById(collapseBtnId);
+
+  codeBlock.classList.toggle('hidden');
+  expandBtn.classList.toggle('hidden');
+  collapseBtn.classList.toggle('hidden');
+}</script></body></html>

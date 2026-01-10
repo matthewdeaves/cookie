@@ -1,0 +1,877 @@
+{
+  "statistics": {
+    "detectionDate": "2026-01-10T16:02:39.835Z",
+    "formats": {
+      "javascript": {
+        "sources": {
+          "apps/legacy/static/legacy/js/pages/search.js": {
+            "lines": 602,
+            "tokens": 4567,
+            "sources": 1,
+            "clones": 5,
+            "duplicatedLines": 45,
+            "duplicatedTokens": 324,
+            "percentage": 7.48,
+            "percentageTokens": 7.09,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/pages/profile-selector.js": {
+            "lines": 236,
+            "tokens": 1646,
+            "sources": 1,
+            "clones": 5,
+            "duplicatedLines": 40,
+            "duplicatedTokens": 296,
+            "percentage": 16.95,
+            "percentageTokens": 17.98,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/pages/play.js": {
+            "lines": 586,
+            "tokens": 4243,
+            "sources": 1,
+            "clones": 4,
+            "duplicatedLines": 134,
+            "duplicatedTokens": 1024,
+            "percentage": 22.87,
+            "percentageTokens": 24.13,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/pages/home.js": {
+            "lines": 375,
+            "tokens": 2808,
+            "sources": 1,
+            "clones": 7,
+            "duplicatedLines": 64,
+            "duplicatedTokens": 433,
+            "percentage": 17.07,
+            "percentageTokens": 15.42,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/pages/favorites.js": {
+            "lines": 101,
+            "tokens": 671,
+            "sources": 1,
+            "clones": 6,
+            "duplicatedLines": 58,
+            "duplicatedTokens": 397,
+            "percentage": 57.43,
+            "percentageTokens": 59.17,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/pages/collections.js": {
+            "lines": 153,
+            "tokens": 994,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 11,
+            "duplicatedTokens": 65,
+            "percentage": 7.19,
+            "percentageTokens": 6.54,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/pages/collection-detail.js": {
+            "lines": 188,
+            "tokens": 1267,
+            "sources": 1,
+            "clones": 3,
+            "duplicatedLines": 29,
+            "duplicatedTokens": 195,
+            "percentage": 15.43,
+            "percentageTokens": 15.39,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/wake-lock.js": {
+            "lines": 196,
+            "tokens": 1114,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/toast.js": {
+            "lines": 70,
+            "tokens": 360,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/timer.js": {
+            "lines": 398,
+            "tokens": 2677,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 26,
+            "duplicatedTokens": 220,
+            "percentage": 6.53,
+            "percentageTokens": 8.22,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/time-detect.js": {
+            "lines": 99,
+            "tokens": 679,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 26,
+            "duplicatedTokens": 220,
+            "percentage": 26.26,
+            "percentageTokens": 32.4,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/state.js": {
+            "lines": 97,
+            "tokens": 473,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/polyfills.js": {
+            "lines": 125,
+            "tokens": 1154,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 26,
+            "duplicatedTokens": 294,
+            "percentage": 20.8,
+            "percentageTokens": 25.48,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/app.js": {
+            "lines": 34,
+            "tokens": 210,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/ajax.js": {
+            "lines": 103,
+            "tokens": 685,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 5,
+            "duplicatedTokens": 48,
+            "percentage": 4.85,
+            "percentageTokens": 7.01,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/ai-error.js": {
+            "lines": 114,
+            "tokens": 806,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 3477,
+          "tokens": 24354,
+          "sources": 16,
+          "clones": 18,
+          "duplicatedLines": 232,
+          "duplicatedTokens": 1758,
+          "percentage": 6.67,
+          "percentageTokens": 7.22,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      }
+    },
+    "total": {
+      "lines": 3477,
+      "tokens": 24354,
+      "sources": 16,
+      "clones": 18,
+      "duplicatedLines": 232,
+      "duplicatedTokens": 1758,
+      "percentage": 6.67,
+      "percentageTokens": 7.22,
+      "newDuplicatedLines": 0,
+      "newClones": 0
+    }
+  },
+  "duplicates": [
+    {
+      "format": "javascript",
+      "lines": 8,
+      "fragment": ");\n                url += '&page=' + page;\n                if (state.selectedSource) {\n                    url += '&sources=' + encodeURIComponent(state.selectedSource);\n                }\n\n                Cookie.ajax.get(url, function(error, response) {\n                    if",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/search.js",
+        "start": 499,
+        "end": 506,
+        "startLoc": {
+          "line": 499,
+          "column": 13,
+          "position": 3802
+        },
+        "endLoc": {
+          "line": 506,
+          "column": 3,
+          "position": 3870
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/search.js",
+        "start": 149,
+        "end": 156,
+        "startLoc": {
+          "line": 149,
+          "column": 6,
+          "position": 1101
+        },
+        "endLoc": {
+          "line": 156,
+          "column": 6,
+          "position": 1169
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 5,
+      "fragment": ".querySelectorAll('.color-swatch');\n        for (var i = 0; i < swatches.length; i++) {\n            swatches[i].classList.remove('selected');\n        }\n        if",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
+        "start": 138,
+        "end": 142,
+        "startLoc": {
+          "line": 138,
+          "column": 9,
+          "position": 942
+        },
+        "endLoc": {
+          "line": 142,
+          "column": 3,
+          "position": 995
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
+        "start": 59,
+        "end": 63,
+        "startLoc": {
+          "line": 59,
+          "column": 12,
+          "position": 402
+        },
+        "endLoc": {
+          "line": 63,
+          "column": 27,
+          "position": 455
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 11,
+      "fragment": "}\n\n    return {\n        init: init\n    };\n})();\n\n// Auto-init on page load\n(function() {\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', Cookie.pages.profileSelector",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
+        "start": 223,
+        "end": 233,
+        "startLoc": {
+          "line": 223,
+          "column": 5,
+          "position": 1553
+        },
+        "endLoc": {
+          "line": 233,
+          "column": 16,
+          "position": 1614
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/search.js",
+        "start": 589,
+        "end": 599,
+        "startLoc": {
+          "line": 589,
+          "column": 5,
+          "position": 4474
+        },
+        "endLoc": {
+          "line": 599,
+          "column": 7,
+          "position": 4535
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 60,
+      "fragment": "(e) {\n        var btn = e.currentTarget;\n        var duration = parseInt(btn.getAttribute('data-duration'), 10);\n        var label = btn.getAttribute('data-label');\n        var instruction = instructions[currentStep] || '';\n\n        // If AI is available, try to get an AI-generated name\n        if (typeof AI_AVAILABLE !== 'undefined' && AI_AVAILABLE && instruction) {\n            // Disable button while loading\n            btn.disabled = true;\n            btn.classList.add('loading');\n\n            // Convert seconds to minutes for the API\n            var durationMinutes = Math.ceil(duration / 60);\n\n            // Call AI API using XMLHttpRequest (ES5 compatible)\n            var xhr = new XMLHttpRequest();\n            xhr.open('POST', '/api/ai/timer-name', true);\n            xhr.setRequestHeader('Content-Type', 'application/json');\n\n            xhr.onreadystatechange = function() {\n                if (xhr.readyState === 4) {\n                    btn.disabled = false;\n                    btn.classList.remove('loading');\n\n                    if (xhr.status === 200) {\n                        try {\n                            var response = JSON.parse(xhr.responseText);\n                            if (response.label) {\n                                addTimer(response.label, duration);\n                                return;\n                            }\n                        } catch (parseError) {\n                            // JSON parse error, fall through to default\n                        }\n                    }\n                    // AI failed, use default label\n                    addTimer(label, duration);\n                }\n            };\n\n            xhr.onerror = function() {\n                btn.disabled = false;\n                btn.classList.remove('loading');\n                addTimer(label, duration);\n            };\n\n            xhr.send(JSON.stringify({\n                step_text: instruction,\n                duration_minutes: durationMinutes\n            }));\n        } else {\n            // No AI available, use default label\n            addTimer(label, duration);\n        }\n    }\n\n    /**\n     * Add a new timer\n     */",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/play.js",
+        "start": 381,
+        "end": 440,
+        "startLoc": {
+          "line": 381,
+          "column": 20,
+          "position": 2780
+        },
+        "endLoc": {
+          "line": 440,
+          "column": 8,
+          "position": 3236
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/play.js",
+        "start": 320,
+        "end": 380,
+        "startLoc": {
+          "line": 320,
+          "column": 17,
+          "position": 2318
+        },
+        "endLoc": {
+          "line": 380,
+          "column": 8,
+          "position": 2774
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 12,
+      "fragment": ";\n    }\n\n    return {\n        init: init\n    };\n})();\n\n// Auto-init on page load\n(function() {\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', Cookie.pages.play",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/play.js",
+        "start": 572,
+        "end": 583,
+        "startLoc": {
+          "line": 572,
+          "column": 10,
+          "position": 4147
+        },
+        "endLoc": {
+          "line": 583,
+          "column": 5,
+          "position": 4211
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
+        "start": 222,
+        "end": 599,
+        "startLoc": {
+          "line": 222,
+          "column": 2,
+          "position": 1550
+        },
+        "endLoc": {
+          "line": 599,
+          "column": 7,
+          "position": 4535
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 10,
+      "fragment": "function escapeHtml(str) {\n        if (!str) return '';\n        var div = document.createElement('div');\n        div.textContent = str;\n        return div.innerHTML;\n    }\n\n    /**\n     * Handle favorite button click\n     */",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/home.js",
+        "start": 273,
+        "end": 282,
+        "startLoc": {
+          "line": 273,
+          "column": 5,
+          "position": 2067
+        },
+        "endLoc": {
+          "line": 282,
+          "column": 8,
+          "position": 2127
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/search.js",
+        "start": 387,
+        "end": 396,
+        "startLoc": {
+          "line": 387,
+          "column": 5,
+          "position": 2998
+        },
+        "endLoc": {
+          "line": 396,
+          "column": 8,
+          "position": 3058
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 13,
+      "fragment": ";\n        }\n    }\n\n    return {\n        init: init\n    };\n})();\n\n// Auto-init on page load\n(function() {\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', Cookie.pages.home",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/home.js",
+        "start": 360,
+        "end": 372,
+        "startLoc": {
+          "line": 360,
+          "column": 2,
+          "position": 2709
+        },
+        "endLoc": {
+          "line": 372,
+          "column": 5,
+          "position": 2776
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/search.js",
+        "start": 587,
+        "end": 599,
+        "startLoc": {
+          "line": 587,
+          "column": 66,
+          "position": 4468
+        },
+        "endLoc": {
+          "line": 599,
+          "column": 7,
+          "position": 4535
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 8,
+      "fragment": "function handleFavoriteClick(e) {\n        e.preventDefault();\n        e.stopPropagation();\n\n        var btn = e.currentTarget;\n        var recipeId = btn.getAttribute('data-recipe-id');\n\n        removeFavorite",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/favorites.js",
+        "start": 31,
+        "end": 38,
+        "startLoc": {
+          "line": 31,
+          "column": 5,
+          "position": 159
+        },
+        "endLoc": {
+          "line": 38,
+          "column": 15,
+          "position": 214
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/home.js",
+        "start": 283,
+        "end": 289,
+        "startLoc": {
+          "line": 283,
+          "column": 5,
+          "position": 2130
+        },
+        "endLoc": {
+          "line": 289,
+          "column": 4,
+          "position": 2184
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 14,
+      "fragment": ");\n    }\n\n    /**\n     * Remove recipe from favorites\n     */\n    function removeFavorite(recipeId, btn) {\n        Cookie.ajax.delete('/api/favorites/' + recipeId + '/', function(err) {\n            if (err) {\n                Cookie.toast.error('Failed to remove from favorites');\n                return;\n            }\n\n            // Animate and remove the card",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/favorites.js",
+        "start": 38,
+        "end": 51,
+        "startLoc": {
+          "line": 38,
+          "column": 4,
+          "position": 220
+        },
+        "endLoc": {
+          "line": 51,
+          "column": 31,
+          "position": 297
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/home.js",
+        "start": 316,
+        "end": 328,
+        "startLoc": {
+          "line": 316,
+          "column": 2,
+          "position": 2392
+        },
+        "endLoc": {
+          "line": 328,
+          "column": 4,
+          "position": 2468
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 5,
+      "fragment": "var card = btn.closest('.recipe-card');\n            if (card) {\n                card.style.opacity = '0';\n                card.style.transform = 'scale(0.9)';\n                card",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/favorites.js",
+        "start": 52,
+        "end": 56,
+        "startLoc": {
+          "line": 52,
+          "column": 13,
+          "position": 300
+        },
+        "endLoc": {
+          "line": 56,
+          "column": 5,
+          "position": 348
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/home.js",
+        "start": 337,
+        "end": 341,
+        "startLoc": {
+          "line": 337,
+          "column": 13,
+          "position": 2536
+        },
+        "endLoc": {
+          "line": 341,
+          "column": 11,
+          "position": 2584
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 13,
+      "fragment": "window.location.reload();\n        }\n    }\n\n    return {\n        init: init\n    };\n})();\n\n// Auto-init on page load\n(function() {\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', Cookie.pages.favorites",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/favorites.js",
+        "start": 86,
+        "end": 98,
+        "startLoc": {
+          "line": 86,
+          "column": 13,
+          "position": 565
+        },
+        "endLoc": {
+          "line": 98,
+          "column": 10,
+          "position": 639
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/home.js",
+        "start": 360,
+        "end": 599,
+        "startLoc": {
+          "line": 360,
+          "column": 13,
+          "position": 2702
+        },
+        "endLoc": {
+          "line": 599,
+          "column": 7,
+          "position": 4535
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 12,
+      "fragment": ");\n    }\n\n    return {\n        init: init\n    };\n})();\n\n// Auto-init on page load\n(function() {\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', Cookie.pages.collections",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/collections.js",
+        "start": 139,
+        "end": 150,
+        "startLoc": {
+          "line": 139,
+          "column": 2,
+          "position": 897
+        },
+        "endLoc": {
+          "line": 150,
+          "column": 12,
+          "position": 962
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
+        "start": 222,
+        "end": 599,
+        "startLoc": {
+          "line": 222,
+          "column": 7,
+          "position": 1549
+        },
+        "endLoc": {
+          "line": 599,
+          "column": 7,
+          "position": 4535
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 8,
+      "fragment": "(e) {\n        e.preventDefault();\n        e.stopPropagation();\n\n        var btn = e.currentTarget;\n        var recipeId = btn.getAttribute('data-recipe-id');\n\n        if",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/collection-detail.js",
+        "start": 119,
+        "end": 126,
+        "startLoc": {
+          "line": 119,
+          "column": 19,
+          "position": 739
+        },
+        "endLoc": {
+          "line": 126,
+          "column": 3,
+          "position": 791
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/home.js",
+        "start": 283,
+        "end": 289,
+        "startLoc": {
+          "line": 283,
+          "column": 20,
+          "position": 2133
+        },
+        "endLoc": {
+          "line": 289,
+          "column": 4,
+          "position": 2184
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 10,
+      "fragment": ".length;\n            countEl.textContent = count + ' recipe' + (count !== 1 ? 's' : '');\n        }\n    }\n\n    /**\n     * Check if page should show empty state\n     */\n    function checkEmpty() {\n        var wrappers",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/collection-detail.js",
+        "start": 162,
+        "end": 171,
+        "startLoc": {
+          "line": 162,
+          "column": 9,
+          "position": 1075
+        },
+        "endLoc": {
+          "line": 171,
+          "column": 9,
+          "position": 1133
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/favorites.js",
+        "start": 75,
+        "end": 84,
+        "startLoc": {
+          "line": 75,
+          "column": 6,
+          "position": 479
+        },
+        "endLoc": {
+          "line": 84,
+          "column": 6,
+          "position": 537
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 14,
+      "fragment": ".length === 0) {\n            window.location.reload();\n        }\n    }\n\n    return {\n        init: init\n    };\n})();\n\n// Auto-init on page load\n(function() {\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', Cookie.pages.collectionDetail",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/collection-detail.js",
+        "start": 172,
+        "end": 185,
+        "startLoc": {
+          "line": 172,
+          "column": 9,
+          "position": 1150
+        },
+        "endLoc": {
+          "line": 185,
+          "column": 17,
+          "position": 1235
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/favorites.js",
+        "start": 85,
+        "end": 599,
+        "startLoc": {
+          "line": 85,
+          "column": 6,
+          "position": 554
+        },
+        "endLoc": {
+          "line": 599,
+          "column": 7,
+          "position": 4535
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 27,
+      "fragment": "(seconds) {\n        if (seconds >= 3600) {\n            var hrs = Math.floor(seconds / 3600);\n            var mins = Math.floor((seconds % 3600) / 60);\n            if (mins > 0) {\n                return hrs + 'h ' + mins + 'm';\n            }\n            return hrs + 'h';\n        }\n\n        var mins = Math.floor(seconds / 60);\n        var secs = seconds % 60;\n\n        if (mins === 0) {\n            return secs + ' sec';\n        }\n        if (secs === 0) {\n            return mins + ' min';\n        }\n        return mins + 'm ' + secs + 's';\n    }\n\n    /**\n     * Check if text contains any time mentions\n     * @param {string} text - Text to check\n     * @returns {boolean} - True if time mentions found\n     */",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/time-detect.js",
+        "start": 63,
+        "end": 89,
+        "startLoc": {
+          "line": 63,
+          "column": 7,
+          "position": 392
+        },
+        "endLoc": {
+          "line": 89,
+          "column": 8,
+          "position": 612
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/timer.js",
+        "start": 365,
+        "end": 385,
+        "startLoc": {
+          "line": 365,
+          "column": 15,
+          "position": 2368
+        },
+        "endLoc": {
+          "line": 385,
+          "column": 14,
+          "position": 2586
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 14,
+      "fragment": ");\n        }\n        if (typeof predicate !== 'function') {\n            throw new TypeError('predicate must be a function');\n        }\n        var list = Object(this);\n        var length = list.length >>> 0;\n        var thisArg = arguments[1];\n        var value;\n\n        for (var i = 0; i < length; i++) {\n            value = list[i];\n            if (predicate.call(thisArg, value, i, list)) {\n                return i",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/polyfills.js",
+        "start": 55,
+        "end": 68,
+        "startLoc": {
+          "line": 55,
+          "column": 56,
+          "position": 463
+        },
+        "endLoc": {
+          "line": 68,
+          "column": 2,
+          "position": 610
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/polyfills.js",
+        "start": 31,
+        "end": 44,
+        "startLoc": {
+          "line": 31,
+          "column": 51,
+          "position": 242
+        },
+        "endLoc": {
+          "line": 44,
+          "column": 6,
+          "position": 389
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 6,
+      "fragment": ", true);\n        xhr.setRequestHeader('Content-Type', 'application/json');\n\n        xhr.onreadystatechange = function() {\n            if (xhr.readyState === 4) {\n                if",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/ajax.js",
+        "start": 22,
+        "end": 27,
+        "startLoc": {
+          "line": 22,
+          "column": 8,
+          "position": 123
+        },
+        "endLoc": {
+          "line": 27,
+          "column": 3,
+          "position": 171
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/play.js",
+        "start": 337,
+        "end": 342,
+        "startLoc": {
+          "line": 337,
+          "column": 21,
+          "position": 2490
+        },
+        "endLoc": {
+          "line": 342,
+          "column": 4,
+          "position": 2538
+        }
+      }
+    }
+  ]
+}

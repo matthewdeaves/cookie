@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Complexity Report</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 2rem; background: #f5f5f5; }
+        h1 { margin-bottom: 0.5rem; }
+        .subtitle { color: #666; margin-bottom: 2rem; }
+        .summary { display: flex; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .stat { background: white; padding: 1.5rem; border-radius: 8px; text-align: center; min-width: 150px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .stat-value { font-size: 2rem; font-weight: bold; }
+        .stat-label { color: #666; font-size: 0.9rem; }
+        .rating-A { color: #22c55e; }
+        .rating-B { color: #84cc16; }
+        .rating-C { color: #eab308; }
+        .rating-D { color: #ef4444; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background: #f9fafb; font-weight: 600; }
+        tr:hover { background: #f9fafb; }
+        .complexity-high { color: #ef4444; font-weight: bold; }
+        .complexity-medium { color: #eab308; }
+        .complexity-low { color: #22c55e; }
+        h2 { margin: 2rem 0 1rem; }
+        .back-link { margin-bottom: 1rem; }
+        .back-link a { color: #0066cc; text-decoration: none; }
+        .back-link a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="back-link"><a href="../">&larr; Back to Dashboard</a></div>
+    <h1>Backend Complexity Report</h1>
+    <p class="subtitle">Cyclomatic Complexity and Maintainability Index Analysis</p>
+
+    <div class="summary">
+        <div class="stat">
+            <div class="stat-value rating-A">2.79</div>
+            <div class="stat-label">Avg Cyclomatic Complexity</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value rating-A">86.14</div>
+            <div class="stat-label">Avg Maintainability Index</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">466</div>
+            <div class="stat-label">Functions Analyzed</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">74</div>
+            <div class="stat-label">Files Analyzed</div>
+        </div>
+    </div>
+
+    <h2>Functions by Complexity</h2>
+    <table>
+        <thead>
+            <tr><th>File</th><th>Function</th><th>Type</th><th>Complexity</th><th>Rating</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>apps/ai/services/validator.py</td>
+                <td>_validate_value</td>
+                <td>method</td>
+                <td class="complexity-high">40</td>
+                <td>E</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/search.py</td>
+                <td>_extract_result_from_element</td>
+                <td>method</td>
+                <td class="complexity-high">20</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/validator.py</td>
+                <td>AIResponseValidator</td>
+                <td>class</td>
+                <td class="complexity-high">16</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/search.py</td>
+                <td>_looks_like_recipe_url</td>
+                <td>method</td>
+                <td class="complexity-high">15</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/utils.py</td>
+                <td>decimal_to_fraction</td>
+                <td>function</td>
+                <td class="complexity-high">14</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>apps/core/middleware.py</td>
+                <td>_is_legacy_device</td>
+                <td>method</td>
+                <td class="complexity-high">14</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/ranking.py</td>
+                <td>rank_results</td>
+                <td>function</td>
+                <td class="complexity-high">12</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/openrouter.py</td>
+                <td>complete</td>
+                <td>method</td>
+                <td class="complexity-high">12</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/openrouter.py</td>
+                <td>complete_async</td>
+                <td>method</td>
+                <td class="complexity-high">12</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/scaling.py</td>
+                <td>scale_recipe</td>
+                <td>function</td>
+                <td class="complexity-high">12</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/search.py</td>
+                <td>_fallback_parse</td>
+                <td>method</td>
+                <td class="complexity-high">12</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>apps/ai/api.py</td>
+                <td>update_prompt</td>
+                <td>function</td>
+                <td class="complexity-high">11</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/search.py</td>
+                <td>search</td>
+                <td>method</td>
+                <td class="complexity-high">11</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>apps/ai/api.py</td>
+                <td>scale_recipe_endpoint</td>
+                <td>function</td>
+                <td class="complexity-medium">10</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/remix.py</td>
+                <td>create_remix</td>
+                <td>function</td>
+                <td class="complexity-medium">10</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/api.py</td>
+                <td>search_recipes</td>
+                <td>function</td>
+                <td class="complexity-medium">10</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_sources_needing_attention_endpoint</td>
+                <td>method</td>
+                <td class="complexity-medium">9</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/remix.py</td>
+                <td>estimate_nutrition</td>
+                <td>function</td>
+                <td class="complexity-medium">9</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/management/commands/cleanup_search_images.py</td>
+                <td>handle</td>
+                <td>method</td>
+                <td class="complexity-medium">9</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/api.py</td>
+                <td>create_remix_endpoint</td>
+                <td>function</td>
+                <td class="complexity-medium">8</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/api.py</td>
+                <td>tips_endpoint</td>
+                <td>function</td>
+                <td class="complexity-medium">8</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_ai_status_endpoint</td>
+                <td>method</td>
+                <td class="complexity-medium">8</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_repair_selector_success</td>
+                <td>method</td>
+                <td class="complexity-medium">8</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/timer.py</td>
+                <td>generate_timer_name</td>
+                <td>function</td>
+                <td class="complexity-medium">8</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/openrouter.py</td>
+                <td>get_available_models</td>
+                <td>method</td>
+                <td class="complexity-medium">8</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/openrouter.py</td>
+                <td>validate_key_cached</td>
+                <td>method</td>
+                <td class="complexity-medium">8</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/discover.py</td>
+                <td>_generate_recommended_suggestions</td>
+                <td>function</td>
+                <td class="complexity-medium">8</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/discover.py</td>
+                <td>_generate_new_suggestions</td>
+                <td>function</td>
+                <td class="complexity-medium">8</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/search.py</td>
+                <td>RecipeSearch</td>
+                <td>class</td>
+                <td class="complexity-medium">8</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/api.py</td>
+                <td>remix_suggestions</td>
+                <td>function</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/api.py</td>
+                <td>repair_selector_endpoint</td>
+                <td>function</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_ai_status_no_api_key</td>
+                <td>method</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_ai_status_valid_api_key</td>
+                <td>method</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_validate_key_cached_caches_result</td>
+                <td>method</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/tips.py</td>
+                <td>generate_tips</td>
+                <td>function</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/ranking.py</td>
+                <td>_apply_ranking</td>
+                <td>function</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/openrouter.py</td>
+                <td>OpenRouterService</td>
+                <td>class</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/scaling.py</td>
+                <td>calculate_nutrition</td>
+                <td>function</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/utils.py</td>
+                <td>tidy_ingredient</td>
+                <td>function</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/image_cache.py</td>
+                <td>_download_and_save</td>
+                <td>method</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/scraper.py</td>
+                <td>_download_image</td>
+                <td>method</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/scraper.py</td>
+                <td>_convert_webp_to_jpeg</td>
+                <td>method</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/legacy/views.py</td>
+                <td>recipe_detail</td>
+                <td>function</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/legacy/views.py</td>
+                <td>play_mode</td>
+                <td>function</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/core/api.py</td>
+                <td>reset_database</td>
+                <td>function</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/api.py</td>
+                <td>timer_name_endpoint</td>
+                <td>function</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_ai_status_invalid_api_key</td>
+                <td>method</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_validate_key_cached_caches_invalid_result</td>
+                <td>method</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_repair_selector_low_confidence_no_update</td>
+                <td>method</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_get_sources_needing_attention</td>
+                <td>method</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_repair_selector_endpoint_success</td>
+                <td>method</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/scaling.py</td>
+                <td>_format_time</td>
+                <td>function</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/image_cache.py</td>
+                <td>_fetch_image</td>
+                <td>method</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/image_cache.py</td>
+                <td>_convert_to_jpeg</td>
+                <td>method</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/scraper.py</td>
+                <td>scrape_url</td>
+                <td>method</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/management/commands/cleanup_search_images.py</td>
+                <td>Command</td>
+                <td>class</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/core/middleware.py</td>
+                <td>DeviceDetectionMiddleware</td>
+                <td>class</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/profiles/api.py</td>
+                <td>delete_profile</td>
+                <td>function</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>AIAPITests</td>
+                <td>class</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>SelectorRepairServiceTests</td>
+                <td>class</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_repair_selector_auto_update_disabled</td>
+                <td>method</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>SelectorRepairAPITests</td>
+                <td>class</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_repair_selector_endpoint_with_options</td>
+                <td>method</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_ai_status_shows_available_with_key</td>
+                <td>method</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_tips_returns_503_with_action_field_when_ai_unavailable</td>
+                <td>method</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/remix.py</td>
+                <td>_parse_time</td>
+                <td>function</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/selector.py</td>
+                <td>repair_selector</td>
+                <td>function</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/selector.py</td>
+                <td>repair_all_broken_selectors</td>
+                <td>function</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/scaling.py</td>
+                <td>_parse_time</td>
+                <td>function</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/discover.py</td>
+                <td>_format_suggestions</td>
+                <td>function</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/sources_api.py</td>
+                <td>test_source</td>
+                <td>function</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/sources_api.py</td>
+                <td>test_all_sources</td>
+                <td>function</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/image_cache.py</td>
+                <td>SearchImageCache</td>
+                <td>class</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/scraper.py</td>
+                <td>_parse_time</td>
+                <td>method</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/search.py</td>
+                <td>_parse_search_results</td>
+                <td>method</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/api.py</td>
+                <td>get_ai_status</td>
+                <td>function</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/api.py</td>
+                <td>discover_endpoint</td>
+                <td>function</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_models_endpoint_with_api_key</td>
+                <td>method</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_get_prompt_endpoint</td>
+                <td>method</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_update_prompt_endpoint</td>
+                <td>method</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_update_prompt_invalid_model</td>
+                <td>method</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>OpenRouterServiceTests</td>
+                <td>class</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_get_available_models_success</td>
+                <td>method</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>TimerNamingAPITests</td>
+                <td>class</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>AIFeatureFallbackTests</td>
+                <td>class</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td>test_ai_status_shows_unavailable_without_key</td>
+                <td>method</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/remix.py</td>
+                <td>get_remix_suggestions</td>
+                <td>function</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/openrouter.py</td>
+                <td>test_connection</td>
+                <td>method</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/discover.py</td>
+                <td>get_discover_suggestions</td>
+                <td>function</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/discover.py</td>
+                <td>_generate_seasonal_suggestions</td>
+                <td>function</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/discover.py</td>
+                <td>_get_season</td>
+                <td>function</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/api.py</td>
+                <td>list_recipes</td>
+                <td>function</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/api.py</td>
+                <td>scrape_recipe</td>
+                <td>function</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/image_cache.py</td>
+                <td>cache_images</td>
+                <td>method</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/image_cache.py</td>
+                <td>get_cached_urls_batch</td>
+                <td>method</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/scraper.py</td>
+                <td>RecipeScraper</td>
+                <td>class</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/scraper.py</td>
+                <td>_fetch_html</td>
+                <td>method</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/scraper.py</td>
+                <td>_safe_get</td>
+                <td>method</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/scraper.py</td>
+                <td>_safe_get_ingredient_groups</td>
+                <td>method</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/legacy/views.py</td>
+                <td>home</td>
+                <td>function</td>
+                <td class="complexity-low">4</td>
+                <td>A</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>File Maintainability</h2>
+    <table>
+        <thead>
+            <tr><th>File</th><th>Maintainability Index</th><th>Rating</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>apps/ai/tests.py</td>
+                <td class="complexity-high">0.0</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>apps/ai/api.py</td>
+                <td class="complexity-high">35.2</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/search.py</td>
+                <td class="complexity-medium">44.6</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/sources_api.py</td>
+                <td class="complexity-medium">47.7</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/scraper.py</td>
+                <td class="complexity-medium">50.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/validator.py</td>
+                <td class="complexity-medium">50.4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/legacy/views.py</td>
+                <td class="complexity-medium">50.5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/openrouter.py</td>
+                <td class="complexity-medium">55.1</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/api.py</td>
+                <td class="complexity-medium">55.5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/api_user.py</td>
+                <td class="complexity-medium">57.7</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/discover.py</td>
+                <td class="complexity-medium">57.9</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/scaling.py</td>
+                <td class="complexity-low">62.8</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/remix.py</td>
+                <td class="complexity-low">63.2</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/image_cache.py</td>
+                <td class="complexity-low">63.4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/profiles/api.py</td>
+                <td class="complexity-low">63.9</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/utils.py</td>
+                <td class="complexity-low">68.1</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/core/api.py</td>
+                <td class="complexity-low">69.3</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>cookie/settings.py</td>
+                <td class="complexity-low">70.6</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/ranking.py</td>
+                <td class="complexity-low">71.5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/management/commands/cleanup_search_images.py</td>
+                <td class="complexity-low">73.4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/selector.py</td>
+                <td class="complexity-low">76.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/fingerprint.py</td>
+                <td class="complexity-low">76.4</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/core/middleware.py</td>
+                <td class="complexity-low">77.8</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/legacy/templatetags/legacy_tags.py</td>
+                <td class="complexity-low">80.3</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/timer.py</td>
+                <td class="complexity-low">81.1</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/tips.py</td>
+                <td class="complexity-low">85.1</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/profiles/utils.py</td>
+                <td class="complexity-low">87.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/models.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/migrations/0008_update_serving_adjustment_indivisible.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/migrations/0009_fix_discover_prompts.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/migrations/0001_initial.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/migrations/0005_update_serving_adjustment_v2.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/migrations/0007_update_search_ranking_prompt.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/migrations/0003_nutrition_estimate_prompt.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/migrations/0006_add_ai_discovery_suggestion.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/migrations/0002_seed_prompts.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/migrations/0004_update_serving_adjustment_prompt.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/migrations/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/tests.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/models.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/migrations/0001_initial.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/migrations/0003_recipecollection_recipecollectionitem_recipefavorite_and_more.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/migrations/0006_serving_adjustment_instructions_times.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/migrations/0007_recipe_profile.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/migrations/0004_cachedsearchimage.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/migrations/0002_populate_search_sources.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/migrations/0009_add_default_selectors.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/migrations/0005_serving_adjustment.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/migrations/0008_rename_recipes_rec_profile_idx_recipes_rec_profile_7945b8_idx.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/migrations/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/management/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/management/commands/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/legacy/urls.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/legacy/apps.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/legacy/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/legacy/templatetags/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/core/apps.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/core/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/core/models.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/core/migrations/0001_initial.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/core/migrations/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/profiles/apps.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/profiles/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/profiles/models.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/profiles/migrations/0001_initial.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/profiles/migrations/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>cookie/wsgi.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>cookie/urls.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>cookie/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
