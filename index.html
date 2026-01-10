@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cookie - Software Quality Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+    .hero {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: white;
+    }
+    .hero h1 {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .hero .tagline {
+      font-size: 1.25rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto 2rem;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem 4rem;
+    }
+    .badges {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .badges img { height: 24px; }
+    .cta-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-block;
+      padding: 0.875rem 2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .btn-primary {
+      background: white;
+      color: #667eea;
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: -2rem;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+      color: #1a1a1a;
+    }
+    .card p {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    .card .badge-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .card .badge-row img { height: 20px; }
+    .section-title {
+      text-align: center;
+      color: white;
+      font-size: 1.75rem;
+      margin: 3rem 0 2rem;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.875rem;
+    }
+    .footer a { color: rgba(255,255,255,0.9); }
+    .metric-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #667eea;
+    }
+    .metric-label {
+      font-size: 0.875rem;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    .metric-item { text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <h1>Cookie</h1>
+    <p class="tagline">A modern recipe management application with comprehensive code quality tracking and automated CI/CD pipelines</p>
+    <div class="badges">
+      <img src="coverage/badges/frontend-coverage.svg" alt="Frontend coverage">
+      <img src="coverage/badges/backend-coverage.svg" alt="Backend coverage">
+      <img src="coverage/badges/backend-complexity.svg" alt="Complexity">
+      <img src="coverage/badges/frontend-security.svg" alt="Security">
+      <img src="coverage/badges/duplication.svg" alt="Duplication">
+    </div>
+    <div class="cta-buttons">
+      <a href="coverage/" class="btn btn-primary">View Quality Dashboard</a>
+      <a href="https://github.com/matthewdeaves/cookie" class="btn btn-secondary">GitHub Repository</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2 class="section-title">Quality Metrics at a Glance</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>Test Coverage</h3>
+        <p>Comprehensive test suites for frontend React components and backend Django APIs with detailed HTML reports.</p>
+        <div class="badge-row">
+          <img src="coverage/badges/frontend-coverage.svg" alt="Frontend">
+          <img src="coverage/badges/backend-coverage.svg" alt="Backend">
+        </div>
+      </div>
+      <div class="card">
+        <h3>Code Complexity</h3>
+        <p>Cyclomatic complexity and maintainability index analysis using radon for Python and ESLint for TypeScript.</p>
+        <div class="badge-row">
+          <img src="coverage/badges/backend-complexity.svg" alt="Complexity">
+          <img src="coverage/badges/backend-maintainability.svg" alt="Maintainability">
+        </div>
+      </div>
+      <div class="card">
+        <h3>Security Scanning</h3>
+        <p>Automated vulnerability detection with npm audit and pip-audit on every commit to catch security issues early.</p>
+        <div class="badge-row">
+          <img src="coverage/badges/frontend-security.svg" alt="Frontend Security">
+          <img src="coverage/badges/backend-security.svg" alt="Backend Security">
+        </div>
+      </div>
+      <div class="card">
+        <h3>Code Quality</h3>
+        <p>Copy-paste detection with jscpd and bundle size analysis to maintain clean, efficient code.</p>
+        <div class="badge-row">
+          <img src="coverage/badges/duplication.svg" alt="Duplication">
+          <img src="coverage/badges/bundle-size.svg" alt="Bundle Size">
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">API Access</h2>
+    <div class="cards">
+      <div class="card" style="grid-column: 1 / -1;">
+        <h3>Metrics API Endpoint</h3>
+        <p>Access all quality metrics programmatically via JSON API for integration with dashboards, blogs, or monitoring tools.</p>
+        <p><code style="background: #f5f5f5; padding: 0.5rem 1rem; border-radius: 6px; display: inline-block;">GET <a href="coverage/api/metrics.json">https://matthewdeaves.github.io/cookie/coverage/api/metrics.json</a></code></p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Built with Django, React, and TypeScript</p>
+    <p><a href="https://github.com/matthewdeaves/cookie">View Source</a> · <a href="coverage/">Quality Dashboard</a></p>
+  </footer>
+</body>
+</html>
