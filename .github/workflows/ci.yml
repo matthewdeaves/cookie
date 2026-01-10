@@ -3,8 +3,22 @@ name: CI
 on:
   push:
     branches: [main, master]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'plans/**'
+      - 'LICENSE'
+      - '.gitignore'
   pull_request:
     branches: [main, master]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'plans/**'
+      - 'LICENSE'
+      - '.gitignore'
+  # Allow manual trigger to run CI anyway
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}

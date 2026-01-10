@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for changelog
+
+      - name: Get previous tag
+        id: prev_tag
+        run: |
+          # Get the tag before the current one
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "tag=$PREV_TAG" >> $GITHUB_OUTPUT
+          echo "Previous tag: $PREV_TAG"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          CURRENT_TAG=${GITHUB_REF#refs/tags/}
+          PREV_TAG="${{ steps.prev_tag.outputs.tag }}"
+
+          echo "Generating changelog from $PREV_TAG to $CURRENT_TAG"
+
+          # Start changelog
+          {
+            echo "## What's Changed"
+            echo ""
+
+            # Get commits between tags (or all commits if no previous tag)
+            if [ -n "$PREV_TAG" ]; then
+              COMMITS=$(git log --pretty=format:"- %s (%h)" "$PREV_TAG".."$CURRENT_TAG" --no-merges)
+            else
+              COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
+            fi
+
+            # Categorize commits
+            echo "### Features"
+            echo "$COMMITS" | grep -iE "^- (feat|feature|add)" || echo "_No new features_"
+            echo ""
+
+            echo "### Bug Fixes"
+            echo "$COMMITS" | grep -iE "^- (fix|bugfix|hotfix)" || echo "_No bug fixes_"
+            echo ""
+
+            echo "### Other Changes"
+            echo "$COMMITS" | grep -viE "^- (feat|feature|add|fix|bugfix|hotfix)" | head -20 || echo "_No other changes_"
+            echo ""
+
+            echo "---"
+            echo ""
+            echo "### Docker"
+            echo "\`\`\`bash"
+            echo "docker pull mndeaves/cookie:${CURRENT_TAG#v}"
+            echo "# or"
+            echo "docker pull mndeaves/cookie:latest"
+            echo "\`\`\`"
+            echo ""
+
+            if [ -n "$PREV_TAG" ]; then
+              echo "**Full Changelog**: https://github.com/mndeaves/cookie/compare/$PREV_TAG...$CURRENT_TAG"
+            fi
+          } > changelog.md
+
+          cat changelog.md
+
+      - name: Determine prerelease
+        id: prerelease
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          if [[ "$TAG" == *"-"* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            echo "Tag $TAG is a prerelease"
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            echo "Tag $TAG is a stable release"
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: changelog.md
+          draft: false
+          prerelease: ${{ steps.prerelease.outputs.is_prerelease == 'true' }}
+          generate_release_notes: false  # We generate our own
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
