@@ -98,45 +98,46 @@ jobs:
 
       - name: Generate coverage and metrics dashboard
         run: |
-          mkdir -p coverage-report/frontend
-          mkdir -p coverage-report/backend
-          mkdir -p coverage-report/complexity
-          mkdir -p coverage-report/security
-          mkdir -p coverage-report/duplication
-          mkdir -p coverage-report/bundle
-          mkdir -p coverage-report/badges
-          mkdir -p coverage-report/api
+          # Create site structure with root landing page and coverage subdirectory
+          mkdir -p site/coverage/frontend
+          mkdir -p site/coverage/backend
+          mkdir -p site/coverage/complexity
+          mkdir -p site/coverage/security
+          mkdir -p site/coverage/duplication
+          mkdir -p site/coverage/bundle
+          mkdir -p site/coverage/badges
+          mkdir -p site/coverage/api
 
           # Copy coverage reports if they exist
           if [ -d "coverage/frontend" ]; then
-            cp -r coverage/frontend/* coverage-report/frontend/ 2>/dev/null || true
+            cp -r coverage/frontend/* site/coverage/frontend/ 2>/dev/null || true
           fi
           if [ -d "coverage/backend/htmlcov" ]; then
-            cp -r coverage/backend/htmlcov coverage-report/backend/ 2>/dev/null || true
+            cp -r coverage/backend/htmlcov site/coverage/backend/ 2>/dev/null || true
           fi
 
           # Copy complexity reports
           if [ -d "complexity/backend" ]; then
-            cp -r complexity/backend/* coverage-report/complexity/ 2>/dev/null || true
+            cp -r complexity/backend/* site/coverage/complexity/ 2>/dev/null || true
           fi
           if [ -d "complexity/frontend" ]; then
-            cp -r complexity/frontend/* coverage-report/complexity/ 2>/dev/null || true
+            cp -r complexity/frontend/* site/coverage/complexity/ 2>/dev/null || true
           fi
 
           # Copy security reports
           if [ -d "security/frontend" ]; then
-            cp -r security/frontend/* coverage-report/security/ 2>/dev/null || true
+            cp -r security/frontend/* site/coverage/security/ 2>/dev/null || true
           fi
           if [ -d "security/backend" ]; then
-            cp -r security/backend/* coverage-report/security/ 2>/dev/null || true
+            cp -r security/backend/* site/coverage/security/ 2>/dev/null || true
           fi
 
           # Copy duplication and bundle reports
           if [ -d "duplication/frontend" ]; then
-            cp -r duplication/frontend/* coverage-report/duplication/ 2>/dev/null || true
+            cp -r duplication/frontend/* site/coverage/duplication/ 2>/dev/null || true
           fi
           if [ -d "bundle/frontend" ]; then
-            cp -r bundle/frontend/* coverage-report/bundle/ 2>/dev/null || true
+            cp -r bundle/frontend/* site/coverage/bundle/ 2>/dev/null || true
           fi
 
           # Generate all metrics and badges
@@ -169,7 +170,7 @@ jobs:
               label = label or name
               url = f'https://img.shields.io/badge/{label}-{value}-{color}'
               try:
-                  urllib.request.urlretrieve(url, f'coverage-report/badges/{name}.svg')
+                  urllib.request.urlretrieve(url, f'site/coverage/badges/{name}.svg')
                   print(f"Generated {name} badge: {value}")
               except Exception as e:
                   print(f"Failed to generate {name} badge: {e}")
@@ -274,15 +275,15 @@ jobs:
           # Create metrics.json API file for blog integration
           metrics = {
               'generated_at': datetime.now(timezone.utc).isoformat(),
-              'repo': 'mndeaves/cookie',
+              'repo': 'matthewdeaves/cookie',
               'coverage': {
                   'frontend': {
                       'percentage': frontend_cov,
-                      'badge_url': 'https://mndeaves.github.io/cookie/coverage/badges/frontend-coverage.svg'
+                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/frontend-coverage.svg'
                   },
                   'backend': {
                       'percentage': backend_cov,
-                      'badge_url': 'https://mndeaves.github.io/cookie/coverage/badges/backend-coverage.svg'
+                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/backend-coverage.svg'
                   }
               },
               'complexity': {
@@ -291,49 +292,49 @@ jobs:
                       'cyclomatic_rating': backend_cc_rating,
                       'maintainability_index': backend_mi,
                       'maintainability_rating': backend_mi_rating,
-                      'badge_url': 'https://mndeaves.github.io/cookie/coverage/badges/backend-complexity.svg'
+                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/backend-complexity.svg'
                   },
                   'frontend': {
                       'complexity_warnings': frontend_complexity_warnings,
                       'rating': frontend_complexity_rating,
-                      'badge_url': 'https://mndeaves.github.io/cookie/coverage/badges/frontend-complexity.svg'
+                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/frontend-complexity.svg'
                   }
               },
               'duplication': {
                   'percentage': duplication_pct,
                   'clones_count': duplication_clones,
                   'rating': duplication_rating,
-                  'badge_url': 'https://mndeaves.github.io/cookie/coverage/badges/duplication.svg'
+                  'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/duplication.svg'
               },
               'security': {
                   'frontend': {
                       'vulnerabilities': frontend_vulns,
                       'rating': frontend_security_rating,
-                      'badge_url': 'https://mndeaves.github.io/cookie/coverage/badges/frontend-security.svg'
+                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/frontend-security.svg'
                   },
                   'backend': {
                       'vulnerabilities': backend_vulns,
                       'rating': backend_security_rating,
-                      'badge_url': 'https://mndeaves.github.io/cookie/coverage/badges/backend-security.svg'
+                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/backend-security.svg'
                   }
               },
               'bundle': {
                   'size_kb': bundle_size_kb,
                   'rating': bundle_rating,
-                  'badge_url': 'https://mndeaves.github.io/cookie/coverage/badges/bundle-size.svg'
+                  'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/bundle-size.svg'
               },
               'links': {
-                  'dashboard': 'https://mndeaves.github.io/cookie/coverage/',
-                  'frontend_coverage': 'https://mndeaves.github.io/cookie/coverage/frontend/',
-                  'backend_coverage': 'https://mndeaves.github.io/cookie/coverage/backend/htmlcov/',
-                  'github': 'https://github.com/mndeaves/cookie'
+                  'dashboard': 'https://matthewdeaves.github.io/cookie/coverage/',
+                  'frontend_coverage': 'https://matthewdeaves.github.io/cookie/coverage/frontend/',
+                  'backend_coverage': 'https://matthewdeaves.github.io/cookie/coverage/backend/htmlcov/',
+                  'github': 'https://github.com/matthewdeaves/cookie'
               }
           }
 
-          with open('coverage-report/api/metrics.json', 'w') as f:
+          with open('site/coverage/api/metrics.json', 'w') as f:
               json.dump(metrics, f, indent=2)
 
-          print(f"\nMetrics JSON generated at coverage-report/api/metrics.json")
+          print(f"\nMetrics JSON generated at site/coverage/api/metrics.json")
           print(f"Frontend Coverage: {frontend_cov}%")
           print(f"Backend Coverage: {backend_cov}%")
           print(f"Backend Complexity: CC={backend_cc} ({backend_cc_rating}), MI={backend_mi} ({backend_mi_rating})")
@@ -344,7 +345,7 @@ jobs:
           EOF
 
           # Create index.html dashboard
-          cat > coverage-report/index.html << 'HTMLEOF'
+          cat > site/coverage/index.html << 'HTMLEOF'
           <!DOCTYPE html>
           <html lang="en">
           <head>
@@ -545,12 +546,12 @@ jobs:
 
             <div class="api-note">
               <strong>API Endpoint:</strong> Fetch all metrics programmatically for your blog or dashboard:<br>
-              <code>GET <a href="api/metrics.json">https://mndeaves.github.io/cookie/coverage/api/metrics.json</a></code>
+              <code>GET <a href="api/metrics.json">https://matthewdeaves.github.io/cookie/coverage/api/metrics.json</a></code>
             </div>
 
             <p class="footer">
               Last updated: <span id="date"></span><br>
-              <a href="https://github.com/mndeaves/cookie">View on GitHub</a>
+              <a href="https://github.com/matthewdeaves/cookie">View on GitHub</a>
             </p>
 
             <script>
@@ -582,10 +583,27 @@ jobs:
           </html>
           HTMLEOF
 
+          # Create root redirect to /coverage/
+          cat > site/index.html << 'ROOTHTML'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="refresh" content="0;url=coverage/">
+            <title>Redirecting to Cookie Quality Dashboard</title>
+          </head>
+          <body>
+            <p>Redirecting to <a href="coverage/">Quality Dashboard</a>...</p>
+          </body>
+          </html>
+          ROOTHTML
+
+          # Add .nojekyll to prevent Jekyll processing
+          touch site/.nojekyll
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./coverage-report
-          destination_dir: coverage
+          publish_dir: ./site
           keep_files: false

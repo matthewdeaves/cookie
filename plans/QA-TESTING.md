@@ -68,6 +68,7 @@
 | QA-057 | Discover tab shows "no suggestions" for new users without history | Modern + Legacy | Verified | - |
 | QA-058 | AllRecipes article pages cause "Recipe has no title" on import | Modern + Legacy | Verified | - |
 | QA-059 | Phase 10 CI/CD code review items (6 minor issues) | All | New | - |
+| QA-060 | GitHub Pages root landing page returns 404 | Infrastructure | Fixed | - |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -1562,6 +1563,84 @@ Added site-specific filter for allrecipes.com - URLs must contain `/recipe/` in 
 - [x] Add URL logging to scrape endpoint for debugging
 - [x] Add allrecipes.com site-specific filter requiring `/recipe/` in path
 - [x] Verify article URLs are filtered from search results
+
+---
+
+### QA-060: GitHub Pages Root Landing Page Returns 404
+
+**Issue:** QA-060 - https://matthewdeaves.github.io/cookie/ returns 404 error
+**Affects:** Infrastructure (GitHub Pages)
+**Status:** Fixed
+
+**Problem:**
+The GitHub Pages site at https://matthewdeaves.github.io/cookie/ returns a 404 error. Users visiting the root URL cannot access the code quality dashboard or any project information. The current setup only deploys to `/coverage/` subdirectory, leaving the root path empty.
+
+**Research Findings:**
+
+_Current State (Before Fix):_
+- GitHub Pages was deployed to `gh-pages` branch
+- Content existed only at `/coverage/` subdirectory
+- Coverage dashboard, SVG badges, and metrics API were working
+- `.nojekyll` file disabled Jekyll processing
+- No content existed at root level
+
+_Working Endpoints:_
+- `https://matthewdeaves.github.io/cookie/coverage/` - Metrics dashboard
+- `https://matthewdeaves.github.io/cookie/coverage/api/metrics.json` - Metrics API
+- `https://matthewdeaves.github.io/cookie/coverage/badges/*.svg` - Badge images
+
+_Root Cause:_
+The coverage workflow deployed content to the `/coverage/` subdirectory using `destination_dir: ./coverage`. The root `/` was never populated.
+
+**Implementation (Option A: Simple Redirect):**
+
+Changed to Option A - the /coverage/ dashboard already has everything needed.
+
+1. **Restructured output directory:**
+   - Changed from `coverage-report/` to `site/coverage/`
+   - Root `index.html` redirects to `/coverage/`
+   - Coverage dashboard at `site/coverage/index.html`
+
+2. **Created root redirect:**
+   - Simple meta refresh redirect to `/coverage/`
+   - Fallback link for browsers without redirect support
+
+3. **Updated deployment:**
+   - Removed `destination_dir: coverage` to deploy to root
+   - Changed `publish_dir: ./site` (was `./coverage-report`)
+   - Added `.nojekyll` file to root
+
+4. **Fixed URL references:**
+   - Corrected `mndeaves` to `matthewdeaves` throughout
+
+**Tasks:**
+- [x] Research: Decide on implementation approach (A, B, or C) → Option A
+- [x] Create root `index.html` redirect
+- [x] Update `.github/workflows/coverage.yml` to deploy root content
+- [x] Test deployment end-to-end
+- [ ] Update README with correct GitHub Pages URL
+
+**Files Modified:**
+- `.github/workflows/coverage.yml` - Restructured output, added root redirect
+
+**New Site Structure:**
+```
+/ (root)
+├── index.html          # Redirect to /coverage/
+├── .nojekyll           # Disable Jekyll
+└── coverage/
+    ├── index.html      # Metrics dashboard
+    ├── api/metrics.json
+    ├── badges/*.svg
+    ├── frontend/       # Frontend coverage report
+    ├── backend/        # Backend coverage report
+    └── ...
+```
+
+**Acceptance Criteria:**
+- [x] https://matthewdeaves.github.io/cookie/ loads successfully (no 404)
+- [x] Root redirects to /coverage/ dashboard
+- [x] No breaking changes to existing /coverage/ functionality
 
 ---
 
