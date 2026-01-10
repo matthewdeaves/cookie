@@ -66,6 +66,7 @@
 | QA-049 | Recipe import fails (403 error not shown to user) | Modern | Verified | - |
 | QA-050 | Tips tab should be hidden without valid API key | Modern + Legacy | Verified | - |
 | QA-057 | Discover tab shows "no suggestions" for new users without history | Modern + Legacy | Verified | - |
+| QA-058 | AllRecipes article pages cause "Recipe has no title" on import | Modern + Legacy | Verified | - |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -1528,6 +1529,38 @@ Always respond with valid JSON as an array of 3-5 suggestions:
 - [x] Test with user with history - should get all three types
 - [x] Verify on Modern frontend
 - [x] Verify on Legacy frontend
+
+---
+
+### QA-058: AllRecipes article pages cause "Recipe has no title" on import
+
+**Issue:** QA-058 - AllRecipes article pages shown in search results fail import with "Recipe has no title"
+**Affects:** Modern + Legacy
+**Status:** Verified
+
+**Problem:**
+When searching for recipes, AllRecipes article pages (e.g., "Ina Garten's Beef Stew Recipe Is Exactly What We Need...") appear in search results alongside actual recipes. When users try to import these articles, they fail with "Recipe has no title" because article pages don't have recipe schema markup.
+
+**Root cause:**
+AllRecipes has two types of pages:
+- Recipe pages: `allrecipes.com/recipe/12345/beef-stew/` (has schema.org recipe data)
+- Article pages: `allrecipes.com/ina-gartens-beef-stew-recipe-8736364` (no recipe schema)
+
+The search URL filtering heuristics were too permissive and allowed article URLs through because they:
+- Have long paths with hyphens (looks like a recipe slug)
+- Often contain the word "recipe" in the title
+
+**Solution:**
+Added site-specific filter for allrecipes.com - URLs must contain `/recipe/` in the path to be considered valid recipe URLs.
+
+**Files modified:**
+- `apps/recipes/services/search.py` - Added allrecipes.com specific URL filter
+- `apps/recipes/api.py` - Added URL logging for scrape requests to aid debugging
+
+**Tasks:**
+- [x] Add URL logging to scrape endpoint for debugging
+- [x] Add allrecipes.com site-specific filter requiring `/recipe/` in path
+- [x] Verify article URLs are filtered from search results
 
 ---
 

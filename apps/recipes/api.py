@@ -3,7 +3,10 @@ Recipe API endpoints.
 """
 
 import asyncio
+import logging
 from typing import List, Optional
+
+logger = logging.getLogger(__name__)
 
 from asgiref.sync import sync_to_async
 from django.shortcuts import get_object_or_404
@@ -174,13 +177,17 @@ async def scrape_recipe(request, payload: ScrapeIn):
         return 403, {'detail': 'Profile required to scrape recipes'}
 
     scraper = RecipeScraper()
+    logger.info(f'Scrape request: {payload.url}')
 
     try:
         recipe = await scraper.scrape_url(payload.url, profile)
+        logger.info(f'Scrape success: {payload.url} -> recipe {recipe.id} "{recipe.title}"')
         return 201, recipe
     except FetchError as e:
+        logger.warning(f'Scrape fetch error: {payload.url} - {e}')
         return 502, {'detail': str(e)}
     except ParseError as e:
+        logger.warning(f'Scrape parse error: {payload.url} - {e}')
         return 400, {'detail': str(e)}
 
 

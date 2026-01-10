@@ -472,6 +472,12 @@ class RecipeSearch:
             if re.search(pattern, path):
                 return False
 
+        # Site-specific requirements (QA-058)
+        # AllRecipes has article pages at root that look like recipes but aren't
+        # Real recipes are always under /recipe/ path
+        if 'allrecipes.com' in host and '/recipe/' not in path:
+            return False
+
         # Check for recipe patterns
         for pattern in recipe_patterns:
             if re.search(pattern, path):
