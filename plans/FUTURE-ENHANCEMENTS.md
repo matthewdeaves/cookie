@@ -17,6 +17,7 @@
 | FE-006 | Multi-selection for AI remix suggestions | Low | Low |
 | FE-007 | ~~Add nginx to production container for dev/prod parity~~ | ~~High~~ | ~~Medium~~ |
 | FE-008 | ~~Docker Hub: Only maintain latest image, no version history~~ | ~~Low~~ | ~~Low~~ |
+| FE-009 | AI-powered meal pairing suggestions | Medium | Medium |
 
 ---
 
@@ -793,3 +794,76 @@ curl -s -H "Authorization: JWT $TOKEN" \
 - No confusion about versions - always use `latest`
 - Git tags preserve full version history for code
 - Users can build any version locally from git tags
+
+---
+
+## FE-009: AI-Powered Meal Pairing Suggestions
+
+**Status:** Backlog
+
+### Problem
+
+When viewing a recipe, users often want to plan a complete meal around it. Finding complementary dishes that pair well together requires culinary knowledge and additional searching. Currently, users must manually search for starters, sides, or desserts that would work with their chosen recipe.
+
+### Proposed Solution
+
+Add an AI-powered "Complete Your Meal" feature that suggests complementary courses based on the recipe being viewed:
+
+1. **AI Analysis:** When viewing a recipe, AI understands the dish type, cuisine, flavours, and meal context
+2. **Course Suggestions:** Generate suggestions for missing courses to create a 3-4 course meal
+3. **Discovery-Style Links:** Each suggestion is a search link (reusing existing Discover infrastructure)
+4. **Smart Context:** Suggestions adapt based on what the current recipe is:
+   - Viewing a **beef wellington** → suggest a starter and dessert
+   - Viewing an **ice cream** → suggest a starter and main course
+   - Viewing a **soup** → suggest a main and dessert
+
+### User Experience
+
+1. User views a recipe (e.g., "Beef Wellington")
+2. A "Complete Your Meal" section appears with AI-generated suggestions:
+   - **Starter:** "French Onion Soup" → links to search
+   - **Dessert:** "Chocolate Fondant" → links to search
+3. Tapping a suggestion opens search results (same as Discover items)
+4. User can browse results and save recipes to build their complete meal
+
+### Implementation Details
+
+**Reuse Existing Infrastructure:**
+- Same search link format as Discover suggestions
+- Same UI pattern for displaying clickable search suggestions
+- Same backend search flow when user taps a suggestion
+
+**AI Prompt Design:**
+```
+Given this recipe: [recipe title, ingredients, cuisine]
+Suggest complementary dishes for a complete meal.
+Consider: cuisine pairing, flavour balance, dietary consistency.
+Return: course type + search terms (e.g., "Starter: French onion soup")
+```
+
+**Course Logic:**
+- Detect current recipe's likely course (starter, main, dessert, side)
+- Suggest the missing courses for a balanced meal
+- Prioritise cuisine-appropriate pairings
+
+### Files to Change
+
+- `apps/ai/services/` - New meal pairing service
+- `apps/recipes/views.py` or API endpoint - Serve suggestions
+- `frontend/src/screens/Recipe.tsx` - Display suggestions section
+- Reuse `frontend/src/components/Discover*` components for suggestion UI
+
+### Benefits
+
+- Helps users plan complete meals, not just individual dishes
+- Leverages AI for culinary knowledge (what pairs with what)
+- Reuses existing Discover/search infrastructure
+- Encourages exploration of more recipes
+- Natural extension of the AI features already in the app
+
+### Considerations
+
+- Cache suggestions per recipe to avoid repeated AI calls
+- Consider showing suggestions only after recipe is saved (engagement signal)
+- May want to limit to 2-3 suggestions to avoid overwhelming the UI
+- Ensure suggestions respect any dietary preferences if implemented
