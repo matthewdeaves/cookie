@@ -26,4 +26,4 @@
 489 src/test/api.test.ts
 321 src/test/timers.test.ts
 80 src/contexts/AIStatusContext.tsx
-349 src/App.tsx
+337 src/App.tsx

@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-01-10T13:15:52.429Z",
+    "detectionDate": "2026-01-10T13:25:56.152Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -429,8 +429,8 @@
             "newClones": 0
           },
           "src/App.tsx": {
-            "lines": 348,
-            "tokens": 2686,
+            "lines": 336,
+            "tokens": 2614,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -442,14 +442,14 @@
           }
         },
         "total": {
-          "lines": 3863,
-          "tokens": 29980,
+          "lines": 3851,
+          "tokens": 29908,
           "sources": 18,
           "clones": 6,
           "duplicatedLines": 75,
           "duplicatedTokens": 571,
-          "percentage": 1.94,
-          "percentageTokens": 1.9,
+          "percentage": 1.95,
+          "percentageTokens": 1.91,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -532,8 +532,8 @@
       }
     },
     "total": {
-      "lines": 7043,
-      "tokens": 53145,
+      "lines": 7031,
+      "tokens": 53073,
       "sources": 40,
       "clones": 8,
       "duplicatedLines": 109,

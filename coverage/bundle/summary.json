@@ -1,15 +1,15 @@
 {
-  "total_size_kb": 1216.82,
-  "js_size_kb": 316.82,
+  "total_size_kb": 1216.43,
+  "js_size_kb": 316.77,
   "css_size_kb": 38.19,
   "files": [
     {
-      "name": "index-CA60nlPe.js.map",
-      "size_kb": 861.81
+      "name": "index-3xCnLpQF.js.map",
+      "size_kb": 861.48
     },
     {
-      "name": "index-CA60nlPe.js",
-      "size_kb": 316.82
+      "name": "index-3xCnLpQF.js",
+      "size_kb": 316.77
     },
     {
       "name": "index-Cl8sRuLw.css",
