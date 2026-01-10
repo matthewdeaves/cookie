@@ -54,7 +54,7 @@ describe('ProfileSelector', () => {
   })
 
   afterEach(() => {
-    vi.restoreAllMocks()
+    vi.resetAllMocks()
   })
 
   it('shows loading state initially', () => {
@@ -167,7 +167,7 @@ describe('Search', () => {
   })
 
   afterEach(() => {
-    vi.restoreAllMocks()
+    vi.resetAllMocks()
   })
 
   it('shows search results', async () => {

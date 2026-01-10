@@ -11,7 +11,7 @@ describe('API Client', () => {
   })
 
   afterEach(() => {
-    vi.restoreAllMocks()
+    vi.resetAllMocks()
   })
 
   describe('profiles', () => {
