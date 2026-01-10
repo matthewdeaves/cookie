@@ -165,10 +165,10 @@
     </div>
   </div>
 
-  <h2>Code Quality</h2>
+  <h2>Code Duplication</h2>
   <div class="cards">
     <div class="card">
-      <h3>Code Duplication <span class="area-tag">TypeScript</span></h3>
+      <h3>Frontend Duplication <span class="area-tag">React/TypeScript</span></h3>
       <div class="badge-row">
         <img src="badges/duplication.svg" alt="Duplication" class="badge">
       </div>
@@ -183,10 +183,32 @@
           <div class="metric-label">Clones Found</div>
         </div>
       </div>
-      <a href="duplication/html/index.html" class="btn">View Detailed Report</a>
+      <a href="duplication/frontend/html/index.html" class="btn">View Detailed Report</a>
     </div>
     <div class="card">
-      <h3>Bundle Size <span class="area-tag">React/TypeScript</span></h3>
+      <h3>Backend Duplication <span class="area-tag">Django/Python</span></h3>
+      <div class="badge-row">
+        <img src="badges/backend-duplication.svg" alt="Backend Duplication" class="badge">
+      </div>
+      <p>jscpd - copy/paste detection in <code>apps/</code> and <code>cookie/</code></p>
+      <div class="metrics-row">
+        <div class="metric-item">
+          <div class="metric metric-sm" id="backend-duplication-pct">-</div>
+          <div class="metric-label">Duplication %</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric metric-sm" id="backend-duplication-clones">-</div>
+          <div class="metric-label">Clones Found</div>
+        </div>
+      </div>
+      <a href="duplication/backend/html/index.html" class="btn">View Detailed Report</a>
+    </div>
+  </div>
+
+  <h2>Bundle Size</h2>
+  <div class="cards">
+    <div class="card">
+      <h3>Frontend Bundle <span class="area-tag">React/TypeScript</span></h3>
       <div class="badge-row">
         <img src="badges/bundle-size.svg" alt="Bundle size" class="badge">
       </div>
@@ -266,8 +288,10 @@
         document.getElementById('backend-vulns').textContent = data.security?.backend?.vulnerabilities ?? '-';
 
         // Duplication
-        document.getElementById('duplication-pct').textContent = (data.duplication?.percentage ?? '-') + '%';
-        document.getElementById('duplication-clones').textContent = data.duplication?.clones_count ?? '-';
+        document.getElementById('duplication-pct').textContent = (data.duplication?.frontend?.percentage ?? '-') + '%';
+        document.getElementById('duplication-clones').textContent = data.duplication?.frontend?.clones_count ?? '-';
+        document.getElementById('backend-duplication-pct').textContent = (data.duplication?.backend?.percentage ?? '-') + '%';
+        document.getElementById('backend-duplication-clones').textContent = data.duplication?.backend?.clones_count ?? '-';
 
         // Bundle
         document.getElementById('bundle-size').textContent = data.bundle?.size_kb ?? '-';
