@@ -242,7 +242,3 @@ bin/prod build          # Build production image locally
 - [Screenshots](docs/SCREENSHOTS.md) - Full visual tour of modern and legacy frontends
 - [WORKFLOW.md](WORKFLOW.md) - Development workflow and commands
 - [plans/](plans/) - Implementation planning documents
-
-## License
-
-MIT
