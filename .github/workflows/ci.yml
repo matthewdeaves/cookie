@@ -1,0 +1,304 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend-lint:
+    name: Frontend Lint (ESLint)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+  frontend-typecheck:
+    name: Frontend Type Check (TypeScript)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript compiler
+        run: npx tsc --noEmit
+
+  frontend-test:
+    name: Frontend Tests (Vitest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Vitest with coverage
+        run: npm run test:coverage
+
+      - name: Upload frontend coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
+          retention-days: 30
+
+  backend-test:
+    name: Backend Tests (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pytest with coverage
+        run: |
+          pytest tests/ \
+            --cov=apps \
+            --cov=cookie \
+            --cov-report=xml:coverage.xml \
+            --cov-report=html:htmlcov \
+            --cov-report=json:coverage.json \
+            --cov-report=term \
+            -v
+        env:
+          DJANGO_SETTINGS_MODULE: cookie.settings
+          DATABASE_PATH: /tmp/test_db.sqlite3
+
+      - name: Upload backend coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: |
+            coverage.xml
+            coverage.json
+            htmlcov/
+          retention-days: 30
+
+  backend-complexity:
+    name: Backend Complexity (radon)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install radon
+        run: pip install radon
+
+      - name: Generate complexity reports
+        run: |
+          mkdir -p complexity
+
+          # Cyclomatic Complexity (CC) - JSON and text
+          radon cc apps/ cookie/ -a -s --json > complexity/cc.json
+          radon cc apps/ cookie/ -a -s > complexity/cc.txt
+
+          # Maintainability Index (MI) - JSON and text
+          radon mi apps/ cookie/ -s --json > complexity/mi.json
+          radon mi apps/ cookie/ -s > complexity/mi.txt
+
+          # Raw metrics (LOC, LLOC, SLOC, comments, etc.)
+          radon raw apps/ cookie/ -s --json > complexity/raw.json
+
+          # Halstead metrics
+          radon hal apps/ cookie/ --json > complexity/hal.json
+
+          # Generate HTML report
+          echo "Generating complexity HTML report..."
+          python3 << 'EOF'
+          import json
+          import os
+
+          # Load complexity data
+          with open('complexity/cc.json') as f:
+              cc_data = json.load(f)
+          with open('complexity/mi.json') as f:
+              mi_data = json.load(f)
+
+          # Calculate averages
+          total_cc = 0
+          cc_count = 0
+          for file_path, functions in cc_data.items():
+              for func in functions:
+                  total_cc += func.get('complexity', 0)
+                  cc_count += 1
+
+          avg_cc = round(total_cc / cc_count, 2) if cc_count > 0 else 0
+
+          mi_scores = [v.get('mi', 0) for v in mi_data.values() if isinstance(v, dict)]
+          avg_mi = round(sum(mi_scores) / len(mi_scores), 2) if mi_scores else 0
+
+          # Generate summary JSON
+          summary = {
+              'average_cyclomatic_complexity': avg_cc,
+              'average_maintainability_index': avg_mi,
+              'total_functions_analyzed': cc_count,
+              'total_files_analyzed': len(mi_data),
+              'cc_rating': 'A' if avg_cc <= 5 else 'B' if avg_cc <= 10 else 'C' if avg_cc <= 20 else 'D',
+              'mi_rating': 'A' if avg_mi >= 80 else 'B' if avg_mi >= 60 else 'C' if avg_mi >= 40 else 'D'
+          }
+
+          with open('complexity/summary.json', 'w') as f:
+              json.dump(summary, f, indent=2)
+
+          print(f"Average CC: {avg_cc} ({summary['cc_rating']})")
+          print(f"Average MI: {avg_mi} ({summary['mi_rating']})")
+          EOF
+
+      - name: Upload complexity artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-complexity
+          path: complexity/
+          retention-days: 30
+
+  frontend-complexity:
+    name: Frontend Complexity (ESLint)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate complexity report
+        run: |
+          mkdir -p complexity
+
+          # Run ESLint with complexity rules and JSON output
+          npx eslint src/ \
+            --rule '{"complexity": ["warn", 10]}' \
+            --rule '{"max-depth": ["warn", 4]}' \
+            --rule '{"max-nested-callbacks": ["warn", 3]}' \
+            --rule '{"max-lines-per-function": ["warn", 50]}' \
+            -f json > complexity/eslint-report.json || true
+
+          # Count lines of code
+          echo '{}' > complexity/loc.json
+          find src -name '*.ts' -o -name '*.tsx' | head -100 | while read file; do
+            wc -l "$file"
+          done > complexity/loc.txt || true
+
+          # Generate summary
+          node << 'EOF'
+          const fs = require('fs');
+
+          let report = [];
+          try {
+            report = JSON.parse(fs.readFileSync('complexity/eslint-report.json', 'utf8'));
+          } catch (e) {
+            report = [];
+          }
+
+          let complexityWarnings = 0;
+          let totalFiles = report.length;
+
+          report.forEach(file => {
+            file.messages.forEach(msg => {
+              if (msg.ruleId === 'complexity') complexityWarnings++;
+            });
+          });
+
+          const summary = {
+            total_files: totalFiles,
+            complexity_warnings: complexityWarnings,
+            rating: complexityWarnings === 0 ? 'A' : complexityWarnings <= 5 ? 'B' : complexityWarnings <= 10 ? 'C' : 'D'
+          };
+
+          fs.writeFileSync('complexity/summary.json', JSON.stringify(summary, null, 2));
+          console.log('Frontend complexity:', JSON.stringify(summary));
+          EOF
+
+      - name: Upload complexity artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-complexity
+          path: frontend/complexity/
+          retention-days: 30
+
+  ci-success:
+    name: CI Success
+    runs-on: ubuntu-latest
+    needs: [frontend-lint, frontend-typecheck, frontend-test, backend-test, backend-complexity, frontend-complexity]
+    if: always()
+    steps:
+      - name: Check all jobs passed
+        run: |
+          # Core jobs must pass
+          if [[ "${{ needs.frontend-lint.result }}" != "success" ]] || \
+             [[ "${{ needs.frontend-typecheck.result }}" != "success" ]] || \
+             [[ "${{ needs.frontend-test.result }}" != "success" ]] || \
+             [[ "${{ needs.backend-test.result }}" != "success" ]]; then
+            echo "One or more CI jobs failed"
+            exit 1
+          fi
+          # Complexity jobs are informational (warn but don't fail)
+          if [[ "${{ needs.backend-complexity.result }}" != "success" ]] || \
+             [[ "${{ needs.frontend-complexity.result }}" != "success" ]]; then
+            echo "Warning: Complexity analysis had issues, but continuing..."
+          fi
+          echo "All CI jobs passed successfully"

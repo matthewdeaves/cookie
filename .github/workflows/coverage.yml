@@ -1,0 +1,382 @@
+name: Coverage & Metrics Report
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main, master]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  publish-coverage:
+    name: Publish Coverage & Metrics to GitHub Pages
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download frontend coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-coverage
+          path: coverage/frontend
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Download backend coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-coverage
+          path: coverage/backend
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Download backend complexity
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-complexity
+          path: complexity/backend
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Download frontend complexity
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-complexity
+          path: complexity/frontend
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate coverage and metrics dashboard
+        run: |
+          mkdir -p coverage-report/frontend
+          mkdir -p coverage-report/backend
+          mkdir -p coverage-report/complexity
+          mkdir -p coverage-report/badges
+          mkdir -p coverage-report/api
+
+          # Copy coverage reports if they exist
+          if [ -d "coverage/frontend" ]; then
+            cp -r coverage/frontend/* coverage-report/frontend/ 2>/dev/null || true
+          fi
+          if [ -d "coverage/backend/htmlcov" ]; then
+            cp -r coverage/backend/htmlcov coverage-report/backend/ 2>/dev/null || true
+          fi
+
+          # Copy complexity reports
+          if [ -d "complexity/backend" ]; then
+            cp -r complexity/backend/* coverage-report/complexity/ 2>/dev/null || true
+          fi
+          if [ -d "complexity/frontend" ]; then
+            cp -r complexity/frontend/* coverage-report/complexity/ 2>/dev/null || true
+          fi
+
+          # Generate all metrics and badges
+          python3 << 'EOF'
+          import urllib.request
+          import json
+          import os
+          from datetime import datetime, timezone
+
+          def get_color(pct, invert=False):
+              try:
+                  pct = float(pct)
+              except:
+                  return 'lightgrey'
+              if invert:  # For complexity (lower is better)
+                  if pct <= 5: return 'brightgreen'
+                  elif pct <= 10: return 'green'
+                  elif pct <= 20: return 'yellow'
+                  else: return 'red'
+              else:  # For coverage (higher is better)
+                  if pct >= 80: return 'brightgreen'
+                  elif pct >= 60: return 'yellow'
+                  elif pct >= 40: return 'orange'
+                  else: return 'red'
+
+          def get_rating_color(rating):
+              return {'A': 'brightgreen', 'B': 'green', 'C': 'yellow', 'D': 'red'}.get(rating, 'lightgrey')
+
+          def download_badge(name, value, color, label=None):
+              label = label or name
+              url = f'https://img.shields.io/badge/{label}-{value}-{color}'
+              try:
+                  urllib.request.urlretrieve(url, f'coverage-report/badges/{name}.svg')
+                  print(f"Generated {name} badge: {value}")
+              except Exception as e:
+                  print(f"Failed to generate {name} badge: {e}")
+
+          # Extract coverage percentages
+          frontend_cov = 0
+          backend_cov = 0
+
+          try:
+              with open('coverage/frontend/coverage-summary.json') as f:
+                  d = json.load(f)
+                  frontend_cov = d['total']['lines']['pct']
+          except: pass
+
+          try:
+              with open('coverage/backend/coverage.json') as f:
+                  d = json.load(f)
+                  backend_cov = round(d['totals']['percent_covered'], 1)
+          except: pass
+
+          # Extract complexity metrics
+          backend_cc = 0
+          backend_mi = 0
+          backend_cc_rating = 'N/A'
+          backend_mi_rating = 'N/A'
+          frontend_complexity_warnings = 0
+          frontend_complexity_rating = 'N/A'
+
+          try:
+              with open('complexity/backend/summary.json') as f:
+                  d = json.load(f)
+                  backend_cc = d.get('average_cyclomatic_complexity', 0)
+                  backend_mi = d.get('average_maintainability_index', 0)
+                  backend_cc_rating = d.get('cc_rating', 'N/A')
+                  backend_mi_rating = d.get('mi_rating', 'N/A')
+          except: pass
+
+          try:
+              with open('complexity/frontend/summary.json') as f:
+                  d = json.load(f)
+                  frontend_complexity_warnings = d.get('complexity_warnings', 0)
+                  frontend_complexity_rating = d.get('rating', 'N/A')
+          except: pass
+
+          # Generate badges
+          download_badge('frontend-coverage', f'{frontend_cov}%25', get_color(frontend_cov), 'coverage')
+          download_badge('backend-coverage', f'{backend_cov}%25', get_color(backend_cov), 'coverage')
+          download_badge('backend-complexity', f'{backend_cc_rating}', get_rating_color(backend_cc_rating), 'complexity')
+          download_badge('backend-maintainability', f'{backend_mi_rating}', get_rating_color(backend_mi_rating), 'maintainability')
+          download_badge('frontend-complexity', f'{frontend_complexity_rating}', get_rating_color(frontend_complexity_rating), 'complexity')
+
+          # Create metrics.json API file for blog integration
+          metrics = {
+              'generated_at': datetime.now(timezone.utc).isoformat(),
+              'repo': 'mndeaves/cookie',
+              'coverage': {
+                  'frontend': {
+                      'percentage': frontend_cov,
+                      'badge_url': 'https://mndeaves.github.io/cookie/coverage/badges/frontend-coverage.svg'
+                  },
+                  'backend': {
+                      'percentage': backend_cov,
+                      'badge_url': 'https://mndeaves.github.io/cookie/coverage/badges/backend-coverage.svg'
+                  }
+              },
+              'complexity': {
+                  'backend': {
+                      'cyclomatic_complexity': backend_cc,
+                      'cyclomatic_rating': backend_cc_rating,
+                      'maintainability_index': backend_mi,
+                      'maintainability_rating': backend_mi_rating,
+                      'badge_url': 'https://mndeaves.github.io/cookie/coverage/badges/backend-complexity.svg'
+                  },
+                  'frontend': {
+                      'complexity_warnings': frontend_complexity_warnings,
+                      'rating': frontend_complexity_rating,
+                      'badge_url': 'https://mndeaves.github.io/cookie/coverage/badges/frontend-complexity.svg'
+                  }
+              },
+              'links': {
+                  'dashboard': 'https://mndeaves.github.io/cookie/coverage/',
+                  'frontend_coverage': 'https://mndeaves.github.io/cookie/coverage/frontend/',
+                  'backend_coverage': 'https://mndeaves.github.io/cookie/coverage/backend/htmlcov/',
+                  'github': 'https://github.com/mndeaves/cookie'
+              }
+          }
+
+          with open('coverage-report/api/metrics.json', 'w') as f:
+              json.dump(metrics, f, indent=2)
+
+          print(f"\nMetrics JSON generated at coverage-report/api/metrics.json")
+          print(f"Frontend Coverage: {frontend_cov}%")
+          print(f"Backend Coverage: {backend_cov}%")
+          print(f"Backend Complexity: CC={backend_cc} ({backend_cc_rating}), MI={backend_mi} ({backend_mi_rating})")
+          print(f"Frontend Complexity: {frontend_complexity_warnings} warnings ({frontend_complexity_rating})")
+          EOF
+
+          # Create index.html dashboard
+          cat > coverage-report/index.html << 'HTMLEOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Cookie - Code Quality Dashboard</title>
+            <style>
+              * { box-sizing: border-box; margin: 0; padding: 0; }
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+                max-width: 1000px;
+                margin: 0 auto;
+                padding: 2rem;
+                background: #f5f5f5;
+                color: #333;
+              }
+              h1 { font-size: 2rem; margin-bottom: 0.5rem; color: #1a1a1a; }
+              .subtitle { color: #666; margin-bottom: 2rem; }
+              h2 { font-size: 1.5rem; margin: 2rem 0 1rem; color: #1a1a1a; border-bottom: 2px solid #e1e4e8; padding-bottom: 0.5rem; }
+              .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+              .card {
+                background: white;
+                border-radius: 12px;
+                padding: 1.5rem;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+              }
+              .card h3 {
+                font-size: 1.1rem;
+                margin-bottom: 0.75rem;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                flex-wrap: wrap;
+              }
+              .card p { color: #666; margin-bottom: 1rem; font-size: 0.9rem; }
+              .card a {
+                display: inline-block;
+                padding: 0.5rem 1rem;
+                background: #0066cc;
+                color: white;
+                text-decoration: none;
+                border-radius: 6px;
+                font-weight: 500;
+                font-size: 0.9rem;
+              }
+              .card a:hover { background: #0052a3; }
+              .badge { height: 20px; }
+              .metric { font-size: 2rem; font-weight: 700; color: #1a1a1a; }
+              .metric-label { font-size: 0.85rem; color: #666; }
+              .metrics-row { display: flex; gap: 2rem; margin: 1rem 0; }
+              .metric-item { text-align: center; }
+              .api-note {
+                background: #e8f4fd;
+                border: 1px solid #b8daff;
+                border-radius: 8px;
+                padding: 1rem;
+                margin-top: 2rem;
+              }
+              .api-note code {
+                background: #fff;
+                padding: 0.2rem 0.5rem;
+                border-radius: 4px;
+                font-size: 0.85rem;
+              }
+              .footer {
+                margin-top: 2rem;
+                text-align: center;
+                color: #999;
+                font-size: 0.875rem;
+              }
+              .footer a { color: #666; }
+            </style>
+          </head>
+          <body>
+            <h1>Cookie Code Quality Dashboard</h1>
+            <p class="subtitle">Test coverage and code complexity metrics</p>
+
+            <h2>Test Coverage</h2>
+            <div class="cards">
+              <div class="card">
+                <h3>
+                  Frontend (React/TypeScript)
+                  <img src="badges/frontend-coverage.svg" alt="Frontend coverage" class="badge">
+                </h3>
+                <p>React components, API client, utilities, and hooks</p>
+                <a href="frontend/index.html">View Detailed Report</a>
+              </div>
+              <div class="card">
+                <h3>
+                  Backend (Django/Python)
+                  <img src="badges/backend-coverage.svg" alt="Backend coverage" class="badge">
+                </h3>
+                <p>Django apps, API endpoints, models, and services</p>
+                <a href="backend/htmlcov/index.html">View Detailed Report</a>
+              </div>
+            </div>
+
+            <h2>Code Complexity</h2>
+            <div class="cards">
+              <div class="card">
+                <h3>
+                  Backend Complexity
+                  <img src="badges/backend-complexity.svg" alt="Backend complexity" class="badge">
+                  <img src="badges/backend-maintainability.svg" alt="Backend maintainability" class="badge">
+                </h3>
+                <p>Cyclomatic complexity and maintainability index (radon)</p>
+                <div class="metrics-row">
+                  <div class="metric-item">
+                    <div class="metric" id="backend-cc">-</div>
+                    <div class="metric-label">Avg. Complexity</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric" id="backend-mi">-</div>
+                    <div class="metric-label">Maintainability</div>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <h3>
+                  Frontend Complexity
+                  <img src="badges/frontend-complexity.svg" alt="Frontend complexity" class="badge">
+                </h3>
+                <p>ESLint complexity analysis (max cyclomatic: 10)</p>
+                <div class="metrics-row">
+                  <div class="metric-item">
+                    <div class="metric" id="frontend-warnings">-</div>
+                    <div class="metric-label">Warnings</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="api-note">
+              <strong>API Endpoint:</strong> Fetch metrics programmatically for your blog or dashboard:<br>
+              <code>GET <a href="api/metrics.json">https://mndeaves.github.io/cookie/coverage/api/metrics.json</a></code>
+            </div>
+
+            <p class="footer">
+              Last updated: <span id="date"></span><br>
+              <a href="https://github.com/mndeaves/cookie">View on GitHub</a>
+            </p>
+
+            <script>
+              document.getElementById('date').textContent = new Date().toLocaleString();
+
+              // Load metrics from API
+              fetch('api/metrics.json')
+                .then(r => r.json())
+                .then(data => {
+                  document.getElementById('backend-cc').textContent = data.complexity.backend.cyclomatic_complexity || '-';
+                  document.getElementById('backend-mi').textContent = data.complexity.backend.maintainability_index || '-';
+                  document.getElementById('frontend-warnings').textContent = data.complexity.frontend.complexity_warnings || '0';
+                })
+                .catch(() => {});
+            </script>
+          </body>
+          </html>
+          HTMLEOF
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./coverage-report
+          destination_dir: coverage
+          keep_files: false

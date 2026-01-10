@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import ProfileSelector from '../screens/ProfileSelector'
 import Search from '../screens/Search'
 import { api } from '../api/client'
+import type { ProfileStats } from '../api/client'
 
 // Mock the API client
 vi.mock('../api/client', () => ({
@@ -34,6 +35,17 @@ vi.mock('sonner', () => ({
   Toaster: () => null,
 }))
 
+// Shared test fixtures
+const mockStats: ProfileStats = {
+  favorites: 0,
+  collections: 0,
+  collection_items: 0,
+  remixes: 0,
+  view_history: 0,
+  scaling_cache: 0,
+  discover_cache: 0,
+}
+
 describe('ProfileSelector', () => {
   const mockOnProfileSelect = vi.fn()
 
@@ -55,8 +67,8 @@ describe('ProfileSelector', () => {
 
   it('renders profiles after loading', async () => {
     vi.mocked(api.profiles.list).mockResolvedValueOnce([
-      { id: 1, name: 'Alice', avatar_color: '#d97850', theme: 'light', unit_preference: 'us' },
-      { id: 2, name: 'Bob', avatar_color: '#8fae6f', theme: 'dark', unit_preference: 'metric' },
+      { id: 1, name: 'Alice', avatar_color: '#d97850', theme: 'light', unit_preference: 'us', created_at: '2024-01-01', stats: mockStats },
+      { id: 2, name: 'Bob', avatar_color: '#8fae6f', theme: 'dark', unit_preference: 'metric', created_at: '2024-01-01', stats: mockStats },
     ])
 
     render(<ProfileSelector onProfileSelect={mockOnProfileSelect} />)
@@ -71,7 +83,7 @@ describe('ProfileSelector', () => {
 
   it('calls onProfileSelect when profile is clicked', async () => {
     const profiles = [
-      { id: 1, name: 'Alice', avatar_color: '#d97850', theme: 'light', unit_preference: 'us' },
+      { id: 1, name: 'Alice', avatar_color: '#d97850', theme: 'light', unit_preference: 'us', created_at: '2024-01-01', stats: mockStats },
     ]
     vi.mocked(api.profiles.list).mockResolvedValueOnce(profiles)
 
@@ -135,7 +147,7 @@ describe('ProfileSelector', () => {
 
   it('displays profile initials', async () => {
     vi.mocked(api.profiles.list).mockResolvedValueOnce([
-      { id: 1, name: 'Alice', avatar_color: '#d97850', theme: 'light', unit_preference: 'us' },
+      { id: 1, name: 'Alice', avatar_color: '#d97850', theme: 'light', unit_preference: 'us', created_at: '2024-01-01', stats: mockStats },
     ])
 
     render(<ProfileSelector onProfileSelect={mockOnProfileSelect} />)

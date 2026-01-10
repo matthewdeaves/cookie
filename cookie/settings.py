@@ -3,15 +3,34 @@ Django settings for cookie project.
 Single settings file for simplicity.
 """
 
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-dev-key-change-in-production'
+# ===========================================
+# Environment-based Configuration
+# ===========================================
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']
+def get_secret_key():
+    """Get secret key from environment or generate one."""
+    env_key = os.environ.get('SECRET_KEY')
+    if env_key:
+        return env_key
+    if DEBUG:
+        return 'django-insecure-dev-key-change-in-production'
+    from django.core.management.utils import get_random_secret_key
+    return get_random_secret_key()
+
+SECRET_KEY = get_secret_key()
+
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+
+# CSRF trusted origins (for reverse proxies)
+csrf_origins = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in csrf_origins.split(',') if o.strip()]
 
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
@@ -26,6 +45,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'apps.core.middleware.DeviceDetectionMiddleware',
@@ -49,10 +69,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'cookie.wsgi.application'
 
+# Support custom database path for Docker volumes
+DATABASE_PATH = os.environ.get('DATABASE_PATH', str(BASE_DIR / 'db.sqlite3'))
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': DATABASE_PATH,
         'OPTIONS': {
             # Increase lock wait timeout from default 5s to 20s
             'timeout': 20,
@@ -81,8 +104,23 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# Include built frontend assets in static files (only if directory exists)
+_frontend_dist = BASE_DIR / 'frontend' / 'dist'
+STATICFILES_DIRS = [_frontend_dist] if _frontend_dist.exists() else []
+
+# WhiteNoise configuration for efficient static file serving
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+MEDIA_URL = '/media/'
+data_dir = os.environ.get('DATA_DIR', str(BASE_DIR))
+MEDIA_ROOT = Path(data_dir) / 'data' / 'media' if not DEBUG else BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

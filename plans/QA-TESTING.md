@@ -67,6 +67,7 @@
 | QA-050 | Tips tab should be hidden without valid API key | Modern + Legacy | Verified | - |
 | QA-057 | Discover tab shows "no suggestions" for new users without history | Modern + Legacy | Verified | - |
 | QA-058 | AllRecipes article pages cause "Recipe has no title" on import | Modern + Legacy | Verified | - |
+| QA-059 | Phase 10 CI/CD code review items (6 minor issues) | All | New | - |
 
 ### Status Key
 - **New** - Logged, not yet fixed

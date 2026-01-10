@@ -1,0 +1,91 @@
+# ===========================================
+# Stage 1: Build Frontend Assets
+# ===========================================
+FROM node:20-alpine AS frontend-builder
+
+WORKDIR /frontend
+
+# Copy package files first for better caching
+COPY frontend/package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy frontend source
+COPY frontend/ .
+
+# Build production assets
+RUN npm run build
+
+# ===========================================
+# Stage 2: Python Dependencies
+# ===========================================
+FROM python:3.12-slim AS python-deps
+
+WORKDIR /app
+
+# Install build dependencies for any native extensions
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt gunicorn whitenoise
+
+# ===========================================
+# Stage 3: Production Image
+# ===========================================
+FROM python:3.12-slim AS production
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libffi8 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Security: Create non-root user
+RUN useradd --create-home --shell /bin/bash app
+
+WORKDIR /app
+
+# Copy Python dependencies from builder
+COPY --from=python-deps /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=python-deps /usr/local/bin/gunicorn /usr/local/bin/gunicorn
+
+# Copy Django application
+COPY --chown=app:app apps/ apps/
+COPY --chown=app:app cookie/ cookie/
+COPY --chown=app:app manage.py .
+
+# Copy built frontend assets from frontend-builder
+COPY --from=frontend-builder --chown=app:app /frontend/dist /app/frontend/dist
+
+# Create necessary directories
+RUN mkdir -p /app/staticfiles /app/data/media && \
+    chown -R app:app /app/staticfiles /app/data
+
+# Copy and setup entrypoint
+COPY --chown=app:app entrypoint.prod.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Switch to non-root user
+USER app
+
+# Environment defaults for out-of-the-box deployment
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DEBUG=false \
+    ALLOWED_HOSTS=* \
+    GUNICORN_WORKERS=2 \
+    GUNICORN_THREADS=4
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/system/health/')" || exit 1
+
+# Run entrypoint
+ENTRYPOINT ["/entrypoint.sh"]

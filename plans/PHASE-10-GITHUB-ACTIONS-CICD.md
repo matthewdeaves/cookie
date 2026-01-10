@@ -16,6 +16,8 @@ Configure GitHub Actions to run all tests on every PR and commit to main branch,
 | B | 10.3 | Coverage publishing to GitHub Pages | `.github/workflows/coverage.yml` |
 | C | 10.4 | Production Dockerfile | `Dockerfile.prod`, `entrypoint.prod.sh` |
 | D | 10.5-10.6 | Django settings + CD workflow | `cookie/settings.py`, `.github/workflows/cd.yml` |
+| E | 10.8 | Production container hardening | `Dockerfile.prod`, `entrypoint.prod.sh`, `cookie/settings.py` |
+| F | 10.9 | Dev/Prod coexistence + tooling review | `bin/*`, `docker-compose.yml`, `docker-compose.prod.yml` |
 
 **Manual (outside Claude Code sessions):** 10.7 - Configure GitHub repository secrets, Pages, and branch protection in the GitHub web UI.
 
@@ -1492,3 +1494,413 @@ curl -s https://mndeaves.github.io/cookie/coverage/api/metrics.json | jq '.cover
 - **B** (60-79): Moderately maintainable
 - **C** (40-59): Difficult to maintain
 - **D** (0-39): Very difficult to maintain
+
+---
+
+## Phase 10.8: Production Container Hardening
+
+Harden the production Docker image for security while keeping the dev environment flexible with full tooling for debugging.
+
+### Design Philosophy
+
+| Environment | Purpose | Characteristics |
+|-------------|---------|-----------------|
+| **Production** | Minimal attack surface | Non-root user, no dev tools, no test files, read-only where possible |
+| **Development** | Full debugging capability | Root access, hot reload, test frameworks, source maps |
+
+### Tasks
+
+#### 10.8.1 Remove Unnecessary Files from Production Image
+
+**Current issue:** Test files are copied into production image unnecessarily.
+
+```dockerfile
+# REMOVE these lines from Dockerfile.prod:
+COPY --chown=app:app tests/ tests/
+COPY --chown=app:app pytest.ini .
+COPY --chown=app:app conftest.py .
+```
+
+**Impact:** ~50KB reduction, removes test infrastructure from production.
+
+#### 10.8.2 Add .dockerignore for Build Context
+
+Create `.dockerignore` to exclude unnecessary files from build context:
+
+```
+# .dockerignore
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+.env
+*.md
+!README.md
+tests/
+pytest.ini
+conftest.py
+.coverage
+htmlcov/
+.pytest_cache/
+node_modules/
+frontend/node_modules/
+frontend/coverage/
+*.log
+.DS_Store
+plans/
+qa/
+```
+
+**Impact:** Faster builds, smaller build context sent to Docker daemon.
+
+#### 10.8.3 Fix Volume Mount Permissions
+
+**Current issue:** `mkdir` fails if volume is owned by different UID.
+
+**Option A - Graceful degradation:**
+```bash
+# entrypoint.prod.sh
+mkdir -p "$DATA_DIR/media" 2>/dev/null || {
+    echo "Warning: Could not create media directory. Ensure volume has correct permissions."
+    echo "Run: sudo chown -R 1000:1000 /path/to/data"
+}
+```
+
+**Option B - Document in README:**
+```markdown
+## First-time Setup
+
+Before running the container, create the data directory with correct permissions:
+
+```bash
+mkdir -p ./data
+# Option 1: Match container user (UID 1000)
+sudo chown -R 1000:1000 ./data
+
+# Option 2: World-writable (less secure, easier)
+chmod 777 ./data
+```
+```
+
+#### 10.8.4 Fix STATICFILES_DIRS for Dev Compatibility
+
+**Current issue:** `collectstatic` fails in dev if `frontend/dist` doesn't exist.
+
+```python
+# cookie/settings.py
+_frontend_dist = BASE_DIR / 'frontend' / 'dist'
+STATICFILES_DIRS = [_frontend_dist] if _frontend_dist.exists() else []
+```
+
+#### 10.8.5 Migrate to STORAGES Setting (Django 5.1+ Compatibility)
+
+**Current issue:** `STATICFILES_STORAGE` deprecated in Django 4.2, removed in Django 5.1.
+
+```python
+# cookie/settings.py - Replace STATICFILES_STORAGE with:
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+```
+
+#### 10.8.6 Security Headers (Future Enhancement)
+
+Consider adding security headers via WhiteNoise or Django middleware:
+
+```python
+# cookie/settings.py (production only)
+if not DEBUG:
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = 'DENY'
+    # If behind HTTPS proxy:
+    # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+```
+
+#### 10.8.7 Read-Only Filesystem (Future Enhancement)
+
+For maximum security, consider making the container filesystem read-only:
+
+```yaml
+# docker-compose.prod.yml
+services:
+  web:
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/staticfiles
+    volumes:
+      - ./data:/app/data  # Only writable mount
+```
+
+### Verification Checklist
+
+- [ ] Production image doesn't contain `tests/`, `pytest.ini`, `conftest.py`
+- [ ] `.dockerignore` excludes dev files from build context
+- [ ] Container starts with volume mount (correct permissions)
+- [ ] `collectstatic` works in both dev and production
+- [ ] No Django deprecation warnings for `STATICFILES_STORAGE`
+- [ ] Container runs as non-root user (`app`)
+- [ ] Health check passes
+
+### Dev Environment Remains Unchanged
+
+The development `docker-compose.yml` and `Dockerfile` (if separate) should retain:
+- Volume mounts for hot reload
+- Test frameworks and tools
+- Debug mode enabled
+- Source maps for frontend
+- Full logging verbosity
+
+This separation ensures developers have full debugging capability while production remains locked down.
+
+---
+
+## Phase 10.9: Dev/Prod Coexistence + Tooling Review
+
+Enable running development and production containers simultaneously on the same machine. Review existing tooling in `/bin` and extend for production workflows.
+
+### Port Strategy
+
+| Environment | Port | URL | Purpose |
+|-------------|------|-----|---------|
+| **Development** | 9876 | `http://localhost:9876` | Active development, hot reload |
+| **Production** | 80 | `http://localhost` | Pre-deployment testing, mirrors real deployment |
+
+**Rationale:**
+- Dev on high port avoids conflicts with system services
+- Prod on port 80 tests real-world access patterns
+- Both can run simultaneously for comparison testing
+- Prepares for future pentest/security review before actual deployment
+
+### Tasks
+
+#### 10.9.1 Review Existing `/bin` Scripts
+
+**Current scripts:**
+
+| Script | Purpose | Status |
+|--------|---------|--------|
+| `bin/dev` | Docker compose wrapper for dev stack | Review & extend |
+| `bin/figma-sync-theme` | Sync Figma CSS variables to frontends | Keep as-is |
+
+**`bin/dev` commands:**
+- `up/start` - Start dev stack
+- `down/stop` - Stop dev stack
+- `restart` - Restart dev stack
+- `build` - Rebuild images
+- `logs` - View logs
+- `test` - Run pytest
+- `shell` - Django shell
+- `manage <cmd>` - Django management commands
+- `migrate` - Run migrations
+- `npm <cmd>` - Frontend npm commands
+- `status` - Container status
+
+#### 10.9.2 Create `bin/prod` Script
+
+Mirror `bin/dev` functionality for production container:
+
+```bash
+#!/bin/bash
+set -e
+
+# Cookie production helper script
+# Usage: bin/prod <command> [args]
+
+cd "$(dirname "$0")/.."
+
+COMPOSE_FILE="docker-compose.prod.yml"
+CONTAINER_NAME="cookie-prod"
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+usage() {
+    echo "Usage: bin/prod <command> [args]"
+    echo ""
+    echo "Commands:"
+    echo "  up, start      Start production container"
+    echo "  down, stop     Stop production container"
+    echo "  restart        Restart production container"
+    echo "  build          Build production image from Dockerfile.prod"
+    echo "  pull           Pull latest image from Docker Hub"
+    echo "  logs           View logs (use -f to follow)"
+    echo "  shell          Open shell in container"
+    echo "  status         Show container status"
+    echo "  health         Check health endpoint"
+    echo ""
+    echo "Production runs on port 80 (http://localhost)"
+    echo "Development runs on port 9876 (http://localhost:9876)"
+}
+
+case "${1:-}" in
+    up|start)
+        echo -e "${GREEN}Starting production container...${NC}"
+        docker compose -f "$COMPOSE_FILE" up -d
+        echo -e "${GREEN}Production started at http://localhost${NC}"
+        ;;
+    down|stop)
+        echo -e "${YELLOW}Stopping production container...${NC}"
+        docker compose -f "$COMPOSE_FILE" down
+        ;;
+    restart)
+        docker compose -f "$COMPOSE_FILE" restart
+        ;;
+    build)
+        echo -e "${GREEN}Building production image...${NC}"
+        docker build -f Dockerfile.prod -t cookie:prod .
+        ;;
+    pull)
+        echo -e "${GREEN}Pulling latest image from Docker Hub...${NC}"
+        docker pull mndeaves/cookie:latest
+        ;;
+    logs)
+        shift
+        docker compose -f "$COMPOSE_FILE" logs "$@"
+        ;;
+    shell)
+        docker compose -f "$COMPOSE_FILE" exec web /bin/bash
+        ;;
+    status)
+        docker compose -f "$COMPOSE_FILE" ps
+        ;;
+    health)
+        curl -s http://localhost/api/system/health/ | python3 -m json.tool
+        ;;
+    help|-h|--help)
+        usage
+        ;;
+    *)
+        echo -e "${RED}Unknown command: ${1:-}${NC}"
+        usage
+        exit 1
+        ;;
+esac
+```
+
+#### 10.9.3 Create `docker-compose.prod.yml`
+
+Production compose file using pre-built image:
+
+```yaml
+# docker-compose.prod.yml
+# Production container for local testing before deployment
+
+services:
+  web:
+    image: mndeaves/cookie:latest
+    # Or build locally:
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile.prod
+    container_name: cookie-prod
+    ports:
+      - "80:8000"
+    volumes:
+      - ./data-prod:/app/data
+    environment:
+      - DEBUG=false
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/system/health/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+```
+
+#### 10.9.4 Update `docker-compose.yml` for Dev Port
+
+Change dev stack from port 80 to 9876:
+
+```yaml
+# docker-compose.yml (dev)
+services:
+  nginx:
+    ports:
+      - "9876:80"  # Changed from "80:80"
+```
+
+Update `bin/dev` to reflect new port:
+```bash
+echo -e "${GREEN}Stack started. Access at http://localhost:9876${NC}"
+```
+
+#### 10.9.5 Create `bin/both` Script (Optional)
+
+Helper to manage both environments:
+
+```bash
+#!/bin/bash
+# bin/both - Manage dev and prod together
+
+case "${1:-}" in
+    status)
+        echo "=== Development (port 9876) ==="
+        docker compose ps 2>/dev/null || echo "Not running"
+        echo ""
+        echo "=== Production (port 80) ==="
+        docker compose -f docker-compose.prod.yml ps 2>/dev/null || echo "Not running"
+        ;;
+    up)
+        bin/dev up
+        bin/prod up
+        ;;
+    down)
+        bin/dev down
+        bin/prod down
+        ;;
+    *)
+        echo "Usage: bin/both <status|up|down>"
+        ;;
+esac
+```
+
+### Design Decisions
+
+| Question | Decision |
+|----------|----------|
+| **Shared database?** | No. Production container is completely self-contained with its own database in `data-prod/db.sqlite3` |
+| **Shared media?** | No. Production has its own media directory in `data-prod/media/` |
+| **Network isolation?** | Default Docker networks are separate, no action needed |
+| **Resource limits?** | No. Not required for local pre-deployment testing |
+
+**Key principle:** The production container is fully self-contained. Dev and prod environments are completely isolated from each other.
+
+**Pre-pentest checklist:**
+- [ ] Production container runs as non-root
+- [ ] No dev tools in production image
+- [ ] Environment variables for secrets (not hardcoded)
+- [ ] Health check endpoint works
+- [ ] Logs don't expose sensitive data
+- [ ] CORS/CSRF configured correctly
+- [ ] Static files served efficiently (WhiteNoise)
+
+### Verification Checklist
+
+- [ ] `bin/dev up` starts dev stack on port 9876
+- [ ] `bin/prod up` starts prod container on port 80
+- [ ] Both can run simultaneously without conflicts
+- [ ] `bin/prod health` returns healthy status
+- [ ] Separate data directories for dev and prod
+- [ ] `bin/prod pull` fetches latest from Docker Hub
+
+### File Changes Summary
+
+| File | Action |
+|------|--------|
+| `bin/dev` | Update port message (9876) |
+| `bin/prod` | Create new script |
+| `bin/both` | Create new script (optional) |
+| `docker-compose.yml` | Change nginx port to 9876 |
+| `docker-compose.prod.yml` | Create new file |
