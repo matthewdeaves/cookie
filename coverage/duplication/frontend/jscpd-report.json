@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-01-11T00:04:41.415Z",
+    "detectionDate": "2026-01-11T00:21:33.102Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -18,7 +18,7 @@
           },
           "src/screens/RecipeDetail.tsx": {
             "lines": 522,
-            "tokens": 4045,
+            "tokens": 4040,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -211,7 +211,7 @@
         },
         "total": {
           "lines": 2025,
-          "tokens": 14805,
+          "tokens": 14800,
           "sources": 17,
           "clones": 0,
           "duplicatedLines": 0,
@@ -238,13 +238,13 @@
           },
           "src/screens/RecipeDetail.tsx": {
             "lines": 738,
-            "tokens": 5878,
+            "tokens": 5876,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 8,
             "duplicatedTokens": 119,
             "percentage": 1.08,
-            "percentageTokens": 2.02,
+            "percentageTokens": 2.03,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -443,7 +443,7 @@
         },
         "total": {
           "lines": 3851,
-          "tokens": 29908,
+          "tokens": 29906,
           "sources": 18,
           "clones": 6,
           "duplicatedLines": 75,
@@ -457,8 +457,8 @@
       "typescript": {
         "sources": {
           "src/lib/utils.ts": {
-            "lines": 5,
-            "tokens": 58,
+            "lines": 31,
+            "tokens": 230,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -518,28 +518,28 @@
           }
         },
         "total": {
-          "lines": 1155,
-          "tokens": 8360,
+          "lines": 1181,
+          "tokens": 8532,
           "sources": 5,
           "clones": 2,
           "duplicatedLines": 34,
           "duplicatedTokens": 326,
-          "percentage": 2.94,
-          "percentageTokens": 3.9,
+          "percentage": 2.88,
+          "percentageTokens": 3.82,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7031,
-      "tokens": 53073,
+      "lines": 7057,
+      "tokens": 53238,
       "sources": 40,
       "clones": 8,
       "duplicatedLines": 109,
       "duplicatedTokens": 897,
-      "percentage": 1.55,
-      "percentageTokens": 1.69,
+      "percentage": 1.54,
+      "percentageTokens": 1.68,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -788,12 +788,12 @@
         "startLoc": {
           "line": 141,
           "column": 3,
-          "position": 1176
+          "position": 1179
         },
         "endLoc": {
           "line": 149,
           "column": 25,
-          "position": 1295
+          "position": 1298
         }
       }
     },

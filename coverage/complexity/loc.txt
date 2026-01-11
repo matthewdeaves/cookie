@@ -6,7 +6,7 @@
 201 src/components/Skeletons.tsx
 145 src/components/AddToCollectionDropdown.tsx
 134 src/lib/audio.ts
-6 src/lib/utils.ts
+32 src/lib/utils.ts
 1 src/vite-env.d.ts
 238 src/hooks/useTimers.ts
 170 src/hooks/useWakeLock.ts
@@ -22,6 +22,7 @@
 306 src/screens/Search.tsx
 10 src/main.tsx
 364 src/test/components.test.tsx
+76 src/test/utils.test.ts
 1 src/test/setup.ts
 489 src/test/api.test.ts
 321 src/test/timers.test.ts
