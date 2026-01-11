@@ -18,7 +18,8 @@
 | FE-007 | ~~Add nginx to production container for dev/prod parity~~ | ~~High~~ | ~~Medium~~ |
 | FE-008 | ~~Docker Hub: Only maintain latest image, no version history~~ | ~~Low~~ | ~~Low~~ |
 | FE-009 | AI-powered meal pairing suggestions | Medium | Medium |
-| FE-010 | Investigate GitHub native ARM64 runners for faster CD builds | Low | Low |
+| FE-010 | ~~Investigate GitHub native ARM64 runners for faster CD builds~~ | ~~Low~~ | ~~Low~~ |
+| FE-011 | Modern frontend nutrition labels show raw camelCase keys | Low | Low |
 
 ---
 
@@ -940,3 +941,108 @@ jobs:
 
 - https://github.blog/changelog/2024-06-03-actions-arm-based-linux-and-windows-runners-are-now-in-public-preview/
 - https://docs.github.com/en/actions/using-github-hosted-runners/about-larger-runners
+
+---
+
+## FE-011: Modern Frontend Nutrition Labels Show Raw camelCase Keys
+
+**Status:** Backlog
+
+### Problem
+
+On the recipe view page nutrition tab, the modern React frontend displays raw camelCase keys from the API instead of human-readable labels:
+
+- `carbohydrateContent` instead of "Carbohydrate"
+- `cholesterolContent` instead of "Cholesterol"
+- `saturatedFatContent` instead of "Saturated Fat"
+
+The legacy frontend displays these correctly using a Django template filter.
+
+### Current Implementation
+
+**Modern Frontend** (`frontend/src/screens/RecipeDetail.tsx`, lines 598-630):
+
+```typescript
+{nutritionEntries.map(([key, value]) => (
+  <div key={key} className="rounded-lg bg-muted/50 p-3">
+    <span className="block text-sm capitalize text-muted-foreground">
+      {key.replace(/_/g, ' ')}  {/* Only handles snake_case! */}
+    </span>
+    <span className="text-lg font-medium text-foreground">{value}</span>
+  </div>
+))}
+```
+
+**Legacy Frontend** (`apps/legacy/templatetags/legacy_tags.py`, lines 32-53):
+
+```python
+@register.filter
+def format_nutrition_key(key):
+    # Remove common suffixes
+    key = re.sub(r'Content$', '', key)
+
+    # Handle snake_case
+    if '_' in key:
+        return key.replace('_', ' ').title()
+
+    # Handle CamelCase (insert space before capitals)
+    spaced = re.sub(r'([a-z])([A-Z])', r'\1 \2', key)
+    return spaced.capitalize() if spaced else ''
+```
+
+### Root Cause
+
+The `recipe-scrapers` library returns nutrition data in schema.org format with camelCase keys (e.g., `carbohydrateContent`, `proteinContent`). The legacy frontend has proper formatting logic, but the modern frontend only does `key.replace(/_/g, ' ')` which doesn't handle camelCase.
+
+### Proposed Fix
+
+Add a `formatNutritionKey` utility function to the modern frontend:
+
+```typescript
+// frontend/src/utils/formatters.ts
+export function formatNutritionKey(key: string): string {
+  if (!key) return '';
+
+  // Remove "Content" suffix
+  let formatted = key.replace(/Content$/, '');
+
+  // Handle snake_case
+  if (formatted.includes('_')) {
+    return formatted.split('_').map(w =>
+      w.charAt(0).toUpperCase() + w.slice(1)
+    ).join(' ');
+  }
+
+  // Handle camelCase - insert space before capitals
+  formatted = formatted.replace(/([a-z])([A-Z])/g, '$1 $2');
+
+  // Capitalize first letter
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
+```
+
+Then update `RecipeDetail.tsx`:
+
+```typescript
+import { formatNutritionKey } from '@/utils/formatters';
+
+// In NutritionTab:
+<span className="block text-sm text-muted-foreground">
+  {formatNutritionKey(key)}
+</span>
+```
+
+### Files to Modify
+
+1. Create or update: `frontend/src/utils/formatters.ts`
+2. Update: `frontend/src/screens/RecipeDetail.tsx` (NutritionTab component)
+
+### Comparison
+
+| Input | Modern (Current) | Legacy | Modern (Fixed) |
+|-------|------------------|--------|----------------|
+| `carbohydrateContent` | carbohydrateContent | Carbohydrate | Carbohydrate |
+| `cholesterolContent` | cholesterolContent | Cholesterol | Cholesterol |
+| `saturatedFatContent` | saturatedFatContent | Saturated Fat | Saturated Fat |
+| `calories` | calories | Calories | Calories |
+| `saturated_fat` | saturated fat | Saturated Fat | Saturated Fat |
