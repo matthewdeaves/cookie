@@ -118,7 +118,7 @@ jobs:
           EOF
 
       - name: Upload legacy lint artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: legacy-lint
           path: legacy-reports/
@@ -197,7 +197,7 @@ jobs:
           EOF
 
       - name: Upload backend lint artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: backend-lint
           path: backend-lint/
@@ -248,7 +248,7 @@ jobs:
         run: npm run test:coverage
 
       - name: Upload frontend coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: frontend-coverage
           path: frontend/coverage/
@@ -286,7 +286,7 @@ jobs:
           DATABASE_PATH: /tmp/test_db.sqlite3
 
       - name: Upload backend coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: backend-coverage
           path: |
@@ -493,7 +493,7 @@ jobs:
           EOF
 
       - name: Upload complexity artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: backend-complexity
           path: complexity/
@@ -567,7 +567,7 @@ jobs:
           EOF
 
       - name: Upload complexity artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: frontend-complexity
           path: frontend/complexity/
@@ -628,7 +628,7 @@ jobs:
           EOF
 
       - name: Upload duplication artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: frontend-duplication
           path: frontend/duplication/
@@ -680,7 +680,7 @@ jobs:
           EOF
 
       - name: Upload legacy duplication artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: legacy-duplication
           path: legacy-duplication/
@@ -733,7 +733,7 @@ jobs:
           EOF
 
       - name: Upload backend duplication artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: backend-duplication
           path: backend-duplication/
@@ -790,7 +790,7 @@ jobs:
           EOF
 
       - name: Upload security artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: frontend-security
           path: frontend/security/
@@ -864,7 +864,7 @@ jobs:
           EOF
 
       - name: Upload security artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: backend-security
           path: security/
@@ -932,7 +932,7 @@ jobs:
           EOF
 
       - name: Upload bundle artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: frontend-bundle
           path: frontend/bundle/
