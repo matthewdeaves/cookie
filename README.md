@@ -7,6 +7,8 @@
 [![Security](https://matthewdeaves.github.io/cookie/coverage/badges/frontend-security.svg)](https://matthewdeaves.github.io/cookie/coverage/)
 [![Bundle Size](https://matthewdeaves.github.io/cookie/coverage/badges/bundle-size.svg)](https://matthewdeaves.github.io/cookie/coverage/)
 
+[**View Metrics Dashboard**](https://matthewdeaves.github.io/cookie/coverage/) - Test coverage, complexity analysis, security audits, and bundle size reports
+
 A self-hosted recipe manager for searching, importing, organising, and cooking through recipes from popular cooking websites.
 
 ## Quick Start (Production)
