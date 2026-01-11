@@ -23,6 +23,7 @@
 | FE-012 | ~~Historical code quality metrics with trend graphs~~ | ~~Low~~ | ~~Medium~~ |
 | FE-013 | Linked recipe navigation (original ↔ remix toggle) | Low | Low |
 | FE-014 | Legacy frontend discover suggestions grid layout | Low | Low |
+| FE-015 | Replace Figma workflow with Claude Code frontend-design skill | Medium | Medium |
 
 ---
 
@@ -1609,3 +1610,101 @@ Replace CSS Grid with flexbox for the `.discover-grid` container:
 ### Priority
 
 Low - Cosmetic/UX improvement, functionality works correctly
+
+---
+
+## FE-015: Replace Figma Workflow with Claude Code Frontend-Design Skill
+
+**Status:** Backlog
+
+### Problem
+
+The project currently uses Figma exports and custom tooling (`bin/figma-sync-theme`, `tooling/` directory) for design-to-code workflow. This approach:
+- Requires maintaining separate Figma project and export tooling
+- Creates dependency on external design tool
+- Theme sync tooling duplicates functionality now available in Claude Code
+
+### Current Implementation
+
+- `Cookie Recipe App Design/` - Figma export directory with React components and theme.css
+- `FIGMA_TOOLING.md` - Documentation for theme sync workflow
+- `tooling/` - Python scripts for parsing and syncing theme variables
+- `bin/figma-sync-theme` - CLI script to sync themes between Figma export and frontends
+- Documentation references Figma throughout phase plans
+
+### Proposed Solution
+
+Replace Figma workflow with Claude Code's `/frontend-design` skill:
+
+1. **Review and improve Modern frontend** using frontend-design skill
+   - Generate distinctive, production-grade UI components
+   - Avoid generic AI aesthetics
+   - Maintain existing theme variables and design system
+
+2. **Review and improve Legacy frontend** using frontend-design skill
+   - Ensure iOS 9 compatibility (ES5, no CSS Grid, no WebP)
+   - Keep light-theme-only constraint
+   - Improve visual polish within browser constraints
+
+3. **Remove Figma dependencies:**
+   - Delete `Cookie Recipe App Design/` directory
+   - Delete `tooling/` directory
+   - Delete `bin/figma-sync-theme` script
+   - Delete `FIGMA_TOOLING.md`
+   - Update documentation to remove Figma references
+
+### Implementation Steps
+
+1. **Phase A: Modern Frontend Review**
+   - Use `/frontend-design` skill to audit current React components
+   - Identify areas for visual improvement
+   - Implement design enhancements
+
+2. **Phase B: Legacy Frontend Review**
+   - Use `/frontend-design` skill to audit legacy templates/CSS
+   - Improve styling within iOS 9 constraints
+   - Ensure consistency with modern frontend
+
+3. **Phase C: Cleanup**
+   - Remove Figma files and tooling
+   - Update all documentation references
+   - Update QA-062 status to RESOLVED
+
+### Files to Remove
+
+| Category | Path |
+|----------|------|
+| Documentation | `FIGMA_TOOLING.md` |
+| Design Export | `Cookie Recipe App Design/` (entire folder) |
+| Python Tooling | `tooling/` (entire folder) |
+| Scripts | `bin/figma-sync-theme` |
+
+### Documentation to Update
+
+Remove Figma references from:
+- `PLANNING.md`
+- `WORKFLOW.md`
+- `claude.md`
+- `plans/PHASE-3-USER-FEATURES.md`
+- `plans/PHASE-4-REACT-FOUNDATION.md`
+- `plans/PHASE-6-REACT-RECIPE-PLAYMODE.md`
+- `plans/PHASE-7-LEGACY-RECIPE-PLAYMODE.md`
+- `plans/PHASE-8A-AI-INFRASTRUCTURE.md`
+- `plans/PHASE-8B-AI-FEATURES.md`
+- `plans/PHASE-9-POLISH.md`
+
+### Benefits
+
+- Removes external tool dependency
+- Leverages Claude Code's built-in frontend-design capabilities
+- Simplifies project structure
+- Enables iterative design improvements without Figma roundtrips
+- Better integration with development workflow
+
+### Related
+
+- QA-062: Remove Figma Tooling (marked Won't Fix pending this enhancement)
+
+### Priority
+
+Medium - No functional impact, but simplifies project and improves workflow

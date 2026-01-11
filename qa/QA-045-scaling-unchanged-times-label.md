@@ -1,7 +1,7 @@
 # QA-045: Recipe Scaling Shows "(was X min)" for Unchanged Times
 
 ## Status
-**FIXED** - Implemented frontend comparison
+**RESOLVED** - Implemented frontend comparison
 
 ## Issue
 

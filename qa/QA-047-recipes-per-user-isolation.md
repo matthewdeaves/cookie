@@ -1,7 +1,7 @@
 # QA-047: Recipes Should Be Linked to Users (Profile Isolation)
 
 ## Status
-**FIXED** - Implemented in migration 0007_recipe_profile
+**RESOLVED** - Implemented in migration 0007_recipe_profile
 
 ## Resolution
 

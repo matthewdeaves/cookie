@@ -1,7 +1,7 @@
 # QA-049: Recipe Import Fails on Both Modern and Legacy Frontends
 
 ## Status
-**FIXED** - Awaiting verification
+**RESOLVED** - Error handling fixed in client.ts and App.tsx
 
 ## Issue
 
