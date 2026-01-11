@@ -1,0 +1,34 @@
+{
+  "entries": [
+    {
+      "date": "2026-01-11",
+      "coverage": {
+        "frontend": 15.71,
+        "backend": 47.0
+      },
+      "complexity": {
+        "frontend_warnings": 9,
+        "backend_cc": 2.79,
+        "backend_mi": 86.14
+      },
+      "duplication": {
+        "frontend": 1.54,
+        "backend": 4.14,
+        "frontend_clones": 8,
+        "backend_clones": 21
+      },
+      "bundle": {
+        "total_kb": 1807.35
+      },
+      "security": {
+        "frontend_vulns": 0,
+        "backend_vulns": 0
+      },
+      "legacy": {
+        "errors": 0,
+        "warnings": 17,
+        "duplication": 6.67
+      }
+    }
+  ]
+}
