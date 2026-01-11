@@ -22,6 +22,7 @@
 | FE-011 | ~~Modern frontend nutrition labels show raw camelCase keys~~ | ~~Low~~ | ~~Low~~ |
 | FE-012 | ~~Historical code quality metrics with trend graphs~~ | ~~Low~~ | ~~Medium~~ |
 | FE-013 | Linked recipe navigation (original ↔ remix toggle) | Low | Low |
+| FE-014 | Legacy frontend discover suggestions grid layout | Low | Low |
 
 ---
 
@@ -1484,3 +1485,127 @@ GET /api/recipes/123/linked/
 ### Related
 
 - **FE-006** - Multi-selection remix (may create multiple linked recipes from conflicts)
+
+---
+
+## FE-014: Legacy Frontend Discover Suggestions Grid Layout
+
+**Status:** Backlog
+
+### Problem
+
+On the Legacy frontend, the Discover suggestions render as a single column with each item at full width on iPad. This is because the current CSS uses CSS Grid which is **not supported on iOS 9 Safari**.
+
+### Root Cause
+
+**File:** `apps/legacy/static/legacy/css/components.css` (Lines 340-357)
+
+The current implementation uses CSS Grid:
+
+```css
+/* Current code - BROKEN on iOS 9 */
+.discover-grid {
+    display: grid;                        /* Not supported iOS 9 */
+    grid-template-columns: 1fr;           /* Not supported iOS 9 */
+    gap: 1rem;                            /* Not supported iOS 9 */
+}
+
+@media (min-width: 640px) {
+    .discover-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .discover-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+```
+
+**iOS 9 Safari CSS Grid Support:** None. CSS Grid was introduced in iOS 10.3 with partial support, full support in iOS 12+.
+
+On iOS 9, `display: grid` is ignored and the container falls back to `display: block`, causing all cards to stack vertically at full width.
+
+### Current Code Structure
+
+**Template:** `apps/legacy/templates/legacy/home.html` (Line 149)
+```html
+<div id="discover-suggestions" class="discover-grid">
+    <!-- Cards rendered by JS -->
+</div>
+```
+
+**JavaScript:** `apps/legacy/static/legacy/js/pages/home.js`
+- `renderSuggestions()` (Lines 202-213) - Renders cards into `#discover-suggestions`
+- `createSuggestionCard()` (Lines 218-252) - Creates `<button class="discover-card">` elements
+
+**Card CSS:** The individual `.discover-card` elements already use flexbox with `-webkit-` prefixes (Lines 360-432), so they render correctly. Only the grid container is broken.
+
+### Proposed Fix
+
+Replace CSS Grid with flexbox for the `.discover-grid` container:
+
+```css
+/* iOS 9 compatible flexbox layout */
+.discover-grid {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    margin: -0.5rem;  /* Negative margin to offset card margins */
+}
+
+.discover-card {
+    /* Add to existing .discover-card styles */
+    width: 100%;
+    margin: 0.5rem;
+    box-sizing: border-box;
+}
+
+/* Tablet - 2 columns */
+@media (min-width: 640px) {
+    .discover-card {
+        width: calc(50% - 1rem);
+    }
+}
+
+/* Desktop - 3 columns */
+@media (min-width: 1024px) {
+    .discover-card {
+        width: calc(33.333% - 1rem);
+    }
+}
+```
+
+### Implementation Notes
+
+1. **No template changes needed** - HTML structure stays the same
+2. **Only CSS changes** - Replace grid with flexbox in `components.css`
+3. **Follows existing patterns** - The `.recipe-grid` class in `layout.css:256-267` already uses this flexbox approach
+4. **Preserve gap equivalent** - Use margin on cards + negative margin on container (same as recipe grid)
+
+### Files to Change
+
+| File | Lines | Change |
+|------|-------|--------|
+| `apps/legacy/static/legacy/css/components.css` | 340-357 | Replace CSS Grid with flexbox |
+| `apps/legacy/static/legacy/css/components.css` | 360-373 | Add width/margin to `.discover-card` |
+
+### Testing
+
+- [ ] iOS 9 iPad - Verify 2-column layout on tablet width
+- [ ] iOS 9 iPhone - Verify single column on mobile
+- [ ] Modern browsers - Verify layout still works (flexbox is universal)
+- [ ] Card spacing consistent with recipe grid
+
+### Benefits
+
+- Discover suggestions display in responsive grid on iOS 9 iPads
+- Consistent with existing `.recipe-grid` flexbox pattern
+- No JavaScript changes required
+- Backwards compatible with all browsers
+
+### Priority
+
+Low - Cosmetic/UX improvement, functionality works correctly
