@@ -1222,3 +1222,100 @@ fetch('history/all.json')
 - One entry per day (latest wins if multiple runs)
 - Chart.js adds ~60KB but loads from CDN
 - Need to handle first run (no existing history)
+
+### Additional Metrics to Track
+
+Beyond the core quality metrics, the following could provide valuable trend data:
+
+#### Already Available in CI (just needs extraction)
+
+| Metric | Source | Trend Value |
+|--------|--------|-------------|
+| **Lines of Code** | radon raw metrics (`complexity/raw.json`) | Track codebase growth |
+| **JS Bundle Size** | bundle summary (`js_size_kb`) | Monitor JS-specific bloat |
+| **CSS Bundle Size** | bundle summary (`css_size_kb`) | Monitor styling overhead |
+| **Clone Count** | duplication summary (`clones_count`) | Track copy-paste instances |
+| **Files Analyzed** | complexity summary | Track codebase file count |
+| **Functions Analyzed** | complexity summary | Track function proliferation |
+| **Legacy Errors** | legacy lint summary | Track legacy code health |
+
+#### New Metrics (require CI changes)
+
+| Metric | Implementation | Trend Value |
+|--------|----------------|-------------|
+| **Test Count (Backend)** | Parse pytest output: `294 tests` currently | Track test suite growth |
+| **Test Count (Frontend)** | Parse vitest output: `81 tests` currently | Track frontend test coverage |
+| **Dependency Count (npm)** | Count `package.json` deps: `10 prod + 17 dev` | Monitor dependency bloat |
+| **Dependency Count (pip)** | Count `requirements.txt` lines: `15` | Monitor Python dependencies |
+| **API Endpoint Count** | Grep `@router.` decorators: `39` currently | Track API surface growth |
+| **Component Count** | Count `.tsx` in `components/`: `6` currently | Track UI component count |
+| **Build Time** | CI job duration from GitHub API | Monitor CI performance |
+| **Test Execution Time** | pytest/vitest timing output | Track test suite speed |
+| **TypeScript Errors** | Parse `tsc --noEmit` output | Track type safety |
+
+#### Suggested Chart Groupings
+
+**Quality Trends (primary):**
+- Coverage (frontend + backend) - line chart
+- Complexity (frontend + backend) - line chart
+- Duplication (frontend + backend) - line chart
+
+**Size Trends:**
+- Bundle size (JS + CSS stacked) - area chart
+- Lines of code (frontend + backend) - area chart
+- Dependency count (npm + pip) - bar chart
+
+**Health Indicators:**
+- Security vulnerabilities - line chart (should stay at 0)
+- Test count growth - line chart (should increase)
+- API endpoint count - step chart
+
+#### Updated History Entry Structure
+
+```json
+{
+  "date": "2026-01-11",
+  "coverage": {
+    "frontend": 78.5,
+    "backend": 85.2
+  },
+  "complexity": {
+    "frontend_warnings": 0,
+    "backend_cc": 2.1,
+    "backend_mi": 85.4
+  },
+  "duplication": {
+    "frontend": 1.2,
+    "backend": 0.8,
+    "frontend_clones": 3,
+    "backend_clones": 2
+  },
+  "bundle": {
+    "total_kb": 245,
+    "js_kb": 210,
+    "css_kb": 35
+  },
+  "codebase": {
+    "frontend_loc": 7273,
+    "backend_files": 50,
+    "backend_functions": 156
+  },
+  "tests": {
+    "frontend_count": 81,
+    "backend_count": 294
+  },
+  "dependencies": {
+    "npm_prod": 10,
+    "npm_dev": 17,
+    "pip": 15
+  },
+  "security": {
+    "frontend_vulns": 0,
+    "backend_vulns": 0
+  },
+  "legacy": {
+    "errors": 0,
+    "warnings": 5,
+    "duplication": 2.1
+  }
+}
