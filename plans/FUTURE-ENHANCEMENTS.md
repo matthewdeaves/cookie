@@ -21,6 +21,7 @@
 | FE-010 | ~~Investigate GitHub native ARM64 runners for faster CD builds~~ | ~~Low~~ | ~~Low~~ |
 | FE-011 | ~~Modern frontend nutrition labels show raw camelCase keys~~ | ~~Low~~ | ~~Low~~ |
 | FE-012 | ~~Historical code quality metrics with trend graphs~~ | ~~Low~~ | ~~Medium~~ |
+| FE-013 | Linked recipe navigation (original ↔ remix toggle) | Low | Low |
 
 ---
 
@@ -480,10 +481,47 @@ Allow users to select multiple AI suggestions to combine into a single remix:
 - Better matches user intent when they want multiple modifications
 - More efficient than creating multiple sequential remixes
 
+### Handling Conflicting Selections
+
+Users may select suggestions that conflict (e.g., "Make it vegan" + "Add Italian salami"). Rather than complex conflict detection rules, let the AI handle it:
+
+**Approach: AI-Driven Conflict Resolution**
+
+1. Pass all selected suggestions to the AI
+2. Include instruction: "If any suggestions conflict, create separate recipe variations"
+3. AI returns either:
+   - **Single recipe** - when selections are compatible
+   - **Multiple recipes** - when conflicts exist (one per conflicting path)
+
+**Example prompt addition:**
+```
+Apply the following modifications: [list of selections]
+
+If any modifications conflict (e.g., vegan + meat-based), create separate
+recipe variations - one for each conflicting approach. Label each variation
+clearly (e.g., "Vegan Version", "Salami Version").
+```
+
+**UI Considerations:**
+- Display multiple results in a carousel or tabs if AI returns variations
+- Let user pick which variation to save (or save all as separate remixes)
+- Show a subtle indicator when AI detected conflicts: "We created 2 versions based on your selections"
+
+**Why this approach:**
+- No hardcoded conflict rules to maintain
+- AI understands nuanced conflicts (dietary, cuisine style, technique)
+- Simple implementation - just prompt engineering
+- Gives user more value (multiple recipes) rather than error messages
+
 ### Files to Change
 
-- `frontend/src/components/RemixModal.tsx` - Multi-select UI
-- `apps/ai/services/remix.py` - Handle combined suggestions in prompt
+- `frontend/src/components/RemixModal.tsx` - Multi-select UI, handle multiple results
+- `apps/ai/services/remix.py` - Updated prompt with conflict handling instruction
+- `frontend/src/types/` - May need type for multi-recipe response
+
+### Related
+
+- **FE-013** - Linked recipe navigation for viewing original ↔ remix relationships
 
 ---
 
@@ -1319,3 +1357,130 @@ Beyond the core quality metrics, the following could provide valuable trend data
     "duplication": 2.1
   }
 }
+```
+
+---
+
+## FE-013: Linked Recipe Navigation (Original ↔ Remix Toggle)
+
+**Status:** Backlog
+
+### Problem
+
+When a recipe is remixed (especially with FE-006's multi-selection creating multiple variations), there's no way to see the relationship between recipes or quickly switch between the original and its remixes.
+
+Users may want to:
+- Compare the original recipe with a remix
+- See all variations created from one base recipe
+- Navigate back to the original after viewing a remix
+- Understand which recipe was the "parent"
+
+### Current Implementation
+
+- Recipes have a `remixed_from` field linking to the parent recipe
+- No UI exposes this relationship
+- No way to discover remixes of a recipe you're viewing
+
+### Proposed Solution
+
+Add a linked recipe indicator and quick-toggle on the recipe view screen:
+
+#### 1. Visual Indicator
+
+When viewing a recipe that has linked recipes (parent or children), show a subtle indicator:
+
+```
+┌─────────────────────────────────────┐
+│  Beef Wellington                    │
+│  ⟳ 2 linked recipes                 │  ← Clickable indicator
+│                                     │
+│  [Ingredients] [Steps] [Nutrition]  │
+└─────────────────────────────────────┘
+```
+
+#### 2. Quick Toggle UI
+
+Tapping the indicator reveals a compact switcher:
+
+```
+┌─────────────────────────────────────┐
+│  Linked Recipes                     │
+│                                     │
+│  ○ Beef Wellington (Original)       │
+│  ● Beef Wellington - Vegan Version  │  ← Currently viewing
+│  ○ Beef Wellington - Spicy Version  │
+│                                     │
+│  [Close]                            │
+└─────────────────────────────────────┘
+```
+
+#### 3. Data Model
+
+The existing `remixed_from` foreign key is sufficient:
+
+```python
+# Already exists in Recipe model
+remixed_from = models.ForeignKey('self', null=True, on_delete=models.SET_NULL)
+```
+
+To get linked recipes:
+- **Parent:** `recipe.remixed_from`
+- **Children:** `Recipe.objects.filter(remixed_from=recipe)`
+- **Siblings:** `Recipe.objects.filter(remixed_from=recipe.remixed_from)`
+
+#### 4. API Addition
+
+New endpoint or extend existing recipe detail:
+
+```python
+# Option A: Extend recipe detail response
+{
+  "id": 123,
+  "title": "Beef Wellington - Vegan Version",
+  "remixed_from": 100,
+  "linked_recipes": [
+    {"id": 100, "title": "Beef Wellington", "relationship": "original"},
+    {"id": 124, "title": "Beef Wellington - Spicy Version", "relationship": "sibling"}
+  ],
+  ...
+}
+
+# Option B: Separate endpoint
+GET /api/recipes/123/linked/
+```
+
+### UI Placement Options
+
+| Option | Pros | Cons |
+|--------|------|------|
+| **Header badge** | Always visible, non-intrusive | Takes header space |
+| **Tab addition** | Consistent with other tabs | Hidden until clicked |
+| **Floating pill** | Prominent, easy to tap | May obscure content |
+| **Info section** | Groups with other metadata | Below the fold |
+
+**Recommendation:** Header badge (subtle) that expands to overlay/modal on tap.
+
+### Files to Change
+
+- `apps/recipes/models.py` - Add helper methods for linked recipe queries
+- `apps/recipes/views.py` - Include linked recipes in detail response
+- `frontend/src/screens/RecipeDetail.tsx` - Add indicator and toggle UI
+- `frontend/src/components/LinkedRecipeSwitcher.tsx` - New component for the toggle
+
+### Benefits
+
+- Discover recipe variations easily
+- Compare original vs remix without searching
+- Navigate recipe "family tree"
+- Better UX when FE-006 creates multiple conflict variations
+
+### Considerations
+
+- Keep indicator subtle - many recipes won't have links
+- Preload linked recipe titles to avoid loading delay on toggle
+- Consider showing relationship type (original, remix, sibling)
+- Mobile-friendly tap targets for the switcher
+
+### Related
+
+- **FE-006** - Multi-selection remix (may create multiple linked recipes from conflicts)
