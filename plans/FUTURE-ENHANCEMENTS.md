@@ -20,7 +20,7 @@
 | FE-009 | AI-powered meal pairing suggestions | Medium | Medium |
 | FE-010 | ~~Investigate GitHub native ARM64 runners for faster CD builds~~ | ~~Low~~ | ~~Low~~ |
 | FE-011 | ~~Modern frontend nutrition labels show raw camelCase keys~~ | ~~Low~~ | ~~Low~~ |
-| FE-012 | Historical code quality metrics with trend graphs | Low | Medium |
+| FE-012 | ~~Historical code quality metrics with trend graphs~~ | ~~Low~~ | ~~Medium~~ |
 
 ---
 
@@ -1052,7 +1052,7 @@ import { formatNutritionKey } from '@/utils/formatters';
 
 ## FE-012: Historical Code Quality Metrics with Trend Graphs
 
-**Status:** Backlog
+**Status:** Complete
 
 ### Problem
 

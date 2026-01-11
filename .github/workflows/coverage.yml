@@ -123,6 +123,20 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Fetch existing history from gh-pages
+        run: |
+          mkdir -p site/coverage/history
+          # Try to fetch existing history from gh-pages branch
+          if git fetch origin gh-pages --depth=1 2>/dev/null; then
+            git checkout origin/gh-pages -- coverage/history/all.json 2>/dev/null && \
+              mv coverage/history/all.json site/coverage/history/ || \
+              echo '{"entries":[]}' > site/coverage/history/all.json
+          else
+            echo '{"entries":[]}' > site/coverage/history/all.json
+          fi
+          echo "History file contents:"
+          cat site/coverage/history/all.json
+
       - name: Generate coverage and metrics dashboard
         run: |
           # Create site structure with root landing page and coverage subdirectory
@@ -472,6 +486,78 @@ jobs:
           print(f"Legacy Duplication: {legacy_duplication_pct}% ({legacy_duplication_rating})")
           EOF
 
+          # Append current metrics to history file
+          python3 << 'HISTEOF'
+          import json
+          import os
+          from datetime import datetime, timezone
+
+          history_file = 'site/coverage/history/all.json'
+          current_file = 'site/coverage/api/metrics.json'
+
+          # Load existing history
+          if os.path.exists(history_file):
+              with open(history_file) as f:
+                  history = json.load(f)
+          else:
+              history = {'entries': []}
+
+          # Load current metrics
+          with open(current_file) as f:
+              current = json.load(f)
+
+          # Extract date
+          date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+
+          # Build history entry with all trackable metrics
+          entry = {
+              'date': date,
+              'coverage': {
+                  'frontend': current['coverage']['frontend']['percentage'],
+                  'backend': current['coverage']['backend']['percentage']
+              },
+              'complexity': {
+                  'frontend_warnings': current['complexity']['frontend']['complexity_warnings'],
+                  'backend_cc': current['complexity']['backend']['cyclomatic_complexity'],
+                  'backend_mi': current['complexity']['backend']['maintainability_index']
+              },
+              'duplication': {
+                  'frontend': current['duplication']['frontend']['percentage'],
+                  'backend': current['duplication']['backend']['percentage'],
+                  'frontend_clones': current['duplication']['frontend']['clones_count'],
+                  'backend_clones': current['duplication']['backend']['clones_count']
+              },
+              'bundle': {
+                  'total_kb': current['bundle']['size_kb']
+              },
+              'security': {
+                  'frontend_vulns': current['security']['frontend']['vulnerabilities'],
+                  'backend_vulns': current['security']['backend']['vulnerabilities']
+              },
+              'legacy': {
+                  'errors': current['legacy']['lint']['errors'],
+                  'warnings': current['legacy']['lint']['warnings'],
+                  'duplication': current['legacy']['duplication']['percentage']
+              }
+          }
+
+          # Remove existing entry for same date (keep latest)
+          history['entries'] = [e for e in history['entries'] if e.get('date') != date]
+          history['entries'].append(entry)
+
+          # Sort by date
+          history['entries'].sort(key=lambda x: x.get('date', ''))
+
+          # Keep last 90 days
+          history['entries'] = history['entries'][-90:]
+
+          with open(history_file, 'w') as f:
+              json.dump(history, f, indent=2)
+
+          print(f"\nHistory updated: {len(history['entries'])} entries")
+          print(f"Latest entry: {date}")
+          HISTEOF
+
           # Create index.html dashboard
           cat > site/coverage/index.html << 'HTMLEOF'
           <!DOCTYPE html>
@@ -744,9 +830,36 @@ jobs:
               </div>
             </div>
 
+            <h2>Trends</h2>
+            <p style="color:#666;margin-bottom:1rem;">Historical metrics over the last 90 days - track improvements and catch regressions</p>
+            <div class="cards">
+              <div class="card" style="grid-column: span 2;">
+                <h3>Coverage Trends</h3>
+                <p>Frontend and backend test coverage over time</p>
+                <canvas id="coverageChart" height="120"></canvas>
+              </div>
+              <div class="card" style="grid-column: span 2;">
+                <h3>Code Quality Trends</h3>
+                <p>Duplication percentage and complexity warnings</p>
+                <canvas id="qualityChart" height="120"></canvas>
+              </div>
+              <div class="card">
+                <h3>Bundle Size Trend</h3>
+                <p>Frontend bundle size in KB</p>
+                <canvas id="bundleChart" height="150"></canvas>
+              </div>
+              <div class="card">
+                <h3>Security Trend</h3>
+                <p>Vulnerability count over time</p>
+                <canvas id="securityChart" height="150"></canvas>
+              </div>
+            </div>
+            <p id="history-status" style="color:#999;font-size:0.85rem;margin-top:0.5rem;"></p>
+
             <div class="api-note">
               <strong>API Endpoint:</strong> Fetch all metrics programmatically for your blog or dashboard:<br>
-              <code>GET <a href="api/metrics.json">https://matthewdeaves.github.io/cookie/coverage/api/metrics.json</a></code>
+              <code>GET <a href="api/metrics.json">https://matthewdeaves.github.io/cookie/coverage/api/metrics.json</a></code><br>
+              <code>GET <a href="history/all.json">https://matthewdeaves.github.io/cookie/coverage/history/all.json</a></code> (historical data)
             </div>
 
             <p class="footer">
@@ -754,8 +867,91 @@ jobs:
               <a href="https://github.com/matthewdeaves/cookie">View on GitHub</a>
             </p>
 
+            <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
             <script>
               document.getElementById('date').textContent = new Date().toLocaleString();
+
+              // Chart.js default styling
+              Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+              Chart.defaults.color = '#666';
+
+              // Load and render historical trends
+              fetch('history/all.json')
+                .then(r => r.json())
+                .then(history => {
+                  const entries = history.entries || [];
+                  if (entries.length < 2) {
+                    document.getElementById('history-status').textContent =
+                      'Trend data will appear after multiple CI runs accumulate historical metrics.';
+                    return;
+                  }
+
+                  const labels = entries.map(e => e.date);
+                  const chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true } }
+                  };
+
+                  // Coverage Chart
+                  new Chart(document.getElementById('coverageChart'), {
+                    type: 'line',
+                    data: {
+                      labels,
+                      datasets: [
+                        { label: 'Frontend %', data: entries.map(e => e.coverage?.frontend), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3 },
+                        { label: 'Backend %', data: entries.map(e => e.coverage?.backend), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 }
+                      ]
+                    },
+                    options: { ...chartOptions, scales: { y: { beginAtZero: false, min: 50, max: 100 } } }
+                  });
+
+                  // Quality Chart (duplication + complexity)
+                  new Chart(document.getElementById('qualityChart'), {
+                    type: 'line',
+                    data: {
+                      labels,
+                      datasets: [
+                        { label: 'Frontend Dup %', data: entries.map(e => e.duplication?.frontend), borderColor: '#f59e0b', tension: 0.3 },
+                        { label: 'Backend Dup %', data: entries.map(e => e.duplication?.backend), borderColor: '#ef4444', tension: 0.3 },
+                        { label: 'Frontend Warnings', data: entries.map(e => e.complexity?.frontend_warnings), borderColor: '#8b5cf6', tension: 0.3 }
+                      ]
+                    },
+                    options: chartOptions
+                  });
+
+                  // Bundle Chart
+                  new Chart(document.getElementById('bundleChart'), {
+                    type: 'line',
+                    data: {
+                      labels,
+                      datasets: [
+                        { label: 'Size (KB)', data: entries.map(e => e.bundle?.total_kb), borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,0.1)', fill: true, tension: 0.3 }
+                      ]
+                    },
+                    options: chartOptions
+                  });
+
+                  // Security Chart
+                  new Chart(document.getElementById('securityChart'), {
+                    type: 'line',
+                    data: {
+                      labels,
+                      datasets: [
+                        { label: 'Frontend Vulns', data: entries.map(e => e.security?.frontend_vulns), borderColor: '#ef4444', tension: 0.3 },
+                        { label: 'Backend Vulns', data: entries.map(e => e.security?.backend_vulns), borderColor: '#f97316', tension: 0.3 }
+                      ]
+                    },
+                    options: chartOptions
+                  });
+
+                  document.getElementById('history-status').textContent =
+                    `Showing ${entries.length} data points from ${entries[0]?.date} to ${entries[entries.length-1]?.date}`;
+                })
+                .catch(() => {
+                  document.getElementById('history-status').textContent = 'Historical data not yet available.';
+                });
 
               // Load metrics from API
               fetch('api/metrics.json')
@@ -814,4 +1010,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./site
-          keep_files: false
+          keep_files: true
