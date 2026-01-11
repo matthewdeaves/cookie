@@ -19,7 +19,7 @@
 | FE-008 | ~~Docker Hub: Only maintain latest image, no version history~~ | ~~Low~~ | ~~Low~~ |
 | FE-009 | AI-powered meal pairing suggestions | Medium | Medium |
 | FE-010 | ~~Investigate GitHub native ARM64 runners for faster CD builds~~ | ~~Low~~ | ~~Low~~ |
-| FE-011 | Modern frontend nutrition labels show raw camelCase keys | Low | Low |
+| FE-011 | ~~Modern frontend nutrition labels show raw camelCase keys~~ | ~~Low~~ | ~~Low~~ |
 
 ---
 
@@ -946,7 +946,7 @@ jobs:
 
 ## FE-011: Modern Frontend Nutrition Labels Show Raw camelCase Keys
 
-**Status:** Backlog
+**Status:** Complete
 
 ### Problem
 

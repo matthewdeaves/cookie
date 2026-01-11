@@ -17,7 +17,7 @@ import {
   type RecipeDetail as RecipeDetailType,
   type ScaleResponse,
 } from '../api/client'
-import { cn } from '../lib/utils'
+import { cn, formatNutritionKey } from '../lib/utils'
 import AddToCollectionDropdown from '../components/AddToCollectionDropdown'
 import RemixModal from '../components/RemixModal'
 import { useAIStatus } from '../contexts/AIStatusContext'
@@ -619,8 +619,8 @@ function NutritionTab({ recipe }: { recipe: RecipeDetailType }) {
             key={key}
             className="rounded-lg bg-muted/50 p-3"
           >
-            <span className="block text-sm capitalize text-muted-foreground">
-              {key.replace(/_/g, ' ')}
+            <span className="block text-sm text-muted-foreground">
+              {formatNutritionKey(key)}
             </span>
             <span className="text-lg font-medium text-foreground">{value}</span>
           </div>
