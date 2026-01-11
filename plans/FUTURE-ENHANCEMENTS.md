@@ -18,6 +18,7 @@
 | FE-007 | ~~Add nginx to production container for dev/prod parity~~ | ~~High~~ | ~~Medium~~ |
 | FE-008 | ~~Docker Hub: Only maintain latest image, no version history~~ | ~~Low~~ | ~~Low~~ |
 | FE-009 | AI-powered meal pairing suggestions | Medium | Medium |
+| FE-010 | Investigate GitHub native ARM64 runners for faster CD builds | Low | Low |
 
 ---
 
@@ -867,3 +868,75 @@ Return: course type + search terms (e.g., "Starter: French onion soup")
 - Consider showing suggestions only after recipe is saved (engagement signal)
 - May want to limit to 2-3 suggestions to avoid overwhelming the UI
 - Ensure suggestions respect any dietary preferences if implemented
+
+---
+
+## FE-010: Investigate GitHub Native ARM64 Runners
+
+**Status:** Backlog
+
+### Problem
+
+The CD workflow builds multi-platform Docker images (linux/amd64 + linux/arm64) using QEMU emulation on x86 GitHub runners. This is extremely slow - ARM64 builds can take 30-60+ minutes due to CPU instruction emulation, particularly during npm and pip install steps.
+
+### Current Implementation
+
+- `cd.yml` uses `docker/build-push-action@v5` with `platforms: linux/amd64,linux/arm64`
+- QEMU emulates ARM64 instructions on amd64 runners
+- Single job builds both platforms sequentially
+- Total build time: 30-60+ minutes
+
+### Proposed Investigation
+
+GitHub now offers native ARM64 runners. Investigate:
+
+1. **Availability:** `ubuntu-24.04-arm64` runner availability
+2. **Pricing:** Cost difference vs standard x86 runners
+3. **Build matrix:** Run amd64 and arm64 builds in parallel on native runners
+4. **Merge manifests:** Combine platform-specific images into multi-arch manifest
+
+### Potential Implementation
+
+```yaml
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Build and push (single platform)
+        uses: docker/build-push-action@v5
+        with:
+          platforms: ${{ matrix.platform }}
+          # ...
+
+  merge:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create multi-arch manifest
+        # Merge platform images into single manifest
+```
+
+### Benefits
+
+- **Much faster builds:** Native ARM64 vs QEMU emulation (minutes vs hour+)
+- **Parallel execution:** Both platforms build simultaneously
+- **More reliable:** No emulation quirks or timeouts
+
+### Considerations
+
+- **Cost:** ARM64 runners may have different pricing tier
+- **Availability:** Check if ARM64 runners are available for public repos / free tier
+- **Complexity:** Build matrix + manifest merge is more complex than single job
+- **Cache strategy:** May need separate caches per platform
+
+### Research Links
+
+- https://github.blog/changelog/2024-06-03-actions-arm-based-linux-and-windows-runners-are-now-in-public-preview/
+- https://docs.github.com/en/actions/using-github-hosted-runners/about-larger-runners

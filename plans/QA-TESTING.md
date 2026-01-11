@@ -71,6 +71,7 @@
 | QA-060 | GitHub Pages root landing page returns 404 | Infrastructure | Fixed | - |
 | QA-061 | CI/CD code quality tooling gaps and improvements | Infrastructure | Fixed | Phase 1-5 complete |
 | QA-063 | Flaky test: test_scrape_url_with_image_download database flush error | Tests | New | - |
+| QA-064 | CD workflow ARM64 builds extremely slow due to QEMU emulation | Infrastructure | Verified | - |
 
 ### Status Key
 - **New** - Logged, not yet fixed
@@ -2880,4 +2881,219 @@ After implementing each phase:
 
 - QA-059: Phase 10 CI/CD code review items (6 minor issues)
 - QA-060: GitHub Pages root landing page returns 404 (Fixed)
+
+---
+
+### QA-064: CD Workflow ARM64 Builds Extremely Slow Due to QEMU Emulation
+
+**Status:** Verified
+
+#### Problem
+
+The CD workflow (`cd.yml`) builds multi-platform Docker images for `linux/amd64` and `linux/arm64` using QEMU emulation on x86 GitHub runners. ARM64 builds take 30-60+ minutes due to CPU instruction emulation, particularly during npm and pip install steps.
+
+#### Current Implementation
+
+```yaml
+# cd.yml - current slow approach
+- name: Build and push
+  uses: docker/build-push-action@v5
+  with:
+    platforms: linux/amd64,linux/arm64  # QEMU emulates ARM64
+```
+
+#### Docker Image Analysis
+
+The `Dockerfile.prod` uses a multi-stage build:
+- **Stage 1 (frontend-builder):** `node:20-alpine` - Alpine Linux (~50MB)
+- **Stage 2 (python-deps):** `python:3.12-slim` - Debian slim
+- **Stage 3 (production):** `python:3.12-slim` - Debian slim with nginx (~150MB final)
+
+This is a good base image choice - Alpine is small but can cause issues with Python native packages (musl vs glibc). Debian slim is a solid middle ground for compatibility.
+
+#### Research Findings
+
+##### Native ARM64 Runners
+
+GitHub now offers native ARM64 runners **free for public repositories** (since January 2025):
+- Runner label: `ubuntu-24.04-arm` or `ubuntu-22.04-arm` (note: `-arm` suffix, NOT `-arm64`)
+- Cost: **FREE for public repos** (public preview)
+- Hardware: 4 vCPUs, Cobalt 100-based processors (40% faster than previous gen)
+- Limitation: Does NOT work in private repos (workflow will fail)
+
+##### Recommended Approach: Digest-Based Multi-Platform Builds
+
+The Docker official documentation recommends a two-stage workflow:
+
+1. **Build Stage (Matrix):** Run platform-specific builds in parallel on native runners
+   - `ubuntu-latest` for `linux/amd64`
+   - `ubuntu-24.04-arm` for `linux/arm64`
+   - Push by digest (no tags), upload digest as artifact
+
+2. **Merge Stage:** Download digests and create unified multi-arch manifest
+
+##### Expected Performance
+
+| Approach | Cost | Build Time |
+|----------|------|------------|
+| QEMU emulation (current) | Free | 30-60 min |
+| Native ARM64 runners | **Free** (public repos) | 2-5 min |
+
+Since `matthewdeaves/cookie` is a public repository, native ARM64 runners are free.
+
+#### Implementation Plan
+
+```yaml
+name: CD
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+  workflow_dispatch:
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: mndeaves/cookie
+
+jobs:
+  build:
+    name: Build (${{ matrix.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.prod
+          platforms: ${{ matrix.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.IMAGE_NAME }}
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
+
+      - name: Export digest
+        run: |
+          mkdir -p ${{ runner.temp }}/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    name: Create Multi-Arch Manifest
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+
+      - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.IMAGE_NAME }}@sha256:%s ' *)
+
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:latest
+
+      - name: Update Docker Hub description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ env.IMAGE_NAME }}
+          short-description: "Cookie - Self-hosted recipe manager"
+          readme-filepath: ./README.md
+        continue-on-error: true
+
+```
+
+#### Key Changes from Current Workflow
+
+1. **Matrix strategy** - Parallel builds on native runners
+2. **No QEMU** - Removed `docker/setup-qemu-action` (not needed for native builds)
+3. **Digest-based pushing** - `push-by-digest=true` instead of tagging directly
+4. **Platform-scoped cache** - Separate GHA cache per platform
+5. **Merge job** - Creates unified multi-arch manifest from digests
+6. **Updated action versions** - `docker/build-push-action@v6`
+7. **Auto-cleanup** - Deletes old tags, keeps only `latest` on Docker Hub
+
+#### References
+
+- [Docker: Multi-platform builds with GitHub Actions](https://docs.docker.com/build/ci/github-actions/multi-platform/)
+- [GitHub Changelog: Linux arm64 runners free for public repos (Jan 2025)](https://github.blog/changelog/2025-01-16-linux-arm64-hosted-runners-now-available-for-free-in-public-repositories-public-preview/)
+- [sredevopsorg/multi-arch-docker-github-workflow](https://github.com/sredevopsorg/multi-arch-docker-github-workflow)
+- [docker/setup-buildx-action#416](https://github.com/docker/setup-buildx-action/issues/416)
+- [FE-010 in FUTURE-ENHANCEMENTS.md](./FUTURE-ENHANCEMENTS.md) - Original investigation
+
+#### Verification
+
+- [x] CD workflow triggers on manual dispatch
+- [x] Both platform builds complete in parallel (~2-5 min each)
+- [x] Multi-arch manifest created successfully
+- [x] `docker manifest inspect mndeaves/cookie:latest` shows both platforms
+- [x] Docker Hub description updated
+- [x] Old Docker Hub tags cleaned up (only `latest` remains)
 
