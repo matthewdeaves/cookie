@@ -20,6 +20,7 @@
 | FE-009 | AI-powered meal pairing suggestions | Medium | Medium |
 | FE-010 | ~~Investigate GitHub native ARM64 runners for faster CD builds~~ | ~~Low~~ | ~~Low~~ |
 | FE-011 | ~~Modern frontend nutrition labels show raw camelCase keys~~ | ~~Low~~ | ~~Low~~ |
+| FE-012 | Historical code quality metrics with trend graphs | Low | Medium |
 
 ---
 
@@ -1046,3 +1047,178 @@ import { formatNutritionKey } from '@/utils/formatters';
 | `saturatedFatContent` | saturatedFatContent | Saturated Fat | Saturated Fat |
 | `calories` | calories | Calories | Calories |
 | `saturated_fat` | saturated fat | Saturated Fat | Saturated Fat |
+
+---
+
+## FE-012: Historical Code Quality Metrics with Trend Graphs
+
+**Status:** Backlog
+
+### Problem
+
+The current GitHub Pages metrics dashboard only shows the latest snapshot. Each CI run overwrites previous data (`keep_files: false`), so there's no way to visualize code quality trends over time (e.g., coverage improving, complexity decreasing).
+
+The gh-pages branch has commit history, but each commit contains only that run's data - no accumulated historical records.
+
+### Current Behavior
+
+```yaml
+# .github/workflows/coverage.yml
+- name: Deploy to GitHub Pages
+  uses: peaceiris/actions-gh-pages@v4
+  with:
+    keep_files: false  # Wipes all previous content
+```
+
+- `metrics.json` contains only current values with `generated_at` timestamp
+- No historical data preserved
+- Cannot graph progress over time
+
+### Proposed Solution
+
+#### 1. Preserve Historical Data
+
+Change deployment to keep existing files:
+
+```yaml
+- name: Deploy to GitHub Pages
+  uses: peaceiris/actions-gh-pages@v4
+  with:
+    keep_files: true  # Preserve history directory
+```
+
+#### 2. Store Timestamped Metrics
+
+Add step to append metrics to history:
+
+```bash
+# Create history directory if not exists
+mkdir -p site/coverage/history
+
+# Save timestamped snapshot
+DATE=$(date +%Y-%m-%d)
+cp site/coverage/api/metrics.json "site/coverage/history/${DATE}.json"
+
+# Append to consolidated history file
+python3 << 'EOF'
+import json
+import os
+from datetime import datetime
+
+history_file = 'site/coverage/history/all.json'
+current_file = 'site/coverage/api/metrics.json'
+
+# Load existing history or start fresh
+if os.path.exists(history_file):
+    with open(history_file) as f:
+        history = json.load(f)
+else:
+    history = {'entries': []}
+
+# Load current metrics
+with open(current_file) as f:
+    current = json.load(f)
+
+# Add entry with date key
+date = datetime.now().strftime('%Y-%m-%d')
+entry = {
+    'date': date,
+    'frontend_coverage': current['coverage']['frontend']['percentage'],
+    'backend_coverage': current['coverage']['backend']['percentage'],
+    'frontend_complexity': current['complexity']['frontend']['complexity_warnings'],
+    'backend_complexity': current['complexity']['backend']['cyclomatic_complexity'],
+    'bundle_size_kb': current['bundle']['size_kb'],
+    'frontend_duplication': current['duplication']['frontend']['percentage'],
+    'backend_duplication': current['duplication']['backend']['percentage'],
+}
+
+# Avoid duplicates for same date (keep latest)
+history['entries'] = [e for e in history['entries'] if e['date'] != date]
+history['entries'].append(entry)
+
+# Sort by date
+history['entries'].sort(key=lambda x: x['date'])
+
+# Keep last 90 days
+history['entries'] = history['entries'][-90:]
+
+with open(history_file, 'w') as f:
+    json.dump(history, f, indent=2)
+EOF
+```
+
+#### 3. Add Trend Charts to Dashboard
+
+Add Chart.js or similar to visualize trends:
+
+```html
+<canvas id="coverageChart"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+fetch('history/all.json')
+  .then(r => r.json())
+  .then(data => {
+    new Chart(document.getElementById('coverageChart'), {
+      type: 'line',
+      data: {
+        labels: data.entries.map(e => e.date),
+        datasets: [{
+          label: 'Frontend Coverage %',
+          data: data.entries.map(e => e.frontend_coverage),
+          borderColor: '#3b82f6'
+        }, {
+          label: 'Backend Coverage %',
+          data: data.entries.map(e => e.backend_coverage),
+          borderColor: '#10b981'
+        }]
+      }
+    });
+  });
+</script>
+```
+
+### Files to Modify
+
+1. `.github/workflows/coverage.yml` - Add history preservation logic
+2. Dashboard HTML generation - Add chart section
+
+### Data Structure
+
+**history/all.json:**
+```json
+{
+  "entries": [
+    {
+      "date": "2026-01-10",
+      "frontend_coverage": 78.5,
+      "backend_coverage": 85.2,
+      "frontend_complexity": 0,
+      "backend_complexity": 2.1,
+      "bundle_size_kb": 245,
+      "frontend_duplication": 1.2,
+      "backend_duplication": 0.8
+    },
+    {
+      "date": "2026-01-11",
+      "frontend_coverage": 79.1,
+      "backend_coverage": 85.2,
+      ...
+    }
+  ]
+}
+```
+
+### Benefits
+
+- Visualize coverage trends over time
+- Track complexity reduction efforts
+- Monitor bundle size growth
+- Celebrate progress milestones
+- Identify regressions quickly
+
+### Considerations
+
+- Keep last 90 days to limit file size
+- One entry per day (latest wins if multiple runs)
+- Chart.js adds ~60KB but loads from CDN
+- Need to handle first run (no existing history)
