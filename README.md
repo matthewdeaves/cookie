@@ -11,6 +11,8 @@
 
 A self-hosted recipe manager for searching, importing, organising, and cooking through recipes from popular cooking websites.
 
+> **Note:** Cookie is a work in progress. I'm laying the foundations now and will be blogging about how I improve the code over time, using software metrics to guide development decisions. Read more: [Rapid Prototyping with Claude Code](https://matthewdeaves.com/blog/2026-01-11-rapid-prototyping-with-claude-code)
+
 ## Quick Start (Production)
 
 Run the production container with a single command:
@@ -43,14 +45,19 @@ See [WORKFLOW.md](WORKFLOW.md) for development commands and testing with Claude 
 
 <table>
   <tr>
-    <td align="center"><img src="docs/images/search-results-beef.png" width="280" alt="Search recipes"><br><strong>Search</strong></td>
-    <td align="center"><img src="docs/images/recipe-detail-ingredients.png" width="280" alt="Recipe ingredients"><br><strong>Recipe</strong></td>
-    <td align="center"><img src="docs/images/cook-mode-step-timers.png" width="280" alt="Cooking mode"><br><strong>Cook Mode</strong></td>
+    <td align="center"><img src="docs/images/desktop/home-recently-viewed.webp" width="280" alt="Home recently viewed"><br><strong>Home</strong></td>
+    <td align="center"><img src="docs/images/desktop/search-results-beef.webp" width="280" alt="Search recipes"><br><strong>Search</strong></td>
+    <td align="center"><img src="docs/images/desktop/recipe-detail-ingredients-light-theme.webp" width="280" alt="Recipe light theme"><br><strong>Recipe</strong></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/images/ai-recipe-remix-dialog.png" width="280" alt="AI remix"><br><strong>AI Remix</strong></td>
-    <td align="center"><img src="docs/images/home-personalized-recommendations.png" width="280" alt="Personalized feed"><br><strong>Discover</strong></td>
-    <td align="center"><img src="docs/images/settings-sources.png" width="280" alt="Settings"><br><strong>Settings</strong></td>
+    <td align="center"><img src="docs/images/mobile/cooking-mode-timer-active.webp" width="280" alt="Mobile cook mode"><br><strong>Cook Mode</strong></td>
+    <td align="center"><img src="docs/images/mobile/remix-tips-generated.webp" width="280" alt="AI generated tips"><br><strong>AI Tips</strong></td>
+    <td align="center"><img src="docs/images/desktop/discover-personalized-recommendations.webp" width="280" alt="Personalized discover"><br><strong>Discover</strong></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/ipad/ipad-recipe-biryani-ingredients.webp" width="280" alt="iPad recipe view"><br><strong>iPad</strong></td>
+    <td align="center"><img src="docs/images/legacy-ipad/recipe-detail-tips.webp" width="280" alt="Legacy iPad"><br><strong>Legacy iPad</strong></td>
+    <td align="center"><img src="docs/images/desktop/settings-recipe-sources.webp" width="280" alt="Settings"><br><strong>Settings</strong></td>
   </tr>
 </table>
 
