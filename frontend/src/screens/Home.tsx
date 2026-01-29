@@ -1,47 +1,27 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Moon, Sun, LogOut, Search, Sparkles, Heart, FolderOpen, Settings, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   api,
-  type Profile,
   type Recipe,
   type Favorite,
   type HistoryItem,
   type DiscoverSuggestion,
 } from '../api/client'
+import { useProfile } from '../contexts/ProfileContext'
+import { useAIStatus } from '../contexts/AIStatusContext'
 import RecipeCard from '../components/RecipeCard'
 import { RecipeGridSkeleton } from '../components/Skeletons'
 import { cn } from '../lib/utils'
 
-interface HomeProps {
-  profile: Profile
-  theme: 'light' | 'dark'
-  aiAvailable: boolean
-  onThemeToggle: () => void
-  onLogout: () => void
-  onSearch: (query: string) => void
-  onRecipeClick: (recipeId: number) => void
-  onFavoritesClick: () => void
-  onAllRecipesClick: () => void
-  onCollectionsClick: () => void
-  onSettingsClick: () => void
-}
-
 type Tab = 'favorites' | 'discover'
 
-export default function Home({
-  profile,
-  theme,
-  aiAvailable,
-  onThemeToggle,
-  onLogout,
-  onSearch,
-  onRecipeClick,
-  onFavoritesClick,
-  onAllRecipesClick,
-  onCollectionsClick,
-  onSettingsClick,
-}: HomeProps) {
+export default function Home() {
+  const navigate = useNavigate()
+  const { profile, theme, toggleTheme, logout } = useProfile()
+  const aiStatus = useAIStatus()
+
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<Tab>('favorites')
   const [favorites, setFavorites] = useState<Favorite[]>([])
@@ -51,24 +31,17 @@ export default function Home({
   const [discoverSuggestions, setDiscoverSuggestions] = useState<DiscoverSuggestion[]>([])
   const [discoverLoading, setDiscoverLoading] = useState(false)
   const [discoverError, setDiscoverError] = useState(false)
-  // Refreshed at timestamp could be used for display, keeping for future use
-  const [, setDiscoverRefreshedAt] = useState<string | null>(null)
+  const [_discoverRefreshedAt, setDiscoverRefreshedAt] = useState<string | null>(null)
 
   useEffect(() => {
     loadData()
   }, [])
 
-  useEffect(() => {
-    if (activeTab === 'discover' && discoverSuggestions.length === 0 && !discoverLoading && !discoverError && aiAvailable) {
-      loadDiscoverSuggestions()
-    }
-  }, [activeTab, aiAvailable])
-
   const loadData = async () => {
     try {
       const [favoritesData, historyData] = await Promise.all([
         api.favorites.list(),
-        api.history.list(1000), // Get all to count, display first 6
+        api.history.list(1000),
       ])
       setFavorites(favoritesData)
       setHistoryCount(historyData.length)
@@ -82,6 +55,7 @@ export default function Home({
   }
 
   const loadDiscoverSuggestions = async () => {
+    if (!profile) return
     setDiscoverLoading(true)
     setDiscoverError(false)
     try {
@@ -96,16 +70,32 @@ export default function Home({
     }
   }
 
+  // Load discover suggestions when tab is clicked (Task 4.3 - move to onClick)
+  const handleDiscoverTabClick = () => {
+    setActiveTab('discover')
+    if (discoverSuggestions.length === 0 && !discoverLoading && !discoverError && aiStatus.available) {
+      loadDiscoverSuggestions()
+    }
+  }
+
   const handleSuggestionClick = (suggestion: DiscoverSuggestion) => {
-    // Execute the search query from the suggestion
-    onSearch(suggestion.search_query)
+    navigate(`/search?q=${encodeURIComponent(suggestion.search_query)}`)
   }
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      onSearch(searchQuery.trim())
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
     }
+  }
+
+  const handleRecipeClick = async (recipeId: number) => {
+    try {
+      await api.history.record(recipeId)
+    } catch (error) {
+      console.error('Failed to record history:', error)
+    }
+    navigate(`/recipe/${recipeId}`)
   }
 
   const handleRemoveFavorite = async (recipe: Recipe) => {
@@ -119,11 +109,22 @@ export default function Home({
     }
   }
 
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
+
   const getInitial = (name: string) => {
     return name.charAt(0).toUpperCase()
   }
 
-  const favoriteRecipeIds = new Set(favorites.map((f) => f.recipe.id))
+  // Memoize favorite IDs set (Task 5.2)
+  const localFavoriteIds = useMemo(
+    () => new Set(favorites.map((f) => f.recipe.id)),
+    [favorites]
+  )
+
+  if (!profile) return null
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -134,7 +135,7 @@ export default function Home({
         <div className="flex items-center gap-3">
           {/* Favorites */}
           <button
-            onClick={onFavoritesClick}
+            onClick={() => navigate('/favorites')}
             className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-accent"
             aria-label="View favorites"
           >
@@ -143,7 +144,7 @@ export default function Home({
 
           {/* Collections */}
           <button
-            onClick={onCollectionsClick}
+            onClick={() => navigate('/collections')}
             className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
             aria-label="View collections"
           >
@@ -152,7 +153,7 @@ export default function Home({
 
           {/* Theme toggle */}
           <button
-            onClick={onThemeToggle}
+            onClick={toggleTheme}
             className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
           >
@@ -165,7 +166,7 @@ export default function Home({
 
           {/* Settings */}
           <button
-            onClick={onSettingsClick}
+            onClick={() => navigate('/settings')}
             className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             aria-label="Settings"
           >
@@ -174,7 +175,7 @@ export default function Home({
 
           {/* Profile avatar */}
           <button
-            onClick={onLogout}
+            onClick={handleLogout}
             className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium text-white"
             style={{ backgroundColor: profile.avatar_color }}
             aria-label="Switch profile"
@@ -184,7 +185,7 @@ export default function Home({
 
           {/* Logout */}
           <button
-            onClick={onLogout}
+            onClick={handleLogout}
             className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             aria-label="Switch profile"
           >
@@ -210,8 +211,8 @@ export default function Home({
             </div>
           </form>
 
-          {/* Tab toggle - only show if AI is available (8B.11 graceful degradation) */}
-          {aiAvailable && (
+          {/* Tab toggle - only show if AI is available */}
+          {aiStatus.available && (
             <div className="mb-6 flex justify-center">
               <div className="inline-flex rounded-lg bg-muted p-1">
                 <button
@@ -226,7 +227,7 @@ export default function Home({
                   My Favorites
                 </button>
                 <button
-                  onClick={() => setActiveTab('discover')}
+                  onClick={handleDiscoverTabClick}
                   className={cn(
                     'rounded-md px-4 py-2 text-sm font-medium transition-colors',
                     activeTab === 'discover'
@@ -242,7 +243,7 @@ export default function Home({
 
           {loading ? (
             <RecipeGridSkeleton count={6} />
-          ) : activeTab === 'favorites' || !aiAvailable ? (
+          ) : activeTab === 'favorites' || !aiStatus.available ? (
             <>
               {/* Recently Viewed */}
               {history.length > 0 && (
@@ -252,7 +253,7 @@ export default function Home({
                       Recently Viewed
                     </h2>
                     <button
-                      onClick={onAllRecipesClick}
+                      onClick={() => navigate('/all-recipes')}
                       className="text-sm font-medium text-primary hover:underline"
                     >
                       View All ({historyCount})
@@ -263,8 +264,8 @@ export default function Home({
                       <RecipeCard
                         key={item.recipe.id}
                         recipe={item.recipe}
-                        isFavorite={favoriteRecipeIds.has(item.recipe.id)}
-                        onClick={() => onRecipeClick(item.recipe.id)}
+                        isFavorite={localFavoriteIds.has(item.recipe.id)}
+                        onClick={() => handleRecipeClick(item.recipe.id)}
                       />
                     ))}
                   </div>
@@ -279,7 +280,7 @@ export default function Home({
                   </h2>
                   {favorites.length > 0 && (
                     <button
-                      onClick={onFavoritesClick}
+                      onClick={() => navigate('/favorites')}
                       className="text-sm font-medium text-primary hover:underline"
                     >
                       View All ({favorites.length})
@@ -294,7 +295,7 @@ export default function Home({
                         recipe={favorite.recipe}
                         isFavorite
                         onFavoriteToggle={handleRemoveFavorite}
-                        onClick={() => onRecipeClick(favorite.recipe.id)}
+                        onClick={() => handleRecipeClick(favorite.recipe.id)}
                       />
                     ))}
                   </div>
@@ -379,7 +380,7 @@ export default function Home({
                     ))}
                   </div>
                 </div>
-              ) : !aiAvailable ? (
+              ) : !aiStatus.available ? (
                 /* Empty state - AI unavailable (no API key) */
                 <div className="flex flex-col items-center justify-center py-12">
                   <div className="mb-4 rounded-full bg-muted p-4">
@@ -392,7 +393,7 @@ export default function Home({
                     Configure an API key in settings to enable personalized recipe suggestions
                   </p>
                   <button
-                    onClick={onSettingsClick}
+                    onClick={() => navigate('/settings')}
                     className="rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-primary/90"
                   >
                     Go to Settings

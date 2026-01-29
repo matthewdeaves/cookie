@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
   Star,
@@ -18,36 +19,22 @@ import {
   type ScaleResponse,
 } from '../api/client'
 import { cn, formatNutritionKey } from '../lib/utils'
+import { useProfile } from '../contexts/ProfileContext'
+import { useAIStatus } from '../contexts/AIStatusContext'
 import AddToCollectionDropdown from '../components/AddToCollectionDropdown'
 import RemixModal from '../components/RemixModal'
-import { useAIStatus } from '../contexts/AIStatusContext'
 import { RecipeDetailSkeleton } from '../components/Skeletons'
-
-interface RecipeDetailProps {
-  recipeId: number
-  profileId: number
-  isFavorite: boolean
-  onBack: () => void
-  onFavoriteToggle: (recipe: RecipeDetailType) => void
-  onStartCooking: (recipe: RecipeDetailType) => void
-  onAddToNewCollection: (recipeId: number) => void
-  onRemixCreated: (recipeId: number) => void
-}
 
 type Tab = 'ingredients' | 'instructions' | 'nutrition' | 'tips'
 
-export default function RecipeDetail({
-  recipeId,
-  profileId,
-  isFavorite,
-  onBack,
-  onFavoriteToggle,
-  onStartCooking,
-  onAddToNewCollection,
-  onRemixCreated,
-}: RecipeDetailProps) {
-  const [recipe, setRecipe] = useState<RecipeDetailType | null>(null)
+export default function RecipeDetail() {
+  const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>()
+  const recipeId = Number(id)
+  const { profile, isFavorite, toggleFavorite } = useProfile()
   const aiStatus = useAIStatus()
+
+  const [recipe, setRecipe] = useState<RecipeDetailType | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<Tab>('ingredients')
   const [metaExpanded, setMetaExpanded] = useState(true)
@@ -60,7 +47,9 @@ export default function RecipeDetail({
   const [tipsPolling, setTipsPolling] = useState(false)
 
   useEffect(() => {
-    loadData()
+    if (recipeId) {
+      loadData()
+    }
   }, [recipeId])
 
   // Poll for tips if recipe is recently imported and has no tips yet
@@ -108,7 +97,7 @@ export default function RecipeDetail({
     }
   }, [recipe?.id, recipe?.scraped_at, tips.length])
 
-  // Auto-generate tips when viewing Tips tab for old recipes without tips (QA-046)
+  // Auto-generate tips when viewing Tips tab for old recipes without tips
   useEffect(() => {
     if (
       activeTab === 'tips' &&
@@ -120,7 +109,7 @@ export default function RecipeDetail({
     ) {
       handleGenerateTips(false)
     }
-  }, [activeTab]) // Only trigger on tab change
+  }, [activeTab])
 
   const loadData = async () => {
     try {
@@ -150,7 +139,7 @@ export default function RecipeDetail({
     aiStatus.available && recipe?.servings !== null
 
   const handleServingChange = async (delta: number) => {
-    if (!servings || !recipe) return
+    if (!servings || !recipe || !profile) return
     const newServings = Math.max(1, servings + delta)
     setServings(newServings)
 
@@ -163,7 +152,7 @@ export default function RecipeDetail({
     // Call AI to scale ingredients
     setScalingLoading(true)
     try {
-      const result = await api.ai.scale(recipe.id, newServings, profileId)
+      const result = await api.ai.scale(recipe.id, newServings, profile.id)
       setScaledData(result)
       if (result.notes.length > 0) {
         toast.info(result.notes[0])
@@ -196,16 +185,37 @@ export default function RecipeDetail({
     }
   }
 
+  const handleFavoriteToggle = async () => {
+    if (!recipe) return
+    await toggleFavorite(recipe)
+  }
+
+  const handleStartCooking = () => {
+    navigate(`/recipe/${recipeId}/play`)
+  }
+
+  const handleAddToNewCollection = () => {
+    navigate(`/collections?addRecipe=${recipeId}`)
+  }
+
+  const handleRemixCreated = (newRecipeId: number) => {
+    navigate(`/recipe/${newRecipeId}`)
+  }
+
+  const handleBack = () => {
+    navigate(-1)
+  }
+
   if (loading) {
     return <RecipeDetailSkeleton />
   }
 
-  if (!recipe) {
+  if (!recipe || !profile) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background">
         <span className="mb-4 text-muted-foreground">Recipe not found</span>
         <button
-          onClick={onBack}
+          onClick={handleBack}
           className="rounded-lg bg-primary px-4 py-2 text-primary-foreground"
         >
           Go Back
@@ -215,6 +225,7 @@ export default function RecipeDetail({
   }
 
   const imageUrl = recipe.image || recipe.image_url
+  const recipeIsFavorite = isFavorite(recipe.id)
 
   return (
     <div className="min-h-screen bg-background">
@@ -237,7 +248,7 @@ export default function RecipeDetail({
 
         {/* Back button */}
         <button
-          onClick={onBack}
+          onClick={handleBack}
           className="absolute left-4 top-4 rounded-full bg-black/40 p-2 text-white backdrop-blur-sm transition-colors hover:bg-black/60"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -267,18 +278,18 @@ export default function RecipeDetail({
         {/* Action buttons */}
         <div className="absolute bottom-4 right-4 flex gap-2">
           <button
-            onClick={() => onFavoriteToggle(recipe)}
+            onClick={handleFavoriteToggle}
             className={cn(
               'rounded-full bg-black/40 p-2 backdrop-blur-sm transition-colors',
-              isFavorite ? 'text-accent' : 'text-white hover:text-accent'
+              recipeIsFavorite ? 'text-accent' : 'text-white hover:text-accent'
             )}
-            title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            title={recipeIsFavorite ? 'Remove from favorites' : 'Add to favorites'}
           >
-            <Heart className={cn('h-5 w-5', isFavorite && 'fill-current')} />
+            <Heart className={cn('h-5 w-5', recipeIsFavorite && 'fill-current')} />
           </button>
           <AddToCollectionDropdown
             recipeId={recipeId}
-            onCreateNew={() => onAddToNewCollection(recipeId)}
+            onCreateNew={handleAddToNewCollection}
           />
           {aiStatus.available && (
             <button
@@ -290,7 +301,7 @@ export default function RecipeDetail({
             </button>
           )}
           <button
-            onClick={() => onStartCooking(recipe)}
+            onClick={handleStartCooking}
             className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             <PlayCircle className="h-4 w-4" />
@@ -438,7 +449,7 @@ export default function RecipeDetail({
               { key: 'ingredients' as const, label: 'Ingredients' },
               { key: 'instructions' as const, label: 'Instructions' },
               { key: 'nutrition' as const, label: 'Nutrition' },
-              // Only show Tips tab when AI is available (8B.11 graceful degradation)
+              // Only show Tips tab when AI is available
               ...(aiStatus.available ? [{ key: 'tips' as const, label: 'Tips' }] : []),
             ]
           ).map(({ key, label }) => (
@@ -484,10 +495,10 @@ export default function RecipeDetail({
       {/* Remix Modal */}
       <RemixModal
         recipe={recipe}
-        profileId={profileId}
+        profileId={profile.id}
         isOpen={showRemixModal}
         onClose={() => setShowRemixModal(false)}
-        onRemixCreated={onRemixCreated}
+        onRemixCreated={handleRemixCreated}
       />
     </div>
   )

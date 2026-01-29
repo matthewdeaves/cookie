@@ -1,39 +1,57 @@
 import { useState, useCallback, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
-import { api } from '../api/client'
-import type { RecipeDetail } from '../api/client'
+import { api, type RecipeDetail } from '../api/client'
 import { useTimers } from '../hooks/useTimers'
 import { useWakeLock } from '../hooks/useWakeLock'
 import TimerPanel from '../components/TimerPanel'
 import { cn } from '../lib/utils'
 import { unlockAudio, playTimerAlert } from '../lib/audio'
+import { LoadingSpinner } from '../components/Skeletons'
 
-interface PlayModeProps {
-  recipe: RecipeDetail
-  onExit: () => void
-}
+export default function PlayMode() {
+  const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>()
+  const recipeId = Number(id)
 
-export default function PlayMode({ recipe, onExit }: PlayModeProps) {
+  const [recipe, setRecipe] = useState<RecipeDetail | null>(null)
+  const [loading, setLoading] = useState(true)
   const [currentStep, setCurrentStep] = useState(0)
   const [aiAvailable, setAiAvailable] = useState(false)
 
-  // Fetch AI availability on mount
+  // Fetch recipe data on mount
   useEffect(() => {
-    api.ai.status().then((status) => {
-      setAiAvailable(status.available)
-    }).catch(() => {
-      setAiAvailable(false)
-    })
-  }, [])
+    if (recipeId) {
+      loadData()
+    }
+  }, [recipeId])
+
+  const loadData = async () => {
+    try {
+      const [recipeData, aiStatus] = await Promise.all([
+        api.recipes.get(recipeId),
+        api.ai.status(),
+      ])
+      setRecipe(recipeData)
+      setAiAvailable(aiStatus.available)
+    } catch (error) {
+      console.error('Failed to load recipe:', error)
+      toast.error('Failed to load recipe')
+      navigate(-1)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Get instructions array
-  const instructions =
-    recipe.instructions.length > 0
+  const instructions = recipe
+    ? recipe.instructions.length > 0
       ? recipe.instructions
       : recipe.instructions_text
         ? recipe.instructions_text.split('\n').filter((s) => s.trim())
         : []
+    : []
 
   const totalSteps = instructions.length
 
@@ -93,6 +111,10 @@ export default function PlayMode({ recipe, onExit }: PlayModeProps) {
     }
   }
 
+  const handleExit = () => {
+    navigate(-1)
+  }
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -101,13 +123,37 @@ export default function PlayMode({ recipe, onExit }: PlayModeProps) {
       } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         handleNext()
       } else if (e.key === 'Escape') {
-        onExit()
+        handleExit()
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentStep, totalSteps, onExit])
+  }, [currentStep, totalSteps])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <LoadingSpinner className="min-h-screen" />
+      </div>
+    )
+  }
+
+  if (!recipe) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+        <p className="mb-4 text-center text-muted-foreground">
+          Recipe not found.
+        </p>
+        <button
+          onClick={handleExit}
+          className="rounded-lg bg-primary px-4 py-2 text-primary-foreground"
+        >
+          Go Back
+        </button>
+      </div>
+    )
+  }
 
   if (totalSteps === 0) {
     return (
@@ -116,7 +162,7 @@ export default function PlayMode({ recipe, onExit }: PlayModeProps) {
           No instructions available for this recipe.
         </p>
         <button
-          onClick={onExit}
+          onClick={handleExit}
           className="rounded-lg bg-primary px-4 py-2 text-primary-foreground"
         >
           Exit
@@ -149,7 +195,7 @@ export default function PlayMode({ recipe, onExit }: PlayModeProps) {
           </div>
 
           <button
-            onClick={onExit}
+            onClick={handleExit}
             className="rounded-full bg-muted p-2 text-muted-foreground transition-colors hover:bg-muted/80"
             aria-label="Exit play mode"
           >

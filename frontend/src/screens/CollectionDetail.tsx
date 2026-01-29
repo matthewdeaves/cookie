@@ -1,30 +1,25 @@
 import { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Trash2, X, FolderOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type CollectionDetail as CollectionDetailType, type Recipe } from '../api/client'
 import RecipeCard from '../components/RecipeCard'
 import { LoadingSpinner } from '../components/Skeletons'
 
-interface CollectionDetailProps {
-  collectionId: number
-  onBack: () => void
-  onRecipeClick: (recipeId: number) => void
-  onDelete: () => void
-}
+export default function CollectionDetail() {
+  const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>()
+  const collectionId = Number(id)
 
-export default function CollectionDetail({
-  collectionId,
-  onBack,
-  onRecipeClick,
-  onDelete,
-}: CollectionDetailProps) {
   const [collection, setCollection] = useState<CollectionDetailType | null>(null)
   const [loading, setLoading] = useState(true)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
-    loadCollection()
+    if (collectionId) {
+      loadCollection()
+    }
   }, [collectionId])
 
   const loadCollection = async () => {
@@ -60,13 +55,22 @@ export default function CollectionDetail({
     try {
       await api.collections.delete(collectionId)
       toast.success('Collection deleted')
-      onDelete()
+      navigate('/collections')
     } catch (error) {
       console.error('Failed to delete collection:', error)
       toast.error('Failed to delete collection')
     } finally {
       setDeleting(false)
     }
+  }
+
+  const handleRecipeClick = async (recipeId: number) => {
+    try {
+      await api.history.record(recipeId)
+    } catch (error) {
+      console.error('Failed to record history:', error)
+    }
+    navigate(`/recipe/${recipeId}`)
   }
 
   if (loading) {
@@ -82,7 +86,7 @@ export default function CollectionDetail({
       <div className="flex min-h-screen flex-col items-center justify-center bg-background">
         <span className="mb-4 text-muted-foreground">Collection not found</span>
         <button
-          onClick={onBack}
+          onClick={() => navigate('/collections')}
           className="rounded-lg bg-primary px-4 py-2 text-primary-foreground"
         >
           Go Back
@@ -97,7 +101,7 @@ export default function CollectionDetail({
       <header className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-4">
           <button
-            onClick={onBack}
+            onClick={() => navigate('/collections')}
             className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -156,7 +160,7 @@ export default function CollectionDetail({
                 <div key={item.recipe.id} className="group relative">
                   <RecipeCard
                     recipe={item.recipe}
-                    onClick={() => onRecipeClick(item.recipe.id)}
+                    onClick={() => handleRecipeClick(item.recipe.id)}
                   />
                   {/* Remove button overlay */}
                   <button

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import ProfileSelector from '../screens/ProfileSelector'
 import Search from '../screens/Search'
 import { api } from '../api/client'
@@ -19,9 +20,12 @@ vi.mock('../api/client', () => ({
     },
     favorites: {
       list: vi.fn(),
+      add: vi.fn(),
+      remove: vi.fn(),
     },
     history: {
       list: vi.fn(),
+      record: vi.fn(),
     },
   },
 }))
@@ -31,8 +35,28 @@ vi.mock('sonner', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
+    info: vi.fn(),
   },
   Toaster: () => null,
+}))
+
+// Mock ProfileContext
+const mockSelectProfile = vi.fn()
+const mockProfileContext = {
+  profile: null,
+  theme: 'light' as const,
+  favoriteRecipeIds: new Set<number>(),
+  loading: false,
+  selectProfile: mockSelectProfile,
+  logout: vi.fn(),
+  toggleTheme: vi.fn(),
+  toggleFavorite: vi.fn(),
+  isFavorite: vi.fn(() => false),
+}
+
+vi.mock('../contexts/ProfileContext', () => ({
+  useProfile: () => mockProfileContext,
+  ProfileProvider: ({ children }: { children: React.ReactNode }) => children,
 }))
 
 // Shared test fixtures
@@ -46,9 +70,16 @@ const mockStats: ProfileStats = {
   discover_cache: 0,
 }
 
-describe('ProfileSelector', () => {
-  const mockOnProfileSelect = vi.fn()
+// Helper to render with router
+const renderWithRouter = (ui: React.ReactElement, { initialEntries = ['/'] } = {}) => {
+  return render(
+    <MemoryRouter initialEntries={initialEntries}>
+      {ui}
+    </MemoryRouter>
+  )
+}
 
+describe('ProfileSelector', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -60,7 +91,7 @@ describe('ProfileSelector', () => {
   it('shows loading state initially', () => {
     vi.mocked(api.profiles.list).mockImplementation(() => new Promise(() => {}))
 
-    render(<ProfileSelector onProfileSelect={mockOnProfileSelect} />)
+    renderWithRouter(<ProfileSelector />)
 
     expect(screen.getByText('Loading...')).toBeInTheDocument()
   })
@@ -71,7 +102,7 @@ describe('ProfileSelector', () => {
       { id: 2, name: 'Bob', avatar_color: '#8fae6f', theme: 'dark', unit_preference: 'metric', created_at: '2024-01-01', stats: mockStats },
     ])
 
-    render(<ProfileSelector onProfileSelect={mockOnProfileSelect} />)
+    renderWithRouter(<ProfileSelector />)
 
     await waitFor(() => {
       expect(screen.getByText('Alice')).toBeInTheDocument()
@@ -81,13 +112,14 @@ describe('ProfileSelector', () => {
     expect(screen.getByText("Who's cooking today?")).toBeInTheDocument()
   })
 
-  it('calls onProfileSelect when profile is clicked', async () => {
+  it('calls selectProfile when profile is clicked', async () => {
     const profiles = [
       { id: 1, name: 'Alice', avatar_color: '#d97850', theme: 'light', unit_preference: 'us', created_at: '2024-01-01', stats: mockStats },
     ]
     vi.mocked(api.profiles.list).mockResolvedValueOnce(profiles)
+    mockSelectProfile.mockResolvedValueOnce(undefined)
 
-    render(<ProfileSelector onProfileSelect={mockOnProfileSelect} />)
+    renderWithRouter(<ProfileSelector />)
 
     await waitFor(() => {
       expect(screen.getByText('Alice')).toBeInTheDocument()
@@ -95,13 +127,15 @@ describe('ProfileSelector', () => {
 
     fireEvent.click(screen.getByText('Alice'))
 
-    expect(mockOnProfileSelect).toHaveBeenCalledWith(profiles[0])
+    await waitFor(() => {
+      expect(mockSelectProfile).toHaveBeenCalledWith(profiles[0])
+    })
   })
 
   it('shows create profile form when add button is clicked', async () => {
     vi.mocked(api.profiles.list).mockResolvedValueOnce([])
 
-    render(<ProfileSelector onProfileSelect={mockOnProfileSelect} />)
+    renderWithRouter(<ProfileSelector />)
 
     await waitFor(() => {
       expect(screen.getByText('Add Profile')).toBeInTheDocument()
@@ -122,8 +156,9 @@ describe('ProfileSelector', () => {
       theme: 'light',
       unit_preference: 'metric',
     })
+    mockSelectProfile.mockResolvedValueOnce(undefined)
 
-    render(<ProfileSelector onProfileSelect={mockOnProfileSelect} />)
+    renderWithRouter(<ProfileSelector />)
 
     await waitFor(() => {
       expect(screen.getByText('Add Profile')).toBeInTheDocument()
@@ -150,7 +185,7 @@ describe('ProfileSelector', () => {
       { id: 1, name: 'Alice', avatar_color: '#d97850', theme: 'light', unit_preference: 'us', created_at: '2024-01-01', stats: mockStats },
     ])
 
-    render(<ProfileSelector onProfileSelect={mockOnProfileSelect} />)
+    renderWithRouter(<ProfileSelector />)
 
     await waitFor(() => {
       expect(screen.getByText('A')).toBeInTheDocument()
@@ -159,9 +194,6 @@ describe('ProfileSelector', () => {
 })
 
 describe('Search', () => {
-  const mockOnBack = vi.fn()
-  const mockOnImport = vi.fn()
-
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -169,6 +201,19 @@ describe('Search', () => {
   afterEach(() => {
     vi.resetAllMocks()
   })
+
+  // Helper to render Search with a query in the URL
+  const renderSearch = (query: string) => {
+    return render(
+      <MemoryRouter initialEntries={[`/search?q=${encodeURIComponent(query)}`]}>
+        <Routes>
+          <Route path="/search" element={<Search />} />
+          <Route path="/home" element={<div>Home</div>} />
+          <Route path="/recipe/:id" element={<div>Recipe</div>} />
+        </Routes>
+      </MemoryRouter>
+    )
+  }
 
   it('shows search results', async () => {
     vi.mocked(api.recipes.search).mockResolvedValueOnce({
@@ -182,7 +227,7 @@ describe('Search', () => {
       sites: { 'example.com': 2 },
     })
 
-    render(<Search query="cookies" onBack={mockOnBack} onImport={mockOnImport} />)
+    renderSearch('cookies')
 
     await waitFor(() => {
       expect(screen.getByText('Chocolate Cookies')).toBeInTheDocument()
@@ -199,7 +244,7 @@ describe('Search', () => {
       sites: { 'example.com': 1 },
     })
 
-    render(<Search query="cookies" onBack={mockOnBack} onImport={mockOnImport} />)
+    renderSearch('cookies')
 
     await waitFor(() => {
       expect(screen.getByText('1 result found')).toBeInTheDocument()
@@ -215,7 +260,7 @@ describe('Search', () => {
       sites: { 'allrecipes.com': 5, 'foodnetwork.com': 5 },
     })
 
-    render(<Search query="pasta" onBack={mockOnBack} onImport={mockOnImport} />)
+    renderSearch('pasta')
 
     await waitFor(() => {
       expect(screen.getByText('All Sources (10)')).toBeInTheDocument()
@@ -241,7 +286,7 @@ describe('Search', () => {
         sites: { 'allrecipes.com': 5 },
       })
 
-    render(<Search query="pasta" onBack={mockOnBack} onImport={mockOnImport} />)
+    renderSearch('pasta')
 
     await waitFor(() => {
       expect(screen.getByText('allrecipes.com (5)')).toBeInTheDocument()
@@ -263,7 +308,7 @@ describe('Search', () => {
       sites: {},
     })
 
-    render(<Search query="cookies" onBack={mockOnBack} onImport={mockOnImport} />)
+    renderSearch('cookies')
 
     await waitFor(() => {
       expect(screen.getByText('Load More')).toBeInTheDocument()
@@ -279,7 +324,7 @@ describe('Search', () => {
       sites: {},
     })
 
-    render(<Search query="cookies" onBack={mockOnBack} onImport={mockOnImport} />)
+    renderSearch('cookies')
 
     await waitFor(() => {
       expect(screen.getByText('End of results')).toBeInTheDocument()
@@ -295,7 +340,7 @@ describe('Search', () => {
       sites: {},
     })
 
-    render(<Search query="https://example.com/my-recipe" onBack={mockOnBack} onImport={mockOnImport} />)
+    renderSearch('https://example.com/my-recipe')
 
     await waitFor(() => {
       expect(screen.getByText('Import Recipe from URL')).toBeInTheDocument()
@@ -303,7 +348,7 @@ describe('Search', () => {
     })
   })
 
-  it('calls onImport when import button is clicked', async () => {
+  it('imports recipe when import button is clicked', async () => {
     vi.mocked(api.recipes.search).mockResolvedValueOnce({
       results: [],
       total: 0,
@@ -311,9 +356,31 @@ describe('Search', () => {
       has_more: false,
       sites: {},
     })
-    mockOnImport.mockResolvedValueOnce(undefined)
+    vi.mocked(api.recipes.scrape).mockResolvedValueOnce({
+      id: 123,
+      title: 'Imported Recipe',
+      host: 'example.com',
+      canonical_url: 'https://example.com/recipe',
+      image: '',
+      image_url: '',
+      ingredients: [],
+      ingredient_groups: [],
+      instructions: [],
+      instructions_text: '',
+      nutrition: {},
+      servings: null,
+      prep_time: null,
+      cook_time: null,
+      total_time: null,
+      yields: '',
+      rating: null,
+      rating_count: null,
+      ai_tips: [],
+      scraped_at: '2024-01-01',
+    } as never)
+    vi.mocked(api.history.record).mockResolvedValueOnce({} as never)
 
-    render(<Search query="https://example.com/recipe" onBack={mockOnBack} onImport={mockOnImport} />)
+    renderSearch('https://example.com/recipe')
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Import Recipe' })).toBeInTheDocument()
@@ -322,11 +389,11 @@ describe('Search', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Import Recipe' }))
 
     await waitFor(() => {
-      expect(mockOnImport).toHaveBeenCalledWith('https://example.com/recipe')
+      expect(api.recipes.scrape).toHaveBeenCalledWith('https://example.com/recipe')
     })
   })
 
-  it('calls onBack when back button is clicked', async () => {
+  it('navigates back when back button is clicked', async () => {
     vi.mocked(api.recipes.search).mockResolvedValueOnce({
       results: [],
       total: 0,
@@ -335,7 +402,7 @@ describe('Search', () => {
       sites: {},
     })
 
-    render(<Search query="cookies" onBack={mockOnBack} onImport={mockOnImport} />)
+    renderSearch('cookies')
 
     await waitFor(() => {
       expect(screen.getByText('Back to Home')).toBeInTheDocument()
@@ -343,7 +410,10 @@ describe('Search', () => {
 
     fireEvent.click(screen.getByText('Back to Home'))
 
-    expect(mockOnBack).toHaveBeenCalled()
+    // Should navigate to /home
+    await waitFor(() => {
+      expect(screen.getByText('Home')).toBeInTheDocument()
+    })
   })
 
   it('shows empty state when no results', async () => {
@@ -355,7 +425,7 @@ describe('Search', () => {
       sites: {},
     })
 
-    render(<Search query="zzzzzzz" onBack={mockOnBack} onImport={mockOnImport} />)
+    renderSearch('zzzzzzz')
 
     await waitFor(() => {
       expect(screen.getByText('No recipes found for "zzzzzzz"')).toBeInTheDocument()

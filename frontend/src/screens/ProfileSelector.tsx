@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type Profile, type ProfileInput } from '../api/client'
+import { useProfile } from '../contexts/ProfileContext'
 import { cn } from '../lib/utils'
 
 const PROFILE_COLORS = [
@@ -17,13 +19,9 @@ const PROFILE_COLORS = [
   '#7d9e6f',
 ]
 
-interface ProfileSelectorProps {
-  onProfileSelect: (profile: Profile) => void
-}
-
-export default function ProfileSelector({
-  onProfileSelect,
-}: ProfileSelectorProps) {
+export default function ProfileSelector() {
+  const navigate = useNavigate()
+  const { selectProfile } = useProfile()
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -47,6 +45,16 @@ export default function ProfileSelector({
     }
   }
 
+  const handleProfileSelect = async (profile: Profile) => {
+    try {
+      await selectProfile(profile)
+      navigate('/home')
+    } catch (error) {
+      console.error('Failed to select profile:', error)
+      toast.error('Failed to select profile')
+    }
+  }
+
   const handleCreateProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newName.trim()) return
@@ -61,11 +69,9 @@ export default function ProfileSelector({
       }
       const profile = await api.profiles.create(data)
       setProfiles([...profiles, profile])
-      onProfileSelect(profile)
-      setShowCreateForm(false)
-      setNewName('')
-      setSelectedColor(PROFILE_COLORS[0])
+      await selectProfile(profile)
       toast.success(`Welcome, ${profile.name}!`)
+      navigate('/home')
     } catch (error) {
       console.error('Failed to create profile:', error)
       toast.error('Failed to create profile')
@@ -98,7 +104,7 @@ export default function ProfileSelector({
           {profiles.map((profile) => (
             <button
               key={profile.id}
-              onClick={() => onProfileSelect(profile)}
+              onClick={() => handleProfileSelect(profile)}
               className="group flex flex-col items-center gap-2"
             >
               <div
