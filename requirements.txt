@@ -14,3 +14,6 @@ radon>=6.0
 whitenoise>=6.0
 ruff>=0.8.0
 pip-audit>=2.0
+bandit>=1.7.0
+detect-secrets>=1.5.0
+cryptography>=42.0

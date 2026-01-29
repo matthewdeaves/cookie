@@ -49,7 +49,9 @@
     "prefer-template": "off",
     "object-shorthand": "off",
     "prefer-rest-params": "off",
-    "prefer-spread": "off"
+    "prefer-spread": "off",
+    "no-script-url": "error",
+    "no-proto": "error"
   },
   "overrides": [
     {

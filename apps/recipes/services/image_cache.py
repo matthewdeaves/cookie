@@ -206,8 +206,8 @@ class SearchImageCache:
         Returns:
             Filename like 'search_{hash}.{ext}'
         """
-        # Create hash from URL for uniqueness
-        url_hash = hashlib.md5(image_url.encode()).hexdigest()[:12]
+        # Create hash from URL for uniqueness (not for security)
+        url_hash = hashlib.md5(image_url.encode(), usedforsecurity=False).hexdigest()[:12]
 
         # Get extension from image URL
         ext = '.jpg'  # default

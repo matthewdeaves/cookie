@@ -1260,3 +1260,569 @@ class AIResponseErrorTests(TestCase):
         assert response.status_code == 400
         data = response.json()
         assert data['error'] == 'ai_error'
+
+
+# =============================================================================
+# Additional AI Service Tests (Phase 2 Code Quality)
+# =============================================================================
+
+from apps.ai import fixtures
+
+
+class ValidatorEdgeCaseTests(TestCase):
+    """Tests for validator edge cases and _validate_value coverage."""
+
+    def setUp(self):
+        self.validator = AIResponseValidator()
+
+    def test_validate_union_type_null(self):
+        """Test validation of union type accepting null."""
+        response = {
+            'ingredients': ['1 cup flour'],
+            'prep_time': None,  # Union type ['string', 'null']
+        }
+        result = self.validator.validate('serving_adjustment', response)
+        assert result['prep_time'] is None
+
+    def test_validate_union_type_string(self):
+        """Test validation of union type accepting string."""
+        response = fixtures.VALID_SERVING_ADJUSTMENT_WITH_NULLS
+        result = self.validator.validate('serving_adjustment', response)
+        assert result['cook_time'] == '25 minutes'
+
+    def test_validate_union_type_wrong_type(self):
+        """Test validation fails for union type with wrong value."""
+        response = {
+            'ingredients': ['flour'],
+            'prep_time': 15,  # Should be string or null, not int
+        }
+        with pytest.raises(ValidationError) as exc_info:
+            self.validator.validate('serving_adjustment', response)
+        assert 'string or null' in str(exc_info.value.errors)
+
+    def test_validate_nested_object_in_array(self):
+        """Test validation of nested objects in array."""
+        result = self.validator.validate('discover_seasonal', fixtures.VALID_DISCOVER_SUGGESTIONS)
+        assert len(result) == 3
+        assert result[0]['title'] == 'Cozy Pumpkin Soup'
+
+    def test_validate_nested_object_missing_field(self):
+        """Test validation fails for nested object missing required field."""
+        with pytest.raises(ValidationError) as exc_info:
+            self.validator.validate('discover_seasonal', fixtures.INVALID_DISCOVER_MISSING_QUERY)
+        assert 'search_query' in str(exc_info.value.errors)
+
+    def test_validate_number_type(self):
+        """Test validation of number type (int or float)."""
+        result = self.validator.validate('selector_repair', {
+            'suggestions': ['.test'],
+            'confidence': 0.85,
+        })
+        assert result['confidence'] == 0.85
+
+    def test_validate_number_type_as_int(self):
+        """Test validation accepts integer for number type."""
+        result = self.validator.validate('selector_repair', {
+            'suggestions': ['.test'],
+            'confidence': 1,
+        })
+        assert result['confidence'] == 1
+
+    def test_validate_integer_type(self):
+        """Test validation of integer type."""
+        result = self.validator.validate('search_ranking', [1, 2, 3])
+        assert result == [1, 2, 3]
+
+    def test_validate_integer_rejects_float(self):
+        """Test integer validation rejects float values."""
+        with pytest.raises(ValidationError):
+            self.validator.validate('search_ranking', [1.5, 2, 3])
+
+    def test_validate_integer_rejects_boolean(self):
+        """Test integer validation rejects boolean (even though bool is int subclass)."""
+        with pytest.raises(ValidationError):
+            self.validator.validate('search_ranking', [True, False, 1])
+
+    def test_validate_array_max_items(self):
+        """Test validation fails when array exceeds maxItems."""
+        with pytest.raises(ValidationError) as exc_info:
+            self.validator.validate('tips_generation', fixtures.INVALID_TIPS_TOO_MANY)
+        assert 'at most 5' in str(exc_info.value.errors)
+
+    def test_validate_array_min_items(self):
+        """Test validation fails when array has fewer than minItems."""
+        with pytest.raises(ValidationError) as exc_info:
+            self.validator.validate('tips_generation', fixtures.INVALID_TIPS_TOO_FEW)
+        assert 'at least 3' in str(exc_info.value.errors)
+
+    def test_validate_array_item_wrong_type(self):
+        """Test validation fails when array item has wrong type."""
+        with pytest.raises(ValidationError) as exc_info:
+            self.validator.validate('tips_generation', fixtures.INVALID_TIPS_WRONG_ITEM_TYPE)
+        assert 'expected string' in str(exc_info.value.errors)
+
+    def test_validate_with_extra_fields_passes(self):
+        """Test that extra fields are allowed (no additionalProperties: false)."""
+        result = self.validator.validate('recipe_remix', fixtures.HALLUCINATED_EXTRA_FIELDS)
+        assert result['title'] == 'Recipe Title'
+        assert 'hallucinated_field' in result
+
+    def test_validate_special_characters(self):
+        """Test validation handles special characters correctly."""
+        result = self.validator.validate('recipe_remix', fixtures.EDGE_CASE_SPECIAL_CHARACTERS)
+        assert 'Crème Brûlée' in result['title']
+        assert '½ cup' in result['ingredients'][0]
+
+    def test_get_schema_returns_schema(self):
+        """Test get_schema returns correct schema."""
+        schema = self.validator.get_schema('recipe_remix')
+        assert schema is not None
+        assert schema['type'] == 'object'
+        assert 'title' in schema['required']
+
+    def test_get_schema_returns_none_for_unknown(self):
+        """Test get_schema returns None for unknown type."""
+        schema = self.validator.get_schema('nonexistent')
+        assert schema is None
+
+
+class ScalingServiceTests(TestCase):
+    """Tests for the recipe scaling service."""
+
+    def test_parse_time_minutes(self):
+        """Test parsing time string with minutes."""
+        from apps.ai.services.scaling import _parse_time
+        assert _parse_time('30 minutes') == 30
+        assert _parse_time('15 mins') == 15
+        assert _parse_time('45 min') == 45
+
+    def test_parse_time_hours(self):
+        """Test parsing time string with hours."""
+        from apps.ai.services.scaling import _parse_time
+        assert _parse_time('1 hour') == 60
+        assert _parse_time('2 hours') == 120
+
+    def test_parse_time_hours_and_minutes(self):
+        """Test parsing time string with hours and minutes."""
+        from apps.ai.services.scaling import _parse_time
+        assert _parse_time('1 hour 30 minutes') == 90
+        assert _parse_time('2 hours 15 mins') == 135
+
+    def test_parse_time_none(self):
+        """Test parsing None returns None."""
+        from apps.ai.services.scaling import _parse_time
+        assert _parse_time(None) is None
+        assert _parse_time('') is None
+
+    def test_parse_time_no_numbers(self):
+        """Test parsing string without numbers returns None."""
+        from apps.ai.services.scaling import _parse_time
+        assert _parse_time('some time') is None
+
+    def test_format_time_minutes(self):
+        """Test formatting minutes to readable string."""
+        from apps.ai.services.scaling import _format_time
+        assert _format_time(30) == '30 minutes'
+        assert _format_time(1) == '1 minutes'
+
+    def test_format_time_hours(self):
+        """Test formatting hours to readable string."""
+        from apps.ai.services.scaling import _format_time
+        assert _format_time(60) == '1 hour'
+        assert _format_time(120) == '2 hours'
+
+    def test_format_time_hours_and_minutes(self):
+        """Test formatting hours and minutes to readable string."""
+        from apps.ai.services.scaling import _format_time
+        assert _format_time(90) == '1 hour 30 minutes'
+        assert _format_time(75) == '1 hour 15 minutes'
+
+    def test_format_time_none(self):
+        """Test formatting None returns 'Not specified'."""
+        from apps.ai.services.scaling import _format_time
+        assert _format_time(None) == 'Not specified'
+        assert _format_time(0) == 'Not specified'
+
+    def test_calculate_nutrition_empty(self):
+        """Test nutrition calculation with empty nutrition data."""
+        from apps.ai.services.scaling import calculate_nutrition
+        from apps.recipes.models import Recipe
+        from apps.profiles.models import Profile
+
+        profile = Profile.objects.create(name='Test')
+        recipe = Recipe.objects.create(
+            profile=profile,
+            title='Test',
+            ingredients=['flour'],
+            nutrition={},  # Empty dict, not None
+        )
+
+        result = calculate_nutrition(recipe, 4, 8)
+        assert result == {'per_serving': {}, 'total': {}}
+
+    def test_calculate_nutrition_string_values(self):
+        """Test nutrition calculation with string values."""
+        from apps.ai.services.scaling import calculate_nutrition
+        from apps.recipes.models import Recipe
+        from apps.profiles.models import Profile
+
+        profile = Profile.objects.create(name='Test')
+        recipe = Recipe.objects.create(
+            profile=profile,
+            title='Test',
+            ingredients=['flour'],
+            nutrition={'calories': '200 kcal', 'protein': '10 g'},
+            servings=4,
+        )
+
+        result = calculate_nutrition(recipe, 4, 2)
+        assert result['per_serving'] == {'calories': '200 kcal', 'protein': '10 g'}
+        assert result['total']['calories'] == '400 kcal'
+        assert result['total']['protein'] == '20 g'
+
+    def test_calculate_nutrition_numeric_values(self):
+        """Test nutrition calculation with numeric values."""
+        from apps.ai.services.scaling import calculate_nutrition
+        from apps.recipes.models import Recipe
+        from apps.profiles.models import Profile
+
+        profile = Profile.objects.create(name='Test')
+        recipe = Recipe.objects.create(
+            profile=profile,
+            title='Test',
+            ingredients=['flour'],
+            nutrition={'calories': 200, 'protein': 10},
+            servings=4,
+        )
+
+        result = calculate_nutrition(recipe, 4, 2)
+        assert result['total']['calories'] == 400
+        assert result['total']['protein'] == 20
+
+
+class RemixServiceTests(TestCase):
+    """Tests for the recipe remix service."""
+
+    def test_parse_time_remix(self):
+        """Test _parse_time function in remix module."""
+        from apps.ai.services.remix import _parse_time
+        assert _parse_time('25 minutes') == 25
+        assert _parse_time('1 hour') == 60
+        assert _parse_time('1 hour 15 minutes') == 75
+        assert _parse_time(None) is None
+        assert _parse_time('') is None
+        assert _parse_time('quick') is None
+
+    def test_parse_servings(self):
+        """Test _parse_servings function."""
+        from apps.ai.services.remix import _parse_servings
+        assert _parse_servings('4 servings') == 4
+        assert _parse_servings('Makes 6') == 6
+        assert _parse_servings('12 portions') == 12
+        assert _parse_servings(None) is None
+        assert _parse_servings('') is None
+        assert _parse_servings('many') is None
+
+    @patch('apps.ai.services.remix.OpenRouterService')
+    def test_get_remix_suggestions_success(self, mock_service_class):
+        """Test get_remix_suggestions returns validated suggestions."""
+        from apps.ai.services.remix import get_remix_suggestions
+        from apps.recipes.models import Recipe
+        from apps.profiles.models import Profile
+
+        mock_service = MagicMock()
+        mock_service.complete.return_value = fixtures.VALID_REMIX_SUGGESTIONS
+        mock_service_class.return_value = mock_service
+
+        profile = Profile.objects.create(name='Test')
+        recipe = Recipe.objects.create(
+            profile=profile,
+            title='Chocolate Cake',
+            ingredients=['flour', 'sugar', 'cocoa'],
+        )
+
+        result = get_remix_suggestions(recipe.id)
+        assert len(result) == 6
+        assert 'vegan' in result[0].lower()
+
+    @patch('apps.ai.services.remix.OpenRouterService')
+    def test_get_remix_suggestions_validation_error(self, mock_service_class):
+        """Test get_remix_suggestions raises ValidationError on invalid response."""
+        from apps.ai.services.remix import get_remix_suggestions
+        from apps.recipes.models import Recipe
+        from apps.profiles.models import Profile
+
+        mock_service = MagicMock()
+        mock_service.complete.return_value = ['only', 'three', 'items']
+        mock_service_class.return_value = mock_service
+
+        profile = Profile.objects.create(name='Test')
+        recipe = Recipe.objects.create(
+            profile=profile,
+            title='Test',
+            ingredients=['flour'],
+        )
+
+        with pytest.raises(ValidationError):
+            get_remix_suggestions(recipe.id)
+
+
+class DiscoverServiceTests(TestCase):
+    """Tests for the AI discovery suggestions service."""
+
+    def test_get_season_winter(self):
+        """Test _get_season returns winter for Dec/Jan/Feb."""
+        from apps.ai.services.discover import _get_season
+        from datetime import datetime
+        assert _get_season(datetime(2024, 12, 15)) == 'winter'
+        assert _get_season(datetime(2024, 1, 15)) == 'winter'
+        assert _get_season(datetime(2024, 2, 15)) == 'winter'
+
+    def test_get_season_spring(self):
+        """Test _get_season returns spring for Mar/Apr/May."""
+        from apps.ai.services.discover import _get_season
+        from datetime import datetime
+        assert _get_season(datetime(2024, 3, 15)) == 'spring'
+        assert _get_season(datetime(2024, 4, 15)) == 'spring'
+        assert _get_season(datetime(2024, 5, 15)) == 'spring'
+
+    def test_get_season_summer(self):
+        """Test _get_season returns summer for Jun/Jul/Aug."""
+        from apps.ai.services.discover import _get_season
+        from datetime import datetime
+        assert _get_season(datetime(2024, 6, 15)) == 'summer'
+        assert _get_season(datetime(2024, 7, 15)) == 'summer'
+        assert _get_season(datetime(2024, 8, 15)) == 'summer'
+
+    def test_get_season_autumn(self):
+        """Test _get_season returns autumn for Sep/Oct/Nov."""
+        from apps.ai.services.discover import _get_season
+        from datetime import datetime
+        assert _get_season(datetime(2024, 9, 15)) == 'autumn'
+        assert _get_season(datetime(2024, 10, 15)) == 'autumn'
+        assert _get_season(datetime(2024, 11, 15)) == 'autumn'
+
+    def test_format_suggestions_from_list(self):
+        """Test _format_suggestions handles list input."""
+        from apps.ai.services.discover import _format_suggestions
+        from apps.ai.models import AIDiscoverySuggestion
+        from apps.profiles.models import Profile
+
+        profile = Profile.objects.create(name='Test')
+        suggestion = AIDiscoverySuggestion.objects.create(
+            profile=profile,
+            suggestion_type='seasonal',
+            search_query='pumpkin soup',
+            title='Autumn Soup',
+            description='Warm and cozy',
+        )
+
+        result = _format_suggestions([suggestion])
+        assert len(result['suggestions']) == 1
+        assert result['suggestions'][0]['type'] == 'seasonal'
+        assert result['suggestions'][0]['title'] == 'Autumn Soup'
+        assert 'refreshed_at' in result
+
+
+class RankingServiceTests(TestCase):
+    """Tests for the AI ranking service."""
+
+    def test_is_ranking_available_no_key(self):
+        """Test is_ranking_available returns False without API key."""
+        from apps.ai.services.ranking import is_ranking_available
+        settings = AppSettings.get()
+        settings.openrouter_api_key = ''
+        settings.save()
+        assert is_ranking_available() is False
+
+    def test_is_ranking_available_with_key(self):
+        """Test is_ranking_available returns True with API key."""
+        from apps.ai.services.ranking import is_ranking_available
+        settings = AppSettings.get()
+        settings.openrouter_api_key = 'test-key'
+        settings.save()
+        assert is_ranking_available() is True
+
+    def test_filter_valid_removes_titleless(self):
+        """Test _filter_valid removes results without titles."""
+        from apps.ai.services.ranking import _filter_valid
+        results = [
+            {'title': 'Good Recipe', 'url': 'http://test.com/1'},
+            {'url': 'http://test.com/2'},  # No title
+            {'title': '', 'url': 'http://test.com/3'},  # Empty title
+            {'title': 'Another Good', 'url': 'http://test.com/4'},
+        ]
+        filtered = _filter_valid(results)
+        assert len(filtered) == 2
+        assert filtered[0]['title'] == 'Good Recipe'
+        assert filtered[1]['title'] == 'Another Good'
+
+    def test_sort_by_image_prioritizes_images(self):
+        """Test _sort_by_image puts results with images first."""
+        from apps.ai.services.ranking import _sort_by_image
+        results = [
+            {'title': 'No Image', 'url': 'http://test.com/1'},
+            {'title': 'Has Image', 'url': 'http://test.com/2', 'image_url': 'http://img.com/2.jpg'},
+            {'title': 'Also No Image', 'url': 'http://test.com/3'},
+        ]
+        sorted_results = _sort_by_image(results)
+        assert sorted_results[0]['title'] == 'Has Image'
+
+    def test_sort_by_image_filters_invalid(self):
+        """Test _sort_by_image also filters out invalid results."""
+        from apps.ai.services.ranking import _sort_by_image
+        results = [
+            {'title': 'Valid', 'url': 'http://test.com/1'},
+            {'url': 'http://test.com/2'},  # No title - invalid
+        ]
+        sorted_results = _sort_by_image(results)
+        assert len(sorted_results) == 1
+        assert sorted_results[0]['title'] == 'Valid'
+
+    def test_apply_ranking(self):
+        """Test _apply_ranking reorders results correctly."""
+        from apps.ai.services.ranking import _apply_ranking
+        results = [
+            {'title': 'A', 'url': 'http://test.com/0'},
+            {'title': 'B', 'url': 'http://test.com/1'},
+            {'title': 'C', 'url': 'http://test.com/2'},
+        ]
+        ranked = _apply_ranking(results, [2, 0, 1])
+        assert ranked[0]['title'] == 'C'
+        assert ranked[1]['title'] == 'A'
+        assert ranked[2]['title'] == 'B'
+
+    def test_apply_ranking_handles_invalid_indices(self):
+        """Test _apply_ranking ignores out-of-bounds indices."""
+        from apps.ai.services.ranking import _apply_ranking
+        results = [
+            {'title': 'A', 'url': 'http://test.com/0'},
+            {'title': 'B', 'url': 'http://test.com/1'},
+        ]
+        ranked = _apply_ranking(results, [1, 99, 0, -1])  # 99 and -1 are invalid
+        assert len(ranked) == 2
+        assert ranked[0]['title'] == 'B'
+        assert ranked[1]['title'] == 'A'
+
+    def test_apply_ranking_handles_duplicates(self):
+        """Test _apply_ranking ignores duplicate indices."""
+        from apps.ai.services.ranking import _apply_ranking
+        results = [
+            {'title': 'A', 'url': 'http://test.com/0'},
+            {'title': 'B', 'url': 'http://test.com/1'},
+        ]
+        ranked = _apply_ranking(results, [1, 1, 0, 0])
+        assert len(ranked) == 2
+        assert ranked[0]['title'] == 'B'
+        assert ranked[1]['title'] == 'A'
+
+    def test_apply_ranking_adds_missing(self):
+        """Test _apply_ranking appends results not in ranking."""
+        from apps.ai.services.ranking import _apply_ranking
+        results = [
+            {'title': 'A', 'url': 'http://test.com/0'},
+            {'title': 'B', 'url': 'http://test.com/1'},
+            {'title': 'C', 'url': 'http://test.com/2'},
+        ]
+        # Only rank first two, third should be appended
+        ranked = _apply_ranking(results, [1, 0])
+        assert len(ranked) == 3
+        assert ranked[0]['title'] == 'B'
+        assert ranked[1]['title'] == 'A'
+        assert ranked[2]['title'] == 'C'
+
+    def test_rank_results_empty_list(self):
+        """Test rank_results handles empty list."""
+        from apps.ai.services.ranking import rank_results
+        result = rank_results('pizza', [])
+        assert result == []
+
+    def test_rank_results_single_item(self):
+        """Test rank_results returns single item unchanged."""
+        from apps.ai.services.ranking import rank_results
+        results = [{'title': 'Pizza', 'url': 'http://test.com/1'}]
+        result = rank_results('pizza', results)
+        assert len(result) == 1
+        assert result[0]['title'] == 'Pizza'
+
+    def test_rank_results_falls_back_without_key(self):
+        """Test rank_results falls back to image sort without API key."""
+        from apps.ai.services.ranking import rank_results
+        settings = AppSettings.get()
+        settings.openrouter_api_key = ''
+        settings.save()
+
+        results = [
+            {'title': 'No Image', 'url': 'http://test.com/1'},
+            {'title': 'Has Image', 'url': 'http://test.com/2', 'image_url': 'http://img.com/2.jpg'},
+        ]
+        result = rank_results('pizza', results)
+        assert result[0]['title'] == 'Has Image'
+
+
+class FixturesIntegrationTests(TestCase):
+    """Tests that use the fixtures module to verify validation."""
+
+    def setUp(self):
+        self.validator = AIResponseValidator()
+
+    def test_all_valid_fixtures_pass_validation(self):
+        """Test all valid fixtures pass their respective validations."""
+        test_cases = [
+            ('recipe_remix', fixtures.VALID_RECIPE_REMIX),
+            ('recipe_remix', fixtures.VALID_RECIPE_REMIX_MINIMAL),
+            ('serving_adjustment', fixtures.VALID_SERVING_ADJUSTMENT),
+            ('serving_adjustment', fixtures.VALID_SERVING_ADJUSTMENT_MINIMAL),
+            ('serving_adjustment', fixtures.VALID_SERVING_ADJUSTMENT_WITH_NULLS),
+            ('tips_generation', fixtures.VALID_TIPS_GENERATION),
+            ('tips_generation', fixtures.VALID_TIPS_GENERATION_MAX),
+            ('timer_naming', fixtures.VALID_TIMER_NAMING),
+            ('remix_suggestions', fixtures.VALID_REMIX_SUGGESTIONS),
+            ('discover_seasonal', fixtures.VALID_DISCOVER_SUGGESTIONS),
+            ('discover_favorites', fixtures.VALID_DISCOVER_SUGGESTIONS),
+            ('discover_new', fixtures.VALID_DISCOVER_SUGGESTIONS),
+            ('search_ranking', fixtures.VALID_SEARCH_RANKING),
+            ('selector_repair', fixtures.VALID_SELECTOR_REPAIR),
+            ('selector_repair', fixtures.VALID_SELECTOR_REPAIR_LOW_CONFIDENCE),
+            ('nutrition_estimate', fixtures.VALID_NUTRITION_ESTIMATE),
+            ('nutrition_estimate', fixtures.VALID_NUTRITION_ESTIMATE_MINIMAL),
+        ]
+        for prompt_type, fixture in test_cases:
+            result = self.validator.validate(prompt_type, fixture)
+            assert result is not None, f'Validation failed for {prompt_type}'
+
+    def test_all_invalid_fixtures_fail_validation(self):
+        """Test all invalid fixtures fail their respective validations."""
+        test_cases = [
+            ('recipe_remix', fixtures.INVALID_RECIPE_REMIX_MISSING_TITLE),
+            ('recipe_remix', fixtures.INVALID_RECIPE_REMIX_MISSING_INGREDIENTS),
+            ('recipe_remix', fixtures.INVALID_RECIPE_REMIX_WRONG_TYPE_INGREDIENTS),
+            ('recipe_remix', fixtures.INVALID_RECIPE_REMIX_WRONG_TYPE_TITLE),
+            ('tips_generation', fixtures.INVALID_TIPS_TOO_FEW),
+            ('tips_generation', fixtures.INVALID_TIPS_TOO_MANY),
+            ('tips_generation', fixtures.INVALID_TIPS_WRONG_TYPE),
+            ('tips_generation', fixtures.INVALID_TIPS_WRONG_ITEM_TYPE),
+            ('remix_suggestions', fixtures.INVALID_REMIX_SUGGESTIONS_WRONG_COUNT),
+            ('timer_naming', fixtures.INVALID_TIMER_NAMING_MISSING_LABEL),
+            ('search_ranking', fixtures.INVALID_SEARCH_RANKING_WRONG_TYPE),
+            ('selector_repair', fixtures.INVALID_SELECTOR_REPAIR_MISSING_CONFIDENCE),
+            ('selector_repair', fixtures.INVALID_SELECTOR_REPAIR_WRONG_CONFIDENCE_TYPE),
+            ('discover_seasonal', fixtures.INVALID_DISCOVER_MISSING_QUERY),
+            ('discover_seasonal', fixtures.INVALID_DISCOVER_WRONG_ITEM_TYPE),
+            ('nutrition_estimate', fixtures.INVALID_NUTRITION_MISSING_CALORIES),
+            ('serving_adjustment', fixtures.INVALID_SERVING_ADJUSTMENT_MISSING_INGREDIENTS),
+            ('serving_adjustment', fixtures.INVALID_SERVING_ADJUSTMENT_WRONG_TIME_TYPE),
+        ]
+        for prompt_type, fixture in test_cases:
+            with pytest.raises(ValidationError):
+                self.validator.validate(prompt_type, fixture)
+
+    def test_get_fixture_helper(self):
+        """Test the get_fixture helper function."""
+        result = fixtures.get_fixture('valid_recipe_remix')
+        assert result == fixtures.VALID_RECIPE_REMIX
+
+    def test_get_fixture_not_found(self):
+        """Test get_fixture raises KeyError for unknown fixture."""
+        with pytest.raises(KeyError):
+            fixtures.get_fixture('nonexistent_fixture')

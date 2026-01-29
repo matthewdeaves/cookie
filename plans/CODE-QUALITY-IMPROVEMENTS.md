@@ -26,7 +26,7 @@ The review identified 50+ specific issues. This plan organizes them into 8 phase
 | Phase | Focus | Tasks | Priority | Status |
 |-------|-------|-------|----------|--------|
 | **1** | Critical Bugs | 4 tasks | Critical | [DONE] |
-| **2** | Backend Testing & Security | 9 tasks | High | [OPEN] |
+| **2** | Backend Testing & Security | 9 tasks | High | [DONE] |
 | **3** | Backend Refactoring | 6 tasks | High | [OPEN] |
 | **4** | Frontend Architecture | 5 tasks | High | [OPEN] |
 | **5** | Frontend Testing & Utilities | 5 tasks | Medium | [OPEN] |
@@ -104,12 +104,12 @@ docker compose exec -T web pip-audit  # Should work, not error
 
 | Session | Focus | Status |
 |---------|-------|--------|
-| 2A | Write AI service tests with realistic fixtures | [OPEN] |
-| 2B | Add security scanning (SAST, secrets, dependencies) | [OPEN] |
+| 2A | Write AI service tests with realistic fixtures | [DONE] |
+| 2B | Add security scanning (SAST, secrets, dependencies) | [DONE] |
 
 ### Tasks
 
-- [ ] 2.1 Configure coverage measurement tools
+- [x] 2.1 Configure coverage measurement tools
   - **Files:** `pytest.ini`, `frontend/vite.config.ts`, `.github/workflows/ci.yml`
   - **Current:** Coverage targets defined but no tooling configured to measure progress
   - **Fix:**
@@ -128,7 +128,7 @@ docker compose exec -T web pip-audit  # Should work, not error
     - CI: Upload coverage reports as artifacts
   - **Impact:** Progress measurable, gaps visible, coverage reports in CI
 
-- [ ] 2.2 Create realistic AI response fixtures
+- [x] 2.2 Create realistic AI response fixtures
   - **File:** `apps/ai/tests.py` or `apps/ai/fixtures.py`
   - **Current:** Mocks `OpenRouterService` entirely, validation logic never runs
   - **Fix:** Create `realistic_ai_response` fixtures with actual JSON structures including edge cases:
@@ -138,7 +138,7 @@ docker compose exec -T web pip-audit  # Should work, not error
     - Hallucinated data
   - **Impact:** Validation code in `validator.py` gets tested against realistic inputs
 
-- [ ] 2.3 Write tests for AI service validation logic
+- [x] 2.3 Write tests for AI service validation logic
   - **File:** `apps/ai/services/validator.py:163-260`
   - **Current:** 10% coverage, `_validate_value` (CC=40) never runs in tests
   - **Fix:** Test with realistic AI response fixtures to verify:
@@ -148,7 +148,7 @@ docker compose exec -T web pip-audit  # Should work, not error
     - Union type validation works
   - **Impact:** Increases coverage from 10% to 80%+ for critical validation code
 
-- [ ] 2.4 Write tests for AI services with low coverage
+- [x] 2.4 Write tests for AI services with low coverage
   - **Files:**
     - `apps/ai/services/scaling.py` (241 lines) - ingredient scaling with unit conversion
     - `apps/ai/services/remix.py` (311 lines) - recipe variation generation
@@ -162,7 +162,7 @@ docker compose exec -T web pip-audit  # Should work, not error
     - **Ranking service:** Score calculation accuracy, tie-breaking behavior, empty result set handling, normalization edge cases
   - **Impact:** Increases AI services coverage from 10-25% to 60%+
 
-- [ ] 2.5 Add API key encryption
+- [x] 2.5 Add API key encryption
   - **File:** `apps/core/settings.py`
   - **Current:** API keys stored as plaintext in database
   - **Fix:** Use Django's encrypted field or move to environment variables
@@ -171,7 +171,7 @@ docker compose exec -T web pip-audit  # Should work, not error
     - Environment variables via `python-decouple`
   - **Impact:** Keys encrypted at rest
 
-- [ ] 2.6 Add SAST scanning with Bandit
+- [x] 2.6 Add SAST scanning with Bandit
   - **File:** `.github/workflows/ci.yml` (new job)
   - **Current:** Only dependency scanning (pip-audit), no code-level security analysis
   - **Fix:** Add Bandit job to CI:
@@ -183,7 +183,7 @@ docker compose exec -T web pip-audit  # Should work, not error
     ```
   - **Impact:** Catches hardcoded credentials, SQL injection, unsafe pickle, insecure random
 
-- [ ] 2.7 Add secrets detection
+- [x] 2.7 Add secrets detection
   - **File:** `.github/workflows/ci.yml` (new job) and `.pre-commit-config.yaml`
   - **Current:** No scanning for accidentally committed credentials
   - **Fix:** Add detect-secrets or gitleaks:
@@ -191,7 +191,7 @@ docker compose exec -T web pip-audit  # Should work, not error
     - CI job to catch commits that bypass hooks
   - **Impact:** Prevents API keys, tokens, credentials in repository
 
-- [ ] 2.8 Add ESLint security plugin for both JavaScript frontends
+- [x] 2.8 Add ESLint security plugin for both JavaScript frontends
   - **Files:**
     - Modern: `frontend/eslint.config.js`
     - Legacy: `apps/legacy/static/legacy/.eslintrc.json` and `.github/workflows/ci.yml:69,77,83`
@@ -206,7 +206,7 @@ docker compose exec -T web pip-audit  # Should work, not error
   - **Impact:** All JavaScript code gets comprehensive security scanning beyond basic eval detection
   - **Why it matters:** 4,623 lines of legacy ES5 plus modern React code handling user input. Modern frontend uses React (dangerouslySetInnerHTML risk). Legacy has `escapeHtml()` reimplemented 5 times (inconsistency risk), large HTML string concatenation (easy to miss unescaped data)
 
-- [ ] 2.9 Add npm audit to CI for frontend dependency scanning
+- [x] 2.9 Add npm audit to CI for frontend dependency scanning (already existed)
   - **File:** `.github/workflows/ci.yml` (add to frontend-lint job or new job)
   - **Current:** Backend has pip-audit, frontend dependencies not scanned for vulnerabilities
   - **Fix:** Add npm audit step to frontend CI jobs:
