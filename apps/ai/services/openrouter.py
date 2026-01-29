@@ -49,6 +49,38 @@ class OpenRouterService:
 
         self.api_key = api_key
 
+    def _parse_json_response(self, content: str) -> dict:
+        """Parse JSON from AI response, handling markdown code blocks.
+
+        Args:
+            content: Raw response content from the AI.
+
+        Returns:
+            Parsed JSON as a dict.
+
+        Raises:
+            AIResponseError: If the content is not valid JSON.
+        """
+        try:
+            # Handle potential markdown code blocks
+            if content.startswith('```'):
+                # Extract JSON from code block
+                lines = content.split('\n')
+                json_lines = []
+                in_block = False
+                for line in lines:
+                    if line.startswith('```'):
+                        in_block = not in_block
+                        continue
+                    if in_block:
+                        json_lines.append(line)
+                content = '\n'.join(json_lines)
+
+            return json.loads(content)
+        except json.JSONDecodeError as e:
+            logger.error(f'Failed to parse AI response as JSON: {content}')
+            raise AIResponseError(f'Invalid JSON in AI response: {e}')
+
     def complete(
         self,
         system_prompt: str,
@@ -94,27 +126,7 @@ class OpenRouterService:
             content = response.choices[0].message.content
 
             if json_response:
-                # Parse JSON from the response
-                try:
-                    # Handle potential markdown code blocks
-                    if content.startswith('```'):
-                        # Extract JSON from code block
-                        lines = content.split('\n')
-                        json_lines = []
-                        in_block = False
-                        for line in lines:
-                            if line.startswith('```'):
-                                in_block = not in_block
-                                continue
-                            if in_block:
-                                json_lines.append(line)
-                        content = '\n'.join(json_lines)
-
-                    return json.loads(content)
-                except json.JSONDecodeError as e:
-                    # Note: This log appears in test output for test_complete_invalid_json - expected
-                    logger.error(f'Failed to parse AI response as JSON: {content}')
-                    raise AIResponseError(f'Invalid JSON in AI response: {e}')
+                return self._parse_json_response(content)
 
             return {'content': content}
 
@@ -165,25 +177,7 @@ class OpenRouterService:
             content = response.choices[0].message.content
 
             if json_response:
-                # Parse JSON from the response
-                try:
-                    # Handle potential markdown code blocks
-                    if content.startswith('```'):
-                        lines = content.split('\n')
-                        json_lines = []
-                        in_block = False
-                        for line in lines:
-                            if line.startswith('```'):
-                                in_block = not in_block
-                                continue
-                            if in_block:
-                                json_lines.append(line)
-                        content = '\n'.join(json_lines)
-
-                    return json.loads(content)
-                except json.JSONDecodeError as e:
-                    logger.error(f'Failed to parse AI response as JSON: {content}')
-                    raise AIResponseError(f'Invalid JSON in AI response: {e}')
+                return self._parse_json_response(content)
 
             return {'content': content}
 

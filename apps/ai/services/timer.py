@@ -3,12 +3,14 @@
 import logging
 
 from ..models import AIPrompt
+from .cache import cache_ai_response, CACHE_TIMEOUT_SHORT
 from .openrouter import OpenRouterService
 from .validator import AIResponseValidator
 
 logger = logging.getLogger(__name__)
 
 
+@cache_ai_response('timer_name', timeout=CACHE_TIMEOUT_SHORT)
 def generate_timer_name(step_text: str, duration_minutes: int) -> dict:
     """Generate a descriptive name for a cooking timer.
 

@@ -27,7 +27,7 @@ The review identified 50+ specific issues. This plan organizes them into 8 phase
 |-------|-------|-------|----------|--------|
 | **1** | Critical Bugs | 4 tasks | Critical | [DONE] |
 | **2** | Backend Testing & Security | 9 tasks | High | [DONE] |
-| **3** | Backend Refactoring | 6 tasks | High | [OPEN] |
+| **3** | Backend Refactoring | 6 tasks | High | [DONE] |
 | **4** | Frontend Architecture | 5 tasks | High | [OPEN] |
 | **5** | Frontend Testing & Utilities | 5 tasks | Medium | [OPEN] |
 | **6** | Legacy JavaScript Refactoring | 6 tasks | Medium | [OPEN] |
@@ -269,12 +269,12 @@ cd frontend && npm audit
 
 | Session | Focus | Status |
 |---------|-------|--------|
-| 3A | Simplify validation and error handling | [OPEN] |
-| 3B | Extract parsing and decorator patterns | [OPEN] |
+| 3A | Simplify validation and error handling | [DONE] |
+| 3B | Extract parsing and decorator patterns | [DONE] |
 
 ### Tasks
 
-- [ ] 3.1 Replace manual JSON Schema validation with jsonschema library
+- [x] 3.1 Replace manual JSON Schema validation with jsonschema library
   - **File:** `apps/ai/services/validator.py:163-260`
   - **Current:** 98 lines, CC=40, manual validation of union types/objects/arrays
   - **Fix:** Replace `_validate_value()` with `jsonschema.validate(value, schema)`
@@ -282,19 +282,19 @@ cd frontend && npm audit
   - **Dependencies:** `pip install jsonschema`, update requirements.txt
   - **Safety:** Phase 2 tests verify current behavior, so refactoring is safe
 
-- [ ] 3.2 Extract AI error handling to decorator
+- [x] 3.2 Extract AI error handling to decorator
   - **File:** `apps/ai/api.py:295-305, 365-375, 477-487, 534-544, 584-594, 630-640, 706-716`
   - **Current:** Same 11-line error block repeated in 7 endpoints
   - **Fix:** Create `@handle_ai_errors` decorator
   - **Impact:** Centralized error messages (easier i18n), single update point
 
-- [ ] 3.3 Extract JSON parsing logic in OpenRouter service
+- [x] 3.3 Extract JSON parsing logic in OpenRouter service
   - **File:** `apps/ai/services/openrouter.py:100-111, 171-181`
   - **Current:** Identical markdown code block extraction in `complete` and `complete_async`
   - **Fix:** Create `_parse_json_response(content: str) -> dict` method
   - **Impact:** 12 duplicate lines → single method
 
-- [ ] 3.4 Refactor HTML parsing complexity
+- [x] 3.4 Refactor HTML parsing complexity
   - **File:** `apps/recipes/services/search.py:251-329`
   - **Current:** 78 lines, CC=20, does 6 sequential tasks in one function
   - **Fix:** Extract to separate methods:
@@ -306,13 +306,13 @@ cd frontend && npm audit
     - `_extract_description()` - Extract description
   - **Impact:** 78 lines → 6 focused methods, easier to test each strategy
 
-- [ ] 3.5 Create @require_profile decorator for legacy views
+- [x] 3.5 Create @require_profile decorator for legacy views
   - **File:** `apps/legacy/views.py:38-46, 85-93, 112-120, 169-177, 200+`
   - **Current:** 6-line profile retrieval pattern repeated in 6 views
   - **Fix:** Decorator that validates profile and adds to `request.profile`
   - **Impact:** Eliminates 6 copies of same pattern
 
-- [ ] 3.6 Add caching for AI responses
+- [x] 3.6 Add caching for AI responses
   - **Files:** `apps/ai/services/*.py`
   - **Current:** Identical AI requests made multiple times (no caching)
   - **Fix:** Cache AI responses by prompt hash using Django cache framework

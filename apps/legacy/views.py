@@ -1,5 +1,7 @@
 """Views for legacy frontend."""
 
+from functools import wraps
+
 from django.shortcuts import render, redirect, get_object_or_404
 
 from apps.core.models import AppSettings
@@ -12,6 +14,32 @@ from apps.recipes.models import (
     RecipeFavorite,
     RecipeViewHistory,
 )
+
+
+def require_profile(view_func):
+    """Decorator to ensure a profile is selected and valid.
+
+    Gets profile_id from session, validates it exists, and adds
+    the Profile instance to request.profile.
+
+    Redirects to profile_selector if:
+    - No profile_id in session
+    - Profile doesn't exist (also clears session)
+    """
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        profile_id = request.session.get('profile_id')
+        if not profile_id:
+            return redirect('legacy:profile_selector')
+
+        try:
+            request.profile = Profile.objects.get(id=profile_id)
+        except Profile.DoesNotExist:
+            del request.session['profile_id']
+            return redirect('legacy:profile_selector')
+
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 
 def _is_ai_available() -> bool:
@@ -33,17 +61,10 @@ def profile_selector(request):
     })
 
 
+@require_profile
 def home(request):
     """Home screen."""
-    profile_id = request.session.get('profile_id')
-    if not profile_id:
-        return redirect('legacy:profile_selector')
-
-    try:
-        profile = Profile.objects.get(id=profile_id)
-    except Profile.DoesNotExist:
-        del request.session['profile_id']
-        return redirect('legacy:profile_selector')
+    profile = request.profile
 
     # Get favorites for this profile
     favorites_qs = RecipeFavorite.objects.filter(
@@ -80,17 +101,10 @@ def home(request):
     })
 
 
+@require_profile
 def search(request):
     """Search results screen."""
-    profile_id = request.session.get('profile_id')
-    if not profile_id:
-        return redirect('legacy:profile_selector')
-
-    try:
-        profile = Profile.objects.get(id=profile_id)
-    except Profile.DoesNotExist:
-        del request.session['profile_id']
-        return redirect('legacy:profile_selector')
+    profile = request.profile
 
     query = request.GET.get('q', '')
     # Detect if query is a URL
@@ -107,17 +121,10 @@ def search(request):
     })
 
 
+@require_profile
 def recipe_detail(request, recipe_id):
     """Recipe detail screen."""
-    profile_id = request.session.get('profile_id')
-    if not profile_id:
-        return redirect('legacy:profile_selector')
-
-    try:
-        profile = Profile.objects.get(id=profile_id)
-    except Profile.DoesNotExist:
-        del request.session['profile_id']
-        return redirect('legacy:profile_selector')
+    profile = request.profile
 
     # Get the recipe (must belong to this profile)
     recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)
@@ -164,17 +171,10 @@ def recipe_detail(request, recipe_id):
     })
 
 
+@require_profile
 def play_mode(request, recipe_id):
     """Play mode / cooking mode screen."""
-    profile_id = request.session.get('profile_id')
-    if not profile_id:
-        return redirect('legacy:profile_selector')
-
-    try:
-        profile = Profile.objects.get(id=profile_id)
-    except Profile.DoesNotExist:
-        del request.session['profile_id']
-        return redirect('legacy:profile_selector')
+    profile = request.profile
 
     # Get the recipe (must belong to this profile)
     recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)
@@ -200,17 +200,10 @@ def play_mode(request, recipe_id):
     })
 
 
+@require_profile
 def all_recipes(request):
     """All Recipes screen - shows all viewed recipes (history)."""
-    profile_id = request.session.get('profile_id')
-    if not profile_id:
-        return redirect('legacy:profile_selector')
-
-    try:
-        profile = Profile.objects.get(id=profile_id)
-    except Profile.DoesNotExist:
-        del request.session['profile_id']
-        return redirect('legacy:profile_selector')
+    profile = request.profile
 
     # Get all history for this profile (no limit)
     history = RecipeViewHistory.objects.filter(
@@ -233,17 +226,10 @@ def all_recipes(request):
     })
 
 
+@require_profile
 def favorites(request):
     """Favorites screen - shows all favorited recipes."""
-    profile_id = request.session.get('profile_id')
-    if not profile_id:
-        return redirect('legacy:profile_selector')
-
-    try:
-        profile = Profile.objects.get(id=profile_id)
-    except Profile.DoesNotExist:
-        del request.session['profile_id']
-        return redirect('legacy:profile_selector')
+    profile = request.profile
 
     # Get all favorites for this profile
     favorites = RecipeFavorite.objects.filter(
@@ -260,17 +246,10 @@ def favorites(request):
     })
 
 
+@require_profile
 def collections(request):
     """Collections list screen."""
-    profile_id = request.session.get('profile_id')
-    if not profile_id:
-        return redirect('legacy:profile_selector')
-
-    try:
-        profile = Profile.objects.get(id=profile_id)
-    except Profile.DoesNotExist:
-        del request.session['profile_id']
-        return redirect('legacy:profile_selector')
+    profile = request.profile
 
     # Get all collections for this profile
     collections = RecipeCollection.objects.filter(
@@ -287,17 +266,10 @@ def collections(request):
     })
 
 
+@require_profile
 def collection_detail(request, collection_id):
     """Collection detail screen - shows recipes in a collection."""
-    profile_id = request.session.get('profile_id')
-    if not profile_id:
-        return redirect('legacy:profile_selector')
-
-    try:
-        profile = Profile.objects.get(id=profile_id)
-    except Profile.DoesNotExist:
-        del request.session['profile_id']
-        return redirect('legacy:profile_selector')
+    profile = request.profile
 
     # Get the collection (must belong to this profile)
     collection = get_object_or_404(
@@ -324,17 +296,10 @@ def collection_detail(request, collection_id):
     })
 
 
+@require_profile
 def settings(request):
     """Settings screen - AI prompts and sources configuration."""
-    profile_id = request.session.get('profile_id')
-    if not profile_id:
-        return redirect('legacy:profile_selector')
-
-    try:
-        profile = Profile.objects.get(id=profile_id)
-    except Profile.DoesNotExist:
-        del request.session['profile_id']
-        return redirect('legacy:profile_selector')
+    profile = request.profile
 
     # Get app settings
     app_settings = AppSettings.get()

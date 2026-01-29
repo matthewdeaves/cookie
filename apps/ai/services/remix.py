@@ -8,12 +8,14 @@ from apps.recipes.models import Recipe
 from apps.profiles.models import Profile
 
 from ..models import AIPrompt
+from .cache import cache_ai_response, CACHE_TIMEOUT_MEDIUM
 from .openrouter import OpenRouterService, AIUnavailableError, AIResponseError
 from .validator import AIResponseValidator, ValidationError
 
 logger = logging.getLogger(__name__)
 
 
+@cache_ai_response('remix_suggestions', timeout=CACHE_TIMEOUT_MEDIUM)
 def get_remix_suggestions(recipe_id: int) -> list[str]:
     """Get 6 AI-generated remix suggestions for a recipe.
 

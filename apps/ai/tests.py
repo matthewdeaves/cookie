@@ -593,6 +593,11 @@ class OpenRouterServiceAsyncTests(TestCase):
 class TimerNamingServiceTests(TestCase):
     """Tests for the timer naming service."""
 
+    def setUp(self):
+        """Clear AI cache before each test to ensure isolation."""
+        from django.core.cache import cache
+        cache.clear()
+
     @patch('apps.ai.services.timer.OpenRouterService')
     def test_generate_timer_name_success(self, mock_service_class):
         """Test successful timer name generation."""
@@ -1386,6 +1391,79 @@ class ValidatorEdgeCaseTests(TestCase):
         assert schema is None
 
 
+class AICacheTests(TestCase):
+    """Tests for the AI response caching utilities."""
+
+    def setUp(self):
+        """Clear cache before each test."""
+        from django.core.cache import cache
+        cache.clear()
+
+    def test_cache_decorator_caches_result(self):
+        """Test that cache_ai_response decorator caches function results."""
+        from apps.ai.services.cache import cache_ai_response
+
+        call_count = 0
+
+        @cache_ai_response('test_func', timeout=60)
+        def test_func(x, y):
+            nonlocal call_count
+            call_count += 1
+            return x + y
+
+        # First call should execute function
+        result1 = test_func(1, 2)
+        assert result1 == 3
+        assert call_count == 1
+
+        # Second call with same args should use cache
+        result2 = test_func(1, 2)
+        assert result2 == 3
+        assert call_count == 1  # Function wasn't called again
+
+        # Different args should execute function
+        result3 = test_func(3, 4)
+        assert result3 == 7
+        assert call_count == 2
+
+    def test_cache_key_generation(self):
+        """Test that cache keys are generated correctly."""
+        from apps.ai.services.cache import _make_cache_key
+
+        key1 = _make_cache_key('func', 'arg1', 'arg2', kwarg1='val1')
+        key2 = _make_cache_key('func', 'arg1', 'arg2', kwarg1='val1')
+        key3 = _make_cache_key('func', 'arg1', 'arg3', kwarg1='val1')
+
+        # Same arguments should produce same key
+        assert key1 == key2
+
+        # Different arguments should produce different key
+        assert key1 != key3
+
+        # Key should have proper prefix
+        assert key1.startswith('ai:func:')
+
+    def test_invalidate_ai_cache(self):
+        """Test that cache entries can be invalidated."""
+        from django.core.cache import cache
+        from apps.ai.services.cache import cache_ai_response, invalidate_ai_cache
+
+        @cache_ai_response('test_invalidate', timeout=60)
+        def test_func(x):
+            return x * 2
+
+        # Populate cache
+        test_func(5)
+
+        # Invalidate should return True when key exists
+        result = invalidate_ai_cache('test_invalidate', 5)
+        assert result is True
+
+        # Invalidate should return False when key doesn't exist
+        result = invalidate_ai_cache('test_invalidate', 999)
+        assert result is False
+
+
 class ScalingServiceTests(TestCase):
     """Tests for the recipe scaling service."""
 
@@ -1502,6 +1580,11 @@ class ScalingServiceTests(TestCase):
 
 class RemixServiceTests(TestCase):
     """Tests for the recipe remix service."""
+
+    def setUp(self):
+        """Clear AI cache before each test to ensure isolation."""
+        from django.core.cache import cache
+        cache.clear()
 
     def test_parse_time_remix(self):
         """Test _parse_time function in remix module."""

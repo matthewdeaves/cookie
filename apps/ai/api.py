@@ -2,7 +2,8 @@
 AI settings and prompts API endpoints.
 """
 
-from typing import List, Optional
+from functools import wraps
+from typing import Callable, List, Optional
 
 from ninja import Router, Schema
 
@@ -21,6 +22,36 @@ from .services.selector import repair_selector, get_sources_needing_attention
 from .services.validator import ValidationError
 
 router = Router(tags=['ai'])
+
+
+# Decorators
+
+def handle_ai_errors(func: Callable) -> Callable:
+    """Decorator to handle common AI service errors.
+
+    Catches AIUnavailableError, AIResponseError, and ValidationError,
+    returning appropriate error responses.
+
+    Returns:
+        - 503 with 'ai_unavailable' error for AIUnavailableError
+        - 400 with 'ai_error' error for AIResponseError or ValidationError
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except AIUnavailableError as e:
+            return 503, {
+                'error': 'ai_unavailable',
+                'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
+                'action': 'configure_key',
+            }
+        except (AIResponseError, ValidationError) as e:
+            return 400, {
+                'error': 'ai_error',
+                'message': str(e),
+            }
+    return wrapper
 
 
 # Schemas
@@ -268,6 +299,7 @@ class RemixOut(Schema):
 # Remix Endpoints
 
 @router.post('/remix-suggestions', response={200: RemixSuggestionsOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+@handle_ai_errors
 def remix_suggestions(request, data: RemixSuggestionsIn):
     """Get 6 AI-generated remix suggestions for a recipe.
 
@@ -277,35 +309,25 @@ def remix_suggestions(request, data: RemixSuggestionsIn):
     profile = get_current_profile_or_none(request)
 
     try:
-        # Verify recipe ownership
         recipe = Recipe.objects.get(id=data.recipe_id)
-        if not profile or recipe.profile_id != profile.id:
-            return 404, {
-                'error': 'not_found',
-                'message': f'Recipe {data.recipe_id} not found',
-            }
-
-        suggestions = get_remix_suggestions(data.recipe_id)
-        return {'suggestions': suggestions}
     except Recipe.DoesNotExist:
         return 404, {
             'error': 'not_found',
             'message': f'Recipe {data.recipe_id} not found',
         }
-    except AIUnavailableError as e:
-        return 503, {
-            'error': 'ai_unavailable',
-            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
-            'action': 'configure_key',
+
+    if not profile or recipe.profile_id != profile.id:
+        return 404, {
+            'error': 'not_found',
+            'message': f'Recipe {data.recipe_id} not found',
         }
-    except (AIResponseError, ValidationError) as e:
-        return 400, {
-            'error': 'ai_error',
-            'message': str(e),
-        }
+
+    suggestions = get_remix_suggestions(data.recipe_id)
+    return {'suggestions': suggestions}
 
 
 @router.post('/remix', response={200: RemixOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+@handle_ai_errors
 def create_remix_endpoint(request, data: CreateRemixIn):
     """Create a remixed recipe using AI.
 
@@ -329,50 +351,39 @@ def create_remix_endpoint(request, data: CreateRemixIn):
         }
 
     try:
-        # Verify recipe ownership
         recipe = Recipe.objects.get(id=data.recipe_id)
-        if recipe.profile_id != profile.id:
-            return 404, {
-                'error': 'not_found',
-                'message': f'Recipe {data.recipe_id} not found',
-            }
-
-        remix = create_remix(
-            recipe_id=data.recipe_id,
-            modification=data.modification,
-            profile=profile,
-        )
-        return {
-            'id': remix.id,
-            'title': remix.title,
-            'description': remix.description,
-            'ingredients': remix.ingredients,
-            'instructions': remix.instructions,
-            'host': remix.host,
-            'site_name': remix.site_name,
-            'is_remix': remix.is_remix,
-            'prep_time': remix.prep_time,
-            'cook_time': remix.cook_time,
-            'total_time': remix.total_time,
-            'yields': remix.yields,
-            'servings': remix.servings,
-        }
     except Recipe.DoesNotExist:
         return 404, {
             'error': 'not_found',
             'message': f'Recipe {data.recipe_id} not found',
         }
-    except AIUnavailableError as e:
-        return 503, {
-            'error': 'ai_unavailable',
-            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
-            'action': 'configure_key',
+
+    if recipe.profile_id != profile.id:
+        return 404, {
+            'error': 'not_found',
+            'message': f'Recipe {data.recipe_id} not found',
         }
-    except (AIResponseError, ValidationError) as e:
-        return 400, {
-            'error': 'ai_error',
-            'message': str(e),
-        }
+
+    remix = create_remix(
+        recipe_id=data.recipe_id,
+        modification=data.modification,
+        profile=profile,
+    )
+    return {
+        'id': remix.id,
+        'title': remix.title,
+        'description': remix.description,
+        'ingredients': remix.ingredients,
+        'instructions': remix.instructions,
+        'host': remix.host,
+        'site_name': remix.site_name,
+        'is_remix': remix.is_remix,
+        'prep_time': remix.prep_time,
+        'cook_time': remix.cook_time,
+        'total_time': remix.total_time,
+        'yields': remix.yields,
+        'servings': remix.servings,
+    }
 
 
 # Scaling Schemas
@@ -405,6 +416,7 @@ class ScaleOut(Schema):
 # Scaling Endpoints
 
 @router.post('/scale', response={200: ScaleOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+@handle_ai_errors
 def scale_recipe_endpoint(request, data: ScaleIn):
     """Scale a recipe to a different number of servings.
 
@@ -428,13 +440,13 @@ def scale_recipe_endpoint(request, data: ScaleIn):
 
     try:
         recipe = Recipe.objects.get(id=data.recipe_id)
-        # Verify recipe ownership
-        if recipe.profile_id != profile.id:
-            return 404, {
-                'error': 'not_found',
-                'message': f'Recipe {data.recipe_id} not found',
-            }
     except Recipe.DoesNotExist:
+        return 404, {
+            'error': 'not_found',
+            'message': f'Recipe {data.recipe_id} not found',
+        }
+
+    if recipe.profile_id != profile.id:
         return 404, {
             'error': 'not_found',
             'message': f'Recipe {data.recipe_id} not found',
@@ -447,44 +459,33 @@ def scale_recipe_endpoint(request, data: ScaleIn):
             profile=profile,
             unit_system=data.unit_system,
         )
-
-        # Calculate nutrition if available
-        nutrition = None
-        if recipe.nutrition:
-            nutrition = calculate_nutrition(
-                recipe=recipe,
-                original_servings=recipe.servings,
-                target_servings=data.target_servings,
-            )
-
-        return {
-            'target_servings': result['target_servings'],
-            'original_servings': result['original_servings'],
-            'ingredients': result['ingredients'],
-            'instructions': result.get('instructions', []),  # QA-031
-            'notes': result['notes'],
-            'prep_time_adjusted': result.get('prep_time_adjusted'),  # QA-032
-            'cook_time_adjusted': result.get('cook_time_adjusted'),  # QA-032
-            'total_time_adjusted': result.get('total_time_adjusted'),  # QA-032
-            'nutrition': nutrition,
-            'cached': result['cached'],
-        }
     except ValueError as e:
         return 400, {
             'error': 'validation_error',
             'message': str(e),
         }
-    except AIUnavailableError as e:
-        return 503, {
-            'error': 'ai_unavailable',
-            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
-            'action': 'configure_key',
-        }
-    except (AIResponseError, ValidationError) as e:
-        return 400, {
-            'error': 'ai_error',
-            'message': str(e),
-        }
+
+    # Calculate nutrition if available
+    nutrition = None
+    if recipe.nutrition:
+        nutrition = calculate_nutrition(
+            recipe=recipe,
+            original_servings=recipe.servings,
+            target_servings=data.target_servings,
+        )
+
+    return {
+        'target_servings': result['target_servings'],
+        'original_servings': result['original_servings'],
+        'ingredients': result['ingredients'],
+        'instructions': result.get('instructions', []),  # QA-031
+        'notes': result['notes'],
+        'prep_time_adjusted': result.get('prep_time_adjusted'),  # QA-032
+        'cook_time_adjusted': result.get('cook_time_adjusted'),  # QA-032
+        'total_time_adjusted': result.get('total_time_adjusted'),  # QA-032
+        'nutrition': nutrition,
+        'cached': result['cached'],
+    }
 
 
 # Tips Schemas
@@ -502,6 +503,7 @@ class TipsOut(Schema):
 # Tips Endpoints
 
 @router.post('/tips', response={200: TipsOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+@handle_ai_errors
 def tips_endpoint(request, data: TipsIn):
     """Generate cooking tips for a recipe.
 
@@ -512,36 +514,25 @@ def tips_endpoint(request, data: TipsIn):
     profile = get_current_profile_or_none(request)
 
     try:
-        # Verify recipe ownership
         recipe = Recipe.objects.get(id=data.recipe_id)
-        if not profile or recipe.profile_id != profile.id:
-            return 404, {
-                'error': 'not_found',
-                'message': f'Recipe {data.recipe_id} not found',
-            }
-
-        # Clear existing tips if regenerate requested
-        if data.regenerate:
-            clear_tips(data.recipe_id)
-
-        result = generate_tips(data.recipe_id)
-        return result
     except Recipe.DoesNotExist:
         return 404, {
             'error': 'not_found',
             'message': f'Recipe {data.recipe_id} not found',
         }
-    except AIUnavailableError as e:
-        return 503, {
-            'error': 'ai_unavailable',
-            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
-            'action': 'configure_key',
+
+    if not profile or recipe.profile_id != profile.id:
+        return 404, {
+            'error': 'not_found',
+            'message': f'Recipe {data.recipe_id} not found',
         }
-    except (AIResponseError, ValidationError) as e:
-        return 400, {
-            'error': 'ai_error',
-            'message': str(e),
-        }
+
+    # Clear existing tips if regenerate requested
+    if data.regenerate:
+        clear_tips(data.recipe_id)
+
+    result = generate_tips(data.recipe_id)
+    return result
 
 
 # Timer Naming Schemas
@@ -558,6 +549,7 @@ class TimerNameOut(Schema):
 # Timer Naming Endpoints
 
 @router.post('/timer-name', response={200: TimerNameOut, 400: ErrorOut, 503: ErrorOut})
+@handle_ai_errors
 def timer_name_endpoint(request, data: TimerNameIn):
     """Generate a descriptive name for a cooking timer.
 
@@ -575,23 +567,11 @@ def timer_name_endpoint(request, data: TimerNameIn):
             'message': 'Duration must be positive',
         }
 
-    try:
-        result = generate_timer_name(
-            step_text=data.step_text,
-            duration_minutes=data.duration_minutes,
-        )
-        return result
-    except AIUnavailableError as e:
-        return 503, {
-            'error': 'ai_unavailable',
-            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
-            'action': 'configure_key',
-        }
-    except (AIResponseError, ValidationError) as e:
-        return 400, {
-            'error': 'ai_error',
-            'message': str(e),
-        }
+    result = generate_timer_name(
+        step_text=data.step_text,
+        duration_minutes=data.duration_minutes,
+    )
+    return result
 
 
 # Discover Schemas
@@ -611,6 +591,7 @@ class DiscoverOut(Schema):
 # Discover Endpoints
 
 @router.get('/discover/{profile_id}/', response={200: DiscoverOut, 404: ErrorOut, 503: ErrorOut})
+@handle_ai_errors
 def discover_endpoint(request, profile_id: int):
     """Get AI discovery suggestions for a profile.
 
@@ -626,12 +607,6 @@ def discover_endpoint(request, profile_id: int):
         return 404, {
             'error': 'not_found',
             'message': f'Profile {profile_id} not found',
-        }
-    except AIUnavailableError as e:
-        return 503, {
-            'error': 'ai_unavailable',
-            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
-            'action': 'configure_key',
         }
 
 
@@ -664,6 +639,7 @@ class SourceNeedingAttentionOut(Schema):
 # Selector Repair Endpoints
 
 @router.post('/repair-selector', response={200: SelectorRepairOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+@handle_ai_errors
 def repair_selector_endpoint(request, data: SelectorRepairIn):
     """Attempt to repair a broken CSS selector using AI.
 
@@ -688,32 +664,20 @@ def repair_selector_endpoint(request, data: SelectorRepairIn):
             'message': 'HTML sample is required',
         }
 
-    try:
-        result = repair_selector(
-            source=source,
-            html_sample=data.html_sample,
-            target=data.target,
-            confidence_threshold=data.confidence_threshold,
-            auto_update=data.auto_update,
-        )
-        return {
-            'suggestions': result['suggestions'],
-            'confidence': result['confidence'],
-            'original_selector': result['original_selector'] or '',
-            'updated': result['updated'],
-            'new_selector': result.get('new_selector'),
-        }
-    except AIUnavailableError as e:
-        return 503, {
-            'error': 'ai_unavailable',
-            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
-            'action': 'configure_key',
-        }
-    except (AIResponseError, ValidationError) as e:
-        return 400, {
-            'error': 'ai_error',
-            'message': str(e),
-        }
+    result = repair_selector(
+        source=source,
+        html_sample=data.html_sample,
+        target=data.target,
+        confidence_threshold=data.confidence_threshold,
+        auto_update=data.auto_update,
+    )
+    return {
+        'suggestions': result['suggestions'],
+        'confidence': result['confidence'],
+        'original_selector': result['original_selector'] or '',
+        'updated': result['updated'],
+        'new_selector': result.get('new_selector'),
+    }
 
 
 @router.get('/sources-needing-attention', response=List[SourceNeedingAttentionOut])

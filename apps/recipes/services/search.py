@@ -248,16 +248,12 @@ class RecipeSearch:
         results = self._fallback_parse(soup, host, base_url)
         return results[:20]  # Limit per site
 
-    def _extract_result_from_element(
-        self,
-        element,
-        host: str,
-        base_url: str,
-    ) -> Optional[SearchResult]:
+    def _find_link(self, element) -> Optional[tuple]:
+        """Find recipe link in an HTML element.
+
+        Returns:
+            Tuple of (link_element, url) if found, None otherwise.
         """
-        Extract search result data from an HTML element.
-        """
-        # Find the link
         link = element.find('a', href=True)
         if not link:
             link = element if element.name == 'a' and element.get('href') else None
@@ -268,63 +264,102 @@ class RecipeSearch:
         if not url:
             return None
 
-        # Make URL absolute
-        url = urljoin(base_url, url)
+        return link, url
 
-        # Skip non-recipe URLs
+    def _extract_title(self, element, link) -> str:
+        """Extract title from element with multiple fallback strategies.
+
+        Tries: heading elements, link text, title/aria-label attributes.
+        """
+        title_el = element.find(['h2', 'h3', 'h4', '.title', '[class*="title"]'])
+        if title_el:
+            title = title_el.get_text(strip=True)
+            if title:
+                return title
+
+        title = link.get_text(strip=True)
+        if title:
+            return title
+
+        return link.get('title', '') or link.get('aria-label', '')
+
+    def _extract_rating(self, title: str) -> tuple[str, Optional[int]]:
+        """Extract and strip rating count from title.
+
+        Handles patterns like "Recipe Name1,392Ratings".
+
+        Returns:
+            Tuple of (cleaned_title, rating_count).
+        """
+        rating_match = re.search(r'([\d,]+)\s*[Rr]atings?\s*$', title)
+        if not rating_match:
+            return title, None
+
+        rating_str = rating_match.group(1).replace(',', '')
+        try:
+            rating_count = int(rating_str)
+            cleaned_title = title[:rating_match.start()].strip()
+            return cleaned_title, rating_count
+        except ValueError:
+            return title, None
+
+    def _extract_image(self, element, base_url: str) -> str:
+        """Extract image URL with multiple fallback strategies.
+
+        Tries: src, data-src, data-lazy-src attributes.
+        """
+        img = element.find('img')
+        if not img:
+            return ''
+
+        image_url = img.get('src') or img.get('data-src') or img.get('data-lazy-src', '')
+        if image_url:
+            return urljoin(base_url, image_url)
+        return ''
+
+    def _extract_description(self, element) -> str:
+        """Extract description from element."""
+        desc_el = element.find(['p', '.description', '[class*="description"]'])
+        if desc_el:
+            return desc_el.get_text(strip=True)[:200]
+        return ''
+
+    def _extract_result_from_element(
+        self,
+        element,
+        host: str,
+        base_url: str,
+    ) -> Optional[SearchResult]:
+        """Extract search result data from an HTML element."""
+        # Find and validate link
+        link_result = self._find_link(element)
+        if not link_result:
+            return None
+        link, url = link_result
+
+        # Make URL absolute and validate
+        url = urljoin(base_url, url)
         if not self._looks_like_recipe_url(url, host):
             return None
 
         # Extract title
-        title = ''
-        title_el = element.find(['h2', 'h3', 'h4', '.title', '[class*="title"]'])
-        if title_el:
-            title = title_el.get_text(strip=True)
-        if not title:
-            title = link.get_text(strip=True)
-        if not title:
-            title = link.get('title', '') or link.get('aria-label', '')
-
+        title = self._extract_title(element, link)
         if not title:
             return None
 
-        # Extract and strip rating count from title (e.g., "Recipe Name1,392Ratings")
-        rating_count = None
-        rating_match = re.search(r'([\d,]+)\s*[Rr]atings?\s*$', title)
-        if rating_match:
-            # Extract the number and remove commas
-            rating_str = rating_match.group(1).replace(',', '')
-            try:
-                rating_count = int(rating_str)
-                # Remove rating text from title
-                title = title[:rating_match.start()].strip()
-            except ValueError:
-                pass
+        # Extract and strip rating from title
+        title, rating_count = self._extract_rating(title)
 
         # Title may have become empty after stripping rating (QA-053)
         if not title:
             return None
 
-        # Extract image
-        image_url = ''
-        img = element.find('img')
-        if img:
-            image_url = img.get('src') or img.get('data-src') or img.get('data-lazy-src', '')
-            if image_url:
-                image_url = urljoin(base_url, image_url)
-
-        # Extract description
-        description = ''
-        desc_el = element.find(['p', '.description', '[class*="description"]'])
-        if desc_el:
-            description = desc_el.get_text(strip=True)[:200]
-
         return SearchResult(
             url=url,
             title=title[:200],
             host=host,
-            image_url=image_url,
-            description=description,
+            image_url=self._extract_image(element, base_url),
+            description=self._extract_description(element),
             rating_count=rating_count,
         )
 
