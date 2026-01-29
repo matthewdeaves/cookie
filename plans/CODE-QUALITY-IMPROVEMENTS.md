@@ -71,6 +71,8 @@ The review identified 50+ specific issues. This plan organizes them into 8 phase
   - **Fix:** Catch specific exceptions, log errors, fail workflow on critical data missing
   - **Impact:** Makes metric errors visible instead of silently wrong
 
+> **Tip:** Tasks 1.2, 1.3, and 1.4 involve debugging embedded CI scripts (266+ lines of Python in coverage.yml). If debugging proves difficult, consider pulling Task 8.1 (extract scripts to `.github/scripts/`) into this phase first. Extracted scripts enable local testing, proper syntax highlighting, and clearer error messages.
+
 ### Verification
 
 ```bash
@@ -86,7 +88,8 @@ ls -lh dist/assets/*.map  # Should exist
 docker compose exec -T web pip-audit  # Should work, not error
 
 # 1.4 - Trigger CI error
-# Temporarily break coverage.json format, verify workflow fails with clear error
+# Remove closing brace from coverage.json, push, verify CI fails with 'Invalid JSON' in error output
+# Example: sed -i '$ d' coverage.json && git commit -am "test" && git push
 ```
 
 ---
@@ -849,7 +852,11 @@ python .github/scripts/extract-metrics.py coverage.json
 python .github/scripts/generate-badges.py
 ls site/coverage/badges/  # Should contain all .svg files
 
-# 8.5 - Review documentation
+# 8.5 - Documentation completeness
+# Verify docs/CI-METRICS.md contains:
+# - "Adding a new metric" section with step-by-step
+# - Architecture diagram (workflow→script→artifact flow)
+# - Troubleshooting section with common failure modes
 # Follow "add new metric" guide
 # Successfully add a test metric following docs
 ```
@@ -957,6 +964,8 @@ Before marking phase complete:
 - [ ] 0 duplicate utility functions
 - [ ] settings.js < 300 lines (from 1,100)
 - [ ] detail.js < 500 lines (from 1,275)
+- [ ] Integration tests cover: profile selection, search→detail, favorites, collections, settings tabs, play mode timers
+- OR comprehensive manual testing checklist documented and executed
 
 **Phase 7 Complete:**
 - [ ] Bundle size metric within 10% of actual
@@ -975,6 +984,8 @@ Before marking phase complete:
 ### Low Risk
 - Phases 1, 7, 8 - Isolated changes, easy rollback
 - Phase 2 (backend testing) - No prod code changes, only adding tests
+
+> **Note:** If you encounter CI/metrics debugging issues during Phases 1-7, consider promoting Task 8.1 (extract embedded scripts to `.github/scripts/`) earlier. The 266-line Python script in coverage.yml makes debugging painful - extracting it enables local testing and proper error messages.
 
 ### Medium Risk
 - Phase 3 (backend refactoring) - Changes production code but NOW has test coverage from Phase 2
