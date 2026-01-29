@@ -907,6 +907,9 @@ jobs:
 
           if (fs.existsSync(distDir)) {
             fs.readdirSync(distDir).forEach(file => {
+              // Skip source maps - they aren't served to users
+              if (file.endsWith('.map')) return;
+
               const filePath = path.join(distDir, file);
               const stats = fs.statSync(filePath);
               const sizeKB = Math.round(stats.size / 1024 * 100) / 100;

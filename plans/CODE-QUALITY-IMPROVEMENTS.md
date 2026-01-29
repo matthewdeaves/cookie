@@ -25,7 +25,7 @@ The review identified 50+ specific issues. This plan organizes them into 8 phase
 
 | Phase | Focus | Tasks | Priority | Status |
 |-------|-------|-------|----------|--------|
-| **1** | Critical Bugs | 4 tasks | Critical | [OPEN] |
+| **1** | Critical Bugs | 4 tasks | Critical | [DONE] |
 | **2** | Backend Testing & Security | 9 tasks | High | [OPEN] |
 | **3** | Backend Refactoring | 6 tasks | High | [OPEN] |
 | **4** | Frontend Architecture | 5 tasks | High | [OPEN] |
@@ -47,29 +47,29 @@ The review identified 50+ specific issues. This plan organizes them into 8 phase
 
 ### Tasks
 
-- [ ] 1.1 Fix useTimers race condition
+- [x] 1.1 Fix useTimers race condition
   - **File:** `frontend/src/hooks/useTimers.ts:40-81`
   - **Issue:** `setInterval` starts before `setTimers` completes, causing first tick to fail
-  - **Fix:** Move interval setup inside `setTimers` callback
+  - **Fix:** Move interval setup after `setTimers` call (state update queued first)
   - **Impact:** Prevents timer failures under certain timing conditions
 
-- [ ] 1.2 Fix bundle size calculation to exclude source maps
+- [x] 1.2 Fix bundle size calculation to exclude source maps
   - **File:** `.github/workflows/ci.yml:908-920`
   - **Issue:** Counts `.map` files (1413KB) that aren't served to users
-  - **Fix:** Add `if (file.endsWith('.map')) return;` before summing file sizes
-  - **Impact:** Metric currently reports 1807KB instead of actual ~400KB
+  - **Fix:** Added `if (file.endsWith('.map')) return;` before summing file sizes
+  - **Impact:** Metric now reports actual served size (~400KB)
 
-- [ ] 1.3 Add pip-audit to requirements.txt
+- [x] 1.3 Add pip-audit to requirements.txt
   - **File:** `.github/workflows/ci.yml:815` and `requirements.txt`
   - **Issue:** pip-audit works in CI but not locally (installed at runtime)
-  - **Fix:** Add `pip-audit` to requirements.txt or requirements-dev.txt
-  - **Impact:** Developers can't run security checks during development
+  - **Fix:** Added `pip-audit>=2.0` to requirements.txt
+  - **Impact:** Developers can run security checks during development
 
-- [ ] 1.4 Replace bare `except: pass` in CI scripts with proper error handling
+- [x] 1.4 Replace bare `except: pass` in CI scripts with proper error handling
   - **File:** `.github/workflows/coverage.yml` throughout
   - **Issue:** Silently fails and defaults to 0, making debugging impossible
-  - **Fix:** Catch specific exceptions, log errors, fail workflow on critical data missing
-  - **Impact:** Makes metric errors visible instead of silently wrong
+  - **Fix:** Replaced with specific exceptions (`FileNotFoundError`, `json.JSONDecodeError`, `KeyError`, `ValueError`, `TypeError`) and print warnings/errors
+  - **Impact:** Metric errors now visible in CI logs
 
 > **Tip:** Tasks 1.2, 1.3, and 1.4 involve debugging embedded CI scripts (266+ lines of Python in coverage.yml). If debugging proves difficult, consider pulling Task 8.1 (extract scripts to `.github/scripts/`) into this phase first. Extracted scripts enable local testing, proper syntax highlighting, and clearer error messages.
 

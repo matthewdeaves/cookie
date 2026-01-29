@@ -40,7 +40,19 @@ export function useTimers(onTimerComplete?: (timer: Timer) => void): UseTimersRe
   const addTimer = useCallback((label: string, duration: number, autoStart: boolean = true): string => {
     const id = crypto.randomUUID()
 
-    // If autoStart, set up the interval immediately (before setTimers completes)
+    // Add timer to state FIRST to ensure it exists before interval ticks
+    setTimers((prev) => [
+      ...prev,
+      {
+        id,
+        label,
+        duration,
+        remaining: duration,
+        isRunning: autoStart,
+      },
+    ])
+
+    // Set up interval AFTER state update is queued (timer will exist before first tick)
     if (autoStart) {
       const intervalId = window.setInterval(() => {
         setTimers((prev) =>
@@ -65,17 +77,6 @@ export function useTimers(onTimerComplete?: (timer: Timer) => void): UseTimersRe
 
       intervalsRef.current.set(id, intervalId)
     }
-
-    setTimers((prev) => [
-      ...prev,
-      {
-        id,
-        label,
-        duration,
-        remaining: duration,
-        isRunning: autoStart,
-      },
-    ])
 
     return id
   }, [])

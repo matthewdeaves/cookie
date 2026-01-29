@@ -228,7 +228,7 @@ jobs:
           def get_color(pct, invert=False):
               try:
                   pct = float(pct)
-              except:
+              except (ValueError, TypeError):
                   return 'lightgrey'
               if invert:  # For complexity/duplication (lower is better)
                   if pct <= 5: return 'brightgreen'
@@ -261,13 +261,19 @@ jobs:
               with open('coverage/frontend/coverage-summary.json') as f:
                   d = json.load(f)
                   frontend_cov = d['total']['lines']['pct']
-          except: pass
+          except FileNotFoundError:
+              print("WARNING: Frontend coverage artifact not found")
+          except (json.JSONDecodeError, KeyError) as e:
+              print(f"ERROR: Invalid frontend coverage data: {e}")
 
           try:
               with open('coverage/backend/coverage.json') as f:
                   d = json.load(f)
                   backend_cov = round(d['totals']['percent_covered'], 1)
-          except: pass
+          except FileNotFoundError:
+              print("WARNING: Backend coverage artifact not found")
+          except (json.JSONDecodeError, KeyError) as e:
+              print(f"ERROR: Invalid backend coverage data: {e}")
 
           # Extract complexity metrics
           backend_cc = 0
@@ -284,14 +290,20 @@ jobs:
                   backend_mi = d.get('average_maintainability_index', 0)
                   backend_cc_rating = d.get('cc_rating', 'N/A')
                   backend_mi_rating = d.get('mi_rating', 'N/A')
-          except: pass
+          except FileNotFoundError:
+              print("WARNING: Backend complexity artifact not found")
+          except json.JSONDecodeError as e:
+              print(f"ERROR: Invalid backend complexity data: {e}")
 
           try:
               with open('complexity/frontend/summary.json') as f:
                   d = json.load(f)
                   frontend_complexity_warnings = d.get('complexity_warnings', 0)
                   frontend_complexity_rating = d.get('rating', 'N/A')
-          except: pass
+          except FileNotFoundError:
+              print("WARNING: Frontend complexity artifact not found")
+          except json.JSONDecodeError as e:
+              print(f"ERROR: Invalid frontend complexity data: {e}")
 
           # Extract duplication metrics (frontend)
           duplication_pct = 0
@@ -304,7 +316,10 @@ jobs:
                   duplication_pct = d.get('duplication_percentage', 0)
                   duplication_rating = d.get('rating', 'N/A')
                   duplication_clones = d.get('clones_count', 0)
-          except: pass
+          except FileNotFoundError:
+              print("WARNING: Frontend duplication artifact not found")
+          except json.JSONDecodeError as e:
+              print(f"ERROR: Invalid frontend duplication data: {e}")
 
           # Extract duplication metrics (backend)
           backend_duplication_pct = 0
@@ -317,7 +332,10 @@ jobs:
                   backend_duplication_pct = d.get('duplication_percentage', 0)
                   backend_duplication_rating = d.get('rating', 'N/A')
                   backend_duplication_clones = d.get('clones_count', 0)
-          except: pass
+          except FileNotFoundError:
+              print("WARNING: Backend duplication artifact not found")
+          except json.JSONDecodeError as e:
+              print(f"ERROR: Invalid backend duplication data: {e}")
 
           # Extract security metrics
           frontend_vulns = 0
@@ -330,16 +348,20 @@ jobs:
                   d = json.load(f)
                   frontend_vulns = d.get('total_vulnerabilities', 0)
                   frontend_security_rating = d.get('rating', 'A')
-          except:
-              pass
+          except FileNotFoundError:
+              print("WARNING: Frontend security artifact not found")
+          except json.JSONDecodeError as e:
+              print(f"ERROR: Invalid frontend security data: {e}")
 
           try:
               with open('security/backend/summary.json') as f:
                   d = json.load(f)
                   backend_vulns = d.get('total_vulnerabilities', 0)
                   backend_security_rating = d.get('rating', 'A')
-          except:
-              pass
+          except FileNotFoundError:
+              print("WARNING: Backend security artifact not found")
+          except json.JSONDecodeError as e:
+              print(f"ERROR: Invalid backend security data: {e}")
 
           # Extract bundle metrics
           bundle_size_kb = 0
@@ -350,7 +372,10 @@ jobs:
                   d = json.load(f)
                   bundle_size_kb = d.get('total_size_kb', 0)
                   bundle_rating = d.get('rating', 'N/A')
-          except: pass
+          except FileNotFoundError:
+              print("WARNING: Bundle artifact not found")
+          except json.JSONDecodeError as e:
+              print(f"ERROR: Invalid bundle data: {e}")
 
           # Extract legacy metrics
           legacy_errors = 0
@@ -367,14 +392,20 @@ jobs:
                   legacy_warnings = d.get('warnings', 0)
                   legacy_complexity_warnings = d.get('complexity_warnings', 0)
                   legacy_lint_rating = d.get('rating', 'N/A')
-          except: pass
+          except FileNotFoundError:
+              print("WARNING: Legacy lint artifact not found")
+          except json.JSONDecodeError as e:
+              print(f"ERROR: Invalid legacy lint data: {e}")
 
           try:
               with open('legacy/duplication/summary.json') as f:
                   d = json.load(f)
                   legacy_duplication_pct = d.get('duplication_percentage', 0)
                   legacy_duplication_rating = d.get('rating', 'N/A')
-          except: pass
+          except FileNotFoundError:
+              print("WARNING: Legacy duplication artifact not found")
+          except json.JSONDecodeError as e:
+              print(f"ERROR: Invalid legacy duplication data: {e}")
 
           # Generate badges
           download_badge('frontend-coverage', f'{frontend_cov}%25', get_color(frontend_cov), 'coverage')
