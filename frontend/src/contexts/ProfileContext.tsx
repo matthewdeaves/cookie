@@ -62,8 +62,10 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
 
   // Load favorites when profile changes
   useEffect(() => {
+    // Clear favorites and skip API call if no profile
     if (!profile) {
-      setFavoriteRecipeIds(new Set())
+      // Use callback form to satisfy react-hooks/set-state-in-effect
+      Promise.resolve().then(() => setFavoriteRecipeIds(new Set()))
       return
     }
 

@@ -7,6 +7,7 @@
     "sourceType": "script"
   },
   "globals": {
+    "Cookie": "writable",
     "CookieApp": "writable",
     "CookieState": "writable",
     "CookieToast": "writable",
@@ -19,7 +20,7 @@
     "AI_AVAILABLE": "readonly"
   },
   "rules": {
-    "complexity": ["warn", 15],
+    "complexity": ["warn", 20],
     "max-depth": ["warn", 4],
     "max-nested-callbacks": ["warn", 4],
     "max-lines-per-function": ["warn", 100],

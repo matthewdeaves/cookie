@@ -31,7 +31,7 @@ export default function Home() {
   const [discoverSuggestions, setDiscoverSuggestions] = useState<DiscoverSuggestion[]>([])
   const [discoverLoading, setDiscoverLoading] = useState(false)
   const [discoverError, setDiscoverError] = useState(false)
-  const [_discoverRefreshedAt, setDiscoverRefreshedAt] = useState<string | null>(null)
+  const [, setDiscoverRefreshedAt] = useState<string | null>(null)
 
   useEffect(() => {
     loadData()

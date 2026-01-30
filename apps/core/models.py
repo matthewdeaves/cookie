@@ -18,19 +18,6 @@ class AppSettings(models.Model):
         verbose_name = 'App Settings'
         verbose_name_plural = 'App Settings'
 
-    @property
-    def openrouter_api_key(self) -> str:
-        """Get the decrypted API key."""
-        return decrypt_value(self._openrouter_api_key)
-
-    @openrouter_api_key.setter
-    def openrouter_api_key(self, value: str):
-        """Set and encrypt the API key."""
-        if value and not is_encrypted(value):
-            self._openrouter_api_key = encrypt_value(value)
-        else:
-            self._openrouter_api_key = value
-
     def save(self, *args, **kwargs):
         self.pk = 1  # Enforce singleton
 
@@ -45,3 +32,16 @@ class AppSettings(models.Model):
         """Get or create the singleton instance."""
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+    @property
+    def openrouter_api_key(self) -> str:
+        """Get the decrypted API key."""
+        return decrypt_value(self._openrouter_api_key)
+
+    @openrouter_api_key.setter
+    def openrouter_api_key(self, value: str):
+        """Set and encrypt the API key."""
+        if value and not is_encrypted(value):
+            self._openrouter_api_key = encrypt_value(value)
+        else:
+            self._openrouter_api_key = value
