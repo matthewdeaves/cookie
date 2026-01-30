@@ -1,3 +1,22 @@
+[tool.coverage.run]
+# Exclude test files from coverage measurement
+omit = [
+    "*/tests.py",
+    "*/test_*.py",
+    "*_test.py",
+    "tests/*",
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+# Exclude test files and common patterns from reports
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]
+
 [tool.ruff]
 # Target Python 3.12
 target-version = "py312"
