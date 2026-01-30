@@ -452,5 +452,13 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'legacy/js/pages/detail.js' %}?v=045d"></script>
+<!-- Detail page modules (load order matters) -->
+<script src="{% static 'legacy/js/pages/detail-core.js' %}"></script>
+<script src="{% static 'legacy/js/pages/detail-display.js' %}"></script>
+<script src="{% static 'legacy/js/pages/detail-favorites.js' %}"></script>
+<script src="{% static 'legacy/js/pages/detail-collections.js' %}"></script>
+<script src="{% static 'legacy/js/pages/detail-scaling.js' %}"></script>
+<script src="{% static 'legacy/js/pages/detail-remix.js' %}"></script>
+<script src="{% static 'legacy/js/pages/detail-tips.js' %}"></script>
+<script src="{% static 'legacy/js/pages/detail-init.js' %}"></script>
 {% endblock %}

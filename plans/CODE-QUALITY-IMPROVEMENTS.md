@@ -30,7 +30,7 @@ The review identified 50+ specific issues. This plan organizes them into 8 phase
 | **3** | Backend Refactoring | 6 tasks | High | [DONE] |
 | **4** | Frontend Architecture | 5 tasks | High | [DONE] |
 | **5** | Frontend Testing & Utilities | 5 tasks | Medium | [DONE] |
-| **6** | Legacy JavaScript Refactoring | 6 tasks | Medium | [OPEN] |
+| **6** | Legacy JavaScript Refactoring | 6 tasks | Medium | [DONE] |
 | **7** | CI/Metrics Accuracy | 6 tasks | Medium | [OPEN] |
 | **8** | CI/Metrics Maintainability | 5 tasks | Low | [OPEN] |
 
@@ -535,12 +535,26 @@ cd frontend && npm test -- ErrorBoundary.test.tsx
 
 | Session | Focus | Status |
 |---------|-------|--------|
-| 6A | Set up legacy testing infrastructure | [OPEN] |
-| 6B | Refactor with manual testing verification | [OPEN] |
+| 6A | Set up legacy testing infrastructure | [DONE] |
+| 6B | Refactor with manual testing verification | [DONE] |
+
+### Implementation Notes
+
+**Module Loading Approach:** Used multiple `<script>` tags in templates rather than async module loader because:
+- Simpler and more reliable for iOS 9 Safari compatibility
+- Synchronous loading maintains predictable execution order
+- HTTP/2 mitigates multiple request overhead
+- No additional loader code to maintain
+
+**File Structure:**
+- `settings-*.js`: 8 modules totaling ~1,100 lines (largest: 205 lines)
+- `detail-*.js`: 8 modules totaling ~1,280 lines (largest: 364 lines)
+- Each module registers with core via `registerTab()` or `registerFeature()`
+- Core modules manage shared state accessible via `getState()`
 
 ### Tasks
 
-- [ ] 6.0 Set up minimal integration testing for legacy frontend
+- [x] 6.0 Set up minimal integration testing for legacy frontend (manual checklist created at `plans/LEGACY-JS-TESTING-CHECKLIST.md`)
   - **File:** `tests/test_legacy_integration.py` (new)
   - **Current:** 4,623 lines of ES5 JavaScript with zero automated test coverage
   - **Risk:** Refactoring without tests can introduce regressions that won't be caught until manual QA
@@ -558,7 +572,7 @@ cd frontend && npm test -- ErrorBoundary.test.tsx
   - **Impact:** Basic smoke tests catch major breakage during refactoring
   - **Alternative:** If test setup is too complex, create comprehensive manual testing checklist and document before/after behavior
 
-- [ ] 6.1 Add Cookie.utils for shared functions
+- [x] 6.1 Add Cookie.utils for shared functions (created `utils.js` with escapeHtml, formatTime, truncate, formatNumber, showElement, hideElement, escapeSelector, delegate, and more)
   - **File:** `apps/legacy/static/legacy/js/utils.js` (new)
   - **Current:** `escapeHtml()` reimplemented 5 times, `handleTabClick()` 3 times
   - **Fix:** Create `Cookie.utils` object with shared utilities:
@@ -572,7 +586,7 @@ cd frontend && npm test -- ErrorBoundary.test.tsx
   - **Load:** Via script tag before page modules
   - **Impact:** 5 copies of escapeHtml → 1, 3 copies of handleTabClick → 1
 
-- [ ] 6.2 Split settings.js into tab-specific files
+- [x] 6.2 Split settings.js into tab-specific files (8 modules via multiple script tags: core, general, prompts, sources, selectors, users, danger, init)
   - **File:** `apps/legacy/static/legacy/js/pages/settings.js` (1,100 lines)
   - **Current:** 6 tabs managed inline
   - **Fix:** Split into modules (requires async module loader):
@@ -585,7 +599,7 @@ cd frontend && npm test -- ErrorBoundary.test.tsx
   - **Dependencies:** Add simple script loader to Cookie namespace
   - **Impact:** 1,100 lines → 6 files of ~150-200 lines each
 
-- [ ] 6.3 Replace event listener loops with delegation
+- [x] 6.3 Replace event listener loops with delegation (implemented Cookie.utils.delegate, refactored settings.js to use delegation for sources, selectors, and profiles lists)
   - **File:** `apps/legacy/static/legacy/js/pages/settings.js:130-849`
   - **Current:** 16+ loops attaching individual listeners
   - **Fix:** Single delegated listener:
@@ -606,7 +620,7 @@ cd frontend && npm test -- ErrorBoundary.test.tsx
     ```
   - **Impact:** 100+ listeners → 1, handles dynamic elements automatically
 
-- [ ] 6.4 Split detail.js features into separate modules
+- [x] 6.4 Split detail.js features into separate modules (8 modules: core, display, favorites, collections, scaling, remix, tips, init)
   - **File:** `apps/legacy/static/legacy/js/pages/detail.js` (1,275 lines)
   - **Current:** Manages recipe display, favorites, collections, AI features, polling
   - **Fix:** Split into modules:
@@ -615,7 +629,7 @@ cd frontend && npm test -- ErrorBoundary.test.tsx
     - `detail-collections.js` - Collection management, modals
   - **Impact:** 1,275 lines → 3 files of ~400 lines each
 
-- [ ] 6.5 Replace HTML string concatenation with template elements
+- [x] 6.5 Replace HTML string concatenation with template elements (added HTML5 templates for source-item, selector-item, profile-card in settings.html)
   - **Files:** Throughout legacy code, especially `settings.js:450-464`
   - **Current:** Large HTML strings concatenated in JavaScript
   - **Fix:** Use HTML5 `<template>` elements:

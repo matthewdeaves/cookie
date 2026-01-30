@@ -438,5 +438,86 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'legacy/js/pages/settings.js' %}"></script>
+<!-- HTML Templates for JavaScript rendering -->
+<template id="template-source-item">
+    <div class="source-item">
+        <div class="source-info">
+            <div class="source-name-row">
+                <span class="source-name" data-field="name"></span>
+                <span class="source-active-badge" data-field="badge"></span>
+            </div>
+            <span class="source-host" data-field="host"></span>
+        </div>
+        <button type="button" class="btn-toggle" data-action="toggle-source">
+            <!-- Icon inserted by JS -->
+        </button>
+    </div>
+</template>
+
+<template id="template-selector-item">
+    <div class="selector-item">
+        <div class="selector-header">
+            <div class="selector-info">
+                <div class="selector-name-row">
+                    <span class="selector-name" data-field="name"></span>
+                    <span data-field="status-icon"></span>
+                </div>
+                <span class="selector-host" data-field="host"></span>
+                <p class="selector-failure-warning hidden" data-field="failure-warning"></p>
+            </div>
+            <div class="selector-actions">
+                <span class="selector-last-tested" data-field="last-tested"></span>
+                <button type="button" class="btn btn-secondary btn-sm" data-action="test-source">
+                    <span class="btn-icon-wrapper">
+                        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        <span class="test-btn-text">Test</span>
+                    </span>
+                </button>
+            </div>
+        </div>
+        <div class="selector-field">
+            <label class="selector-label">CSS Selector</label>
+            <div class="selector-input-row">
+                <code class="selector-value" data-field="selector-value"></code>
+                <button type="button" class="btn btn-edit btn-sm" data-action="edit-selector">Edit</button>
+            </div>
+            <div class="selector-edit-row hidden">
+                <input type="text" class="input input-mono" data-field="selector">
+                <button type="button" class="btn btn-secondary btn-sm" data-action="cancel-edit">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" data-action="save-selector">Save</button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<template id="template-profile-card">
+    <div class="profile-card">
+        <div class="profile-avatar" data-field="avatar"></div>
+        <div class="profile-info">
+            <div class="profile-name-row">
+                <span class="profile-name" data-field="name"></span>
+                <span class="profile-current-badge hidden" data-field="badge">Current</span>
+            </div>
+            <span class="profile-meta" data-field="created"></span>
+            <span class="profile-stats" data-field="stats"></span>
+        </div>
+        <button type="button" class="btn-delete" data-action="delete-profile" title="Delete profile">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"></path>
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+            </svg>
+        </button>
+    </div>
+</template>
+
+<!-- Settings page modules (load order matters) -->
+<script src="{% static 'legacy/js/pages/settings-core.js' %}"></script>
+<script src="{% static 'legacy/js/pages/settings-general.js' %}"></script>
+<script src="{% static 'legacy/js/pages/settings-prompts.js' %}"></script>
+<script src="{% static 'legacy/js/pages/settings-sources.js' %}"></script>
+<script src="{% static 'legacy/js/pages/settings-selectors.js' %}"></script>
+<script src="{% static 'legacy/js/pages/settings-users.js' %}"></script>
+<script src="{% static 'legacy/js/pages/settings-danger.js' %}"></script>
+<script src="{% static 'legacy/js/pages/settings-init.js' %}"></script>
 {% endblock %}

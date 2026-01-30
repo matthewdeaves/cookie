@@ -671,16 +671,7 @@ Cookie.pages.detail = (function() {
         }
     }
 
-    /**
-     * Format minutes as readable time
-     */
-    function formatTime(minutes) {
-        if (!minutes) return null;
-        if (minutes < 60) return minutes + ' min';
-        var hours = Math.floor(minutes / 60);
-        var mins = minutes % 60;
-        return mins > 0 ? hours + 'h ' + mins + 'm' : hours + 'h';
-    }
+    // Use shared utility: Cookie.utils.formatTime
 
     /**
      * Render adjusted cooking times
@@ -702,14 +693,14 @@ Cookie.pages.detail = (function() {
                     var originalMinutesAttr = el.getAttribute('data-original-minutes');
                     var originalMinutes = originalMinutesAttr ? parseInt(originalMinutesAttr, 10) : null;
                     var adjustedMinutes = parseInt(adjusted, 10);
-                    var adjustedFormatted = formatTime(adjustedMinutes);
+                    var adjustedFormatted = Cookie.utils.formatTime(adjustedMinutes);
 
                     // Only show "(was X)" if time actually changed
                     // Compare integers if we have original minutes, otherwise times are equal (no attr = stale cache)
                     var timeChanged = (originalMinutes !== null) && (adjustedMinutes !== originalMinutes);
 
                     if (timeChanged) {
-                        var originalFormatted = formatTime(originalMinutes);
+                        var originalFormatted = Cookie.utils.formatTime(originalMinutes);
                         valueEl.innerHTML = adjustedFormatted + ' <span class="time-was">(was ' + originalFormatted + ')</span>';
                         valueEl.classList.add('time-adjusted');
                     } else {
@@ -810,7 +801,7 @@ Cookie.pages.detail = (function() {
         if (scalingNotes.length > 0) {
             var notesHtml = '<h4 class="scaling-notes-title"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg> Scaling Notes</h4><ul class="scaling-notes-list">';
             for (var j = 0; j < scalingNotes.length; j++) {
-                notesHtml += '<li>' + escapeHtml(scalingNotes[j]) + '</li>';
+                notesHtml += '<li>' + Cookie.utils.escapeHtml(scalingNotes[j]) + '</li>';
             }
             notesHtml += '</ul>';
             notesContainer.innerHTML = notesHtml;
@@ -949,7 +940,7 @@ Cookie.pages.detail = (function() {
         var html = '';
         for (var i = 0; i < remixSuggestions.length; i++) {
             var suggestion = remixSuggestions[i];
-            html += '<button type="button" class="remix-chip" data-suggestion="' + escapeHtml(suggestion) + '">' + escapeHtml(suggestion) + '</button>';
+            html += '<button type="button" class="remix-chip" data-suggestion="' + Cookie.utils.escapeHtml(suggestion) + '">' + Cookie.utils.escapeHtml(suggestion) + '</button>';
         }
         suggestionsContainer.innerHTML = html;
 
@@ -1080,14 +1071,7 @@ Cookie.pages.detail = (function() {
         });
     }
 
-    /**
-     * Escape HTML characters
-     */
-    function escapeHtml(text) {
-        var div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+    // Use shared utility: Cookie.utils.escapeHtml
 
     /**
      * Start polling for tips (for recently imported recipes)
@@ -1238,7 +1222,7 @@ Cookie.pages.detail = (function() {
         for (var i = 0; i < tips.length; i++) {
             html += '<li class="tip-item">';
             html += '<span class="tip-number">' + (i + 1) + '</span>';
-            html += '<p class="tip-text">' + escapeHtml(tips[i]) + '</p>';
+            html += '<p class="tip-text">' + Cookie.utils.escapeHtml(tips[i]) + '</p>';
             html += '</li>';
         }
         html += '</ol>';

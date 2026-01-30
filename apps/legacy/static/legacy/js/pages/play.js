@@ -483,7 +483,7 @@ Cookie.pages.play = (function() {
 
         widget.innerHTML = [
             '<div class="timer-info">',
-            '  <span class="timer-label">' + escapeHtml(timer.label) + '</span>',
+            '  <span class="timer-label">' + Cookie.utils.escapeHtml(timer.label) + '</span>',
             '  <span class="timer-time">' + timer.formatTime() + '</span>',
             '</div>',
             '<div class="timer-progress">',
@@ -563,14 +563,7 @@ Cookie.pages.play = (function() {
         }
     }
 
-    /**
-     * Escape HTML to prevent XSS
-     */
-    function escapeHtml(text) {
-        var div = document.createElement('div');
-        div.appendChild(document.createTextNode(text));
-        return div.innerHTML;
-    }
+    // Use shared utility: Cookie.utils.escapeHtml
 
     return {
         init: init
