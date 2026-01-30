@@ -104,6 +104,10 @@ def extract_metrics(config: dict) -> dict:
         "backend_duplication_clones": 0,
         "frontend_vulns": 0,
         "backend_vulns": 0,
+        "bandit_high": 0,
+        "bandit_medium": 0,
+        "bandit_low": 0,
+        "secrets_found": 0,
         "bundle_size_kb": 0,
         "bundle_gzip_kb": 0,
         "legacy_errors": 0,
@@ -190,11 +194,25 @@ def extract_metrics(config: dict) -> dict:
     try:
         with open("security/backend/summary.json") as f:
             d = json.load(f)
-            metrics["backend_vulns"] = d.get("total_high_severity", 0)
+            metrics["backend_vulns"] = d.get("pip_audit", {}).get("vulnerabilities", 0)
+            bandit = d.get("bandit", {})
+            metrics["bandit_high"] = bandit.get("high", 0)
+            metrics["bandit_medium"] = bandit.get("medium", 0)
+            metrics["bandit_low"] = bandit.get("low", 0)
     except FileNotFoundError:
         print("WARNING: Backend security artifact not found")
     except json.JSONDecodeError as e:
         print(f"ERROR: Invalid backend security data: {e}")
+
+    # Secrets detection
+    try:
+        with open("security/secrets/summary.json") as f:
+            d = json.load(f)
+            metrics["secrets_found"] = d.get("secrets_found", 0)
+    except FileNotFoundError:
+        print("WARNING: Secrets scan artifact not found")
+    except json.JSONDecodeError as e:
+        print(f"ERROR: Invalid secrets scan data: {e}")
 
     # Bundle metrics
     try:
@@ -303,9 +321,31 @@ def calculate_ratings(metrics: dict, config: dict) -> dict:
 
     # Security ratings
     ratings["frontend_security"] = "A" if metrics["frontend_vulns"] == 0 else "D"
-    ratings["backend_security"] = (
-        "A" if metrics["backend_vulns"] == 0 else "C" if metrics["backend_vulns"] <= 3 else "D"
-    )
+
+    # Backend security: consider both pip-audit and bandit
+    backend_high = metrics["backend_vulns"] + metrics["bandit_high"]
+    backend_medium = metrics["bandit_medium"]
+    if backend_high == 0 and backend_medium == 0:
+        ratings["backend_security"] = "A"
+    elif backend_high == 0 and backend_medium <= 3:
+        ratings["backend_security"] = "B"
+    elif backend_high <= 2:
+        ratings["backend_security"] = "C"
+    else:
+        ratings["backend_security"] = "D"
+
+    # Bandit SAST rating
+    if metrics["bandit_high"] == 0 and metrics["bandit_medium"] == 0:
+        ratings["bandit"] = "A"
+    elif metrics["bandit_high"] == 0:
+        ratings["bandit"] = "B"
+    elif metrics["bandit_high"] <= 2:
+        ratings["bandit"] = "C"
+    else:
+        ratings["bandit"] = "D"
+
+    # Secrets detection rating
+    ratings["secrets"] = "A" if metrics["secrets_found"] == 0 else "D"
 
     # Legacy lint rating
     if metrics["legacy_errors"] > 0:
@@ -334,8 +374,10 @@ def generate_badges(metrics: dict, ratings: dict, config: dict, output_dir: str)
         ("frontend-complexity", "complexity", ratings["frontend_cc"], colors[ratings["frontend_cc"]]),
         ("duplication", "duplication", ratings["frontend_dup"], colors[ratings["frontend_dup"]]),
         ("backend-duplication", "duplication", ratings["backend_dup"], colors[ratings["backend_dup"]]),
-        ("frontend-security", "security", ratings["frontend_security"], colors[ratings["frontend_security"]]),
-        ("backend-security", "security", ratings["backend_security"], colors[ratings["backend_security"]]),
+        ("frontend-security", "npm audit", ratings["frontend_security"], colors[ratings["frontend_security"]]),
+        ("backend-security", "pip-audit", ratings["backend_security"], colors[ratings["backend_security"]]),
+        ("bandit-sast", "SAST", ratings["bandit"], colors[ratings["bandit"]]),
+        ("secrets-scan", "secrets", ratings["secrets"], colors[ratings["secrets"]]),
         ("bundle-size", "bundle", ratings["bundle"], colors[ratings["bundle"]]),
         ("legacy-lint", "legacy lint", ratings["legacy_lint"], colors[ratings["legacy_lint"]]),
         ("legacy-duplication", "legacy dup", ratings["legacy_dup"], colors[ratings["legacy_dup"]]),
@@ -402,9 +444,22 @@ def create_metrics_json(metrics: dict, ratings: dict, output_dir: str):
                 "badge_url": f"{base_url}/badges/frontend-security.svg",
             },
             "backend": {
-                "vulnerabilities": metrics["backend_vulns"],
+                "pip_audit_vulns": metrics["backend_vulns"],
                 "rating": ratings["backend_security"],
                 "badge_url": f"{base_url}/badges/backend-security.svg",
+            },
+            "bandit": {
+                "high": metrics["bandit_high"],
+                "medium": metrics["bandit_medium"],
+                "low": metrics["bandit_low"],
+                "total": metrics["bandit_high"] + metrics["bandit_medium"] + metrics["bandit_low"],
+                "rating": ratings["bandit"],
+                "badge_url": f"{base_url}/badges/bandit-sast.svg",
+            },
+            "secrets": {
+                "found": metrics["secrets_found"],
+                "rating": ratings["secrets"],
+                "badge_url": f"{base_url}/badges/secrets-scan.svg",
             },
         },
         "bundle": {
@@ -476,7 +531,14 @@ def update_history(metrics: dict, ratings: dict, output_dir: str):
             "backend_clones": metrics["backend_duplication_clones"],
         },
         "bundle": {"total_kb": metrics["bundle_size_kb"], "gzip_kb": metrics["bundle_gzip_kb"]},
-        "security": {"frontend_vulns": metrics["frontend_vulns"], "backend_vulns": metrics["backend_vulns"]},
+        "security": {
+            "frontend_vulns": metrics["frontend_vulns"],
+            "backend_vulns": metrics["backend_vulns"],
+            "bandit_high": metrics["bandit_high"],
+            "bandit_medium": metrics["bandit_medium"],
+            "bandit_low": metrics["bandit_low"],
+            "secrets_found": metrics["secrets_found"],
+        },
         "legacy": {
             "errors": metrics["legacy_errors"],
             "warnings": metrics["legacy_warnings"],
@@ -512,8 +574,12 @@ def print_summary(metrics: dict, ratings: dict):
         f"Duplication: Frontend={metrics['duplication_pct']}% ({ratings['frontend_dup']}), Backend={metrics['backend_duplication_pct']}% ({ratings['backend_dup']})"
     )
     print(
-        f"Security: Frontend={metrics['frontend_vulns']} ({ratings['frontend_security']}), Backend={metrics['backend_vulns']} ({ratings['backend_security']})"
+        f"Security: Frontend={metrics['frontend_vulns']} ({ratings['frontend_security']}), Backend pip-audit={metrics['backend_vulns']} ({ratings['backend_security']})"
     )
+    print(
+        f"Bandit SAST: HIGH={metrics['bandit_high']}, MEDIUM={metrics['bandit_medium']}, LOW={metrics['bandit_low']} ({ratings['bandit']})"
+    )
+    print(f"Secrets Detection: {metrics['secrets_found']} found ({ratings['secrets']})")
     print(
         f"Bundle Size: {metrics['bundle_size_kb']}KB raw, {metrics['bundle_gzip_kb']}KB gzipped ({ratings['bundle']})"
     )
