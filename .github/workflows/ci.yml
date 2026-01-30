@@ -66,21 +66,23 @@ jobs:
           npx eslint apps/legacy/static/legacy/js/ \
             --config apps/legacy/static/legacy/.eslintrc.json \
             --ext .js \
-            --format stylish || true
+            --max-warnings 0 \
+            --format stylish
 
       - name: Generate legacy lint report
         run: |
           mkdir -p legacy-reports
+          # Generate reports even if there are warnings (for dashboard)
           npx eslint apps/legacy/static/legacy/js/ \
             --config apps/legacy/static/legacy/.eslintrc.json \
             --ext .js \
-            --format json > legacy-reports/eslint-report.json || true
+            --format json > legacy-reports/eslint-report.json 2>/dev/null || true
 
           # Generate HTML report
           npx eslint apps/legacy/static/legacy/js/ \
             --config apps/legacy/static/legacy/.eslintrc.json \
             --ext .js \
-            --format html > legacy-reports/eslint-report.html || true
+            --format html > legacy-reports/eslint-report.html 2>/dev/null || true
 
           # Generate summary
           node << 'EOF'
@@ -522,6 +524,9 @@ jobs:
         run: |
           mkdir -p complexity
 
+          # Install escomplex for actual cyclomatic complexity calculation
+          npm install escomplex typhonjs-escomplex --no-save
+
           # Run ESLint with complexity rules and JSON output
           npx eslint src/ \
             --rule '{"complexity": ["warn", 10]}' \
@@ -530,40 +535,130 @@ jobs:
             --rule '{"max-lines-per-function": ["warn", 50]}' \
             -f json > complexity/eslint-report.json || true
 
-          # Count lines of code
-          echo '{}' > complexity/loc.json
-          find src -name '*.ts' -o -name '*.tsx' | head -100 | while read file; do
-            wc -l "$file"
-          done > complexity/loc.txt || true
-
-          # Generate summary
+          # Calculate actual cyclomatic complexity using escomplex
           node << 'EOF'
           const fs = require('fs');
+          const path = require('path');
 
-          let report = [];
+          // Try to use typhonjs-escomplex for better TS support
+          let escomplex;
           try {
-            report = JSON.parse(fs.readFileSync('complexity/eslint-report.json', 'utf8'));
+            escomplex = require('typhonjs-escomplex');
           } catch (e) {
-            report = [];
+            escomplex = require('escomplex');
           }
 
-          let complexityWarnings = 0;
-          let totalFiles = report.length;
+          function walkDir(dir, files = []) {
+            const entries = fs.readdirSync(dir, { withFileTypes: true });
+            for (const entry of entries) {
+              const fullPath = path.join(dir, entry.name);
+              if (entry.isDirectory() && !entry.name.includes('node_modules') && !entry.name.includes('test')) {
+                walkDir(fullPath, files);
+              } else if (entry.isFile() && /\.(ts|tsx|js|jsx)$/.test(entry.name) && !entry.name.includes('.test.')) {
+                files.push(fullPath);
+              }
+            }
+            return files;
+          }
 
-          report.forEach(file => {
-            file.messages.forEach(msg => {
-              if (msg.ruleId === 'complexity') complexityWarnings++;
+          const files = walkDir('src');
+          let totalCC = 0;
+          let functionCount = 0;
+          let maxCC = 0;
+          let highComplexityFunctions = [];
+          const fileMetrics = [];
+
+          for (const file of files) {
+            try {
+              let code = fs.readFileSync(file, 'utf8');
+
+              // Strip TypeScript-specific syntax for escomplex compatibility
+              code = code
+                .replace(/:\s*[A-Za-z<>\[\]|&\s,{}()=>?."']+(?=[,\)\s=;{])/g, '')  // Type annotations
+                .replace(/\binterface\s+\w+[^{]*\{[^}]*\}/g, '')  // Interfaces
+                .replace(/\btype\s+\w+[^=]*=[^;]+;/g, '')  // Type aliases
+                .replace(/<[A-Za-z,\s]+>/g, '')  // Generics
+                .replace(/\bas\s+\w+/g, '')  // Type assertions
+                .replace(/\bexport\s+type\b/g, 'export')  // Export type
+                .replace(/\bimport\s+type\b/g, 'import');  // Import type
+
+              const result = escomplex.analyse(code, { sourceType: 'module' });
+
+              let fileCC = 0;
+              let fileFunctions = 0;
+
+              if (result.methods) {
+                for (const method of result.methods) {
+                  const cc = method.cyclomatic || 1;
+                  totalCC += cc;
+                  functionCount++;
+                  fileCC += cc;
+                  fileFunctions++;
+
+                  if (cc > maxCC) maxCC = cc;
+                  if (cc > 10) {
+                    highComplexityFunctions.push({
+                      file: file.replace('src/', ''),
+                      name: method.name,
+                      complexity: cc
+                    });
+                  }
+                }
+              }
+
+              if (fileFunctions > 0) {
+                fileMetrics.push({
+                  file: file.replace('src/', ''),
+                  avgCC: Math.round(fileCC / fileFunctions * 100) / 100,
+                  functions: fileFunctions
+                });
+              }
+            } catch (e) {
+              // Skip files that can't be parsed (complex TS, JSX edge cases)
+            }
+          }
+
+          const avgCC = functionCount > 0 ? Math.round(totalCC / functionCount * 100) / 100 : 0;
+
+          // Read ESLint warnings for backwards compatibility
+          let eslintReport = [];
+          let complexityWarnings = 0;
+          try {
+            eslintReport = JSON.parse(fs.readFileSync('complexity/eslint-report.json', 'utf8'));
+            eslintReport.forEach(file => {
+              file.messages.forEach(msg => {
+                if (msg.ruleId === 'complexity') complexityWarnings++;
+              });
             });
-          });
+          } catch (e) {}
+
+          // Rating based on average CC (same thresholds as backend)
+          // A: <= 5, B: <= 10, C: <= 20, D: > 20
+          let rating;
+          if (avgCC <= 5) rating = 'A';
+          else if (avgCC <= 10) rating = 'B';
+          else if (avgCC <= 20) rating = 'C';
+          else rating = 'D';
 
           const summary = {
-            total_files: totalFiles,
-            complexity_warnings: complexityWarnings,
-            rating: complexityWarnings === 0 ? 'A' : complexityWarnings <= 5 ? 'B' : complexityWarnings <= 10 ? 'C' : 'D'
+            avg_cyclomatic_complexity: avgCC,
+            max_cyclomatic_complexity: maxCC,
+            total_functions_analyzed: functionCount,
+            total_files_analyzed: files.length,
+            high_complexity_functions: highComplexityFunctions.length,
+            complexity_warnings: complexityWarnings,  // Keep for backwards compatibility
+            rating: rating
           };
 
+          // Save detailed metrics
+          fs.writeFileSync('complexity/file-metrics.json', JSON.stringify(fileMetrics.sort((a, b) => b.avgCC - a.avgCC), null, 2));
+          fs.writeFileSync('complexity/high-complexity.json', JSON.stringify(highComplexityFunctions.sort((a, b) => b.complexity - a.complexity), null, 2));
           fs.writeFileSync('complexity/summary.json', JSON.stringify(summary, null, 2));
-          console.log('Frontend complexity:', JSON.stringify(summary));
+
+          console.log('Frontend complexity:', JSON.stringify(summary, null, 2));
+          console.log(`\nAverage Cyclomatic Complexity: ${avgCC} (${rating})`);
+          console.log(`Functions analyzed: ${functionCount}`);
+          console.log(`High complexity functions (CC > 10): ${highComplexityFunctions.length}`);
           EOF
 
       - name: Upload complexity artifact
@@ -988,15 +1083,19 @@ jobs:
           mkdir -p bundle
           npm run build
 
-          # Analyze bundle sizes
+          # Analyze bundle sizes (raw and gzipped)
           node << 'EOF'
           const fs = require('fs');
           const path = require('path');
+          const zlib = require('zlib');
 
           const distDir = 'dist/assets';
           let totalSize = 0;
+          let totalGzipSize = 0;
           let jsSize = 0;
+          let jsGzipSize = 0;
           let cssSize = 0;
+          let cssGzipSize = 0;
           const files = [];
 
           if (fs.existsSync(distDir)) {
@@ -1005,27 +1104,52 @@ jobs:
               if (file.endsWith('.map')) return;
 
               const filePath = path.join(distDir, file);
-              const stats = fs.statSync(filePath);
-              const sizeKB = Math.round(stats.size / 1024 * 100) / 100;
-              totalSize += stats.size;
+              const content = fs.readFileSync(filePath);
+              const rawSize = content.length;
+              const gzipSize = zlib.gzipSync(content).length;
 
-              if (file.endsWith('.js')) jsSize += stats.size;
-              if (file.endsWith('.css')) cssSize += stats.size;
+              const sizeKB = Math.round(rawSize / 1024 * 100) / 100;
+              const gzipSizeKB = Math.round(gzipSize / 1024 * 100) / 100;
 
-              files.push({ name: file, size_kb: sizeKB });
+              totalSize += rawSize;
+              totalGzipSize += gzipSize;
+
+              if (file.endsWith('.js')) {
+                jsSize += rawSize;
+                jsGzipSize += gzipSize;
+              }
+              if (file.endsWith('.css')) {
+                cssSize += rawSize;
+                cssGzipSize += gzipSize;
+              }
+
+              files.push({ name: file, size_kb: sizeKB, gzip_kb: gzipSizeKB });
             });
           }
 
+          // Rating based on gzipped size (actual transfer size)
+          // A: < 150KB gzipped, B: < 300KB, C: < 500KB, D: >= 500KB
+          const gzipKB = Math.round(totalGzipSize / 1024 * 100) / 100;
+          let rating;
+          if (gzipKB < 150) rating = 'A';
+          else if (gzipKB < 300) rating = 'B';
+          else if (gzipKB < 500) rating = 'C';
+          else rating = 'D';
+
           const summary = {
             total_size_kb: Math.round(totalSize / 1024 * 100) / 100,
+            total_gzip_kb: gzipKB,
             js_size_kb: Math.round(jsSize / 1024 * 100) / 100,
+            js_gzip_kb: Math.round(jsGzipSize / 1024 * 100) / 100,
             css_size_kb: Math.round(cssSize / 1024 * 100) / 100,
+            css_gzip_kb: Math.round(cssGzipSize / 1024 * 100) / 100,
             files: files.sort((a, b) => b.size_kb - a.size_kb),
-            rating: totalSize < 500000 ? 'A' : totalSize < 1000000 ? 'B' : totalSize < 2000000 ? 'C' : 'D'
+            rating: rating
           };
 
           fs.writeFileSync('bundle/summary.json', JSON.stringify(summary, null, 2));
           console.log('Bundle summary:', JSON.stringify(summary, null, 2));
+          console.log(`\nActual transfer size (gzipped): ${gzipKB}KB`);
           EOF
 
       - name: Upload bundle artifact

@@ -569,7 +569,9 @@ class TestLegacyRecipeDetail:
         response = client.get(f'/legacy/recipe/{recipe.id}/')
         content = response.content.decode()
         assert 'legacy/css/recipe-detail.css' in content
-        assert 'legacy/js/pages/detail.js' in content
+        # Detail page now uses modular JS files (Phase 6 refactoring)
+        assert 'legacy/js/pages/detail-core.js' in content
+        assert 'legacy/js/pages/detail-init.js' in content
 
     def test_recipe_detail_shows_serving_adjuster_without_ai(self, client):
         """Recipe detail shows static servings when AI not configured."""

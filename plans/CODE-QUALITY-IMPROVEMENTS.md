@@ -31,7 +31,7 @@ The review identified 50+ specific issues. This plan organizes them into 8 phase
 | **4** | Frontend Architecture | 5 tasks | High | [DONE] |
 | **5** | Frontend Testing & Utilities | 5 tasks | Medium | [DONE] |
 | **6** | Legacy JavaScript Refactoring | 6 tasks | Medium | [DONE] |
-| **7** | CI/Metrics Accuracy | 6 tasks | Medium | [OPEN] |
+| **7** | CI/Metrics Accuracy | 6 tasks | Medium | [DONE] |
 | **8** | CI/Metrics Maintainability | 5 tasks | Low | [OPEN] |
 
 **Total:** 46 tasks across 8 phases
@@ -682,51 +682,40 @@ cd frontend && npm test -- ErrorBoundary.test.tsx
 
 ### Tasks
 
-- [ ] 7.1 Calculate gzipped bundle sizes
-  - **File:** `.github/workflows/ci.yml:892-932`
+- [x] 7.1 Calculate gzipped bundle sizes
+  - **File:** `.github/workflows/ci.yml:986-1029`
   - **Current:** Reports uncompressed bytes (1807KB) vs actual transfer (~200KB gzipped)
-  - **Fix:** Calculate gzip sizes using Node's zlib:
-    ```javascript
-    const zlib = require('zlib');
-    const content = fs.readFileSync(filePath);
-    const gzipSize = zlib.gzipSync(content).length;
-    ```
+  - **Fix:** Added gzip calculation using Node's zlib. Now reports both raw and gzipped sizes, with rating based on gzipped size (actual transfer size)
   - **Impact:** Metric reflects actual user download size
 
-- [ ] 7.2 Make ESLint failures fail the build
-  - **File:** `.github/workflows/ci.yml:69, 77, 83`
-  - **Current:** `|| true` allows warnings to accumulate
-  - **Fix:** Remove `|| true`, set `--max-warnings=0` in ESLint config
+- [x] 7.2 Make ESLint failures fail the build
+  - **File:** `.github/workflows/ci.yml:64-69`
+  - **Current:** `|| true` allowed warnings to accumulate silently
+  - **Fix:** Removed `|| true` from main ESLint run and added `--max-warnings 0`. Report generation step still uses `|| true` to capture data for dashboard
   - **Impact:** Code quality doesn't degrade over time
 
-- [ ] 7.3 Fail dashboard deployment if critical data missing
-  - **File:** `.github/workflows/coverage.yml:29, 38, 47, etc.`
-  - **Current:** `continue-on-error: true` silently deploys incomplete dashboards
-  - **Fix:** Remove `continue-on-error` for critical artifacts (coverage, bundle)
-  - **Impact:** Dashboard deployment fails loudly if data missing
+- [x] 7.3 Fail dashboard deployment if critical data missing
+  - **File:** `.github/workflows/coverage.yml:22-38, 85-92`
+  - **Current:** `continue-on-error: true` silently deployed incomplete dashboards
+  - **Fix:** Removed `continue-on-error` for critical artifacts (frontend-coverage, backend-coverage, frontend-bundle)
+  - **Impact:** Dashboard deployment fails loudly if critical data missing
 
-- [ ] 7.4 Add timestamps to history entries
-  - **File:** `.github/workflows/coverage.yml:514, 545`
-  - **Current:** Date-only keys lose intra-day data (second run overwrites first)
-  - **Fix:** Use ISO timestamp or build number as key
+- [x] 7.4 Add timestamps to history entries
+  - **File:** `.github/workflows/coverage.yml:521-590`
+  - **Current:** Date-only keys lost intra-day data (second run overwrote first)
+  - **Fix:** Added ISO timestamp field to history entries. Entries now use timestamp as unique key, preserving all CI runs. Increased history limit from 90 to 200 entries.
   - **Impact:** Preserves all CI runs, not just latest per day
 
-- [ ] 7.5 Unify frontend and backend complexity metrics
-  - **Files:** `.github/workflows/ci.yml:521-567` (frontend), `:312-493` (backend)
-  - **Current:** Frontend counts warnings, backend calculates actual CC
-  - **Fix:** Use a TypeScript complexity analyzer (like `eslint-plugin-complexity` with numeric output) or ESComplex
+- [x] 7.5 Unify frontend and backend complexity metrics
+  - **Files:** `.github/workflows/ci.yml:521-620` (frontend), `:312-493` (backend)
+  - **Current:** Frontend counted ESLint warnings, backend calculated actual CC
+  - **Fix:** Added typhonjs-escomplex to calculate actual average cyclomatic complexity for frontend TypeScript/JSX code. Both codebases now report numeric CC values with same rating thresholds (A: ≤5, B: ≤10, C: ≤20, D: >20)
   - **Impact:** Metrics comparable across codebases
 
-- [ ] 7.6 Validate artifact data before using
-  - **File:** `.github/workflows/coverage.yml:256-270, etc.`
-  - **Current:** No validation, assumes all data trustworthy
-  - **Fix:** Add validation checks:
-    ```python
-    if not (0 <= coverage <= 100):
-        print(f"WARNING: Invalid coverage {coverage}, expected 0-100")
-    if bundle_size < 0:
-        print(f"ERROR: Negative bundle size {bundle_size}")
-    ```
+- [x] 7.6 Validate artifact data before using
+  - **File:** `.github/workflows/coverage.yml:410-450`
+  - **Current:** No validation, assumed all data trustworthy
+  - **Fix:** Added validation for: coverage 0-100%, positive bundle sizes, reasonable complexity values (0-100), duplication 0-100%. Invalid values are logged and clamped to valid ranges. Warnings shown for unusual but not invalid values.
   - **Impact:** Catches data corruption early
 
 ### Verification
