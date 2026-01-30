@@ -26,8 +26,35 @@ repos:
 
   # Python formatting/linting (uses existing ruff config)
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.6
+    rev: v0.14.0
     hooks:
       - id: ruff
         args: [--fix]
       - id: ruff-format
+
+  # Local hooks to match CI checks
+  - repo: local
+    hooks:
+      # Legacy JavaScript linting (ES5, iOS 9 compatible)
+      - id: legacy-eslint
+        name: Legacy Lint (ESLint ES5)
+        entry: npx eslint --config apps/legacy/static/legacy/.eslintrc.json --ext .js --max-warnings 0
+        language: system
+        files: ^apps/legacy/static/legacy/js/.*\.js$
+        pass_filenames: true
+
+      # Frontend ESLint
+      - id: frontend-eslint
+        name: Frontend Lint (ESLint)
+        entry: bash -c 'cd frontend && npm run lint'
+        language: system
+        files: ^frontend/src/.*\.(ts|tsx)$
+        pass_filenames: false
+
+      # Frontend TypeScript type check
+      - id: frontend-typecheck
+        name: Frontend Type Check (TypeScript)
+        entry: bash -c 'cd frontend && npx tsc --noEmit'
+        language: system
+        files: ^frontend/src/.*\.(ts|tsx)$
+        pass_filenames: false
