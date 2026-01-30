@@ -29,7 +29,7 @@ The review identified 50+ specific issues. This plan organizes them into 8 phase
 | **2** | Backend Testing & Security | 9 tasks | High | [DONE] |
 | **3** | Backend Refactoring | 6 tasks | High | [DONE] |
 | **4** | Frontend Architecture | 5 tasks | High | [DONE] |
-| **5** | Frontend Testing & Utilities | 5 tasks | Medium | [OPEN] |
+| **5** | Frontend Testing & Utilities | 5 tasks | Medium | [DONE] |
 | **6** | Legacy JavaScript Refactoring | 6 tasks | Medium | [OPEN] |
 | **7** | CI/Metrics Accuracy | 6 tasks | Medium | [OPEN] |
 | **8** | CI/Metrics Maintainability | 5 tasks | Low | [OPEN] |
@@ -456,19 +456,19 @@ cd frontend && npm test -- RecipeIngredients.test.tsx
 
 ### Tasks
 
-- [ ] 5.1 Extract formatTime to shared utility
+- [x] 5.1 Extract formatTime to shared utility
   - **Files:** `frontend/src/components/RecipeCard.tsx:20-26`, `RecipeDetail.tsx:141-147`
   - **Current:** Identical function duplicated in 2 files
-  - **Fix:** Create `frontend/src/lib/formatting.ts` with `formatTime(minutes: number | null)`
+  - **Fix:** Created `frontend/src/lib/formatting.ts` with `formatTime(minutes: number | null)` and tests
   - **Impact:** Single source of truth, changes made once
 
-- [ ] 5.2 Wrap favoriteRecipeIds in useMemo
+- [x] 5.2 Wrap favoriteRecipeIds in useMemo
   - **File:** `frontend/src/screens/Home.tsx:126`
-  - **Current:** `new Set(favorites.map(...))` runs on every render
-  - **Fix:** `useMemo(() => new Set(favorites.map(...)), [favorites])`
+  - **Current:** Was already done in Phase 4 at `Home.tsx:122-125`
+  - **Fix:** Already wrapped with `useMemo(() => new Set(favorites.map(...)), [favorites])`
   - **Impact:** Avoids unnecessary work when favorites unchanged
 
-- [ ] 5.3 Test all 6 components in src/components/
+- [x] 5.3 Test all 6 components in src/components/
   - **Files:**
     - `RecipeCard.tsx` (112 lines, used in 4 screens) - PRIORITY
     - `TimerPanel.tsx` (167 lines)
@@ -476,45 +476,29 @@ cd frontend && npm test -- RecipeIngredients.test.tsx
     - `Skeletons.tsx` (201 lines)
     - `AddToCollectionDropdown.tsx` (145 lines)
     - `TimerWidget.tsx` (93 lines)
-  - **Current:** 0% coverage for all components
-  - **Fix:** Create test files for each:
-    - `RecipeCard.test.tsx` - Test `onFavoriteToggle` callback, image fallback, time formatting
-    - Others - Test rendering, callbacks, edge cases
+  - **Fix:** Created test files for each:
+    - `RecipeCard.test.tsx` - Tests favorite toggle, image fallback, time formatting, remix badge
+    - `TimerWidget.test.tsx` - Tests timer display, controls, completion state
+    - `Skeletons.test.tsx` - Tests rendering of all skeleton variants
+    - `RemixModal.test.tsx` - Tests suggestions, selection, custom input, remix creation
+    - `AddToCollectionDropdown.test.tsx` - Tests dropdown, collection list, adding recipes
+    - `TimerPanel.test.tsx` - Tests quick timers, detected times, AI naming
   - **Impact:** Components coverage 0% → 70%+
 
-- [ ] 5.4 Create useAsync hook
+- [x] 5.4 Create useAsync hook
   - **File:** `frontend/src/hooks/useAsync.ts` (new)
   - **Current:** 20+ instances of `const [loading, setLoading] = useState(false)` pattern
-  - **Fix:** Shared hook for async state:
-    ```tsx
-    function useAsync<T>() {
-      const [state, setState] = useState<{
-        loading: boolean
-        error: Error | null
-        data: T | null
-      }>({ loading: false, error: null, data: null })
-
-      const execute = useCallback(async (promise: Promise<T>) => {
-        setState({ loading: true, error: null, data: null })
-        try {
-          const data = await promise
-          setState({ loading: false, error: null, data })
-          return data
-        } catch (error) {
-          setState({ loading: false, error: error as Error, data: null })
-          throw error
-        }
-      }, [])
-
-      return { ...state, execute }
-    }
-    ```
+  - **Fix:** Created shared hooks:
+    - `useAsync<T>()` - Clears data on new execution
+    - `useAsyncWithStaleData<T>()` - Preserves previous data during loading
+    - Both include `execute()`, `reset()`, and loading/error/data state
   - **Impact:** Standardized async handling, less boilerplate
 
-- [ ] 5.5 Add error boundaries
+- [x] 5.5 Add error boundaries
   - **File:** `frontend/src/components/ErrorBoundary.tsx` (new)
-  - **Current:** Component errors crash entire app (white screen)
-  - **Fix:** React error boundary component wrapping `<App />`
+  - **Current:** Component errors crashed entire app (white screen)
+  - **Fix:** React error boundary component wrapping `<App />` in `main.tsx`
+  - **Features:** Try Again button, Reload Page button, error details in dev mode
   - **Impact:** Graceful error UI instead of blank screen
 
 ### Verification

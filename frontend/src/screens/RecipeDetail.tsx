@@ -19,6 +19,7 @@ import {
   type ScaleResponse,
 } from '../api/client'
 import { cn, formatNutritionKey } from '../lib/utils'
+import { formatTime } from '../lib/formatting'
 import { useProfile } from '../contexts/ProfileContext'
 import { useAIStatus } from '../contexts/AIStatusContext'
 import AddToCollectionDropdown from '../components/AddToCollectionDropdown'
@@ -125,14 +126,6 @@ export default function RecipeDetail() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const formatTime = (minutes: number | null) => {
-    if (!minutes) return null
-    if (minutes < 60) return `${minutes} min`
-    const hours = Math.floor(minutes / 60)
-    const mins = minutes % 60
-    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
   }
 
   const canShowServingAdjustment =

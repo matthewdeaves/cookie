@@ -1,6 +1,7 @@
 import { Star, Clock, Heart } from 'lucide-react'
 import type { Recipe } from '../api/client'
 import { cn } from '../lib/utils'
+import { formatTime } from '../lib/formatting'
 
 interface RecipeCardProps {
   recipe: Recipe
@@ -16,14 +17,6 @@ export default function RecipeCard({
   onClick,
 }: RecipeCardProps) {
   const imageUrl = recipe.image || recipe.image_url
-
-  const formatTime = (minutes: number | null) => {
-    if (!minutes) return null
-    if (minutes < 60) return `${minutes} min`
-    const hours = Math.floor(minutes / 60)
-    const mins = minutes % 60
-    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
-  }
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation()
