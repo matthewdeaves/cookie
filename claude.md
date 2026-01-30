@@ -73,6 +73,7 @@ docker compose exec frontend npm test
 12. **Function over form** - Full user journey with simplified layout
 13. **ES5 JavaScript only** - No const/let, arrow functions, template literals, async/await
 14. **Timers are REQUIRED** - Play mode must have working timers on legacy
+15. **NEVER raise complexity limits** - If a function exceeds complexity thresholds (e.g., `complexity: 15`, `max-lines-per-function: 100`, cyclomatic complexity limits in any linter), REFACTOR the code by extracting helper functions. Do NOT raise the limits in any linter config file. The limits exist to maintain code quality.
 
 ### Container Restart After Legacy Changes (IMPORTANT)
 

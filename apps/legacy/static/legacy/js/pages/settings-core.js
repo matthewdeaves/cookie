@@ -40,17 +40,40 @@ Cookie.pages.settings = (function() {
     };
 
     /**
+     * Cache all tab container elements
+     */
+    function cacheElements() {
+        elements.tabBtns = document.querySelectorAll('.tab-toggle-btn');
+        var tabNames = ['General', 'Prompts', 'Sources', 'Selectors', 'Users', 'Danger'];
+        for (var i = 0; i < tabNames.length; i++) {
+            var name = tabNames[i].toLowerCase();
+            elements['tab' + tabNames[i]] = document.getElementById('tab-' + name);
+        }
+    }
+
+    /**
+     * Initialize a single tab module if it exists
+     */
+    function initTab(name) {
+        var tab = tabs[name];
+        if (tab && tab.init) tab.init();
+    }
+
+    /**
+     * Initialize all registered tab modules
+     */
+    function initAllTabs() {
+        var tabNames = ['general', 'prompts', 'sources', 'selectors', 'users', 'danger'];
+        for (var i = 0; i < tabNames.length; i++) {
+            initTab(tabNames[i]);
+        }
+    }
+
+    /**
      * Initialize the page
      */
     function init() {
-        // Cache tab container elements
-        elements.tabBtns = document.querySelectorAll('.tab-toggle-btn');
-        elements.tabGeneral = document.getElementById('tab-general');
-        elements.tabPrompts = document.getElementById('tab-prompts');
-        elements.tabSources = document.getElementById('tab-sources');
-        elements.tabSelectors = document.getElementById('tab-selectors');
-        elements.tabUsers = document.getElementById('tab-users');
-        elements.tabDanger = document.getElementById('tab-danger');
+        cacheElements();
 
         // Get current profile ID from session (passed via data attribute)
         var pageElement = document.querySelector('[data-page="settings"]');
@@ -58,20 +81,13 @@ Cookie.pages.settings = (function() {
             state.currentProfileId = parseInt(pageElement.getAttribute('data-profile-id'), 10);
         }
 
-        // Setup tab switching
         setupTabSwitching();
-
-        // Initialize all tab modules
-        if (tabs.general && tabs.general.init) tabs.general.init();
-        if (tabs.prompts && tabs.prompts.init) tabs.prompts.init();
-        if (tabs.sources && tabs.sources.init) tabs.sources.init();
-        if (tabs.selectors && tabs.selectors.init) tabs.selectors.init();
-        if (tabs.users && tabs.users.init) tabs.users.init();
-        if (tabs.danger && tabs.danger.init) tabs.danger.init();
+        initAllTabs();
 
         // Load initial data (sources are needed by both sources and selectors tabs)
-        if (tabs.sources && tabs.sources.loadSources) {
-            tabs.sources.loadSources();
+        var sourcesTab = tabs.sources;
+        if (sourcesTab && sourcesTab.loadSources) {
+            sourcesTab.loadSources();
         }
     }
 
@@ -81,6 +97,17 @@ Cookie.pages.settings = (function() {
     function setupTabSwitching() {
         for (var i = 0; i < elements.tabBtns.length; i++) {
             elements.tabBtns[i].addEventListener('click', handleTabClick);
+        }
+    }
+
+    /**
+     * Hide all tab panels
+     */
+    function hideAllTabs() {
+        var tabNames = ['General', 'Prompts', 'Sources', 'Selectors', 'Users', 'Danger'];
+        for (var i = 0; i < tabNames.length; i++) {
+            var el = elements['tab' + tabNames[i]];
+            if (el) el.classList.add('hidden');
         }
     }
 
@@ -97,31 +124,17 @@ Cookie.pages.settings = (function() {
         }
         btn.classList.add('active');
 
-        // Hide all tabs
-        elements.tabGeneral.classList.add('hidden');
-        elements.tabPrompts.classList.add('hidden');
-        elements.tabSources.classList.add('hidden');
-        elements.tabSelectors.classList.add('hidden');
-        elements.tabUsers.classList.add('hidden');
-        elements.tabDanger.classList.add('hidden');
+        hideAllTabs();
 
-        // Show selected tab and trigger tab-specific actions
-        if (tab === 'general') {
-            elements.tabGeneral.classList.remove('hidden');
-        } else if (tab === 'prompts') {
-            elements.tabPrompts.classList.remove('hidden');
-        } else if (tab === 'sources') {
-            elements.tabSources.classList.remove('hidden');
-        } else if (tab === 'selectors') {
-            elements.tabSelectors.classList.remove('hidden');
-        } else if (tab === 'users') {
-            elements.tabUsers.classList.remove('hidden');
-            // Load profiles when users tab is shown
-            if (state.profiles.length === 0 && tabs.users && tabs.users.loadProfiles) {
-                tabs.users.loadProfiles();
-            }
-        } else if (tab === 'danger') {
-            elements.tabDanger.classList.remove('hidden');
+        // Show selected tab
+        var tabKey = 'tab' + tab.charAt(0).toUpperCase() + tab.slice(1);
+        var tabEl = elements[tabKey];
+        if (tabEl) tabEl.classList.remove('hidden');
+
+        // Load profiles lazily when users tab is shown
+        if (tab === 'users' && state.profiles.length === 0) {
+            var usersTab = tabs.users;
+            if (usersTab && usersTab.loadProfiles) usersTab.loadProfiles();
         }
     }
 

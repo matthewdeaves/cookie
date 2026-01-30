@@ -20,7 +20,7 @@
     "AI_AVAILABLE": "readonly"
   },
   "rules": {
-    "complexity": ["warn", 20],
+    "complexity": ["warn", 15],
     "max-depth": ["warn", 4],
     "max-nested-callbacks": ["warn", 4],
     "max-lines-per-function": ["warn", 100],

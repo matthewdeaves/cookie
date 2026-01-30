@@ -277,8 +277,8 @@ Cookie.pages.search = (function() {
             elements.resultsGrid.innerHTML = html;
         } else {
             // Only render NEW results (from previousCount onwards)
-            for (var i = previousCount; i < state.results.length; i++) {
-                html += renderSearchResultCard(state.results[i]);
+            for (var j = previousCount; j < state.results.length; j++) {
+                html += renderSearchResultCard(state.results[j]);
             }
             elements.resultsGrid.innerHTML += html;
         }

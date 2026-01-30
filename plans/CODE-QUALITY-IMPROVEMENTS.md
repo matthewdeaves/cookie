@@ -827,13 +827,17 @@ cat site/coverage/history/all.json | jq '.entries[-5:]'
   - **Fix:** Reordered methods: Meta → save → classmethod → properties
 
 - [x] 9.3 Fix Legacy ESLint errors
-  - **Files:** `apps/legacy/static/legacy/.eslintrc.json`
+  - **Files:** `apps/legacy/static/legacy/.eslintrc.json`, multiple JS files
   - **Error:** `Cookie` global not defined (no-undef)
   - **Fix:** Added `Cookie` to ESLint globals
-  - **Complexity warnings:** Temporarily raised threshold from 15 to 20
-  - **TODO:** Refactor high-complexity functions in future phase:
-    - `ai-error.js:handleError` (CC=16) - Extract status code handling to lookup table
-    - `detail-core.js:init` (CC=18) - Simplify feature module initialization
+  - **Complexity refactoring** (restored limit to 15):
+    - `ai-error.js:handleError` - Extracted status codes to lookup table
+    - `detail-core.js:init` - Extracted `initFeature()` and `initAllFeatures()` helpers
+    - `settings-core.js:init` - Extracted `cacheElements()`, `initTab()`, `initAllTabs()` helpers
+    - `settings-core.js:handleTabClick` - Extracted `hideAllTabs()` helper
+    - `detail.js:setupEventListeners` - Extracted into 5 focused helper functions
+    - `settings.js:setupPromptCard` - Extracted `handlePromptSave()` and `updatePromptCardAfterSave()`
+    - `settings-prompts.js:setupPromptCard` - Same refactoring as settings.js
 
 - [x] 9.4 Fix Frontend ESLint warnings (16 warnings → 0)
   - **react-hooks/exhaustive-deps (10 warnings):**
@@ -847,6 +851,12 @@ cat site/coverage/history/all.json | jq '.entries[-5:]'
     - Suppressed false positive in `PlayMode.tsx` (controlled state index, not user input)
   - **useWakeLock.ts fix:** Moved `SILENT_VIDEO_BASE64` to module scope (was inside hook)
   - **useTimers.ts fix:** Captured ref in variable before cleanup (React ref warning)
+
+- [x] 9.5 Fix remaining Legacy ESLint warnings
+  - `detail.js:697` - Removed unused `originalText` variable
+  - `detail.js:978` - Renamed `profileId` to `remixProfileId` to avoid shadow
+  - `search.js:280` - Renamed loop variable `i` to `j` to avoid redeclaration
+  - `settings.js:59,960,1009` - Removed unused `resetPreview` variable and assignments
 
 ### Verification
 

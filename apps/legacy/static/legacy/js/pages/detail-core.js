@@ -44,6 +44,24 @@ Cookie.pages.detail = (function() {
     };
 
     /**
+     * Initialize a single feature module if it exists
+     */
+    function initFeature(name) {
+        var feature = features[name];
+        if (feature && feature.init) feature.init();
+    }
+
+    /**
+     * Initialize all registered feature modules
+     */
+    function initAllFeatures() {
+        var featureNames = ['display', 'favorites', 'collections', 'scaling', 'remix', 'tips'];
+        for (var i = 0; i < featureNames.length; i++) {
+            initFeature(featureNames[i]);
+        }
+    }
+
+    /**
      * Initialize the page
      */
     function init() {
@@ -53,20 +71,15 @@ Cookie.pages.detail = (function() {
         state.recipeId = parseInt(pageEl.getAttribute('data-recipe-id'), 10);
         state.profileId = parseInt(pageEl.getAttribute('data-profile-id'), 10);
 
-        // Initialize all feature modules
-        if (features.display && features.display.init) features.display.init();
-        if (features.favorites && features.favorites.init) features.favorites.init();
-        if (features.collections && features.collections.init) features.collections.init();
-        if (features.scaling && features.scaling.init) features.scaling.init();
-        if (features.remix && features.remix.init) features.remix.init();
-        if (features.tips && features.tips.init) features.tips.init();
+        initAllFeatures();
 
         // Check if we should poll for tips (recently imported recipe with no tips)
         var scrapedAt = pageEl.getAttribute('data-scraped-at');
         var hasTips = pageEl.getAttribute('data-has-tips') === 'true';
+        var tipsFeature = features.tips;
 
-        if (scrapedAt && !hasTips && features.tips && features.tips.checkAutoStart) {
-            features.tips.checkAutoStart(scrapedAt);
+        if (scrapedAt && !hasTips && tipsFeature && tipsFeature.checkAutoStart) {
+            tipsFeature.checkAutoStart(scrapedAt);
         }
     }
 
