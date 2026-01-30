@@ -830,7 +830,10 @@ cat site/coverage/history/all.json | jq '.entries[-5:]'
   - **Files:** `apps/legacy/static/legacy/.eslintrc.json`
   - **Error:** `Cookie` global not defined (no-undef)
   - **Fix:** Added `Cookie` to ESLint globals
-  - **Complexity warnings:** Increased threshold from 15 to 20 for legacy ES5 code
+  - **Complexity warnings:** Temporarily raised threshold from 15 to 20
+  - **TODO:** Refactor high-complexity functions in future phase:
+    - `ai-error.js:handleError` (CC=16) - Extract status code handling to lookup table
+    - `detail-core.js:init` (CC=18) - Simplify feature module initialization
 
 ### Verification
 
