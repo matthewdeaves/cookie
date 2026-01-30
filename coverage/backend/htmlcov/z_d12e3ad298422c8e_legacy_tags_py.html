@@ -64,8 +64,8 @@
             <a id="indexLink" class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
             <a id="nextFileLink" class="nav" href="z_befe8b04400537a7_urls_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
-            <a class="nav" href="https://coverage.readthedocs.io/en/7.13.1">coverage.py v7.13.1</a>,
-            created at 2026-01-11 00:40 +0000
+            <a class="nav" href="https://coverage.readthedocs.io/en/7.13.2">coverage.py v7.13.2</a>,
+            created at 2026-01-30 08:09 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -93,15 +93,15 @@
     <p class="run"><span class="n"><a id="t11" href="#t11">11</a></span><span class="t"><span class="key">def</span> <span class="nam">format_time</span><span class="op">(</span><span class="nam">minutes</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t12" href="#t12">12</a></span><span class="t">    <span class="str">"""Format minutes into a human readable time string."""</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t13" href="#t13">13</a></span><span class="t">    <span class="key">if</span> <span class="key">not</span> <span class="nam">minutes</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t">        <span class="key">return</span> <span class="str">''</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t">        <span class="key">return</span> <span class="str">""</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t15" href="#t15">15</a></span><span class="t">    <span class="nam">minutes</span> <span class="op">=</span> <span class="nam">int</span><span class="op">(</span><span class="nam">minutes</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t">    <span class="key">if</span> <span class="nam">minutes</span> <span class="op">&lt;</span> <span class="num">60</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t">        <span class="key">return</span> <span class="fst">f'</span><span class="op">{</span><span class="nam">minutes</span><span class="op">}</span><span class="fst"> min</span><span class="fst">'</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t">        <span class="key">return</span> <span class="fst">f"</span><span class="op">{</span><span class="nam">minutes</span><span class="op">}</span><span class="fst"> min</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t18" href="#t18">18</a></span><span class="t">    <span class="nam">hours</span> <span class="op">=</span> <span class="nam">minutes</span> <span class="op">//</span> <span class="num">60</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t19" href="#t19">19</a></span><span class="t">    <span class="nam">mins</span> <span class="op">=</span> <span class="nam">minutes</span> <span class="op">%</span> <span class="num">60</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t20" href="#t20">20</a></span><span class="t">    <span class="key">if</span> <span class="nam">mins</span> <span class="op">></span> <span class="num">0</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t21" href="#t21">21</a></span><span class="t">        <span class="key">return</span> <span class="fst">f'</span><span class="op">{</span><span class="nam">hours</span><span class="op">}</span><span class="fst">h </span><span class="op">{</span><span class="nam">mins</span><span class="op">}</span><span class="fst">m</span><span class="fst">'</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t22" href="#t22">22</a></span><span class="t">    <span class="key">return</span> <span class="fst">f'</span><span class="op">{</span><span class="nam">hours</span><span class="op">}</span><span class="fst">h</span><span class="fst">'</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t21" href="#t21">21</a></span><span class="t">        <span class="key">return</span> <span class="fst">f"</span><span class="op">{</span><span class="nam">hours</span><span class="op">}</span><span class="fst">h </span><span class="op">{</span><span class="nam">mins</span><span class="op">}</span><span class="fst">m</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t22" href="#t22">22</a></span><span class="t">    <span class="key">return</span> <span class="fst">f"</span><span class="op">{</span><span class="nam">hours</span><span class="op">}</span><span class="fst">h</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t23" href="#t23">23</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t24" href="#t24">24</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t25" href="#t25">25</a></span><span class="t"><span class="op">@</span><span class="nam">register</span><span class="op">.</span><span class="nam">filter</span>&nbsp;</span><span class="r"></span></p>
@@ -118,21 +118,21 @@
     <p class="pln"><span class="n"><a id="t36" href="#t36">36</a></span><span class="t"><span class="str">    Also handles snake_case like 'saturated_fat' to 'Saturated Fat'.</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t37" href="#t37">37</a></span><span class="t"><span class="str">    """</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t38" href="#t38">38</a></span><span class="t">    <span class="key">if</span> <span class="key">not</span> <span class="nam">key</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t39" href="#t39">39</a></span><span class="t">        <span class="key">return</span> <span class="str">''</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t39" href="#t39">39</a></span><span class="t">        <span class="key">return</span> <span class="str">""</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t40" href="#t40">40</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t41" href="#t41">41</a></span><span class="t">    <span class="com"># Remove common suffixes</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t42" href="#t42">42</a></span><span class="t">    <span class="nam">key</span> <span class="op">=</span> <span class="nam">re</span><span class="op">.</span><span class="nam">sub</span><span class="op">(</span><span class="str">r'Content$'</span><span class="op">,</span> <span class="str">''</span><span class="op">,</span> <span class="nam">key</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t42" href="#t42">42</a></span><span class="t">    <span class="nam">key</span> <span class="op">=</span> <span class="nam">re</span><span class="op">.</span><span class="nam">sub</span><span class="op">(</span><span class="str">r"Content$"</span><span class="op">,</span> <span class="str">""</span><span class="op">,</span> <span class="nam">key</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t43" href="#t43">43</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t44" href="#t44">44</a></span><span class="t">    <span class="com"># Handle snake_case (convert to spaces, then capitalize)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t45" href="#t45">45</a></span><span class="t">    <span class="key">if</span> <span class="str">'_'</span> <span class="key">in</span> <span class="nam">key</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t46" href="#t46">46</a></span><span class="t">        <span class="key">return</span> <span class="nam">key</span><span class="op">.</span><span class="nam">replace</span><span class="op">(</span><span class="str">'_'</span><span class="op">,</span> <span class="str">' '</span><span class="op">)</span><span class="op">.</span><span class="nam">title</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t45" href="#t45">45</a></span><span class="t">    <span class="key">if</span> <span class="str">"_"</span> <span class="key">in</span> <span class="nam">key</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t46" href="#t46">46</a></span><span class="t">        <span class="key">return</span> <span class="nam">key</span><span class="op">.</span><span class="nam">replace</span><span class="op">(</span><span class="str">"_"</span><span class="op">,</span> <span class="str">" "</span><span class="op">)</span><span class="op">.</span><span class="nam">title</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t47" href="#t47">47</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t48" href="#t48">48</a></span><span class="t">    <span class="com"># Handle CamelCase (insert space before capitals)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t49" href="#t49">49</a></span><span class="t">    <span class="com"># e.g., 'SaturatedFat' -> 'Saturated Fat'</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t50" href="#t50">50</a></span><span class="t">    <span class="nam">spaced</span> <span class="op">=</span> <span class="nam">re</span><span class="op">.</span><span class="nam">sub</span><span class="op">(</span><span class="str">r'([a-z])([A-Z])'</span><span class="op">,</span> <span class="str">r'\1 \2'</span><span class="op">,</span> <span class="nam">key</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t50" href="#t50">50</a></span><span class="t">    <span class="nam">spaced</span> <span class="op">=</span> <span class="nam">re</span><span class="op">.</span><span class="nam">sub</span><span class="op">(</span><span class="str">r"([a-z])([A-Z])"</span><span class="op">,</span> <span class="str">r"\1 \2"</span><span class="op">,</span> <span class="nam">key</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t51" href="#t51">51</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t52" href="#t52">52</a></span><span class="t">    <span class="com"># Capitalize first letter</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t53" href="#t53">53</a></span><span class="t">    <span class="key">return</span> <span class="nam">spaced</span><span class="op">.</span><span class="nam">capitalize</span><span class="op">(</span><span class="op">)</span> <span class="key">if</span> <span class="nam">spaced</span> <span class="key">else</span> <span class="str">''</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t53" href="#t53">53</a></span><span class="t">    <span class="key">return</span> <span class="nam">spaced</span><span class="op">.</span><span class="nam">capitalize</span><span class="op">(</span><span class="op">)</span> <span class="key">if</span> <span class="nam">spaced</span> <span class="key">else</span> <span class="str">""</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -141,8 +141,8 @@
             <a class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
             <a class="nav" href="z_befe8b04400537a7_urls_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
-            <a class="nav" href="https://coverage.readthedocs.io/en/7.13.1">coverage.py v7.13.1</a>,
-            created at 2026-01-11 00:40 +0000
+            <a class="nav" href="https://coverage.readthedocs.io/en/7.13.2">coverage.py v7.13.2</a>,
+            created at 2026-01-30 08:09 +0000
         </p>
     </div>
 </footer>

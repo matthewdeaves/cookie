@@ -1,20 +1,21 @@
 {
-  "total_size_kb": 1807.35,
-  "js_size_kb": 356.86,
-  "css_size_kb": 37.98,
+  "total_size_kb": 484.66,
+  "total_gzip_kb": 137.75,
+  "js_size_kb": 446.31,
+  "js_gzip_kb": 130.65,
+  "css_size_kb": 38.35,
+  "css_gzip_kb": 7.1,
   "files": [
     {
-      "name": "index-gNE43JJB.js.map",
-      "size_kb": 1412.51
+      "name": "index-DR3I593c.js",
+      "size_kb": 446.31,
+      "gzip_kb": 130.65
     },
     {
-      "name": "index-gNE43JJB.js",
-      "size_kb": 356.86
-    },
-    {
-      "name": "index-Cw3Ul9oE.css",
-      "size_kb": 37.98
+      "name": "index-D3FYsSyn.css",
+      "size_kb": 38.35,
+      "gzip_kb": 7.1
     }
   ],
-  "rating": "C"
+  "rating": "A"
 }

@@ -1,4 +1,13 @@
 {
-  "total_vulnerabilities": 0,
+  "pip_audit": {
+    "vulnerabilities": 0
+  },
+  "bandit": {
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "total": 0
+  },
+  "total_high_severity": 0,
   "rating": "A"
 }

@@ -1,5 +1,9 @@
 {
-  "total_files": 30,
-  "complexity_warnings": 9,
-  "rating": "C"
+  "avg_cyclomatic_complexity": 0,
+  "max_cyclomatic_complexity": 0,
+  "total_functions_analyzed": 0,
+  "total_files_analyzed": 37,
+  "high_complexity_functions": 0,
+  "complexity_warnings": 11,
+  "rating": "A"
 }

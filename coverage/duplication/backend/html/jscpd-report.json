@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-01-11T00:40:31.074Z",
+    "detectionDate": "2026-01-30T08:08:45.308Z",
     "formats": {
       "python": {
         "sources": {
@@ -29,8 +29,8 @@
             "newClones": 0
           },
           "cookie/settings.py": {
-            "lines": 171,
-            "tokens": 948,
+            "lines": 170,
+            "tokens": 941,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -41,8 +41,8 @@
             "newClones": 0
           },
           "apps/recipes/management/commands/cleanup_search_images.py": {
-            "lines": 112,
-            "tokens": 580,
+            "lines": 100,
+            "tokens": 556,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -53,8 +53,8 @@
             "newClones": 0
           },
           "apps/recipes/services/search.py": {
-            "lines": 525,
-            "tokens": 3345,
+            "lines": 558,
+            "tokens": 3555,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -65,8 +65,8 @@
             "newClones": 0
           },
           "apps/recipes/services/scraper.py": {
-            "lines": 415,
-            "tokens": 3135,
+            "lines": 406,
+            "tokens": 3118,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -77,8 +77,8 @@
             "newClones": 0
           },
           "apps/recipes/services/image_cache.py": {
-            "lines": 270,
-            "tokens": 1534,
+            "lines": 263,
+            "tokens": 1526,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -113,14 +113,14 @@
             "newClones": 0
           },
           "apps/ai/services/validator.py": {
-            "lines": 263,
-            "tokens": 2124,
+            "lines": 201,
+            "tokens": 1591,
             "sources": 1,
             "clones": 4,
             "duplicatedLines": 56,
             "duplicatedTokens": 432,
-            "percentage": 21.29,
-            "percentageTokens": 20.34,
+            "percentage": 27.86,
+            "percentageTokens": 27.15,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -137,8 +137,8 @@
             "newClones": 0
           },
           "apps/ai/services/timer.py": {
-            "lines": 68,
-            "tokens": 345,
+            "lines": 70,
+            "tokens": 367,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -149,8 +149,8 @@
             "newClones": 0
           },
           "apps/ai/services/selector.py": {
-            "lines": 178,
-            "tokens": 870,
+            "lines": 180,
+            "tokens": 874,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -161,26 +161,26 @@
             "newClones": 0
           },
           "apps/ai/services/scaling.py": {
-            "lines": 240,
-            "tokens": 1534,
+            "lines": 241,
+            "tokens": 1535,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 15,
             "duplicatedTokens": 99,
-            "percentage": 6.25,
+            "percentage": 6.22,
             "percentageTokens": 6.45,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/ai/services/remix.py": {
-            "lines": 310,
-            "tokens": 1836,
+            "lines": 309,
+            "tokens": 1851,
             "sources": 1,
             "clones": 3,
             "duplicatedLines": 45,
             "duplicatedTokens": 273,
-            "percentage": 14.52,
-            "percentageTokens": 14.87,
+            "percentage": 14.56,
+            "percentageTokens": 14.75,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -197,20 +197,32 @@
             "newClones": 0
           },
           "apps/ai/services/openrouter.py": {
-            "lines": 294,
-            "tokens": 1795,
+            "lines": 291,
+            "tokens": 1688,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 66,
-            "duplicatedTokens": 458,
-            "percentage": 22.45,
-            "percentageTokens": 25.52,
+            "clones": 2,
+            "duplicatedLines": 52,
+            "duplicatedTokens": 316,
+            "percentage": 17.87,
+            "percentageTokens": 18.72,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/ai/services/discover.py": {
-            "lines": 277,
-            "tokens": 1814,
+            "lines": 275,
+            "tokens": 1812,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/ai/services/cache.py": {
+            "lines": 112,
+            "tokens": 618,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -221,8 +233,8 @@
             "newClones": 0
           },
           "apps/recipes/utils.py": {
-            "lines": 180,
-            "tokens": 1032,
+            "lines": 213,
+            "tokens": 1087,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -233,8 +245,8 @@
             "newClones": 0
           },
           "apps/recipes/sources_api.py": {
-            "lines": 298,
-            "tokens": 2034,
+            "lines": 302,
+            "tokens": 2040,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -257,8 +269,8 @@
             "newClones": 0
           },
           "apps/recipes/api_user.py": {
-            "lines": 305,
-            "tokens": 2050,
+            "lines": 288,
+            "tokens": 2014,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -269,8 +281,8 @@
             "newClones": 0
           },
           "apps/recipes/api.py": {
-            "lines": 323,
-            "tokens": 2050,
+            "lines": 328,
+            "tokens": 2059,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -281,8 +293,8 @@
             "newClones": 0
           },
           "apps/profiles/utils.py": {
-            "lines": 57,
-            "tokens": 275,
+            "lines": 58,
+            "tokens": 276,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -293,8 +305,8 @@
             "newClones": 0
           },
           "apps/profiles/models.py": {
-            "lines": 26,
-            "tokens": 209,
+            "lines": 24,
+            "tokens": 205,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -317,8 +329,8 @@
             "newClones": 0
           },
           "apps/profiles/api.py": {
-            "lines": 259,
-            "tokens": 1790,
+            "lines": 253,
+            "tokens": 1784,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -329,14 +341,14 @@
             "newClones": 0
           },
           "apps/legacy/views.py": {
-            "lines": 365,
-            "tokens": 2604,
+            "lines": 356,
+            "tokens": 2198,
             "sources": 1,
-            "clones": 16,
-            "duplicatedLines": 166,
-            "duplicatedTokens": 1296,
-            "percentage": 45.48,
-            "percentageTokens": 49.77,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -365,8 +377,8 @@
             "newClones": 0
           },
           "apps/core/models.py": {
-            "lines": 23,
-            "tokens": 172,
+            "lines": 42,
+            "tokens": 326,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -379,6 +391,18 @@
           "apps/core/middleware.py": {
             "lines": 63,
             "tokens": 391,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/core/encryption.py": {
+            "lines": 86,
+            "tokens": 417,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -401,8 +425,8 @@
             "newClones": 0
           },
           "apps/core/api.py": {
-            "lines": 197,
-            "tokens": 1259,
+            "lines": 196,
+            "tokens": 1256,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -413,8 +437,20 @@
             "newClones": 0
           },
           "apps/ai/models.py": {
-            "lines": 129,
-            "tokens": 856,
+            "lines": 105,
+            "tokens": 820,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/ai/fixtures.py": {
+            "lines": 349,
+            "tokens": 1804,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -425,41 +461,41 @@
             "newClones": 0
           },
           "apps/ai/api.py": {
-            "lines": 734,
-            "tokens": 4824,
+            "lines": 719,
+            "tokens": 4411,
             "sources": 1,
-            "clones": 14,
-            "duplicatedLines": 218,
-            "duplicatedTokens": 1506,
-            "percentage": 29.7,
-            "percentageTokens": 31.22,
+            "clones": 4,
+            "duplicatedLines": 98,
+            "duplicatedTokens": 660,
+            "percentage": 13.63,
+            "percentageTokens": 14.96,
             "newDuplicatedLines": 0,
             "newClones": 0
           }
         },
         "total": {
-          "lines": 6838,
-          "tokens": 44206,
-          "sources": 36,
-          "clones": 21,
-          "duplicatedLines": 283,
-          "duplicatedTokens": 2032,
-          "percentage": 4.14,
-          "percentageTokens": 4.6,
+          "lines": 7314,
+          "tokens": 45920,
+          "sources": 39,
+          "clones": 7,
+          "duplicatedLines": 133,
+          "duplicatedTokens": 890,
+          "percentage": 1.82,
+          "percentageTokens": 1.94,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 6838,
-      "tokens": 44206,
-      "sources": 36,
-      "clones": 21,
-      "duplicatedLines": 283,
-      "duplicatedTokens": 2032,
-      "percentage": 4.14,
-      "percentageTokens": 4.6,
+      "lines": 7314,
+      "tokens": 45920,
+      "sources": 39,
+      "clones": 7,
+      "duplicatedLines": 133,
+      "duplicatedTokens": 890,
+      "percentage": 1.82,
+      "percentageTokens": 1.94,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -468,129 +504,129 @@
     {
       "format": "python",
       "lines": 15,
-      "fragment": ": {\n        'type': 'array',\n        'items': {\n            'type': 'object',\n            'required': ['search_query', 'title', 'description'],\n            'properties': {\n                'search_query': {'type': 'string'},\n                'title': {'type': 'string'},\n                'description': {'type': 'string'},\n            },\n        },\n        'minItems': 1,\n        'maxItems': 5,\n    },\n    'discover_new'",
+      "fragment": ": {\n        \"type\": \"array\",\n        \"items\": {\n            \"type\": \"object\",\n            \"required\": [\"search_query\", \"title\", \"description\"],\n            \"properties\": {\n                \"search_query\": {\"type\": \"string\"},\n                \"title\": {\"type\": \"string\"},\n                \"description\": {\"type\": \"string\"},\n            },\n        },\n        \"minItems\": 1,\n        \"maxItems\": 5,\n    },\n    \"discover_new\"",
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/services/validator.py",
-        "start": 75,
-        "end": 89,
+        "start": 77,
+        "end": 91,
         "startLoc": {
-          "line": 75,
+          "line": 77,
           "column": 20,
-          "position": 663
+          "position": 668
         },
         "endLoc": {
-          "line": 89,
+          "line": 91,
           "column": 15,
-          "position": 771
+          "position": 776
         }
       },
       "secondFile": {
         "name": "apps/ai/services/validator.py",
-        "start": 61,
-        "end": 75,
+        "start": 63,
+        "end": 77,
         "startLoc": {
-          "line": 61,
+          "line": 63,
           "column": 21,
-          "position": 554
+          "position": 559
         },
         "endLoc": {
-          "line": 75,
+          "line": 77,
           "column": 20,
-          "position": 662
+          "position": 667
         }
       }
     },
     {
       "format": "python",
       "lines": 15,
-      "fragment": ": {\n        'type': 'array',\n        'items': {\n            'type': 'object',\n            'required': ['search_query', 'title', 'description'],\n            'properties': {\n                'search_query': {'type': 'string'},\n                'title': {'type': 'string'},\n                'description': {'type': 'string'},\n            },\n        },\n        'minItems': 1,\n        'maxItems': 5,\n    },\n    'search_ranking'",
+      "fragment": ": {\n        \"type\": \"array\",\n        \"items\": {\n            \"type\": \"object\",\n            \"required\": [\"search_query\", \"title\", \"description\"],\n            \"properties\": {\n                \"search_query\": {\"type\": \"string\"},\n                \"title\": {\"type\": \"string\"},\n                \"description\": {\"type\": \"string\"},\n            },\n        },\n        \"minItems\": 1,\n        \"maxItems\": 5,\n    },\n    \"search_ranking\"",
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/services/validator.py",
-        "start": 89,
-        "end": 103,
+        "start": 91,
+        "end": 105,
         "startLoc": {
-          "line": 89,
+          "line": 91,
           "column": 15,
-          "position": 772
+          "position": 777
         },
         "endLoc": {
-          "line": 103,
+          "line": 105,
           "column": 17,
-          "position": 880
+          "position": 885
         }
       },
       "secondFile": {
         "name": "apps/ai/services/validator.py",
-        "start": 61,
-        "end": 75,
+        "start": 63,
+        "end": 77,
         "startLoc": {
-          "line": 61,
+          "line": 63,
           "column": 21,
-          "position": 554
+          "position": 559
         },
         "endLoc": {
-          "line": 75,
+          "line": 77,
           "column": 20,
-          "position": 662
+          "position": 667
         }
       }
     },
     {
       "format": "python",
       "lines": 16,
-      "fragment": ",\n        modification=modification,\n    )\n\n    # Call AI service\n    service = OpenRouterService()\n    response = service.complete(\n        system_prompt=prompt.system_prompt,\n        user_prompt=user_prompt,\n        model=prompt.model,\n        json_response=True,\n    )\n\n    # Validate response\n    validator = AIResponseValidator()\n    validated = validator.validate('nutrition_estimate'",
+      "fragment": ",\n        modification=modification,\n    )\n\n    # Call AI service\n    service = OpenRouterService()\n    response = service.complete(\n        system_prompt=prompt.system_prompt,\n        user_prompt=user_prompt,\n        model=prompt.model,\n        json_response=True,\n    )\n\n    # Validate response\n    validator = AIResponseValidator()\n    validated = validator.validate(\"nutrition_estimate\"",
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/services/remix.py",
-        "start": 233,
-        "end": 248,
+        "start": 229,
+        "end": 244,
         "startLoc": {
-          "line": 233,
+          "line": 229,
           "column": 13,
-          "position": 1351
+          "position": 1363
         },
         "endLoc": {
-          "line": 248,
+          "line": 244,
           "column": 21,
-          "position": 1438
+          "position": 1450
         }
       },
       "secondFile": {
         "name": "apps/ai/services/remix.py",
-        "start": 107,
-        "end": 122,
+        "start": 109,
+        "end": 124,
         "startLoc": {
-          "line": 107,
+          "line": 109,
           "column": 17,
-          "position": 536
+          "position": 558
         },
         "endLoc": {
-          "line": 122,
+          "line": 124,
           "column": 15,
-          "position": 623
+          "position": 645
         }
       }
     },
     {
       "format": "python",
       "lines": 16,
-      "fragment": "numbers = re.findall(r'\\d+', time_str)\n    if not numbers:\n        return None\n\n    minutes = int(numbers[0])\n\n    # Convert hours to minutes if needed\n    if 'hour' in time_str:\n        minutes *= 60\n        if len(numbers) > 1:\n            minutes += int(numbers[1])\n\n    return minutes\n\n\ndef _parse_servings",
+      "fragment": "numbers = re.findall(r\"\\d+\", time_str)\n    if not numbers:\n        return None\n\n    minutes = int(numbers[0])\n\n    # Convert hours to minutes if needed\n    if \"hour\" in time_str:\n        minutes *= 60\n        if len(numbers) > 1:\n            minutes += int(numbers[1])\n\n    return minutes\n\n\ndef _parse_servings",
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/services/remix.py",
-        "start": 262,
-        "end": 277,
+        "start": 259,
+        "end": 274,
         "startLoc": {
-          "line": 262,
+          "line": 259,
           "column": 5,
-          "position": 1518
+          "position": 1531
         },
         "endLoc": {
-          "line": 277,
+          "line": 274,
           "column": 16,
-          "position": 1617
+          "position": 1630
         }
       },
       "secondFile": {
@@ -611,613 +647,109 @@
     },
     {
       "format": "python",
-      "lines": 21,
-      "fragment": "(\n                    messages=messages,\n                    model=model,\n                    stream=False,\n                )\n\n            # Extract the response content\n            if not response or not hasattr(response, 'choices'):\n                raise AIResponseError('Invalid response structure from OpenRouter')\n\n            if not response.choices:\n                raise AIResponseError('No choices in OpenRouter response')\n\n            content = response.choices[0].message.content\n\n            if json_response:\n                # Parse JSON from the response\n                try:\n                    # Handle potential markdown code blocks\n                    if content.startswith('```'):\n                        lines",
+      "lines": 27,
+      "fragment": "(\n                    messages=messages,\n                    model=model,\n                    stream=False,\n                )\n\n            # Extract the response content\n            if not response or not hasattr(response, \"choices\"):\n                raise AIResponseError(\"Invalid response structure from OpenRouter\")\n\n            if not response.choices:\n                raise AIResponseError(\"No choices in OpenRouter response\")\n\n            content = response.choices[0].message.content\n\n            if json_response:\n                return self._parse_json_response(content)\n\n            return {\"content\": content}\n\n        except AIServiceError:\n            raise\n        except Exception as e:\n            logger.exception(\"OpenRouter API error\")\n            raise AIResponseError(f\"OpenRouter API error: {e}\")\n\n    @",
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/services/openrouter.py",
-        "start": 152,
-        "end": 172,
+        "start": 167,
+        "end": 193,
         "startLoc": {
-          "line": 152,
+          "line": 167,
           "column": 11,
-          "position": 815
+          "position": 846
         },
         "endLoc": {
-          "line": 172,
-          "column": 6,
-          "position": 935
-        }
-      },
-      "secondFile": {
-        "name": "apps/ai/services/openrouter.py",
-        "start": 81,
-        "end": 101,
-        "startLoc": {
-          "line": 81,
-          "column": 5,
-          "position": 372
-        },
-        "endLoc": {
-          "line": 101,
-          "column": 31,
-          "position": 492
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 14,
-      "fragment": "lines = content.split('\\n')\n                        json_lines = []\n                        in_block = False\n                        for line in lines:\n                            if line.startswith('```'):\n                                in_block = not in_block\n                                continue\n                            if in_block:\n                                json_lines.append(line)\n                        content = '\\n'.join(json_lines)\n\n                    return json.loads(content)\n                except json.JSONDecodeError as e:\n                    logger",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/ai/services/openrouter.py",
-        "start": 172,
-        "end": 185,
-        "startLoc": {
-          "line": 172,
-          "column": 25,
-          "position": 935
-        },
-        "endLoc": {
-          "line": 185,
-          "column": 7,
-          "position": 1044
-        }
-      },
-      "secondFile": {
-        "name": "apps/ai/services/openrouter.py",
-        "start": 102,
-        "end": 115,
-        "startLoc": {
-          "line": 102,
-          "column": 25,
-          "position": 495
-        },
-        "endLoc": {
-          "line": 115,
-          "column": 82,
-          "position": 604
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 11,
-      "fragment": "profile_id = request.session.get('profile_id')\n    if not profile_id:\n        return redirect('legacy:profile_selector')\n\n    try:\n        profile = Profile.objects.get(id=profile_id)\n    except Profile.DoesNotExist:\n        del request.session['profile_id']\n        return redirect('legacy:profile_selector')\n\n    query",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/legacy/views.py",
-        "start": 85,
-        "end": 95,
-        "startLoc": {
-          "line": 85,
-          "column": 5,
-          "position": 592
-        },
-        "endLoc": {
-          "line": 95,
-          "column": 6,
-          "position": 670
-        }
-      },
-      "secondFile": {
-        "name": "apps/legacy/views.py",
-        "start": 38,
-        "end": 48,
-        "startLoc": {
-          "line": 38,
-          "column": 5,
-          "position": 256
-        },
-        "endLoc": {
-          "line": 48,
-          "column": 33,
-          "position": 334
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 11,
-      "fragment": "profile_id = request.session.get('profile_id')\n    if not profile_id:\n        return redirect('legacy:profile_selector')\n\n    try:\n        profile = Profile.objects.get(id=profile_id)\n    except Profile.DoesNotExist:\n        del request.session['profile_id']\n        return redirect('legacy:profile_selector')\n\n    # Get the recipe (must belong to this profile)",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/legacy/views.py",
-        "start": 112,
-        "end": 122,
-        "startLoc": {
-          "line": 112,
-          "column": 5,
-          "position": 804
-        },
-        "endLoc": {
-          "line": 122,
-          "column": 47,
-          "position": 882
-        }
-      },
-      "secondFile": {
-        "name": "apps/legacy/views.py",
-        "start": 38,
-        "end": 48,
-        "startLoc": {
-          "line": 38,
-          "column": 5,
-          "position": 256
-        },
-        "endLoc": {
-          "line": 48,
-          "column": 33,
-          "position": 334
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 14,
-      "fragment": "profile_id = request.session.get('profile_id')\n    if not profile_id:\n        return redirect('legacy:profile_selector')\n\n    try:\n        profile = Profile.objects.get(id=profile_id)\n    except Profile.DoesNotExist:\n        del request.session['profile_id']\n        return redirect('legacy:profile_selector')\n\n    # Get the recipe (must belong to this profile)\n    recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)\n\n    # Check if AI features are available",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/legacy/views.py",
-        "start": 169,
-        "end": 182,
-        "startLoc": {
-          "line": 169,
-          "column": 5,
-          "position": 1201
-        },
-        "endLoc": {
-          "line": 182,
-          "column": 37,
-          "position": 1303
-        }
-      },
-      "secondFile": {
-        "name": "apps/legacy/views.py",
-        "start": 38,
-        "end": 125,
-        "startLoc": {
-          "line": 38,
-          "column": 5,
-          "position": 256
-        },
-        "endLoc": {
-          "line": 125,
-          "column": 22,
-          "position": 906
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 11,
-      "fragment": "profile_id = request.session.get('profile_id')\n    if not profile_id:\n        return redirect('legacy:profile_selector')\n\n    try:\n        profile = Profile.objects.get(id=profile_id)\n    except Profile.DoesNotExist:\n        del request.session['profile_id']\n        return redirect('legacy:profile_selector')\n\n    # Get all history for this profile (no limit)",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/legacy/views.py",
-        "start": 205,
-        "end": 215,
-        "startLoc": {
-          "line": 205,
-          "column": 5,
-          "position": 1476
-        },
-        "endLoc": {
-          "line": 215,
-          "column": 46,
-          "position": 1554
-        }
-      },
-      "secondFile": {
-        "name": "apps/legacy/views.py",
-        "start": 38,
-        "end": 48,
-        "startLoc": {
-          "line": 38,
-          "column": 5,
-          "position": 256
-        },
-        "endLoc": {
-          "line": 48,
-          "column": 33,
-          "position": 334
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 11,
-      "fragment": "profile_id = request.session.get('profile_id')\n    if not profile_id:\n        return redirect('legacy:profile_selector')\n\n    try:\n        profile = Profile.objects.get(id=profile_id)\n    except Profile.DoesNotExist:\n        del request.session['profile_id']\n        return redirect('legacy:profile_selector')\n\n    # Get all favorites for this profile",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/legacy/views.py",
-        "start": 238,
-        "end": 248,
-        "startLoc": {
-          "line": 238,
-          "column": 5,
-          "position": 1706
-        },
-        "endLoc": {
-          "line": 248,
-          "column": 37,
-          "position": 1784
-        }
-      },
-      "secondFile": {
-        "name": "apps/legacy/views.py",
-        "start": 38,
-        "end": 48,
-        "startLoc": {
-          "line": 38,
-          "column": 5,
-          "position": 256
-        },
-        "endLoc": {
-          "line": 48,
-          "column": 33,
-          "position": 334
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 11,
-      "fragment": "profile_id = request.session.get('profile_id')\n    if not profile_id:\n        return redirect('legacy:profile_selector')\n\n    try:\n        profile = Profile.objects.get(id=profile_id)\n    except Profile.DoesNotExist:\n        del request.session['profile_id']\n        return redirect('legacy:profile_selector')\n\n    # Get all collections for this profile",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/legacy/views.py",
-        "start": 265,
-        "end": 275,
-        "startLoc": {
-          "line": 265,
-          "column": 5,
-          "position": 1892
-        },
-        "endLoc": {
-          "line": 275,
-          "column": 39,
-          "position": 1970
-        }
-      },
-      "secondFile": {
-        "name": "apps/legacy/views.py",
-        "start": 38,
-        "end": 48,
-        "startLoc": {
-          "line": 38,
-          "column": 5,
-          "position": 256
-        },
-        "endLoc": {
-          "line": 48,
-          "column": 33,
-          "position": 334
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 11,
-      "fragment": "profile_id = request.session.get('profile_id')\n    if not profile_id:\n        return redirect('legacy:profile_selector')\n\n    try:\n        profile = Profile.objects.get(id=profile_id)\n    except Profile.DoesNotExist:\n        del request.session['profile_id']\n        return redirect('legacy:profile_selector')\n\n    # Get the collection (must belong to this profile)",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/legacy/views.py",
-        "start": 292,
-        "end": 302,
-        "startLoc": {
-          "line": 292,
-          "column": 5,
-          "position": 2081
-        },
-        "endLoc": {
-          "line": 302,
-          "column": 51,
-          "position": 2159
-        }
-      },
-      "secondFile": {
-        "name": "apps/legacy/views.py",
-        "start": 38,
-        "end": 48,
-        "startLoc": {
-          "line": 38,
-          "column": 5,
-          "position": 256
-        },
-        "endLoc": {
-          "line": 48,
-          "column": 33,
-          "position": 334
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 11,
-      "fragment": "profile_id = request.session.get('profile_id')\n    if not profile_id:\n        return redirect('legacy:profile_selector')\n\n    try:\n        profile = Profile.objects.get(id=profile_id)\n    except Profile.DoesNotExist:\n        del request.session['profile_id']\n        return redirect('legacy:profile_selector')\n\n    # Get app settings",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/legacy/views.py",
-        "start": 329,
-        "end": 339,
-        "startLoc": {
-          "line": 329,
-          "column": 5,
-          "position": 2338
-        },
-        "endLoc": {
-          "line": 339,
-          "column": 19,
-          "position": 2416
-        }
-      },
-      "secondFile": {
-        "name": "apps/legacy/views.py",
-        "start": 38,
-        "end": 48,
-        "startLoc": {
-          "line": 38,
-          "column": 5,
-          "position": 256
-        },
-        "endLoc": {
-          "line": 48,
-          "column": 33,
-          "position": 334
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 20,
-      "fragment": "}\n    except Recipe.DoesNotExist:\n        return 404, {\n            'error': 'not_found',\n            'message': f'Recipe {data.recipe_id} not found',\n        }\n    except AIUnavailableError as e:\n        return 503, {\n            'error': 'ai_unavailable',\n            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',\n            'action': 'configure_key',\n        }\n    except (AIResponseError, ValidationError) as e:\n        return 400, {\n            'error': 'ai_error',\n            'message': str(e),\n        }\n\n\n# Scaling Schemas",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/ai/api.py",
-        "start": 359,
-        "end": 378,
-        "startLoc": {
-          "line": 359,
-          "column": 9,
-          "position": 2397
-        },
-        "endLoc": {
-          "line": 378,
-          "column": 18,
-          "position": 2527
-        }
-      },
-      "secondFile": {
-        "name": "apps/ai/api.py",
-        "start": 289,
-        "end": 308,
-        "startLoc": {
-          "line": 289,
-          "column": 12,
-          "position": 1891
-        },
-        "endLoc": {
-          "line": 308,
-          "column": 8,
-          "position": 2021
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 18,
-      "fragment": "from apps.profiles.utils import get_current_profile_or_none\n    profile = get_current_profile_or_none(request)\n\n    if not profile:\n        return 404, {\n            'error': 'not_found',\n            'message': 'Profile not found',\n        }\n\n    # Verify the profile_id in the request matches the session profile\n    if data.profile_id != profile.id:\n        return 404, {\n            'error': 'not_found',\n            'message': f'Profile {data.profile_id} not found',\n        }\n\n    try:\n        recipe",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/ai/api.py",
-        "start": 413,
-        "end": 430,
-        "startLoc": {
-          "line": 413,
-          "column": 5,
-          "position": 2766
-        },
-        "endLoc": {
-          "line": 430,
-          "column": 7,
-          "position": 2872
-        }
-      },
-      "secondFile": {
-        "name": "apps/ai/api.py",
-        "start": 315,
-        "end": 332,
-        "startLoc": {
-          "line": 315,
-          "column": 5,
-          "position": 2074
-        },
-        "endLoc": {
-          "line": 332,
-          "column": 26,
-          "position": 2180
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 16,
-      "fragment": ",\n        }\n    except AIUnavailableError as e:\n        return 503, {\n            'error': 'ai_unavailable',\n            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',\n            'action': 'configure_key',\n        }\n    except (AIResponseError, ValidationError) as e:\n        return 400, {\n            'error': 'ai_error',\n            'message': str(e),\n        }\n\n\n# Tips Schemas",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/ai/api.py",
-        "start": 475,
-        "end": 490,
-        "startLoc": {
-          "line": 475,
+          "line": 193,
           "column": 2,
-          "position": 3223
-        },
-        "endLoc": {
-          "line": 490,
-          "column": 15,
-          "position": 3322
+          "position": 1004
         }
       },
       "secondFile": {
-        "name": "apps/ai/api.py",
-        "start": 293,
-        "end": 308,
+        "name": "apps/ai/services/openrouter.py",
+        "start": 116,
+        "end": 142,
         "startLoc": {
-          "line": 293,
-          "column": 36,
-          "position": 1922
+          "line": 116,
+          "column": 5,
+          "position": 547
         },
         "endLoc": {
-          "line": 308,
-          "column": 8,
-          "position": 2021
+          "line": 142,
+          "column": 6,
+          "position": 705
         }
       }
     },
     {
       "format": "python",
-      "lines": 13,
-      "fragment": "from apps.profiles.utils import get_current_profile_or_none\n    profile = get_current_profile_or_none(request)\n\n    try:\n        # Verify recipe ownership\n        recipe = Recipe.objects.get(id=data.recipe_id)\n        if not profile or recipe.profile_id != profile.id:\n            return 404, {\n                'error': 'not_found',\n                'message': f'Recipe {data.recipe_id} not found',\n            }\n\n        # Clear existing tips if regenerate requested",
+      "lines": 32,
+      "fragment": "from apps.profiles.utils import get_current_profile_or_none\n\n    profile = get_current_profile_or_none(request)\n\n    if not profile:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": \"Profile not found\",\n        }\n\n    # Verify the profile_id in the request matches the session profile\n    if data.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Profile {data.profile_id} not found\",\n        }\n\n    try:\n        recipe = Recipe.objects.get(id=data.recipe_id)\n    except Recipe.DoesNotExist:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    if recipe.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    try",
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/api.py",
-        "start": 511,
-        "end": 523,
+        "start": 436,
+        "end": 467,
         "startLoc": {
-          "line": 511,
+          "line": 436,
           "column": 5,
-          "position": 3432
+          "position": 2764
         },
         "endLoc": {
-          "line": 523,
-          "column": 46,
-          "position": 3528
+          "line": 467,
+          "column": 4,
+          "position": 2965
         }
       },
       "secondFile": {
         "name": "apps/ai/api.py",
-        "start": 276,
-        "end": 288,
+        "start": 345,
+        "end": 376,
         "startLoc": {
-          "line": 276,
+          "line": 345,
           "column": 5,
-          "position": 1776
+          "position": 2161
         },
         "endLoc": {
-          "line": 288,
-          "column": 12,
-          "position": 1872
+          "line": 376,
+          "column": 6,
+          "position": 2362
         }
       }
     },
     {
       "format": "python",
       "lines": 19,
-      "fragment": "except Recipe.DoesNotExist:\n        return 404, {\n            'error': 'not_found',\n            'message': f'Recipe {data.recipe_id} not found',\n        }\n    except AIUnavailableError as e:\n        return 503, {\n            'error': 'ai_unavailable',\n            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',\n            'action': 'configure_key',\n        }\n    except (AIResponseError, ValidationError) as e:\n        return 400, {\n            'error': 'ai_error',\n            'message': str(e),\n        }\n\n\n# Timer Naming Schemas",
+      "fragment": "from apps.profiles.utils import get_current_profile_or_none\n\n    profile = get_current_profile_or_none(request)\n\n    try:\n        recipe = Recipe.objects.get(id=data.recipe_id)\n    except Recipe.DoesNotExist:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    if not profile or recipe.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    # Clear existing tips if regenerate requested",
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/api.py",
-        "start": 529,
-        "end": 547,
+        "start": 527,
+        "end": 545,
         "startLoc": {
-          "line": 529,
+          "line": 527,
           "column": 5,
-          "position": 3565
+          "position": 3341
         },
         "endLoc": {
-          "line": 547,
-          "column": 23,
-          "position": 3692
+          "line": 545,
+          "column": 46,
+          "position": 3470
         }
       },
       "secondFile": {
         "name": "apps/ai/api.py",
-        "start": 290,
-        "end": 308,
+        "start": 315,
+        "end": 333,
         "startLoc": {
-          "line": 290,
+          "line": 315,
           "column": 5,
-          "position": 1894
+          "position": 1954
         },
         "endLoc": {
-          "line": 308,
-          "column": 8,
-          "position": 2021
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 14,
-      "fragment": "except AIUnavailableError as e:\n        return 503, {\n            'error': 'ai_unavailable',\n            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',\n            'action': 'configure_key',\n        }\n    except (AIResponseError, ValidationError) as e:\n        return 400, {\n            'error': 'ai_error',\n            'message': str(e),\n        }\n\n\n# Discover Schemas",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/ai/api.py",
-        "start": 584,
-        "end": 597,
-        "startLoc": {
-          "line": 584,
-          "column": 5,
-          "position": 3893
-        },
-        "endLoc": {
-          "line": 597,
-          "column": 19,
-          "position": 3986
-        }
-      },
-      "secondFile": {
-        "name": "apps/ai/api.py",
-        "start": 295,
-        "end": 308,
-        "startLoc": {
-          "line": 295,
-          "column": 5,
-          "position": 1928
-        },
-        "endLoc": {
-          "line": 308,
-          "column": 8,
-          "position": 2021
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 16,
-      "fragment": "),\n        }\n    except AIUnavailableError as e:\n        return 503, {\n            'error': 'ai_unavailable',\n            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',\n            'action': 'configure_key',\n        }\n    except (AIResponseError, ValidationError) as e:\n        return 400, {\n            'error': 'ai_error',\n            'message': str(e),\n        }\n\n\n@router.get",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/ai/api.py",
-        "start": 704,
-        "end": 719,
-        "startLoc": {
-          "line": 704,
-          "column": 15,
-          "position": 4619
-        },
-        "endLoc": {
-          "line": 719,
-          "column": 4,
-          "position": 4721
-        }
-      },
-      "secondFile": {
-        "name": "apps/ai/api.py",
-        "start": 475,
-        "end": 308,
-        "startLoc": {
-          "line": 475,
-          "column": 2,
-          "position": 3222
-        },
-        "endLoc": {
-          "line": 308,
-          "column": 5,
-          "position": 2023
+          "line": 333,
+          "column": 12,
+          "position": 2083
         }
       }
     }

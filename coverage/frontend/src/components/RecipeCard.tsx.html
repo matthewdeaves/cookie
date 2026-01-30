@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>6/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/27</span>
+                <span class='fraction'>21/21</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>6/6</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -168,14 +168,7 @@
 <a name='L103'></a><a href='#L103'>103</a>
 <a name='L104'></a><a href='#L104'>104</a>
 <a name='L105'></a><a href='#L105'>105</a>
-<a name='L106'></a><a href='#L106'>106</a>
-<a name='L107'></a><a href='#L107'>107</a>
-<a name='L108'></a><a href='#L108'>108</a>
-<a name='L109'></a><a href='#L109'>109</a>
-<a name='L110'></a><a href='#L110'>110</a>
-<a name='L111'></a><a href='#L111'>111</a>
-<a name='L112'></a><a href='#L112'>112</a>
-<a name='L113'></a><a href='#L113'>113</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L106'></a><a href='#L106'>106</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -192,28 +185,21 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">17x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -290,6 +276,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Star, Clock, Heart } from 'lucide-react'
 import type { Recipe } from '../api/client'
 import { cn } from '../lib/utils'
+import { formatTime } from '../lib/formatting'
 &nbsp;
 interface RecipeCardProps {
   recipe: Recipe
@@ -298,34 +285,26 @@ interface RecipeCardProps {
   onClick?: (recipe: Recipe) =&gt; void
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >RecipeCard({</span>
+export default function RecipeCard({
   recipe,
-  isFavorite = <span class="branch-0 cbranch-no" title="branch not covered" >false,</span>
+  isFavorite = false,
   onFavoriteToggle,
   onClick,
 }: RecipeCardProps) {
-  const imageUrl = <span class="cstat-no" title="statement not covered" >recipe.image || recipe.image_url</span>
+  const imageUrl = recipe.image || recipe.image_url
 &nbsp;
-  const formatTime = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(m</span>inutes: number | null) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    if (!minutes) <span class="cstat-no" title="statement not covered" >return null</span></span>
-<span class="cstat-no" title="statement not covered" >    if (minutes &lt; 60) <span class="cstat-no" title="statement not covered" >return `${minutes} min`</span></span>
-    const hours = <span class="cstat-no" title="statement not covered" >Math.floor(minutes / 60)</span>
-    const mins = <span class="cstat-no" title="statement not covered" >minutes % 60</span>
-<span class="cstat-no" title="statement not covered" >    return mins &gt; 0 ? `${hours}h ${mins}m` : `${hours}h`</span>
+  const handleFavoriteClick = (e: React.MouseEvent) =&gt; {
+    e.stopPropagation()
+    onFavoriteToggle?.(recipe)
   }
 &nbsp;
-  const handleFavoriteClick = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(e</span>: React.MouseEvent) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    e.stopPropagation()</span>
-<span class="cstat-no" title="statement not covered" >    onFavoriteToggle?.(recipe)</span>
-  }
-&nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div
       className={cn(
         'group relative overflow-hidden rounded-lg bg-card shadow-sm transition-all hover:shadow-md',
         onClick &amp;&amp; 'cursor-pointer'
       )}
-      onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >o</span>nClick?.(recipe)}</span>
+      onClick={() =&gt; onClick?.(recipe)}
     &gt;
       {/* Image */}
       &lt;div className="relative aspect-[4/3] overflow-hidden bg-muted"&gt;
@@ -406,7 +385,7 @@ export default function <span class="fstat-no" title="function not covered" >Rec
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-11T00:40:51.367Z
+                at 2026-01-30T08:08:51.478Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

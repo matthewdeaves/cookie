@@ -127,11 +127,15 @@
       <div class="badge-row">
         <img src="badges/frontend-complexity.svg" alt="Frontend complexity" class="badge">
       </div>
-      <p>ESLint complexity analysis (max cyclomatic: 10) for <code>frontend/src/</code></p>
+      <p>Cyclomatic complexity analysis for <code>frontend/src/</code> (comparable to backend)</p>
       <div class="metrics-row">
         <div class="metric-item">
+          <div class="metric" id="frontend-cc">-</div>
+          <div class="metric-label">Avg. Complexity</div>
+        </div>
+        <div class="metric-item">
           <div class="metric" id="frontend-warnings">-</div>
-          <div class="metric-label">Warnings</div>
+          <div class="metric-label">ESLint Warnings</div>
         </div>
       </div>
     </div>
@@ -220,8 +224,12 @@
       <p>Vite build output - JavaScript and CSS bundle from <code>frontend/dist/</code></p>
       <div class="metrics-row">
         <div class="metric-item">
+          <div class="metric metric-sm" id="bundle-gzip">-</div>
+          <div class="metric-label">Gzipped (KB)</div>
+        </div>
+        <div class="metric-item">
           <div class="metric metric-sm" id="bundle-size">-</div>
-          <div class="metric-label">Total Size (KB)</div>
+          <div class="metric-label">Raw Size (KB)</div>
         </div>
       </div>
     </div>
@@ -305,7 +313,9 @@
     <a href="https://github.com/matthewdeaves/cookie">View on GitHub</a>
   </p>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
+          integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4"
+          crossorigin="anonymous"></script>
   <script>
     document.getElementById('date').textContent = new Date().toLocaleString();
 
@@ -398,6 +408,7 @@
         // Complexity
         document.getElementById('backend-cc').textContent = data.complexity?.backend?.cyclomatic_complexity || '-';
         document.getElementById('backend-mi').textContent = data.complexity?.backend?.maintainability_index || '-';
+        document.getElementById('frontend-cc').textContent = data.complexity?.frontend?.avg_cyclomatic_complexity || '-';
         document.getElementById('frontend-warnings').textContent = data.complexity?.frontend?.complexity_warnings ?? '0';
 
         // Security
@@ -410,7 +421,8 @@
         document.getElementById('backend-duplication-pct').textContent = (data.duplication?.backend?.percentage ?? '-') + '%';
         document.getElementById('backend-duplication-clones').textContent = data.duplication?.backend?.clones_count ?? '-';
 
-        // Bundle
+        // Bundle (show gzipped size prominently as it's the actual transfer size)
+        document.getElementById('bundle-gzip').textContent = data.bundle?.gzip_kb ?? '-';
         document.getElementById('bundle-size').textContent = data.bundle?.size_kb ?? '-';
 
         // Legacy

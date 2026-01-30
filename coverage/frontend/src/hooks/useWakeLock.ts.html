@@ -238,19 +238,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -283,6 +270,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -405,6 +405,42 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useEffect, useRef, useCallback } from 'react'
 &nbsp;
+// Silent MP4 video (base64) - ~1KB, used as fallback for older browsers
+// This is a minimal valid MP4 that plays silently
+const SILENT_VIDEO_BASE64 =
+<span class="cstat-no" title="statement not covered" >  'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAA' +</span>
+  'NBtZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE0MiByMjQ3OSBkZDc5' +
+  'YTYxIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxNCAtIGh0dHA6' +
+  'Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVi' +
+  'bG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9' +
+  'MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MDgg' +
+  'OHg4ZGN0PTEgY3FtPTAgZGVhZHpvbmU9MjEsMTEgZmFzdF9wc2tpcD0xIGNocm9tYV9xcF9vZmZz' +
+  'ZXQ9LTIgdGhyZWFkcz02IGxvb2thaGVhZF90aHJlYWRzPTEgc2xpY2VkX3RocmVhZHM9MCBucj0w' +
+  'IGRlY2ltYXRlPTEgaW50ZXJsYWNlZD0wIGJsdXJheV9jb21wYXQ9MCBjb25zdHJhaW5lZF9pbnRy' +
+  'YT0wIGJmcmFtZXM9MCB3ZWlnaHRwPTAga2V5aW50PTI1MCBrZXlpbnRfbWluPTI1IHNjZW5lY3V0' +
+  'PTQwIGludHJhX3JlZnJlc2g9MCByY19sb29rYWhlYWQ9NDAgcmM9Y3JmIG1idHJlZT0xIGNyZj0y' +
+  'My4wIHFjb21wPTAuNjAgcXBtaW49MCBxcG1heD02OSBxcHN0ZXA9NCBpcF9yYXRpbz0xLjQwIGFx' +
+  'PTE6MS4wMACAAAAAwWWIhAAz//727L4FNf2f0JcRLMXaSnA+KqSAgHc0wAAAAwAAAwAAFgn0AAAA' +
+  'AAIBAAADAAMAAAMAAAMAAFAAAAB4AAABpjgBAAZAAAABgQAAAEQQACAAAAAABIgYF//+l3EXpve' +
+  'bZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE0MiByMjQ3OSBkZDc5YTYxIC0gSC4yNjQvTVBFRy00' +
+  'IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxNCAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3Jn' +
+  'L3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMAAAAUZnR5cGlzb20AAAIAaXNvbWlz' +
+  'bzIAAAAIZnJlZQAAANhtZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyAAAAFGZ0eXBpc29t' +
+  'AAACAGlzb21pc28yAAAACGZyZWUAAADYbWRhdAAAAq4GBf//qtxF6b3m2Ui3lizYINkj7u94MgAA' +
+  'AAhtb292AAAAbG12aGQAAAAAAAAAAAAAAAAAAAPoAAAAZAABAAABAAAAAAAAAAAAAAAAAQAAAAAAAA' +
+  'AAAAAAAAAAAQAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAB' +
+  'pHRyYWsAAABcdGtoZAAAAA8AAAAAAAAAAAAAAAEAAAAAAAAAZAAAAAAAAAAAAAAAAAAAAAABAAAAAA' +
+  'AAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAJHbWRpYQAAACBtZGhkAAAA' +
+  'AAAAAAAAAAAAAAA8AAAABQBVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRl' +
+  'b0hhbmRsZXIAAAAA3G1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAA' +
+  'AAAAAQAAAAx1cmwgAAAAAQAAAJxzdGJsAAAAmHN0c2QAAAAAAAAAAQAAAIhhdmMxAAAAAAAAAAEA' +
+  'AAAAAAAAAAAAAAAAAAAAACgAIABIAAAASAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+  'AAAAAAAAAAAAGP//AAAAMWF2Y0MBZAAK/+EAGGdkAAqs2UHgloQAAAMABAAAAwAoPGDGWAEABmjr' +
+  '48siwAAAABhzdHRzAAAAAAAAAAEAAAABAAAFAAAAABxzdHNjAAAAAAAAAAEAAAABAAAAAQAAAAEA' +
+  'AAAUc3RzegAAAAAAAAL0AAAAAQAAABRzdGNvAAAAAAAAAAEAAAAwAAAAYnVkdGEAAABabWV0YQAA' +
+  'AAAAAAAhaGRscgAAAAAAAAAAbWRpcmFwcGwAAAAAAAAAAAAAAAAtaWxzdAAAACWpdG9vAAAAHWRh' +
+  'dGEAAAABAAAAAExhdmY1Ni40MC4xMDE='
+&nbsp;
 /**
  * useWakeLock - Prevents the screen from locking while active
  *
@@ -417,42 +453,6 @@ export function <span class="fstat-no" title="function not covered" >useWakeLock
   const <span class="cstat-no" title="statement not covered" >wakeLockRef = useRef&lt;WakeLockSentinel | null&gt;(null)</span>
   const <span class="cstat-no" title="statement not covered" >videoRef = useRef&lt;HTMLVideoElement | null&gt;(null)</span>
   const <span class="cstat-no" title="statement not covered" >usingFallbackRef = useRef(false)</span>
-&nbsp;
-  // Silent MP4 video (base64) - ~1KB, used as fallback for older browsers
-  // This is a minimal valid MP4 that plays silently
-  const SILENT_VIDEO_BASE64 =
-<span class="cstat-no" title="statement not covered" >    'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAA' +</span>
-    'NBtZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE0MiByMjQ3OSBkZDc5' +
-    'YTYxIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxNCAtIGh0dHA6' +
-    'Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVi' +
-    'bG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9' +
-    'MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MDgg' +
-    'OHg4ZGN0PTEgY3FtPTAgZGVhZHpvbmU9MjEsMTEgZmFzdF9wc2tpcD0xIGNocm9tYV9xcF9vZmZz' +
-    'ZXQ9LTIgdGhyZWFkcz02IGxvb2thaGVhZF90aHJlYWRzPTEgc2xpY2VkX3RocmVhZHM9MCBucj0w' +
-    'IGRlY2ltYXRlPTEgaW50ZXJsYWNlZD0wIGJsdXJheV9jb21wYXQ9MCBjb25zdHJhaW5lZF9pbnRy' +
-    'YT0wIGJmcmFtZXM9MCB3ZWlnaHRwPTAga2V5aW50PTI1MCBrZXlpbnRfbWluPTI1IHNjZW5lY3V0' +
-    'PTQwIGludHJhX3JlZnJlc2g9MCByY19sb29rYWhlYWQ9NDAgcmM9Y3JmIG1idHJlZT0xIGNyZj0y' +
-    'My4wIHFjb21wPTAuNjAgcXBtaW49MCBxcG1heD02OSBxcHN0ZXA9NCBpcF9yYXRpbz0xLjQwIGFx' +
-    'PTE6MS4wMACAAAAAwWWIhAAz//727L4FNf2f0JcRLMXaSnA+KqSAgHc0wAAAAwAAAwAAFgn0AAAA' +
-    'AAIBAAADAAMAAAMAAAMAAFAAAAB4AAABpjgBAAZAAAABgQAAAEQQACAAAAAABIgYF//+l3EXpve' +
-    'bZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE0MiByMjQ3OSBkZDc5YTYxIC0gSC4yNjQvTVBFRy00' +
-    'IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxNCAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3Jn' +
-    'L3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMAAAAUZnR5cGlzb20AAAIAaXNvbWlz' +
-    'bzIAAAAIZnJlZQAAANhtZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyAAAAFGZ0eXBpc29t' +
-    'AAACAGlzb21pc28yAAAACGZyZWUAAADYbWRhdAAAAq4GBf//qtxF6b3m2Ui3lizYINkj7u94MgAA' +
-    'AAhtb292AAAAbG12aGQAAAAAAAAAAAAAAAAAAAPoAAAAZAABAAABAAAAAAAAAAAAAAAAAQAAAAAAAA' +
-    'AAAAAAAAAAAQAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAB' +
-    'pHRyYWsAAABcdGtoZAAAAA8AAAAAAAAAAAAAAAEAAAAAAAAAZAAAAAAAAAAAAAAAAAAAAAABAAAAAA' +
-    'AAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAJHbWRpYQAAACBtZGhkAAAA' +
-    'AAAAAAAAAAAAAAA8AAAABQBVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRl' +
-    'b0hhbmRsZXIAAAAA3G1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAA' +
-    'AAAAAQAAAAx1cmwgAAAAAQAAAJxzdGJsAAAAmHN0c2QAAAAAAAAAAQAAAIhhdmMxAAAAAAAAAAEA' +
-    'AAAAAAAAAAAAAAAAAAAAACgAIABIAAAASAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-    'AAAAAAAAAAAAGP//AAAAMWF2Y0MBZAAK/+EAGGdkAAqs2UHgloQAAAMABAAAAwAoPGDGWAEABmjr' +
-    '48siwAAAABhzdHRzAAAAAAAAAAEAAAABAAAFAAAAABxzdHNjAAAAAAAAAAEAAAABAAAAAQAAAAEA' +
-    'AAAUc3RzegAAAAAAAAL0AAAAAQAAABRzdGNvAAAAAAAAAAEAAAAwAAAAYnVkdGEAAABabWV0YQAA' +
-    'AAAAAAAhaGRscgAAAAAAAAAAbWRpcmFwcGwAAAAAAAAAAAAAAAAtaWxzdAAAACWpdG9vAAAAHWRh' +
-    'dGEAAAABAAAAAExhdmY1Ni40MC4xMDE='
 &nbsp;
   // Check if Screen Wake Lock API is supported
   const <span class="cstat-no" title="statement not covered" >isWakeLockSupported = useCallback(<span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
@@ -580,7 +580,7 @@ export function <span class="fstat-no" title="function not covered" >useWakeLock
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-11T00:40:51.367Z
+                at 2026-01-30T08:08:51.478Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
