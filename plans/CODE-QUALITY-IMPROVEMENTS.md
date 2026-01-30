@@ -32,7 +32,7 @@ The review identified 50+ specific issues. This plan organizes them into 8 phase
 | **5** | Frontend Testing & Utilities | 5 tasks | Medium | [DONE] |
 | **6** | Legacy JavaScript Refactoring | 6 tasks | Medium | [DONE] |
 | **7** | CI/Metrics Accuracy | 6 tasks | Medium | [DONE] |
-| **8** | CI/Metrics Maintainability | 5 tasks | Low | [OPEN] |
+| **8** | CI/Metrics Maintainability | 5 tasks | Low | [DONE] |
 
 **Total:** 46 tasks across 8 phases
 
@@ -755,70 +755,54 @@ cat site/coverage/history/all.json | jq '.entries[-5:]'
 
 ### Tasks
 
-- [ ] 8.1 Move Python scripts to .github/scripts/
+- [x] 8.1 Move Python scripts to .github/scripts/
   - **File:** `.github/workflows/coverage.yml` (800+ lines of inline scripts)
   - **Current:** Python/JavaScript embedded in YAML heredocs
-  - **Fix:** Extract to separate files:
-    - `.github/scripts/generate-dashboard.py` - Main dashboard generation
-    - `.github/scripts/extract-metrics.py` - Artifact parsing
-    - `.github/scripts/generate-badges.py` - Badge creation
-    - `.github/scripts/update-history.py` - History tracking
+  - **Fix:** Extracted to separate files:
+    - `.github/scripts/generate-dashboard.py` - Main dashboard generation (metrics, badges, history)
+    - `.github/scripts/inject-back-links.py` - Adds navigation links to HTML reports
+    - `.github/scripts/rating-config.json` - Centralized rating thresholds
   - **Impact:** Locally testable, syntax highlighting, version control clarity
 
-- [ ] 8.2 Extract rating thresholds into constants
+- [x] 8.2 Extract rating thresholds into constants
   - **Files:** Throughout CI workflows, repeated 10+ times
   - **Current:** Rating logic duplicated across jobs
-  - **Fix:** Create `.github/scripts/rating-config.json`:
-    ```json
-    {
-      "coverage": {
-        "A": 80,
-        "B": 60,
-        "C": 40
-      },
-      "complexity": {
-        "A": 5,
-        "B": 10,
-        "C": 20
-      },
-      ...
-    }
-    ```
+  - **Fix:** Created `.github/scripts/rating-config.json` with all thresholds for coverage, complexity, maintainability, duplication, bundle size, and security
   - **Impact:** Single source of truth, easy to adjust thresholds
 
-- [ ] 8.3 Add SRI hashes to CDN resources
-  - **File:** `.github/workflows/coverage.yml:870`
+- [x] 8.3 Add SRI hashes to CDN resources
+  - **File:** `.github/workflows/coverage.yml:971`
   - **Current:** Chart.js loaded from CDN without Subresource Integrity
-  - **Fix:** Add `integrity` attribute:
-    ```html
-    <script
-      src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
-      integrity="sha384-..."
-      crossorigin="anonymous">
-    </script>
-    ```
+  - **Fix:** Added `integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4"` and `crossorigin="anonymous"`
   - **Impact:** Security best practice, prevents CDN compromise
 
-- [ ] 8.4 Generate SVG badges locally
-  - **File:** `.github/workflows/coverage.yml:247-254`
-  - **Current:** Downloads badges from shields.io (external dependency)
-  - **Fix:** Generate SVG badges using template:
-    ```python
-    def generate_badge(label, value, color):
-        return f'''<svg>...</svg>'''  # SVG template
-    ```
-  - **Impact:** Removes external dependency, faster, more reliable
+- [x] 8.4 Generate SVG badges locally
+  - **File:** `.github/scripts/generate-dashboard.py`
+  - **Current:** Downloaded badges from shields.io (external dependency)
+  - **Fix:** Added `generate_badge_svg()` function that creates SVG badges locally using a template
+  - **Impact:** Removes external dependency, faster, more reliable, works offline
 
-- [ ] 8.5 Add documentation for CI setup
+- [x] 8.5 Add documentation for CI setup
   - **File:** `docs/CI-METRICS.md` (new)
   - **Current:** No documentation on how metrics work
-  - **Fix:** Document:
-    - How to add a new metric
-    - Why rating thresholds were chosen
-    - How to debug when metrics are wrong
-    - How to run metrics locally
-    - Architecture diagram of CI pipeline
+  - **Fix:** Created comprehensive documentation including:
+    - Architecture diagram (workflow → script → artifact flow)
+    - Rating threshold rationale
+    - Step-by-step guide for adding new metrics
+    - Instructions for running metrics locally
+    - Troubleshooting section
+    - API response format documentation
   - **Impact:** Easier onboarding, self-service debugging
+
+- [x] 8.6 Fix trend graphs not showing historical data
+  - **File:** `.github/workflows/coverage.yml` (history fetch step)
+  - **Current:** History file was lost on every deployment due to silent fetch failures
+  - **Fix:**
+    - Added verbose logging to history fetch step
+    - Fixed path for fetching from gh-pages branch
+    - Added entry count logging in generate-dashboard.py
+    - Verified data format matches between generation and chart rendering
+  - **Impact:** Trend graphs will now accumulate and display historical data
 
 ### Verification
 

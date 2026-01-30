@@ -126,15 +126,33 @@ jobs:
       - name: Fetch existing history from gh-pages
         run: |
           mkdir -p site/coverage/history
+          echo "Attempting to fetch history from gh-pages branch..."
+
           # Try to fetch existing history from gh-pages branch
-          if git fetch origin gh-pages --depth=1 2>/dev/null; then
-            git checkout origin/gh-pages -- coverage/history/all.json 2>/dev/null && \
-              mv coverage/history/all.json site/coverage/history/ || \
+          if git fetch origin gh-pages --depth=1; then
+            echo "Successfully fetched gh-pages branch"
+
+            # List files on gh-pages to debug paths
+            echo "Files in gh-pages coverage directory:"
+            git ls-tree --name-only origin/gh-pages coverage/ 2>/dev/null || echo "  (coverage/ not found)"
+            git ls-tree --name-only origin/gh-pages coverage/history/ 2>/dev/null || echo "  (coverage/history/ not found)"
+
+            # Try to checkout the history file
+            if git checkout origin/gh-pages -- coverage/history/all.json 2>/dev/null; then
+              echo "Successfully retrieved existing history file"
+              mv coverage/history/all.json site/coverage/history/
+              echo "Existing history has $(cat site/coverage/history/all.json | python3 -c 'import sys,json; print(len(json.load(sys.stdin).get("entries", [])))') entries"
+            else
+              echo "No existing history file found on gh-pages, starting fresh"
               echo '{"entries":[]}' > site/coverage/history/all.json
+            fi
           else
+            echo "Could not fetch gh-pages branch (may not exist yet), starting fresh"
             echo '{"entries":[]}' > site/coverage/history/all.json
           fi
-          echo "History file contents:"
+
+          echo ""
+          echo "Current history file contents:"
           cat site/coverage/history/all.json
 
       - name: Generate coverage and metrics dashboard
@@ -197,459 +215,14 @@ jobs:
           fi
 
           # Inject "Back to Dashboard" link into all report HTML files
-          python3 << 'PYEOF'
-          import os
-          import glob
+          python3 .github/scripts/inject-back-links.py --site-dir site/coverage
 
-          back_link = '<div style="position:fixed;top:10px;right:10px;z-index:9999;"><a href="/cookie/coverage/" style="background:#0066cc;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;box-shadow:0 2px 4px rgba(0,0,0,0.2);">&#8592; Back to Dashboard</a></div>'
+          # Generate all metrics, badges, and API files using extracted script
+          python3 .github/scripts/generate-dashboard.py --config .github/scripts/rating-config.json --output site/coverage
 
-          for html_file in glob.glob('site/coverage/**/*.html', recursive=True):
-              if html_file.endswith('index.html') and 'site/coverage/index.html' == html_file:
-                  continue  # Skip main dashboard
-              try:
-                  with open(html_file, 'r', encoding='utf-8', errors='ignore') as f:
-                      content = f.read()
-                  if '</body>' in content and back_link not in content:
-                      content = content.replace('</body>', back_link + '</body>')
-                      with open(html_file, 'w', encoding='utf-8') as f:
-                          f.write(content)
-                      print(f"Injected back link: {html_file}")
-              except Exception as e:
-                  print(f"Skipped {html_file}: {e}")
-          PYEOF
-
-          # Generate all metrics and badges
-          python3 << 'EOF'
-          import urllib.request
-          import json
-          import os
-          from datetime import datetime, timezone
-
-          def get_color(pct, invert=False):
-              try:
-                  pct = float(pct)
-              except (ValueError, TypeError):
-                  return 'lightgrey'
-              if invert:  # For complexity/duplication (lower is better)
-                  if pct <= 5: return 'brightgreen'
-                  elif pct <= 10: return 'green'
-                  elif pct <= 20: return 'yellow'
-                  else: return 'red'
-              else:  # For coverage (higher is better)
-                  if pct >= 80: return 'brightgreen'
-                  elif pct >= 60: return 'yellow'
-                  elif pct >= 40: return 'orange'
-                  else: return 'red'
-
-          def get_rating_color(rating):
-              return {'A': 'brightgreen', 'B': 'green', 'C': 'yellow', 'D': 'red'}.get(rating, 'lightgrey')
-
-          def download_badge(name, value, color, label=None):
-              label = label or name
-              url = f'https://img.shields.io/badge/{label}-{value}-{color}'
-              try:
-                  urllib.request.urlretrieve(url, f'site/coverage/badges/{name}.svg')
-                  print(f"Generated {name} badge: {value}")
-              except Exception as e:
-                  print(f"Failed to generate {name} badge: {e}")
-
-          # Extract coverage percentages
-          frontend_cov = 0
-          backend_cov = 0
-
-          try:
-              with open('coverage/frontend/coverage-summary.json') as f:
-                  d = json.load(f)
-                  frontend_cov = d['total']['lines']['pct']
-          except FileNotFoundError:
-              print("WARNING: Frontend coverage artifact not found")
-          except (json.JSONDecodeError, KeyError) as e:
-              print(f"ERROR: Invalid frontend coverage data: {e}")
-
-          try:
-              with open('coverage/backend/coverage.json') as f:
-                  d = json.load(f)
-                  backend_cov = round(d['totals']['percent_covered'], 1)
-          except FileNotFoundError:
-              print("WARNING: Backend coverage artifact not found")
-          except (json.JSONDecodeError, KeyError) as e:
-              print(f"ERROR: Invalid backend coverage data: {e}")
-
-          # Extract complexity metrics
-          backend_cc = 0
-          backend_mi = 0
-          backend_cc_rating = 'N/A'
-          backend_mi_rating = 'N/A'
-          frontend_complexity_warnings = 0
-          frontend_complexity_rating = 'N/A'
-
-          try:
-              with open('complexity/backend/summary.json') as f:
-                  d = json.load(f)
-                  backend_cc = d.get('average_cyclomatic_complexity', 0)
-                  backend_mi = d.get('average_maintainability_index', 0)
-                  backend_cc_rating = d.get('cc_rating', 'N/A')
-                  backend_mi_rating = d.get('mi_rating', 'N/A')
-          except FileNotFoundError:
-              print("WARNING: Backend complexity artifact not found")
-          except json.JSONDecodeError as e:
-              print(f"ERROR: Invalid backend complexity data: {e}")
-
-          try:
-              with open('complexity/frontend/summary.json') as f:
-                  d = json.load(f)
-                  frontend_complexity_warnings = d.get('complexity_warnings', 0)
-                  frontend_avg_cc = d.get('avg_cyclomatic_complexity', 0)
-                  frontend_complexity_rating = d.get('rating', 'N/A')
-          except FileNotFoundError:
-              print("WARNING: Frontend complexity artifact not found")
-              frontend_avg_cc = 0
-          except json.JSONDecodeError as e:
-              print(f"ERROR: Invalid frontend complexity data: {e}")
-              frontend_avg_cc = 0
-
-          # Extract duplication metrics (frontend)
-          duplication_pct = 0
-          duplication_rating = 'N/A'
-          duplication_clones = 0
-
-          try:
-              with open('duplication/frontend/summary.json') as f:
-                  d = json.load(f)
-                  duplication_pct = d.get('duplication_percentage', 0)
-                  duplication_rating = d.get('rating', 'N/A')
-                  duplication_clones = d.get('clones_count', 0)
-          except FileNotFoundError:
-              print("WARNING: Frontend duplication artifact not found")
-          except json.JSONDecodeError as e:
-              print(f"ERROR: Invalid frontend duplication data: {e}")
-
-          # Extract duplication metrics (backend)
-          backend_duplication_pct = 0
-          backend_duplication_rating = 'N/A'
-          backend_duplication_clones = 0
-
-          try:
-              with open('duplication/backend/summary.json') as f:
-                  d = json.load(f)
-                  backend_duplication_pct = d.get('duplication_percentage', 0)
-                  backend_duplication_rating = d.get('rating', 'N/A')
-                  backend_duplication_clones = d.get('clones_count', 0)
-          except FileNotFoundError:
-              print("WARNING: Backend duplication artifact not found")
-          except json.JSONDecodeError as e:
-              print(f"ERROR: Invalid backend duplication data: {e}")
-
-          # Extract security metrics
-          frontend_vulns = 0
-          frontend_security_rating = 'A'
-          backend_vulns = 0
-          backend_security_rating = 'A'
-
-          try:
-              with open('security/frontend/summary.json') as f:
-                  d = json.load(f)
-                  frontend_vulns = d.get('total_vulnerabilities', 0)
-                  frontend_security_rating = d.get('rating', 'A')
-          except FileNotFoundError:
-              print("WARNING: Frontend security artifact not found")
-          except json.JSONDecodeError as e:
-              print(f"ERROR: Invalid frontend security data: {e}")
-
-          try:
-              with open('security/backend/summary.json') as f:
-                  d = json.load(f)
-                  backend_vulns = d.get('total_vulnerabilities', 0)
-                  backend_security_rating = d.get('rating', 'A')
-          except FileNotFoundError:
-              print("WARNING: Backend security artifact not found")
-          except json.JSONDecodeError as e:
-              print(f"ERROR: Invalid backend security data: {e}")
-
-          # Extract bundle metrics
-          bundle_size_kb = 0
-          bundle_rating = 'N/A'
-
-          try:
-              with open('bundle/frontend/summary.json') as f:
-                  d = json.load(f)
-                  bundle_size_kb = d.get('total_size_kb', 0)
-                  bundle_gzip_kb = d.get('total_gzip_kb', 0)
-                  bundle_rating = d.get('rating', 'N/A')
-          except FileNotFoundError:
-              print("WARNING: Bundle artifact not found")
-              bundle_gzip_kb = 0
-          except json.JSONDecodeError as e:
-              print(f"ERROR: Invalid bundle data: {e}")
-              bundle_gzip_kb = 0
-
-          # Extract legacy metrics
-          legacy_errors = 0
-          legacy_warnings = 0
-          legacy_complexity_warnings = 0
-          legacy_lint_rating = 'N/A'
-          legacy_duplication_pct = 0
-          legacy_duplication_rating = 'N/A'
-
-          try:
-              with open('legacy/lint/summary.json') as f:
-                  d = json.load(f)
-                  legacy_errors = d.get('errors', 0)
-                  legacy_warnings = d.get('warnings', 0)
-                  legacy_complexity_warnings = d.get('complexity_warnings', 0)
-                  legacy_lint_rating = d.get('rating', 'N/A')
-          except FileNotFoundError:
-              print("WARNING: Legacy lint artifact not found")
-          except json.JSONDecodeError as e:
-              print(f"ERROR: Invalid legacy lint data: {e}")
-
-          try:
-              with open('legacy/duplication/summary.json') as f:
-                  d = json.load(f)
-                  legacy_duplication_pct = d.get('duplication_percentage', 0)
-                  legacy_duplication_rating = d.get('rating', 'N/A')
-          except FileNotFoundError:
-              print("WARNING: Legacy duplication artifact not found")
-          except json.JSONDecodeError as e:
-              print(f"ERROR: Invalid legacy duplication data: {e}")
-
-          # Validate extracted data before using
-          validation_errors = []
-          validation_warnings = []
-
-          # Coverage should be 0-100
-          if not (0 <= frontend_cov <= 100):
-              validation_errors.append(f"Invalid frontend coverage: {frontend_cov}% (expected 0-100)")
-              frontend_cov = max(0, min(100, frontend_cov))  # Clamp to valid range
-          if not (0 <= backend_cov <= 100):
-              validation_errors.append(f"Invalid backend coverage: {backend_cov}% (expected 0-100)")
-              backend_cov = max(0, min(100, backend_cov))
-
-          # Bundle size should be positive
-          if bundle_size_kb < 0:
-              validation_errors.append(f"Invalid bundle size: {bundle_size_kb}KB (expected >= 0)")
-              bundle_size_kb = 0
-          if bundle_gzip_kb < 0:
-              validation_errors.append(f"Invalid gzip bundle size: {bundle_gzip_kb}KB (expected >= 0)")
-              bundle_gzip_kb = 0
-
-          # Complexity should be reasonable (CC typically 1-50)
-          if backend_cc < 0 or backend_cc > 100:
-              validation_warnings.append(f"Unusual backend CC: {backend_cc} (typically 1-50)")
-          if frontend_avg_cc < 0 or frontend_avg_cc > 100:
-              validation_warnings.append(f"Unusual frontend CC: {frontend_avg_cc} (typically 1-50)")
-
-          # Maintainability index should be 0-100
-          if not (0 <= backend_mi <= 100):
-              validation_warnings.append(f"Unusual backend MI: {backend_mi} (expected 0-100)")
-
-          # Duplication should be 0-100%
-          if not (0 <= duplication_pct <= 100):
-              validation_warnings.append(f"Unusual frontend duplication: {duplication_pct}% (expected 0-100)")
-          if not (0 <= backend_duplication_pct <= 100):
-              validation_warnings.append(f"Unusual backend duplication: {backend_duplication_pct}% (expected 0-100)")
-
-          # Print validation results
-          if validation_errors:
-              print("\n⚠️  VALIDATION ERRORS (data was corrected):")
-              for err in validation_errors:
-                  print(f"   - {err}")
-
-          if validation_warnings:
-              print("\n⚠️  VALIDATION WARNINGS (unusual values):")
-              for warn in validation_warnings:
-                  print(f"   - {warn}")
-
-          if not validation_errors and not validation_warnings:
-              print("\n✅ All metric values validated successfully")
-
-          # Generate badges
-          download_badge('frontend-coverage', f'{frontend_cov}%25', get_color(frontend_cov), 'coverage')
-          download_badge('backend-coverage', f'{backend_cov}%25', get_color(backend_cov), 'coverage')
-          download_badge('backend-complexity', f'{backend_cc_rating}', get_rating_color(backend_cc_rating), 'complexity')
-          download_badge('backend-maintainability', f'{backend_mi_rating}', get_rating_color(backend_mi_rating), 'maintainability')
-          download_badge('frontend-complexity', f'{frontend_complexity_rating}', get_rating_color(frontend_complexity_rating), 'complexity')
-          download_badge('duplication', f'{duplication_rating}', get_rating_color(duplication_rating), 'duplication')
-          download_badge('backend-duplication', f'{backend_duplication_rating}', get_rating_color(backend_duplication_rating), 'duplication')
-          download_badge('frontend-security', f'{frontend_security_rating}', get_rating_color(frontend_security_rating), 'security')
-          download_badge('backend-security', f'{backend_security_rating}', get_rating_color(backend_security_rating), 'security')
-          download_badge('bundle-size', f'{bundle_rating}', get_rating_color(bundle_rating), 'bundle')
-          download_badge('legacy-lint', f'{legacy_lint_rating}', get_rating_color(legacy_lint_rating), 'legacy%20lint')
-          download_badge('legacy-duplication', f'{legacy_duplication_rating}', get_rating_color(legacy_duplication_rating), 'legacy%20dup')
-
-          # Create metrics.json API file for blog integration
-          metrics = {
-              'generated_at': datetime.now(timezone.utc).isoformat(),
-              'repo': 'matthewdeaves/cookie',
-              'coverage': {
-                  'frontend': {
-                      'percentage': frontend_cov,
-                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/frontend-coverage.svg'
-                  },
-                  'backend': {
-                      'percentage': backend_cov,
-                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/backend-coverage.svg'
-                  }
-              },
-              'complexity': {
-                  'backend': {
-                      'cyclomatic_complexity': backend_cc,
-                      'cyclomatic_rating': backend_cc_rating,
-                      'maintainability_index': backend_mi,
-                      'maintainability_rating': backend_mi_rating,
-                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/backend-complexity.svg'
-                  },
-                  'frontend': {
-                      'avg_cyclomatic_complexity': frontend_avg_cc,
-                      'complexity_warnings': frontend_complexity_warnings,
-                      'rating': frontend_complexity_rating,
-                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/frontend-complexity.svg'
-                  }
-              },
-              'duplication': {
-                  'frontend': {
-                      'percentage': duplication_pct,
-                      'clones_count': duplication_clones,
-                      'rating': duplication_rating,
-                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/duplication.svg'
-                  },
-                  'backend': {
-                      'percentage': backend_duplication_pct,
-                      'clones_count': backend_duplication_clones,
-                      'rating': backend_duplication_rating,
-                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/backend-duplication.svg'
-                  }
-              },
-              'security': {
-                  'frontend': {
-                      'vulnerabilities': frontend_vulns,
-                      'rating': frontend_security_rating,
-                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/frontend-security.svg'
-                  },
-                  'backend': {
-                      'vulnerabilities': backend_vulns,
-                      'rating': backend_security_rating,
-                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/backend-security.svg'
-                  }
-              },
-              'bundle': {
-                  'size_kb': bundle_size_kb,
-                  'gzip_kb': bundle_gzip_kb,
-                  'rating': bundle_rating,
-                  'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/bundle-size.svg'
-              },
-              'legacy': {
-                  'lint': {
-                      'errors': legacy_errors,
-                      'warnings': legacy_warnings,
-                      'complexity_warnings': legacy_complexity_warnings,
-                      'rating': legacy_lint_rating,
-                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/legacy-lint.svg'
-                  },
-                  'duplication': {
-                      'percentage': legacy_duplication_pct,
-                      'rating': legacy_duplication_rating,
-                      'badge_url': 'https://matthewdeaves.github.io/cookie/coverage/badges/legacy-duplication.svg'
-                  }
-              },
-              'links': {
-                  'dashboard': 'https://matthewdeaves.github.io/cookie/coverage/',
-                  'frontend_coverage': 'https://matthewdeaves.github.io/cookie/coverage/frontend/',
-                  'backend_coverage': 'https://matthewdeaves.github.io/cookie/coverage/backend/htmlcov/',
-                  'github': 'https://github.com/matthewdeaves/cookie'
-              }
-          }
-
-          with open('site/coverage/api/metrics.json', 'w') as f:
-              json.dump(metrics, f, indent=2)
-
-          print(f"\nMetrics JSON generated at site/coverage/api/metrics.json")
-          print(f"Frontend Coverage: {frontend_cov}%")
-          print(f"Backend Coverage: {backend_cov}%")
-          print(f"Backend Complexity: CC={backend_cc} ({backend_cc_rating}), MI={backend_mi} ({backend_mi_rating})")
-          print(f"Frontend Complexity: CC={frontend_avg_cc} ({frontend_complexity_rating}), {frontend_complexity_warnings} ESLint warnings")
-          print(f"Duplication: Frontend={duplication_pct}% ({duplication_rating}), Backend={backend_duplication_pct}% ({backend_duplication_rating})")
-          print(f"Security: Frontend={frontend_vulns} ({frontend_security_rating}), Backend={backend_vulns} ({backend_security_rating})")
-          print(f"Bundle Size: {bundle_size_kb}KB raw, {bundle_gzip_kb}KB gzipped ({bundle_rating})")
-          print(f"Legacy Lint: {legacy_errors} errors, {legacy_warnings} warnings ({legacy_lint_rating})")
-          print(f"Legacy Duplication: {legacy_duplication_pct}% ({legacy_duplication_rating})")
-          EOF
-
-          # Append current metrics to history file
-          python3 << 'HISTEOF'
-          import json
-          import os
-          from datetime import datetime, timezone
-
-          history_file = 'site/coverage/history/all.json'
-          current_file = 'site/coverage/api/metrics.json'
-
-          # Load existing history
-          if os.path.exists(history_file):
-              with open(history_file) as f:
-                  history = json.load(f)
-          else:
-              history = {'entries': []}
-
-          # Load current metrics
-          with open(current_file) as f:
-              current = json.load(f)
-
-          # Use ISO timestamp to preserve intra-day data
-          now = datetime.now(timezone.utc)
-          timestamp = now.isoformat()
-          date = now.strftime('%Y-%m-%d')
-
-          # Build history entry with all trackable metrics
-          entry = {
-              'timestamp': timestamp,
-              'date': date,  # Keep for backwards compatibility with charts
-              'coverage': {
-                  'frontend': current['coverage']['frontend']['percentage'],
-                  'backend': current['coverage']['backend']['percentage']
-              },
-              'complexity': {
-                  'frontend_warnings': current['complexity']['frontend']['complexity_warnings'],
-                  'frontend_avg_cc': current['complexity']['frontend'].get('avg_cyclomatic_complexity', 0),
-                  'backend_cc': current['complexity']['backend']['cyclomatic_complexity'],
-                  'backend_mi': current['complexity']['backend']['maintainability_index']
-              },
-              'duplication': {
-                  'frontend': current['duplication']['frontend']['percentage'],
-                  'backend': current['duplication']['backend']['percentage'],
-                  'frontend_clones': current['duplication']['frontend']['clones_count'],
-                  'backend_clones': current['duplication']['backend']['clones_count']
-              },
-              'bundle': {
-                  'total_kb': current['bundle']['size_kb'],
-                  'gzip_kb': current['bundle'].get('gzip_kb', 0)
-              },
-              'security': {
-                  'frontend_vulns': current['security']['frontend']['vulnerabilities'],
-                  'backend_vulns': current['security']['backend']['vulnerabilities']
-              },
-              'legacy': {
-                  'errors': current['legacy']['lint']['errors'],
-                  'warnings': current['legacy']['lint']['warnings'],
-                  'duplication': current['legacy']['duplication']['percentage']
-              }
-          }
-
-          # Keep all entries (using timestamp as unique key preserves intra-day data)
-          history['entries'].append(entry)
-
-          # Sort by timestamp
-          history['entries'].sort(key=lambda x: x.get('timestamp', x.get('date', '')))
-
-          # Keep last 200 entries (allows multiple runs per day while keeping ~90 days of history)
-          history['entries'] = history['entries'][-200:]
-
-          with open(history_file, 'w') as f:
-              json.dump(history, f, indent=2)
-
-          print(f"\nHistory updated: {len(history['entries'])} entries")
-          print(f"Latest entry: {timestamp}")
-          HISTEOF
+          # Note: Metrics extraction, badge generation, and history updates
+          # are now handled by generate-dashboard.py above.
+          # The dashboard HTML is still generated inline below.
 
           # Create index.html dashboard
           cat > site/coverage/index.html << 'HTMLEOF'
@@ -968,7 +541,9 @@ jobs:
               <a href="https://github.com/matthewdeaves/cookie">View on GitHub</a>
             </p>
 
-            <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
+                    integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4"
+                    crossorigin="anonymous"></script>
             <script>
               document.getElementById('date').textContent = new Date().toLocaleString();
 
