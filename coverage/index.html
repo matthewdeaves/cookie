@@ -138,11 +138,12 @@
           <div class="metric-label">ESLint Warnings</div>
         </div>
       </div>
+      <a href="complexity/frontend-complexity.html" class="btn">View Detailed Report</a>
     </div>
   </div>
 
   <h2>Security</h2>
-  <p style="color:#666;margin-bottom:1rem;">Dependency vulnerability scanning for npm (frontend) and pip (backend) packages</p>
+  <p style="color:#666;margin-bottom:1rem;">Comprehensive security scanning: dependency vulnerabilities, SAST code analysis, and secrets detection</p>
   <div class="cards">
     <div class="card">
       <h3>Frontend Security <span class="area-tag">npm packages</span></h3>
@@ -158,17 +159,45 @@
       </div>
     </div>
     <div class="card">
-      <h3>Backend Security <span class="area-tag">pip packages</span></h3>
+      <h3>Backend Security <span class="area-tag">pip + SAST</span></h3>
       <div class="badge-row">
         <img src="badges/backend-security.svg" alt="Backend security" class="badge">
+        <img src="badges/bandit-sast.svg" alt="Bandit SAST" class="badge">
       </div>
-      <p>pip-audit - checks <code>requirements.txt</code> for known vulnerabilities</p>
+      <p>pip-audit (dependency vulnerabilities) + Bandit SAST (code analysis)</p>
       <div class="metrics-row">
         <div class="metric-item">
           <div class="metric metric-sm" id="backend-vulns">-</div>
-          <div class="metric-label">Vulnerabilities</div>
+          <div class="metric-label">pip-audit</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric metric-sm" id="bandit-high" style="color:#e05d44">-</div>
+          <div class="metric-label">HIGH</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric metric-sm" id="bandit-medium" style="color:#dfb317">-</div>
+          <div class="metric-label">MEDIUM</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric metric-sm" id="bandit-low" style="color:#97ca00">-</div>
+          <div class="metric-label">LOW</div>
         </div>
       </div>
+      <a href="security/backend-security.html" class="btn">View Detailed Report</a>
+    </div>
+    <div class="card">
+      <h3>Secrets Detection <span class="area-tag">detect-secrets</span></h3>
+      <div class="badge-row">
+        <img src="badges/secrets-scan.svg" alt="Secrets scan" class="badge">
+      </div>
+      <p>Scanning for accidentally committed secrets, API keys, and credentials</p>
+      <div class="metrics-row">
+        <div class="metric-item">
+          <div class="metric metric-sm" id="secrets-found">-</div>
+          <div class="metric-label">Secrets Found</div>
+        </div>
+      </div>
+      <a href="security/secrets-report.html" class="btn">View Detailed Report</a>
     </div>
   </div>
 
@@ -388,7 +417,10 @@
             labels,
             datasets: [
               { label: 'Frontend Vulns', data: entries.map(e => e.security?.frontend_vulns), borderColor: '#ef4444', tension: 0.3 },
-              { label: 'Backend Vulns', data: entries.map(e => e.security?.backend_vulns), borderColor: '#f97316', tension: 0.3 }
+              { label: 'Backend Vulns', data: entries.map(e => e.security?.backend_vulns), borderColor: '#f97316', tension: 0.3 },
+              { label: 'Bandit HIGH', data: entries.map(e => e.security?.bandit_high), borderColor: '#dc2626', tension: 0.3 },
+              { label: 'Bandit MED', data: entries.map(e => e.security?.bandit_medium), borderColor: '#eab308', tension: 0.3 },
+              { label: 'Secrets', data: entries.map(e => e.security?.secrets_found), borderColor: '#7c3aed', tension: 0.3 }
             ]
           },
           options: chartOptions
@@ -413,7 +445,11 @@
 
         // Security
         document.getElementById('frontend-vulns').textContent = data.security?.frontend?.vulnerabilities ?? '-';
-        document.getElementById('backend-vulns').textContent = data.security?.backend?.vulnerabilities ?? '-';
+        document.getElementById('backend-vulns').textContent = data.security?.backend?.pip_audit_vulns ?? '-';
+        document.getElementById('bandit-high').textContent = data.security?.bandit?.high ?? '-';
+        document.getElementById('bandit-medium').textContent = data.security?.bandit?.medium ?? '-';
+        document.getElementById('bandit-low').textContent = data.security?.bandit?.low ?? '-';
+        document.getElementById('secrets-found').textContent = data.security?.secrets?.found ?? '-';
 
         // Duplication
         document.getElementById('duplication-pct').textContent = (data.duplication?.frontend?.percentage ?? '-') + '%';
