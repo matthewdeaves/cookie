@@ -51,6 +51,7 @@ export default function RecipeDetail() {
     if (recipeId) {
       loadData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- loadData is stable, only re-run when recipeId changes
   }, [recipeId])
 
   // Poll for tips if recipe is recently imported and has no tips yet
@@ -96,6 +97,7 @@ export default function RecipeDetail() {
       clearInterval(interval)
       setTipsPolling(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- recipe object changes on fetch, only care about id/scraped_at/tips changes
   }, [recipe?.id, recipe?.scraped_at, tips.length])
 
   // Auto-generate tips when viewing Tips tab for old recipes without tips
@@ -110,6 +112,7 @@ export default function RecipeDetail() {
     ) {
       handleGenerateTips(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally only trigger on tab change, other deps checked inside
   }, [activeTab])
 
   const loadData = async () => {

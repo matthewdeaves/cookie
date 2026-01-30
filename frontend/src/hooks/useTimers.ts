@@ -30,8 +30,9 @@ export function useTimers(onTimerComplete?: (timer: Timer) => void): UseTimersRe
 
   // Cleanup intervals on unmount
   useEffect(() => {
+    const intervals = intervalsRef.current
     return () => {
-      intervalsRef.current.forEach((intervalId) => {
+      intervals.forEach((intervalId) => {
         clearInterval(intervalId)
       })
     }

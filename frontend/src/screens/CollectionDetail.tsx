@@ -20,6 +20,7 @@ export default function CollectionDetail() {
     if (collectionId) {
       loadCollection()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- loadCollection is stable, only re-run when collectionId changes
   }, [collectionId])
 
   const loadCollection = async () => {

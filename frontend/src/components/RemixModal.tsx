@@ -35,6 +35,7 @@ export default function RemixModal({
       setSelectedSuggestion(null)
       setCustomInput('')
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- loadSuggestions is stable, only re-run when modal opens or recipe changes
   }, [isOpen, recipe.id])
 
   const loadSuggestions = async () => {

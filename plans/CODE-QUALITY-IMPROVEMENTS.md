@@ -835,6 +835,19 @@ cat site/coverage/history/all.json | jq '.entries[-5:]'
     - `ai-error.js:handleError` (CC=16) - Extract status code handling to lookup table
     - `detail-core.js:init` (CC=18) - Simplify feature module initialization
 
+- [x] 9.4 Fix Frontend ESLint warnings (16 warnings → 0)
+  - **react-hooks/exhaustive-deps (10 warnings):**
+    - Added targeted `// eslint-disable-next-line` with explanations
+    - These are intentional patterns (mount-only effects, specific triggers)
+    - Files: `PlayMode.tsx`, `RemixModal.tsx`, `CollectionDetail.tsx`, `RecipeDetail.tsx`, `Search.tsx`
+  - **react-refresh/only-export-components (5 warnings):**
+    - Added disable comments for tightly-coupled hooks/components
+    - Files: `AIStatusContext.tsx`, `ProfileContext.tsx`, `router.tsx`
+  - **security/detect-object-injection (1 warning):**
+    - Suppressed false positive in `PlayMode.tsx` (controlled state index, not user input)
+  - **useWakeLock.ts fix:** Moved `SILENT_VIDEO_BASE64` to module scope (was inside hook)
+  - **useTimers.ts fix:** Captured ref in variable before cleanup (React ref warning)
+
 ### Verification
 
 ```bash

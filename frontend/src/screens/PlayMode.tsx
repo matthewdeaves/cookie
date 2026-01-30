@@ -25,6 +25,7 @@ export default function PlayMode() {
     if (recipeId) {
       loadData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- loadData is stable, only re-run when recipeId changes
   }, [recipeId])
 
   const loadData = async () => {
@@ -96,6 +97,7 @@ export default function PlayMode() {
     unlockAudio()
   }, [])
 
+  // eslint-disable-next-line security/detect-object-injection -- currentStep is controlled state (number), not user input
   const currentInstruction = instructions[currentStep] || ''
   const progress = totalSteps > 0 ? ((currentStep + 1) / totalSteps) * 100 : 0
 
@@ -129,6 +131,7 @@ export default function PlayMode() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handlers use currentStep/totalSteps from closure, re-bind when they change
   }, [currentStep, totalSteps])
 
   if (loading) {

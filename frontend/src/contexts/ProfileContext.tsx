@@ -16,6 +16,7 @@ interface ProfileContextType {
 
 const ProfileContext = createContext<ProfileContextType | null>(null)
 
+// eslint-disable-next-line react-refresh/only-export-components -- Hook is tightly coupled to provider
 export function useProfile() {
   const context = useContext(ProfileContext)
   if (!context) {

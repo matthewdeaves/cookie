@@ -33,6 +33,7 @@ export default function Search() {
     setPage(1)
     setLoading(true)
     searchRecipes(1, true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate and searchRecipes are stable, only re-run when query or filter changes
   }, [query, selectedSource])
 
   const searchRecipes = async (pageNum: number, reset: boolean = false) => {

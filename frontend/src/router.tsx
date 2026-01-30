@@ -13,7 +13,7 @@ import Collections from './screens/Collections'
 import CollectionDetail from './screens/CollectionDetail'
 import Settings from './screens/Settings'
 
-// Layout component that provides context and protects routes
+// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function AppLayout() {
   return (
     <AIStatusProvider>
@@ -25,7 +25,7 @@ function AppLayout() {
   )
 }
 
-// Protected route wrapper - redirects to profile selector if not logged in
+// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { profile, loading } = useProfile()
   const location = useLocation()
@@ -45,7 +45,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-// Public route - redirects to home if already logged in
+// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { profile, loading } = useProfile()
 
