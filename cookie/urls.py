@@ -15,22 +15,22 @@ from apps.recipes.api_user import (
 from apps.recipes.sources_api import router as sources_router
 
 api = NinjaAPI()
-api.add_router('/ai', ai_router)
-api.add_router('/profiles', profiles_router)
-api.add_router('/recipes', recipes_router)
-api.add_router('/favorites', favorites_router)
-api.add_router('/collections', collections_router)
-api.add_router('/history', history_router)
-api.add_router('/sources', sources_router)
-api.add_router('/system', system_router)
+api.add_router("/ai", ai_router)
+api.add_router("/profiles", profiles_router)
+api.add_router("/recipes", recipes_router)
+api.add_router("/favorites", favorites_router)
+api.add_router("/collections", collections_router)
+api.add_router("/history", history_router)
+api.add_router("/sources", sources_router)
+api.add_router("/system", system_router)
 
 
-@api.get('/health')
+@api.get("/health")
 def health(request):
-    return {'status': 'ok'}
+    return {"status": "ok"}
 
 
 urlpatterns = [
-    path('api/', api.urls),
-    path('legacy/', include('apps.legacy.urls')),
+    path("api/", api.urls),
+    path("legacy/", include("apps.legacy.urls")),
 ]

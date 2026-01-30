@@ -1,15 +1,25 @@
+# Runtime dependencies
 Django>=5.0,<7.0
 gunicorn>=21.0
 django-ninja>=1.0
 Pillow>=10.0
-pytest>=8.0
-pytest-django>=4.0
-pytest-asyncio>=0.24.0
 curl_cffi>=0.7
 recipe-scrapers>=15.0
 beautifulsoup4>=4.12
 openrouter>=0.1
-pytest-cov>=4.0
-radon>=6.0
 whitenoise>=6.0
-ruff>=0.8.0
+cryptography>=42.0
+jsonschema>=4.0
+
+# Testing (needed for CI, optional for container)
+pytest>=8.0
+pytest-django>=4.0
+pytest-asyncio>=0.24.0
+pytest-cov>=4.0
+
+# Dev/CI tools (installed separately via pipx or pre-commit)
+# ruff - linting (pre-commit handles this)
+# pip-audit - security scanning (CI only)
+# bandit - SAST (CI only)
+# detect-secrets - secret scanning (pre-commit handles this)
+# radon - complexity checking (CI only)

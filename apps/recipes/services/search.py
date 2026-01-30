@@ -26,11 +26,12 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SearchResult:
     """A single search result from a recipe site."""
+
     url: str
     title: str
     host: str
-    image_url: str = ''
-    description: str = ''
+    image_url: str = ""
+    description: str = ""
     rating_count: Optional[int] = None
 
 
@@ -77,9 +78,7 @@ class RecipeSearch:
         from apps.recipes.models import SearchSource
 
         # Get enabled sources
-        get_sources = sync_to_async(lambda: list(
-            SearchSource.objects.filter(is_enabled=True)
-        ))
+        get_sources = sync_to_async(lambda: list(SearchSource.objects.filter(is_enabled=True)))
         enabled_sources = await get_sources()
 
         # Filter by requested sources if specified
@@ -88,11 +87,11 @@ class RecipeSearch:
 
         if not enabled_sources:
             return {
-                'results': [],
-                'total': 0,
-                'page': page,
-                'has_more': False,
-                'sites': {},
+                "results": [],
+                "total": 0,
+                "page": page,
+                "has_more": False,
+                "sites": {},
             }
 
         # Create semaphore for concurrency control
@@ -103,10 +102,7 @@ class RecipeSearch:
         primary_profile = BROWSER_PROFILES[0]
 
         async with AsyncSession(impersonate=primary_profile) as session:
-            tasks = [
-                self._search_source(session, semaphore, source, query)
-                for source in enabled_sources
-            ]
+            tasks = [self._search_source(session, semaphore, source, query) for source in enabled_sources]
             results_by_source = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Aggregate results
@@ -134,12 +130,12 @@ class RecipeSearch:
         # Convert to dict format for ranking
         result_dicts = [
             {
-                'url': r.url,
-                'title': r.title,
-                'host': r.host,
-                'image_url': r.image_url,
-                'description': r.description,
-                'rating_count': r.rating_count,
+                "url": r.url,
+                "title": r.title,
+                "host": r.host,
+                "image_url": r.image_url,
+                "description": r.description,
+                "rating_count": r.rating_count,
             }
             for r in unique_results
         ]
@@ -154,11 +150,11 @@ class RecipeSearch:
         paginated = result_dicts[start:end]
 
         return {
-            'results': paginated,
-            'total': total,
-            'page': page,
-            'has_more': end < total,
-            'sites': site_counts,
+            "results": paginated,
+            "total": total,
+            "page": page,
+            "has_more": end < total,
+            "sites": site_counts,
         }
 
     async def _apply_ai_ranking(self, query: str, results: list[dict]) -> list[dict]:
@@ -168,10 +164,11 @@ class RecipeSearch:
         """
         try:
             from apps.ai.services.ranking import rank_results
+
             ranked = await sync_to_async(rank_results)(query, results)
             return ranked
         except Exception as e:
-            logger.warning(f'AI ranking failed: {e}')
+            logger.warning(f"AI ranking failed: {e}")
             return results
 
     async def _search_source(
@@ -190,10 +187,7 @@ class RecipeSearch:
             # Add randomized delay to avoid predictable request patterns
             await asyncio.sleep(get_random_delay())
             # Build search URL
-            search_url = source.search_url_template.replace(
-                '{query}',
-                quote_plus(query)
-            )
+            search_url = source.search_url_template.replace("{query}", quote_plus(query))
 
             try:
                 response = await asyncio.wait_for(
@@ -231,7 +225,7 @@ class RecipeSearch:
         Uses the site-specific CSS selector if available,
         otherwise falls back to common patterns.
         """
-        soup = BeautifulSoup(html, 'html.parser')
+        soup = BeautifulSoup(html, "html.parser")
         results = []
 
         # Try site-specific selector first
@@ -248,83 +242,118 @@ class RecipeSearch:
         results = self._fallback_parse(soup, host, base_url)
         return results[:20]  # Limit per site
 
+    def _find_link(self, element) -> Optional[tuple]:
+        """Find recipe link in an HTML element.
+
+        Returns:
+            Tuple of (link_element, url) if found, None otherwise.
+        """
+        link = element.find("a", href=True)
+        if not link:
+            link = element if element.name == "a" and element.get("href") else None
+        if not link:
+            return None
+
+        url = link.get("href", "")
+        if not url:
+            return None
+
+        return link, url
+
+    def _extract_title(self, element, link) -> str:
+        """Extract title from element with multiple fallback strategies.
+
+        Tries: heading elements, link text, title/aria-label attributes.
+        """
+        title_el = element.find(["h2", "h3", "h4", ".title", '[class*="title"]'])
+        if title_el:
+            title = title_el.get_text(strip=True)
+            if title:
+                return title
+
+        title = link.get_text(strip=True)
+        if title:
+            return title
+
+        return link.get("title", "") or link.get("aria-label", "")
+
+    def _extract_rating(self, title: str) -> tuple[str, Optional[int]]:
+        """Extract and strip rating count from title.
+
+        Handles patterns like "Recipe Name1,392Ratings".
+
+        Returns:
+            Tuple of (cleaned_title, rating_count).
+        """
+        rating_match = re.search(r"([\d,]+)\s*[Rr]atings?\s*$", title)
+        if not rating_match:
+            return title, None
+
+        rating_str = rating_match.group(1).replace(",", "")
+        try:
+            rating_count = int(rating_str)
+            cleaned_title = title[: rating_match.start()].strip()
+            return cleaned_title, rating_count
+        except ValueError:
+            return title, None
+
+    def _extract_image(self, element, base_url: str) -> str:
+        """Extract image URL with multiple fallback strategies.
+
+        Tries: src, data-src, data-lazy-src attributes.
+        """
+        img = element.find("img")
+        if not img:
+            return ""
+
+        image_url = img.get("src") or img.get("data-src") or img.get("data-lazy-src", "")
+        if image_url:
+            return urljoin(base_url, image_url)
+        return ""
+
+    def _extract_description(self, element) -> str:
+        """Extract description from element."""
+        desc_el = element.find(["p", ".description", '[class*="description"]'])
+        if desc_el:
+            return desc_el.get_text(strip=True)[:200]
+        return ""
+
     def _extract_result_from_element(
         self,
         element,
         host: str,
         base_url: str,
     ) -> Optional[SearchResult]:
-        """
-        Extract search result data from an HTML element.
-        """
-        # Find the link
-        link = element.find('a', href=True)
-        if not link:
-            link = element if element.name == 'a' and element.get('href') else None
-        if not link:
+        """Extract search result data from an HTML element."""
+        # Find and validate link
+        link_result = self._find_link(element)
+        if not link_result:
             return None
+        link, url = link_result
 
-        url = link.get('href', '')
-        if not url:
-            return None
-
-        # Make URL absolute
+        # Make URL absolute and validate
         url = urljoin(base_url, url)
-
-        # Skip non-recipe URLs
         if not self._looks_like_recipe_url(url, host):
             return None
 
         # Extract title
-        title = ''
-        title_el = element.find(['h2', 'h3', 'h4', '.title', '[class*="title"]'])
-        if title_el:
-            title = title_el.get_text(strip=True)
-        if not title:
-            title = link.get_text(strip=True)
-        if not title:
-            title = link.get('title', '') or link.get('aria-label', '')
-
+        title = self._extract_title(element, link)
         if not title:
             return None
 
-        # Extract and strip rating count from title (e.g., "Recipe Name1,392Ratings")
-        rating_count = None
-        rating_match = re.search(r'([\d,]+)\s*[Rr]atings?\s*$', title)
-        if rating_match:
-            # Extract the number and remove commas
-            rating_str = rating_match.group(1).replace(',', '')
-            try:
-                rating_count = int(rating_str)
-                # Remove rating text from title
-                title = title[:rating_match.start()].strip()
-            except ValueError:
-                pass
+        # Extract and strip rating from title
+        title, rating_count = self._extract_rating(title)
 
         # Title may have become empty after stripping rating (QA-053)
         if not title:
             return None
 
-        # Extract image
-        image_url = ''
-        img = element.find('img')
-        if img:
-            image_url = img.get('src') or img.get('data-src') or img.get('data-lazy-src', '')
-            if image_url:
-                image_url = urljoin(base_url, image_url)
-
-        # Extract description
-        description = ''
-        desc_el = element.find(['p', '.description', '[class*="description"]'])
-        if desc_el:
-            description = desc_el.get_text(strip=True)[:200]
-
         return SearchResult(
             url=url,
             title=title[:200],
             host=host,
-            image_url=image_url,
-            description=description,
+            image_url=self._extract_image(element, base_url),
+            description=self._extract_description(element),
             rating_count=rating_count,
         )
 
@@ -342,7 +371,7 @@ class RecipeSearch:
         results = []
 
         # Strategy 1: Look for article elements with links
-        for article in soup.find_all('article')[:30]:
+        for article in soup.find_all("article")[:30]:
             result = self._extract_result_from_element(article, host, base_url)
             if result:
                 results.append(result)
@@ -366,16 +395,18 @@ class RecipeSearch:
                 return results
 
         # Strategy 3: Look for links that look like recipe URLs
-        for link in soup.find_all('a', href=True)[:100]:
-            url = urljoin(base_url, link.get('href', ''))
+        for link in soup.find_all("a", href=True)[:100]:
+            url = urljoin(base_url, link.get("href", ""))
             if self._looks_like_recipe_url(url, host):
                 title = link.get_text(strip=True)
                 if title and len(title) > 5:
-                    results.append(SearchResult(
-                        url=url,
-                        title=title[:200],
-                        host=host,
-                    ))
+                    results.append(
+                        SearchResult(
+                            url=url,
+                            title=title[:200],
+                            host=host,
+                        )
+                    )
 
         return results
 
@@ -393,79 +424,79 @@ class RecipeSearch:
 
         # Common recipe URL patterns
         recipe_patterns = [
-            r'/recipe[s]?/',
-            r'/dish/',
-            r'/food/',
-            r'/cooking/',
-            r'/\d+/',  # Numeric ID in path
-            r'-recipe/?$',  # URL ending with -recipe
-            r'/a\d+/',  # Alphanumeric IDs like /a69912280/
-            r'/food-cooking/',  # Pioneer Woman style
+            r"/recipe[s]?/",
+            r"/dish/",
+            r"/food/",
+            r"/cooking/",
+            r"/\d+/",  # Numeric ID in path
+            r"-recipe/?$",  # URL ending with -recipe
+            r"/a\d+/",  # Alphanumeric IDs like /a69912280/
+            r"/food-cooking/",  # Pioneer Woman style
         ]
 
         # Exclude non-recipe paths
         exclude_patterns = [
-            r'/search',
-            r'/tag/',
-            r'/category/',
-            r'/author/',
-            r'/profile/',
-            r'/user/',
-            r'/about',
-            r'/contact',
-            r'/privacy',
-            r'/terms',
-            r'/newsletter',
-            r'/subscribe',
+            r"/search",
+            r"/tag/",
+            r"/category/",
+            r"/author/",
+            r"/profile/",
+            r"/user/",
+            r"/about",
+            r"/contact",
+            r"/privacy",
+            r"/terms",
+            r"/newsletter",
+            r"/subscribe",
             # Article/blog paths (QA-053)
-            r'/article/',
-            r'/articles/',
-            r'/blog/',
-            r'/post/',
-            r'/posts/',
-            r'/news/',
-            r'/story/',
-            r'/stories/',
-            r'/feature/',
-            r'/features/',
-            r'/guide/',
-            r'/guides/',
-            r'/review/',
-            r'/reviews/',
-            r'/roundup/',
-            r'/list/',
-            r'/listicle/',
+            r"/article/",
+            r"/articles/",
+            r"/blog/",
+            r"/post/",
+            r"/posts/",
+            r"/news/",
+            r"/story/",
+            r"/stories/",
+            r"/feature/",
+            r"/features/",
+            r"/guide/",
+            r"/guides/",
+            r"/review/",
+            r"/reviews/",
+            r"/roundup/",
+            r"/list/",
+            r"/listicle/",
             # Video paths (QA-053)
-            r'/video/',
-            r'/videos/',
-            r'/watch/',
-            r'/watch\?',
-            r'/embed/',
-            r'/player/',
-            r'/clip/',
-            r'/clips/',
-            r'/episode/',
-            r'/episodes/',
-            r'/series/',
-            r'/show/',
-            r'/shows/',
-            r'/gallery/',
-            r'/galleries/',
-            r'/slideshow/',
-            r'/photo-gallery/',
+            r"/video/",
+            r"/videos/",
+            r"/watch/",
+            r"/watch\?",
+            r"/embed/",
+            r"/player/",
+            r"/clip/",
+            r"/clips/",
+            r"/episode/",
+            r"/episodes/",
+            r"/series/",
+            r"/show/",
+            r"/shows/",
+            r"/gallery/",
+            r"/galleries/",
+            r"/slideshow/",
+            r"/photo-gallery/",
             # Index/listing pages (QA-053)
-            r'/seasons?(?:/|$)',
-            r'/cuisines?(?:/|$)',
-            r'/ingredients?(?:/|$)',
-            r'/collections?(?:/|$)',
-            r'/occasions?(?:/|$)',
-            r'/courses?(?:/|$)',
-            r'/diets?(?:/|$)',
-            r'/techniques?(?:/|$)',
-            r'/chefs?(?:/|$)',
-            r'/dishes(?:/|$)',
-            r'/menus?(?:/|$)',
-            r'/meal-plans?(?:/|$)',
+            r"/seasons?(?:/|$)",
+            r"/cuisines?(?:/|$)",
+            r"/ingredients?(?:/|$)",
+            r"/collections?(?:/|$)",
+            r"/occasions?(?:/|$)",
+            r"/courses?(?:/|$)",
+            r"/diets?(?:/|$)",
+            r"/techniques?(?:/|$)",
+            r"/chefs?(?:/|$)",
+            r"/dishes(?:/|$)",
+            r"/menus?(?:/|$)",
+            r"/meal-plans?(?:/|$)",
         ]
 
         for pattern in exclude_patterns:
@@ -475,7 +506,7 @@ class RecipeSearch:
         # Site-specific requirements (QA-058)
         # AllRecipes has article pages at root that look like recipes but aren't
         # Real recipes are always under /recipe/ path
-        if 'allrecipes.com' in host and '/recipe/' not in path:
+        if "allrecipes.com" in host and "/recipe/" not in path:
             return False
 
         # Check for recipe patterns
@@ -484,13 +515,13 @@ class RecipeSearch:
                 return True
 
         # Heuristic: URL path has enough segments and isn't too short
-        segments = [s for s in path.split('/') if s]
+        segments = [s for s in path.split("/") if s]
         if len(segments) >= 2 and len(path) > 20:
             return True
 
         # Also accept single-segment slug-style URLs (common for food blogs)
         # e.g., /30-cloves-garlic-chicken/
-        if len(segments) == 1 and len(path) > 15 and path.count('-') >= 2:
+        if len(segments) == 1 and len(path) > 15 and path.count("-") >= 2:
             return True
 
         return False
@@ -504,7 +535,7 @@ class RecipeSearch:
             source.consecutive_failures += 1
             if source.consecutive_failures >= 3:
                 source.needs_attention = True
-            source.save(update_fields=['consecutive_failures', 'needs_attention'])
+            source.save(update_fields=["consecutive_failures", "needs_attention"])
 
         await update()
 
@@ -517,10 +548,12 @@ class RecipeSearch:
             source.consecutive_failures = 0
             source.needs_attention = False
             source.last_validated_at = timezone.now()
-            source.save(update_fields=[
-                'consecutive_failures',
-                'needs_attention',
-                'last_validated_at',
-            ])
+            source.save(
+                update_fields=[
+                    "consecutive_failures",
+                    "needs_attention",
+                    "last_validated_at",
+                ]
+            )
 
         await update()

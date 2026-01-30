@@ -8,51 +8,84 @@ from fractions import Fraction
 # These are "practical" units where fractions are more readable
 FRACTION_UNITS = {
     # Volume (US customary)
-    'cup', 'cups',
-    'tablespoon', 'tablespoons', 'tbsp',
-    'teaspoon', 'teaspoons', 'tsp',
-    'pint', 'pints',
-    'quart', 'quarts',
-    'gallon', 'gallons',
+    "cup",
+    "cups",
+    "tablespoon",
+    "tablespoons",
+    "tbsp",
+    "teaspoon",
+    "teaspoons",
+    "tsp",
+    "pint",
+    "pints",
+    "quart",
+    "quarts",
+    "gallon",
+    "gallons",
     # Countable items (no unit or implied whole)
-    'piece', 'pieces',
-    'slice', 'slices',
-    'clove', 'cloves',
-    'sprig', 'sprigs',
-    'bunch', 'bunches',
-    'head', 'heads',
-    'stalk', 'stalks',
-    'can', 'cans',
-    'package', 'packages',
-    'stick', 'sticks',
+    "piece",
+    "pieces",
+    "slice",
+    "slices",
+    "clove",
+    "cloves",
+    "sprig",
+    "sprigs",
+    "bunch",
+    "bunches",
+    "head",
+    "heads",
+    "stalk",
+    "stalks",
+    "can",
+    "cans",
+    "package",
+    "packages",
+    "stick",
+    "sticks",
 }
 
 # Units where decimals should be kept (precise measurements)
 DECIMAL_UNITS = {
     # Metric weight
-    'g', 'gram', 'grams',
-    'kg', 'kilogram', 'kilograms',
+    "g",
+    "gram",
+    "grams",
+    "kg",
+    "kilogram",
+    "kilograms",
     # Metric volume
-    'ml', 'milliliter', 'milliliters',
-    'l', 'liter', 'liters', 'litre', 'litres',
+    "ml",
+    "milliliter",
+    "milliliters",
+    "l",
+    "liter",
+    "liters",
+    "litre",
+    "litres",
     # Imperial weight (often used precisely)
-    'oz', 'ounce', 'ounces',
-    'lb', 'lbs', 'pound', 'pounds',
+    "oz",
+    "ounce",
+    "ounces",
+    "lb",
+    "lbs",
+    "pound",
+    "pounds",
 }
 
 # Common decimal to fraction mappings (tolerance-based matching)
 FRACTION_MAP = [
-    (1/8, '1/8'),
-    (1/6, '1/6'),
-    (1/4, '1/4'),
-    (1/3, '1/3'),
-    (3/8, '3/8'),
-    (1/2, '1/2'),
-    (5/8, '5/8'),
-    (2/3, '2/3'),
-    (3/4, '3/4'),
-    (5/6, '5/6'),
-    (7/8, '7/8'),
+    (1 / 8, "1/8"),
+    (1 / 6, "1/6"),
+    (1 / 4, "1/4"),
+    (1 / 3, "1/3"),
+    (3 / 8, "3/8"),
+    (1 / 2, "1/2"),
+    (5 / 8, "5/8"),
+    (2 / 3, "2/3"),
+    (3 / 4, "3/4"),
+    (5 / 6, "5/6"),
+    (7 / 8, "7/8"),
 ]
 
 
@@ -75,7 +108,7 @@ def decimal_to_fraction(value: float, tolerance: float = 0.05) -> str:
 
     # If it's essentially a whole number, return it
     if frac < tolerance:
-        return str(whole) if whole > 0 else '0'
+        return str(whole) if whole > 0 else "0"
 
     # If fractional part is close to 1, round up
     if frac > (1 - tolerance):
@@ -95,20 +128,20 @@ def decimal_to_fraction(value: float, tolerance: float = 0.05) -> str:
         try:
             f = Fraction(frac).limit_denominator(8)
             if f.numerator > 0 and f.denominator <= 8:
-                frac_str = f'{f.numerator}/{f.denominator}'
+                frac_str = f"{f.numerator}/{f.denominator}"
         except (ValueError, ZeroDivisionError):
             pass
 
     # Build the result
     if frac_str:
         if whole > 0:
-            return f'{whole} {frac_str}'
+            return f"{whole} {frac_str}"
         return frac_str
 
     # No fraction match - return rounded decimal
     if whole > 0:
-        return f'{value:.2f}'.rstrip('0').rstrip('.')
-    return f'{value:.2f}'.rstrip('0').rstrip('.')
+        return f"{value:.2f}".rstrip("0").rstrip(".")
+    return f"{value:.2f}".rstrip("0").rstrip(".")
 
 
 def tidy_ingredient(ingredient: str) -> str:
@@ -137,7 +170,7 @@ def tidy_ingredient(ingredient: str) -> str:
 
     # Pattern to match a number (possibly decimal) at the start or after spaces
     # Captures: (number)(optional space)(rest of string)
-    pattern = r'^(\d+\.?\d*)\s*(.*)$'
+    pattern = r"^(\d+\.?\d*)\s*(.*)$"
     match = re.match(pattern, ingredient.strip())
 
     if not match:
@@ -154,19 +187,19 @@ def tidy_ingredient(ingredient: str) -> str:
 
     # Check if this looks like a precise unit (should keep decimal)
     rest_lower = rest.lower()
-    first_word = rest_lower.split()[0] if rest_lower.split() else ''
+    first_word = rest_lower.split()[0] if rest_lower.split() else ""
 
     # If it's a decimal unit, keep as-is but clean up excessive precision
     if first_word in DECIMAL_UNITS:
         # Just round to reasonable precision for display
         if number == int(number):
-            return f'{int(number)} {rest}'
-        return f'{number:.1f} {rest}'.replace('.0 ', ' ')
+            return f"{int(number)} {rest}"
+        return f"{number:.1f} {rest}".replace(".0 ", " ")
 
     # For fraction units or unknown units, convert to fraction
     fraction_str = decimal_to_fraction(number)
 
-    return f'{fraction_str} {rest}'.strip()
+    return f"{fraction_str} {rest}".strip()
 
 
 def tidy_quantities(ingredients: list[str]) -> list[str]:

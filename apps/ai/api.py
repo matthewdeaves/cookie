@@ -2,7 +2,8 @@
 AI settings and prompts API endpoints.
 """
 
-from typing import List, Optional
+from functools import wraps
+from typing import Callable, List, Optional
 
 from ninja import Router, Schema
 
@@ -20,10 +21,44 @@ from .services.timer import generate_timer_name
 from .services.selector import repair_selector, get_sources_needing_attention
 from .services.validator import ValidationError
 
-router = Router(tags=['ai'])
+router = Router(tags=["ai"])
+
+
+# Decorators
+
+
+def handle_ai_errors(func: Callable) -> Callable:
+    """Decorator to handle common AI service errors.
+
+    Catches AIUnavailableError, AIResponseError, and ValidationError,
+    returning appropriate error responses.
+
+    Returns:
+        - 503 with 'ai_unavailable' error for AIUnavailableError
+        - 400 with 'ai_error' error for AIResponseError or ValidationError
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except AIUnavailableError as e:
+            return 503, {
+                "error": "ai_unavailable",
+                "message": str(e) or "AI features are not available. Please configure your API key in Settings.",
+                "action": "configure_key",
+            }
+        except (AIResponseError, ValidationError) as e:
+            return 400, {
+                "error": "ai_error",
+                "message": str(e),
+            }
+
+    return wrapper
 
 
 # Schemas
+
 
 class AIStatusOut(Schema):
     available: bool
@@ -82,7 +117,8 @@ class ErrorOut(Schema):
 
 # Endpoints
 
-@router.get('/status', response=AIStatusOut)
+
+@router.get("/status", response=AIStatusOut)
 def get_ai_status(request):
     """Check if AI service is available with optional key validation.
 
@@ -98,48 +134,48 @@ def get_ai_status(request):
     has_key = bool(settings.openrouter_api_key)
 
     status = {
-        'available': False,
-        'configured': has_key,
-        'valid': False,
-        'default_model': settings.default_ai_model,
-        'error': None,
-        'error_code': None,
+        "available": False,
+        "configured": has_key,
+        "valid": False,
+        "default_model": settings.default_ai_model,
+        "error": None,
+        "error_code": None,
     }
 
     if not has_key:
-        status['error'] = 'No API key configured'
-        status['error_code'] = 'no_api_key'
+        status["error"] = "No API key configured"
+        status["error_code"] = "no_api_key"
         return status
 
     # Validate key using cached validation
     is_valid, error_message = OpenRouterService.validate_key_cached()
-    status['valid'] = is_valid
-    status['available'] = is_valid
+    status["valid"] = is_valid
+    status["available"] = is_valid
 
     if not is_valid:
-        status['error'] = error_message or 'API key is invalid or expired'
-        status['error_code'] = 'invalid_api_key'
+        status["error"] = error_message or "API key is invalid or expired"
+        status["error_code"] = "invalid_api_key"
 
     return status
 
 
-@router.post('/test-api-key', response={200: TestApiKeyOut, 400: ErrorOut})
+@router.post("/test-api-key", response={200: TestApiKeyOut, 400: ErrorOut})
 def test_api_key(request, data: TestApiKeyIn):
     """Test if an API key is valid."""
     if not data.api_key:
         return 400, {
-            'error': 'validation_error',
-            'message': 'API key is required',
+            "error": "validation_error",
+            "message": "API key is required",
         }
 
     success, message = OpenRouterService.test_connection(data.api_key)
     return {
-        'success': success,
-        'message': message,
+        "success": success,
+        "message": message,
     }
 
 
-@router.post('/save-api-key', response={200: SaveApiKeyOut, 400: ErrorOut})
+@router.post("/save-api-key", response={200: SaveApiKeyOut, 400: ErrorOut})
 def save_api_key(request, data: SaveApiKeyIn):
     """Save the OpenRouter API key."""
     settings = AppSettings.get()
@@ -150,19 +186,19 @@ def save_api_key(request, data: SaveApiKeyIn):
     OpenRouterService.invalidate_key_cache()
 
     return {
-        'success': True,
-        'message': 'API key saved successfully',
+        "success": True,
+        "message": "API key saved successfully",
     }
 
 
-@router.get('/prompts', response=List[PromptOut])
+@router.get("/prompts", response=List[PromptOut])
 def list_prompts(request):
     """List all AI prompts."""
     prompts = AIPrompt.objects.all()
     return list(prompts)
 
 
-@router.get('/prompts/{prompt_type}', response={200: PromptOut, 404: ErrorOut})
+@router.get("/prompts/{prompt_type}", response={200: PromptOut, 404: ErrorOut})
 def get_prompt(request, prompt_type: str):
     """Get a specific AI prompt by type."""
     try:
@@ -170,20 +206,20 @@ def get_prompt(request, prompt_type: str):
         return prompt
     except AIPrompt.DoesNotExist:
         return 404, {
-            'error': 'not_found',
-            'message': f'Prompt type "{prompt_type}" not found',
+            "error": "not_found",
+            "message": f'Prompt type "{prompt_type}" not found',
         }
 
 
-@router.put('/prompts/{prompt_type}', response={200: PromptOut, 404: ErrorOut, 422: ErrorOut})
+@router.put("/prompts/{prompt_type}", response={200: PromptOut, 404: ErrorOut, 422: ErrorOut})
 def update_prompt(request, prompt_type: str, data: PromptUpdateIn):
     """Update a specific AI prompt."""
     try:
         prompt = AIPrompt.objects.get(prompt_type=prompt_type)
     except AIPrompt.DoesNotExist:
         return 404, {
-            'error': 'not_found',
-            'message': f'Prompt type "{prompt_type}" not found',
+            "error": "not_found",
+            "message": f'Prompt type "{prompt_type}" not found',
         }
 
     # Validate model if provided
@@ -191,12 +227,12 @@ def update_prompt(request, prompt_type: str, data: PromptUpdateIn):
         try:
             service = OpenRouterService()
             available_models = service.get_available_models()
-            valid_model_ids = {m['id'] for m in available_models}
+            valid_model_ids = {m["id"] for m in available_models}
 
             if data.model not in valid_model_ids:
                 return 422, {
-                    'error': 'invalid_model',
-                    'message': f'Model "{data.model}" is not available. Please select a valid model.',
+                    "error": "invalid_model",
+                    "message": f'Model "{data.model}" is not available. Please select a valid model.',
                 }
         except AIUnavailableError:
             # If we can't validate (no API key), allow the change but it may fail later
@@ -219,7 +255,7 @@ def update_prompt(request, prompt_type: str, data: PromptUpdateIn):
     return prompt
 
 
-@router.get('/models', response=List[ModelOut])
+@router.get("/models", response=List[ModelOut])
 def list_models(request):
     """List available AI models from OpenRouter."""
     try:
@@ -234,6 +270,7 @@ def list_models(request):
 
 
 # Remix Schemas
+
 
 class RemixSuggestionsIn(Schema):
     recipe_id: int
@@ -261,51 +298,44 @@ class RemixOut(Schema):
     prep_time: Optional[int] = None
     cook_time: Optional[int] = None
     total_time: Optional[int] = None
-    yields: str = ''
+    yields: str = ""
     servings: Optional[int] = None
 
 
 # Remix Endpoints
 
-@router.post('/remix-suggestions', response={200: RemixSuggestionsOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+
+@router.post("/remix-suggestions", response={200: RemixSuggestionsOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+@handle_ai_errors
 def remix_suggestions(request, data: RemixSuggestionsIn):
     """Get 6 AI-generated remix suggestions for a recipe.
 
     Only works for recipes owned by the requesting profile.
     """
     from apps.profiles.utils import get_current_profile_or_none
+
     profile = get_current_profile_or_none(request)
 
     try:
-        # Verify recipe ownership
         recipe = Recipe.objects.get(id=data.recipe_id)
-        if not profile or recipe.profile_id != profile.id:
-            return 404, {
-                'error': 'not_found',
-                'message': f'Recipe {data.recipe_id} not found',
-            }
-
-        suggestions = get_remix_suggestions(data.recipe_id)
-        return {'suggestions': suggestions}
     except Recipe.DoesNotExist:
         return 404, {
-            'error': 'not_found',
-            'message': f'Recipe {data.recipe_id} not found',
-        }
-    except AIUnavailableError as e:
-        return 503, {
-            'error': 'ai_unavailable',
-            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
-            'action': 'configure_key',
-        }
-    except (AIResponseError, ValidationError) as e:
-        return 400, {
-            'error': 'ai_error',
-            'message': str(e),
+            "error": "not_found",
+            "message": f"Recipe {data.recipe_id} not found",
         }
 
+    if not profile or recipe.profile_id != profile.id:
+        return 404, {
+            "error": "not_found",
+            "message": f"Recipe {data.recipe_id} not found",
+        }
 
-@router.post('/remix', response={200: RemixOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+    suggestions = get_remix_suggestions(data.recipe_id)
+    return {"suggestions": suggestions}
+
+
+@router.post("/remix", response={200: RemixOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+@handle_ai_errors
 def create_remix_endpoint(request, data: CreateRemixIn):
     """Create a remixed recipe using AI.
 
@@ -313,74 +343,65 @@ def create_remix_endpoint(request, data: CreateRemixIn):
     The remix will be owned by the same profile.
     """
     from apps.profiles.utils import get_current_profile_or_none
+
     profile = get_current_profile_or_none(request)
 
     if not profile:
         return 404, {
-            'error': 'not_found',
-            'message': 'Profile not found',
+            "error": "not_found",
+            "message": "Profile not found",
         }
 
     # Verify the profile_id in the request matches the session profile
     if data.profile_id != profile.id:
         return 404, {
-            'error': 'not_found',
-            'message': f'Profile {data.profile_id} not found',
+            "error": "not_found",
+            "message": f"Profile {data.profile_id} not found",
         }
 
     try:
-        # Verify recipe ownership
         recipe = Recipe.objects.get(id=data.recipe_id)
-        if recipe.profile_id != profile.id:
-            return 404, {
-                'error': 'not_found',
-                'message': f'Recipe {data.recipe_id} not found',
-            }
-
-        remix = create_remix(
-            recipe_id=data.recipe_id,
-            modification=data.modification,
-            profile=profile,
-        )
-        return {
-            'id': remix.id,
-            'title': remix.title,
-            'description': remix.description,
-            'ingredients': remix.ingredients,
-            'instructions': remix.instructions,
-            'host': remix.host,
-            'site_name': remix.site_name,
-            'is_remix': remix.is_remix,
-            'prep_time': remix.prep_time,
-            'cook_time': remix.cook_time,
-            'total_time': remix.total_time,
-            'yields': remix.yields,
-            'servings': remix.servings,
-        }
     except Recipe.DoesNotExist:
         return 404, {
-            'error': 'not_found',
-            'message': f'Recipe {data.recipe_id} not found',
+            "error": "not_found",
+            "message": f"Recipe {data.recipe_id} not found",
         }
-    except AIUnavailableError as e:
-        return 503, {
-            'error': 'ai_unavailable',
-            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
-            'action': 'configure_key',
+
+    if recipe.profile_id != profile.id:
+        return 404, {
+            "error": "not_found",
+            "message": f"Recipe {data.recipe_id} not found",
         }
-    except (AIResponseError, ValidationError) as e:
-        return 400, {
-            'error': 'ai_error',
-            'message': str(e),
-        }
+
+    remix = create_remix(
+        recipe_id=data.recipe_id,
+        modification=data.modification,
+        profile=profile,
+    )
+    return {
+        "id": remix.id,
+        "title": remix.title,
+        "description": remix.description,
+        "ingredients": remix.ingredients,
+        "instructions": remix.instructions,
+        "host": remix.host,
+        "site_name": remix.site_name,
+        "is_remix": remix.is_remix,
+        "prep_time": remix.prep_time,
+        "cook_time": remix.cook_time,
+        "total_time": remix.total_time,
+        "yields": remix.yields,
+        "servings": remix.servings,
+    }
 
 
 # Scaling Schemas
 
+
 class ScaleIn(Schema):
     recipe_id: int
     target_servings: int
-    unit_system: str = 'metric'
+    unit_system: str = "metric"
     profile_id: int
 
 
@@ -404,40 +425,43 @@ class ScaleOut(Schema):
 
 # Scaling Endpoints
 
-@router.post('/scale', response={200: ScaleOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+
+@router.post("/scale", response={200: ScaleOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+@handle_ai_errors
 def scale_recipe_endpoint(request, data: ScaleIn):
     """Scale a recipe to a different number of servings.
 
     Only works for recipes owned by the requesting profile.
     """
     from apps.profiles.utils import get_current_profile_or_none
+
     profile = get_current_profile_or_none(request)
 
     if not profile:
         return 404, {
-            'error': 'not_found',
-            'message': 'Profile not found',
+            "error": "not_found",
+            "message": "Profile not found",
         }
 
     # Verify the profile_id in the request matches the session profile
     if data.profile_id != profile.id:
         return 404, {
-            'error': 'not_found',
-            'message': f'Profile {data.profile_id} not found',
+            "error": "not_found",
+            "message": f"Profile {data.profile_id} not found",
         }
 
     try:
         recipe = Recipe.objects.get(id=data.recipe_id)
-        # Verify recipe ownership
-        if recipe.profile_id != profile.id:
-            return 404, {
-                'error': 'not_found',
-                'message': f'Recipe {data.recipe_id} not found',
-            }
     except Recipe.DoesNotExist:
         return 404, {
-            'error': 'not_found',
-            'message': f'Recipe {data.recipe_id} not found',
+            "error": "not_found",
+            "message": f"Recipe {data.recipe_id} not found",
+        }
+
+    if recipe.profile_id != profile.id:
+        return 404, {
+            "error": "not_found",
+            "message": f"Recipe {data.recipe_id} not found",
         }
 
     try:
@@ -447,47 +471,37 @@ def scale_recipe_endpoint(request, data: ScaleIn):
             profile=profile,
             unit_system=data.unit_system,
         )
-
-        # Calculate nutrition if available
-        nutrition = None
-        if recipe.nutrition:
-            nutrition = calculate_nutrition(
-                recipe=recipe,
-                original_servings=recipe.servings,
-                target_servings=data.target_servings,
-            )
-
-        return {
-            'target_servings': result['target_servings'],
-            'original_servings': result['original_servings'],
-            'ingredients': result['ingredients'],
-            'instructions': result.get('instructions', []),  # QA-031
-            'notes': result['notes'],
-            'prep_time_adjusted': result.get('prep_time_adjusted'),  # QA-032
-            'cook_time_adjusted': result.get('cook_time_adjusted'),  # QA-032
-            'total_time_adjusted': result.get('total_time_adjusted'),  # QA-032
-            'nutrition': nutrition,
-            'cached': result['cached'],
-        }
     except ValueError as e:
         return 400, {
-            'error': 'validation_error',
-            'message': str(e),
+            "error": "validation_error",
+            "message": str(e),
         }
-    except AIUnavailableError as e:
-        return 503, {
-            'error': 'ai_unavailable',
-            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
-            'action': 'configure_key',
-        }
-    except (AIResponseError, ValidationError) as e:
-        return 400, {
-            'error': 'ai_error',
-            'message': str(e),
-        }
+
+    # Calculate nutrition if available
+    nutrition = None
+    if recipe.nutrition:
+        nutrition = calculate_nutrition(
+            recipe=recipe,
+            original_servings=recipe.servings,
+            target_servings=data.target_servings,
+        )
+
+    return {
+        "target_servings": result["target_servings"],
+        "original_servings": result["original_servings"],
+        "ingredients": result["ingredients"],
+        "instructions": result.get("instructions", []),  # QA-031
+        "notes": result["notes"],
+        "prep_time_adjusted": result.get("prep_time_adjusted"),  # QA-032
+        "cook_time_adjusted": result.get("cook_time_adjusted"),  # QA-032
+        "total_time_adjusted": result.get("total_time_adjusted"),  # QA-032
+        "nutrition": nutrition,
+        "cached": result["cached"],
+    }
 
 
 # Tips Schemas
+
 
 class TipsIn(Schema):
     recipe_id: int
@@ -501,7 +515,9 @@ class TipsOut(Schema):
 
 # Tips Endpoints
 
-@router.post('/tips', response={200: TipsOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+
+@router.post("/tips", response={200: TipsOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+@handle_ai_errors
 def tips_endpoint(request, data: TipsIn):
     """Generate cooking tips for a recipe.
 
@@ -509,42 +525,33 @@ def tips_endpoint(request, data: TipsIn):
     Only works for recipes owned by the requesting profile.
     """
     from apps.profiles.utils import get_current_profile_or_none
+
     profile = get_current_profile_or_none(request)
 
     try:
-        # Verify recipe ownership
         recipe = Recipe.objects.get(id=data.recipe_id)
-        if not profile or recipe.profile_id != profile.id:
-            return 404, {
-                'error': 'not_found',
-                'message': f'Recipe {data.recipe_id} not found',
-            }
-
-        # Clear existing tips if regenerate requested
-        if data.regenerate:
-            clear_tips(data.recipe_id)
-
-        result = generate_tips(data.recipe_id)
-        return result
     except Recipe.DoesNotExist:
         return 404, {
-            'error': 'not_found',
-            'message': f'Recipe {data.recipe_id} not found',
+            "error": "not_found",
+            "message": f"Recipe {data.recipe_id} not found",
         }
-    except AIUnavailableError as e:
-        return 503, {
-            'error': 'ai_unavailable',
-            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
-            'action': 'configure_key',
+
+    if not profile or recipe.profile_id != profile.id:
+        return 404, {
+            "error": "not_found",
+            "message": f"Recipe {data.recipe_id} not found",
         }
-    except (AIResponseError, ValidationError) as e:
-        return 400, {
-            'error': 'ai_error',
-            'message': str(e),
-        }
+
+    # Clear existing tips if regenerate requested
+    if data.regenerate:
+        clear_tips(data.recipe_id)
+
+    result = generate_tips(data.recipe_id)
+    return result
 
 
 # Timer Naming Schemas
+
 
 class TimerNameIn(Schema):
     step_text: str
@@ -557,7 +564,9 @@ class TimerNameOut(Schema):
 
 # Timer Naming Endpoints
 
-@router.post('/timer-name', response={200: TimerNameOut, 400: ErrorOut, 503: ErrorOut})
+
+@router.post("/timer-name", response={200: TimerNameOut, 400: ErrorOut, 503: ErrorOut})
+@handle_ai_errors
 def timer_name_endpoint(request, data: TimerNameIn):
     """Generate a descriptive name for a cooking timer.
 
@@ -565,36 +574,25 @@ def timer_name_endpoint(request, data: TimerNameIn):
     """
     if not data.step_text:
         return 400, {
-            'error': 'validation_error',
-            'message': 'Step text is required',
+            "error": "validation_error",
+            "message": "Step text is required",
         }
 
     if data.duration_minutes <= 0:
         return 400, {
-            'error': 'validation_error',
-            'message': 'Duration must be positive',
+            "error": "validation_error",
+            "message": "Duration must be positive",
         }
 
-    try:
-        result = generate_timer_name(
-            step_text=data.step_text,
-            duration_minutes=data.duration_minutes,
-        )
-        return result
-    except AIUnavailableError as e:
-        return 503, {
-            'error': 'ai_unavailable',
-            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
-            'action': 'configure_key',
-        }
-    except (AIResponseError, ValidationError) as e:
-        return 400, {
-            'error': 'ai_error',
-            'message': str(e),
-        }
+    result = generate_timer_name(
+        step_text=data.step_text,
+        duration_minutes=data.duration_minutes,
+    )
+    return result
 
 
 # Discover Schemas
+
 
 class DiscoverSuggestionOut(Schema):
     type: str
@@ -610,7 +608,9 @@ class DiscoverOut(Schema):
 
 # Discover Endpoints
 
-@router.get('/discover/{profile_id}/', response={200: DiscoverOut, 404: ErrorOut, 503: ErrorOut})
+
+@router.get("/discover/{profile_id}/", response={200: DiscoverOut, 404: ErrorOut, 503: ErrorOut})
+@handle_ai_errors
 def discover_endpoint(request, profile_id: int):
     """Get AI discovery suggestions for a profile.
 
@@ -624,23 +624,18 @@ def discover_endpoint(request, profile_id: int):
         return result
     except Profile.DoesNotExist:
         return 404, {
-            'error': 'not_found',
-            'message': f'Profile {profile_id} not found',
-        }
-    except AIUnavailableError as e:
-        return 503, {
-            'error': 'ai_unavailable',
-            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
-            'action': 'configure_key',
+            "error": "not_found",
+            "message": f"Profile {profile_id} not found",
         }
 
 
 # Selector Repair Schemas
 
+
 class SelectorRepairIn(Schema):
     source_id: int
     html_sample: str
-    target: str = 'recipe search result'
+    target: str = "recipe search result"
     confidence_threshold: float = 0.8
     auto_update: bool = True
 
@@ -663,7 +658,9 @@ class SourceNeedingAttentionOut(Schema):
 
 # Selector Repair Endpoints
 
-@router.post('/repair-selector', response={200: SelectorRepairOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+
+@router.post("/repair-selector", response={200: SelectorRepairOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+@handle_ai_errors
 def repair_selector_endpoint(request, data: SelectorRepairIn):
     """Attempt to repair a broken CSS selector using AI.
 
@@ -678,45 +675,33 @@ def repair_selector_endpoint(request, data: SelectorRepairIn):
         source = SearchSource.objects.get(id=data.source_id)
     except SearchSource.DoesNotExist:
         return 404, {
-            'error': 'not_found',
-            'message': f'SearchSource {data.source_id} not found',
+            "error": "not_found",
+            "message": f"SearchSource {data.source_id} not found",
         }
 
     if not data.html_sample:
         return 400, {
-            'error': 'validation_error',
-            'message': 'HTML sample is required',
+            "error": "validation_error",
+            "message": "HTML sample is required",
         }
 
-    try:
-        result = repair_selector(
-            source=source,
-            html_sample=data.html_sample,
-            target=data.target,
-            confidence_threshold=data.confidence_threshold,
-            auto_update=data.auto_update,
-        )
-        return {
-            'suggestions': result['suggestions'],
-            'confidence': result['confidence'],
-            'original_selector': result['original_selector'] or '',
-            'updated': result['updated'],
-            'new_selector': result.get('new_selector'),
-        }
-    except AIUnavailableError as e:
-        return 503, {
-            'error': 'ai_unavailable',
-            'message': str(e) or 'AI features are not available. Please configure your API key in Settings.',
-            'action': 'configure_key',
-        }
-    except (AIResponseError, ValidationError) as e:
-        return 400, {
-            'error': 'ai_error',
-            'message': str(e),
-        }
+    result = repair_selector(
+        source=source,
+        html_sample=data.html_sample,
+        target=data.target,
+        confidence_threshold=data.confidence_threshold,
+        auto_update=data.auto_update,
+    )
+    return {
+        "suggestions": result["suggestions"],
+        "confidence": result["confidence"],
+        "original_selector": result["original_selector"] or "",
+        "updated": result["updated"],
+        "new_selector": result.get("new_selector"),
+    }
 
 
-@router.get('/sources-needing-attention', response=List[SourceNeedingAttentionOut])
+@router.get("/sources-needing-attention", response=List[SourceNeedingAttentionOut])
 def sources_needing_attention_endpoint(request):
     """List all SearchSources that need attention (broken selectors).
 
@@ -725,11 +710,11 @@ def sources_needing_attention_endpoint(request):
     sources = get_sources_needing_attention()
     return [
         {
-            'id': s.id,
-            'host': s.host,
-            'name': s.name,
-            'result_selector': s.result_selector or '',
-            'consecutive_failures': s.consecutive_failures,
+            "id": s.id,
+            "host": s.host,
+            "name": s.name,
+            "result_selector": s.result_selector or "",
+            "consecutive_failures": s.consecutive_failures,
         }
         for s in sources
     ]

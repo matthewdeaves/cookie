@@ -16,7 +16,7 @@ class Recipe(models.Model):
     description = models.TextField(blank=True)
 
     # Images (stored locally)
-    image = models.ImageField(upload_to='recipe_images/', blank=True)
+    image = models.ImageField(upload_to="recipe_images/", blank=True)
     image_url = models.URLField(max_length=2000, blank=True)
 
     # Ingredients
@@ -64,19 +64,19 @@ class Recipe(models.Model):
 
     # Profile ownership - each recipe belongs to a profile
     profile = models.ForeignKey(
-        'profiles.Profile',
+        "profiles.Profile",
         on_delete=models.CASCADE,
-        related_name='recipes',
+        related_name="recipes",
     )
 
     # Remix tracking
     is_remix = models.BooleanField(default=False)
     remix_profile = models.ForeignKey(
-        'profiles.Profile',
+        "profiles.Profile",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        related_name='remixes',
+        related_name="remixes",
     )
 
     # Timestamps
@@ -85,10 +85,10 @@ class Recipe(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['host']),
-            models.Index(fields=['is_remix']),
-            models.Index(fields=['scraped_at']),
-            models.Index(fields=['profile']),
+            models.Index(fields=["host"]),
+            models.Index(fields=["is_remix"]),
+            models.Index(fields=["scraped_at"]),
+            models.Index(fields=["profile"]),
         ]
 
     def __str__(self):
@@ -111,7 +111,7 @@ class SearchSource(models.Model):
     needs_attention = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ['name']
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
@@ -121,20 +121,20 @@ class RecipeFavorite(models.Model):
     """User's favorite recipes, scoped to profile."""
 
     profile = models.ForeignKey(
-        'profiles.Profile',
+        "profiles.Profile",
         on_delete=models.CASCADE,
-        related_name='favorites',
+        related_name="favorites",
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='favorited_by',
+        related_name="favorited_by",
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ['profile', 'recipe']
-        ordering = ['-created_at']
+        unique_together = ["profile", "recipe"]
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.profile.name} - {self.recipe.title}"
@@ -144,9 +144,9 @@ class RecipeCollection(models.Model):
     """User-created collection of recipes, scoped to profile."""
 
     profile = models.ForeignKey(
-        'profiles.Profile',
+        "profiles.Profile",
         on_delete=models.CASCADE,
-        related_name='collections',
+        related_name="collections",
     )
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -154,8 +154,8 @@ class RecipeCollection(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ['profile', 'name']
-        ordering = ['-updated_at']
+        unique_together = ["profile", "name"]
+        ordering = ["-updated_at"]
 
     def __str__(self):
         return f"{self.profile.name} - {self.name}"
@@ -167,7 +167,7 @@ class RecipeCollectionItem(models.Model):
     collection = models.ForeignKey(
         RecipeCollection,
         on_delete=models.CASCADE,
-        related_name='items',
+        related_name="items",
     )
     recipe = models.ForeignKey(
         Recipe,
@@ -177,8 +177,8 @@ class RecipeCollectionItem(models.Model):
     added_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ['collection', 'recipe']
-        ordering = ['order', '-added_at']
+        unique_together = ["collection", "recipe"]
+        ordering = ["order", "-added_at"]
 
     def __str__(self):
         return f"{self.collection.name} - {self.recipe.title}"
@@ -188,9 +188,9 @@ class RecipeViewHistory(models.Model):
     """Tracks recently viewed recipes, scoped to profile."""
 
     profile = models.ForeignKey(
-        'profiles.Profile',
+        "profiles.Profile",
         on_delete=models.CASCADE,
-        related_name='view_history',
+        related_name="view_history",
     )
     recipe = models.ForeignKey(
         Recipe,
@@ -199,8 +199,8 @@ class RecipeViewHistory(models.Model):
     viewed_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ['profile', 'recipe']
-        ordering = ['-viewed_at']
+        unique_together = ["profile", "recipe"]
+        ordering = ["-viewed_at"]
 
     def __str__(self):
         return f"{self.profile.name} viewed {self.recipe.title}"
@@ -210,24 +210,24 @@ class CachedSearchImage(models.Model):
     """Cached search result image for offline/iOS 9 compatibility."""
 
     external_url = models.URLField(max_length=2000, unique=True, db_index=True)
-    image = models.ImageField(upload_to='search_images/', blank=True)
+    image = models.ImageField(upload_to="search_images/", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_accessed_at = models.DateTimeField(auto_now=True)
 
-    STATUS_PENDING = 'pending'
-    STATUS_SUCCESS = 'success'
-    STATUS_FAILED = 'failed'
+    STATUS_PENDING = "pending"
+    STATUS_SUCCESS = "success"
+    STATUS_FAILED = "failed"
     STATUS_CHOICES = [
-        (STATUS_PENDING, 'Pending'),
-        (STATUS_SUCCESS, 'Success'),
-        (STATUS_FAILED, 'Failed'),
+        (STATUS_PENDING, "Pending"),
+        (STATUS_SUCCESS, "Success"),
+        (STATUS_FAILED, "Failed"),
     ]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
 
     class Meta:
         indexes = [
-            models.Index(fields=['status']),
-            models.Index(fields=['created_at']),
+            models.Index(fields=["status"]),
+            models.Index(fields=["created_at"]),
         ]
 
     def __str__(self):
@@ -238,25 +238,25 @@ class ServingAdjustment(models.Model):
     """Cached AI-generated serving adjustments per profile."""
 
     UNIT_SYSTEM_CHOICES = [
-        ('metric', 'Metric'),
-        ('imperial', 'Imperial'),
+        ("metric", "Metric"),
+        ("imperial", "Imperial"),
     ]
 
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='serving_adjustments',
+        related_name="serving_adjustments",
     )
     profile = models.ForeignKey(
-        'profiles.Profile',
+        "profiles.Profile",
         on_delete=models.CASCADE,
-        related_name='serving_adjustments',
+        related_name="serving_adjustments",
     )
     target_servings = models.PositiveIntegerField()
     unit_system = models.CharField(
         max_length=10,
         choices=UNIT_SYSTEM_CHOICES,
-        default='metric',
+        default="metric",
     )
     ingredients = models.JSONField(default=list)
     instructions = models.JSONField(default=list)  # QA-031: Scaled instructions
@@ -267,9 +267,9 @@ class ServingAdjustment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ['recipe', 'profile', 'target_servings', 'unit_system']
+        unique_together = ["recipe", "profile", "target_servings", "unit_system"]
         indexes = [
-            models.Index(fields=['recipe', 'profile']),
+            models.Index(fields=["recipe", "profile"]),
         ]
 
     def __str__(self):

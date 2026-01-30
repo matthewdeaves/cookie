@@ -32,22 +32,22 @@ def generate_tips(recipe_id: int) -> dict:
 
     # Check for cached tips
     if recipe.ai_tips:
-        logger.info(f'Returning cached tips for recipe {recipe_id}')
+        logger.info(f"Returning cached tips for recipe {recipe_id}")
         return {
-            'tips': recipe.ai_tips,
-            'cached': True,
+            "tips": recipe.ai_tips,
+            "cached": True,
         }
 
     # Get the tips_generation prompt
-    prompt = AIPrompt.get_prompt('tips_generation')
+    prompt = AIPrompt.get_prompt("tips_generation")
 
     # Format ingredients as a string
-    ingredients_str = '\n'.join(f'- {ing}' for ing in recipe.ingredients)
+    ingredients_str = "\n".join(f"- {ing}" for ing in recipe.ingredients)
 
     # Format instructions
     if isinstance(recipe.instructions, list):
-        instructions_str = '\n'.join(
-            f'{i+1}. {step.get("text", step) if isinstance(step, dict) else step}'
+        instructions_str = "\n".join(
+            f"{i + 1}. {step.get('text', step) if isinstance(step, dict) else step}"
             for i, step in enumerate(recipe.instructions)
         )
     else:
@@ -71,17 +71,17 @@ def generate_tips(recipe_id: int) -> dict:
 
     # Validate response - tips_generation returns an array directly
     validator = AIResponseValidator()
-    tips = validator.validate('tips_generation', response)
+    tips = validator.validate("tips_generation", response)
 
     # Cache the tips on the recipe
     recipe.ai_tips = tips
-    recipe.save(update_fields=['ai_tips'])
+    recipe.save(update_fields=["ai_tips"])
 
-    logger.info(f'Generated and cached {len(tips)} tips for recipe {recipe_id}')
+    logger.info(f"Generated and cached {len(tips)} tips for recipe {recipe_id}")
 
     return {
-        'tips': tips,
-        'cached': False,
+        "tips": tips,
+        "cached": False,
     }
 
 
@@ -101,8 +101,8 @@ def clear_tips(recipe_id: int) -> bool:
 
     if recipe.ai_tips:
         recipe.ai_tips = []
-        recipe.save(update_fields=['ai_tips'])
-        logger.info(f'Cleared tips for recipe {recipe_id}')
+        recipe.save(update_fields=["ai_tips"])
+        logger.info(f"Cleared tips for recipe {recipe_id}")
         return True
 
     return False

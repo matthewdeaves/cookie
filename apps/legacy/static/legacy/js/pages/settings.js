@@ -56,7 +56,6 @@ Cookie.pages.settings = (function() {
     var profiles = [];
     var currentProfileId = null;
     var pendingDeleteId = null;
-    var resetPreview = null;
 
     /**
      * Initialize the page
@@ -117,6 +116,7 @@ Cookie.pages.settings = (function() {
         setupPromptCards();
         setupSourcesTab();
         setupSelectorsTab();
+        setupUsersTab();
         setupDangerZoneTab();
 
         // Load sources data
@@ -262,6 +262,60 @@ Cookie.pages.settings = (function() {
     }
 
     /**
+     * Update prompt card UI after successful save
+     */
+    function updatePromptCardAfterSave(card, data, closeEditFn) {
+        var content = card.querySelector('.prompt-content');
+        var promptTexts = content.querySelectorAll('.prompt-text');
+        if (promptTexts[0]) promptTexts[0].textContent = data.systemPrompt;
+        if (promptTexts[1]) promptTexts[1].textContent = data.userPromptTemplate;
+
+        var modelBadge = card.querySelector('.model-badge');
+        if (modelBadge) modelBadge.textContent = data.model;
+
+        var promptName = card.querySelector('.prompt-name');
+        var disabledBadge = card.querySelector('.prompt-disabled-badge');
+        if (data.isActive) {
+            if (disabledBadge) disabledBadge.remove();
+        } else if (!disabledBadge) {
+            var badge = document.createElement('span');
+            badge.className = 'prompt-disabled-badge';
+            badge.textContent = 'Disabled';
+            promptName.appendChild(badge);
+        }
+        closeEditFn();
+    }
+
+    /**
+     * Handle prompt save API call
+     */
+    function handlePromptSave(card, promptType, statusBtn, saveBtn, closeEditFn) {
+        var data = {
+            systemPrompt: card.querySelector('[data-field="system_prompt"]').value,
+            userPromptTemplate: card.querySelector('[data-field="user_prompt_template"]').value,
+            model: card.querySelector('[data-field="model"]').value,
+            isActive: statusBtn.getAttribute('data-value') === 'true'
+        };
+
+        var saveBtnText = saveBtn.querySelector('.save-btn-text');
+        saveBtn.disabled = true;
+        saveBtnText.textContent = 'Saving...';
+
+        Cookie.ajax.put('/api/ai/prompts/' + promptType, {
+            system_prompt: data.systemPrompt,
+            user_prompt_template: data.userPromptTemplate,
+            model: data.model,
+            is_active: data.isActive
+        }, function(err) {
+            saveBtn.disabled = false;
+            saveBtnText.textContent = 'Save Changes';
+            if (err) { Cookie.toast.error('Failed to save prompt'); return; }
+            Cookie.toast.success('Prompt saved successfully');
+            updatePromptCardAfterSave(card, data, closeEditFn);
+        });
+    }
+
+    /**
      * Setup a single prompt card
      */
     function setupPromptCard(card) {
@@ -275,27 +329,25 @@ Cookie.pages.settings = (function() {
         var iconExpand = card.querySelector('.icon-expand');
         var iconCollapse = card.querySelector('.icon-collapse');
         var statusBtn = card.querySelector('.btn-status');
-
         var isExpanded = false;
         var isEditing = false;
 
-        // Toggle expand
+        function closeEdit() {
+            isEditing = false;
+            editForm.classList.add('hidden');
+            expandBtn.classList.remove('hidden');
+            editBtn.classList.remove('hidden');
+            if (isExpanded) content.classList.remove('hidden');
+        }
+
         expandBtn.addEventListener('click', function() {
             if (isEditing) return;
-
             isExpanded = !isExpanded;
-            if (isExpanded) {
-                content.classList.remove('hidden');
-                iconExpand.classList.add('hidden');
-                iconCollapse.classList.remove('hidden');
-            } else {
-                content.classList.add('hidden');
-                iconExpand.classList.remove('hidden');
-                iconCollapse.classList.add('hidden');
-            }
+            content.classList.toggle('hidden', !isExpanded);
+            iconExpand.classList.toggle('hidden', isExpanded);
+            iconCollapse.classList.toggle('hidden', !isExpanded);
         });
 
-        // Edit button
         editBtn.addEventListener('click', function() {
             isEditing = true;
             content.classList.add('hidden');
@@ -304,98 +356,23 @@ Cookie.pages.settings = (function() {
             editBtn.classList.add('hidden');
         });
 
-        // Cancel edit
-        cancelBtn.addEventListener('click', function() {
-            isEditing = false;
-            editForm.classList.add('hidden');
-            expandBtn.classList.remove('hidden');
-            editBtn.classList.remove('hidden');
-            if (isExpanded) {
-                content.classList.remove('hidden');
-            }
-        });
+        cancelBtn.addEventListener('click', closeEdit);
 
-        // Status toggle
         statusBtn.addEventListener('click', function() {
-            var currentValue = statusBtn.getAttribute('data-value') === 'true';
-            var newValue = !currentValue;
-
+            var newValue = statusBtn.getAttribute('data-value') !== 'true';
             statusBtn.setAttribute('data-value', newValue ? 'true' : 'false');
             statusBtn.textContent = newValue ? 'Active' : 'Disabled';
-
-            if (newValue) {
-                statusBtn.classList.remove('btn-status-disabled');
-                statusBtn.classList.add('btn-status-active');
-            } else {
-                statusBtn.classList.remove('btn-status-active');
-                statusBtn.classList.add('btn-status-disabled');
-            }
+            statusBtn.classList.toggle('btn-status-disabled', !newValue);
+            statusBtn.classList.toggle('btn-status-active', newValue);
         });
 
-        // Save prompt
         saveBtn.addEventListener('click', function() {
-            var systemPrompt = card.querySelector('[data-field="system_prompt"]').value;
-            var userPromptTemplate = card.querySelector('[data-field="user_prompt_template"]').value;
-            var model = card.querySelector('[data-field="model"]').value;
-            var isActive = statusBtn.getAttribute('data-value') === 'true';
-
-            var saveBtnText = saveBtn.querySelector('.save-btn-text');
-            saveBtn.disabled = true;
-            saveBtnText.textContent = 'Saving...';
-
-            Cookie.ajax.put('/api/ai/prompts/' + promptType, {
-                system_prompt: systemPrompt,
-                user_prompt_template: userPromptTemplate,
-                model: model,
-                is_active: isActive
-            }, function(err, result) {
-                saveBtn.disabled = false;
-                saveBtnText.textContent = 'Save Changes';
-
-                if (err) {
-                    Cookie.toast.error('Failed to save prompt');
-                    return;
-                }
-
-                Cookie.toast.success('Prompt saved successfully');
-
-                // Update the read-only view
-                var promptTexts = content.querySelectorAll('.prompt-text');
-                if (promptTexts[0]) promptTexts[0].textContent = systemPrompt;
-                if (promptTexts[1]) promptTexts[1].textContent = userPromptTemplate;
-
-                // Update the model badge
-                var modelBadge = card.querySelector('.model-badge');
-                if (modelBadge) modelBadge.textContent = model;
-
-                // Update the disabled badge
-                var promptName = card.querySelector('.prompt-name');
-                var disabledBadge = card.querySelector('.prompt-disabled-badge');
-                if (isActive) {
-                    if (disabledBadge) disabledBadge.remove();
-                } else {
-                    if (!disabledBadge) {
-                        var badge = document.createElement('span');
-                        badge.className = 'prompt-disabled-badge';
-                        badge.textContent = 'Disabled';
-                        promptName.appendChild(badge);
-                    }
-                }
-
-                // Close edit form
-                isEditing = false;
-                editForm.classList.add('hidden');
-                expandBtn.classList.remove('hidden');
-                editBtn.classList.remove('hidden');
-                if (isExpanded) {
-                    content.classList.remove('hidden');
-                }
-            });
+            handlePromptSave(card, promptType, statusBtn, saveBtn, closeEdit);
         });
     }
 
     /**
-     * Setup sources tab handlers
+     * Setup sources tab handlers with event delegation
      */
     function setupSourcesTab() {
         enableAllBtn.addEventListener('click', function() {
@@ -404,6 +381,11 @@ Cookie.pages.settings = (function() {
 
         disableAllBtn.addEventListener('click', function() {
             bulkToggleSources(false);
+        });
+
+        // Event delegation for dynamically rendered source toggle buttons
+        Cookie.utils.delegate(sourcesList, 'click', {
+            'toggle-source': handleToggleSource
         });
     }
 
@@ -437,47 +419,53 @@ Cookie.pages.settings = (function() {
     }
 
     /**
-     * Render sources list
+     * Render sources list using HTML template
      */
     function renderSources() {
-        var html = '';
+        var template = document.getElementById('template-source-item');
+        var fragment = document.createDocumentFragment();
 
         for (var i = 0; i < sources.length; i++) {
             var source = sources[i];
-            var enabledClass = source.is_enabled ? 'source-enabled' : 'source-disabled';
-            var activeBadge = source.is_enabled ? '<span class="source-active-badge">Active</span>' : '';
-            var toggleIcon = source.is_enabled
+            var clone = template.content.cloneNode(true);
+            var item = clone.querySelector('.source-item');
+
+            // Set data attributes
+            item.setAttribute('data-source-id', source.id);
+            item.classList.add(source.is_enabled ? 'source-enabled' : 'source-disabled');
+
+            // Set text content
+            clone.querySelector('[data-field="name"]').textContent = source.name;
+            clone.querySelector('[data-field="host"]').textContent = source.host;
+
+            // Set badge visibility
+            var badge = clone.querySelector('[data-field="badge"]');
+            if (source.is_enabled) {
+                badge.textContent = 'Active';
+            } else {
+                badge.style.display = 'none';
+            }
+
+            // Set button attributes and icon
+            var btn = clone.querySelector('[data-action="toggle-source"]');
+            btn.setAttribute('data-source-id', source.id);
+            btn.innerHTML = source.is_enabled
                 ? '<svg class="toggle-icon toggle-on" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect><circle cx="16" cy="12" r="4" fill="var(--background)"></circle></svg>'
                 : '<svg class="toggle-icon toggle-off" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect><circle cx="8" cy="12" r="3"></circle></svg>';
 
-            html += '<div class="source-item ' + enabledClass + '" data-source-id="' + source.id + '">';
-            html += '  <div class="source-info">';
-            html += '    <div class="source-name-row">';
-            html += '      <span class="source-name">' + escapeHtml(source.name) + '</span>';
-            html += '      ' + activeBadge;
-            html += '    </div>';
-            html += '    <span class="source-host">' + escapeHtml(source.host) + '</span>';
-            html += '  </div>';
-            html += '  <button type="button" class="btn-toggle" data-action="toggle-source" data-source-id="' + source.id + '">';
-            html += '    ' + toggleIcon;
-            html += '  </button>';
-            html += '</div>';
+            fragment.appendChild(clone);
         }
 
-        sourcesList.innerHTML = html;
-
-        // Attach event listeners
-        var toggleBtns = sourcesList.querySelectorAll('[data-action="toggle-source"]');
-        for (var i = 0; i < toggleBtns.length; i++) {
-            toggleBtns[i].addEventListener('click', handleToggleSource);
-        }
+        sourcesList.innerHTML = '';
+        sourcesList.appendChild(fragment);
+        // Event listeners handled via delegation in setupSourcesTab()
     }
 
     /**
-     * Handle toggle source click
+     * Handle toggle source click (supports both direct and delegated events)
      */
     function handleToggleSource(e) {
-        var btn = e.currentTarget;
+        var btn = e.delegateTarget || e.currentTarget;
         var sourceId = parseInt(btn.getAttribute('data-source-id'), 10);
 
         btn.disabled = true;
@@ -533,84 +521,69 @@ Cookie.pages.settings = (function() {
     }
 
     /**
-     * Setup selectors tab handlers
+     * Setup selectors tab handlers with event delegation
      */
     function setupSelectorsTab() {
         testAllBtn.addEventListener('click', handleTestAllSources);
+
+        // Event delegation for dynamically rendered selector buttons
+        Cookie.utils.delegate(selectorsList, 'click', {
+            'test-source': handleTestSource,
+            'edit-selector': handleEditSelector,
+            'cancel-edit': handleCancelEditSelector,
+            'save-selector': handleSaveSelector
+        });
     }
 
     /**
-     * Render selectors list
+     * Render selectors list using HTML template
      */
     function renderSelectors() {
-        var html = '';
+        var template = document.getElementById('template-selector-item');
+        var fragment = document.createDocumentFragment();
 
         for (var i = 0; i < sources.length; i++) {
             var source = sources[i];
+            var clone = template.content.cloneNode(true);
+            var item = clone.querySelector('.selector-item');
+
+            // Set data attributes
+            item.setAttribute('data-source-id', source.id);
+
+            // Set text content
+            clone.querySelector('[data-field="name"]').textContent = source.name;
+            clone.querySelector('[data-field="host"]').textContent = source.host;
+            clone.querySelector('[data-field="last-tested"]').textContent = 'Last tested: ' + Cookie.utils.formatRelativeTime(source.last_validated_at);
+            clone.querySelector('[data-field="selector-value"]').textContent = source.result_selector || '(none)';
+
+            // Set status icon
             var status = getSourceStatus(source);
-            var statusIcon = getStatusIcon(status);
-            var lastTested = formatRelativeTime(source.last_validated_at);
-            var failureWarning = source.consecutive_failures >= 3
-                ? '<p class="selector-failure-warning">Failed ' + source.consecutive_failures + ' times - auto-disabled</p>'
-                : '';
+            clone.querySelector('[data-field="status-icon"]').innerHTML = getStatusIcon(status);
 
-            html += '<div class="selector-item" data-source-id="' + source.id + '">';
-            html += '  <div class="selector-header">';
-            html += '    <div class="selector-info">';
-            html += '      <div class="selector-name-row">';
-            html += '        <span class="selector-name">' + escapeHtml(source.name) + '</span>';
-            html += '        ' + statusIcon;
-            html += '      </div>';
-            html += '      <span class="selector-host">' + escapeHtml(source.host) + '</span>';
-            html += '      ' + failureWarning;
-            html += '    </div>';
-            html += '    <div class="selector-actions">';
-            html += '      <span class="selector-last-tested">Last tested: ' + lastTested + '</span>';
-            html += '      <button type="button" class="btn btn-secondary btn-sm" data-action="test-source" data-source-id="' + source.id + '">';
-            html += '        <span class="btn-icon-wrapper">';
-            html += '          <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
-            html += '          <span class="test-btn-text">Test</span>';
-            html += '        </span>';
-            html += '      </button>';
-            html += '    </div>';
-            html += '  </div>';
-            html += '  <div class="selector-field">';
-            html += '    <label class="selector-label">CSS Selector</label>';
-            html += '    <div class="selector-input-row" data-source-id="' + source.id + '">';
-            html += '      <code class="selector-value">' + escapeHtml(source.result_selector || '(none)') + '</code>';
-            html += '      <button type="button" class="btn btn-edit btn-sm" data-action="edit-selector" data-source-id="' + source.id + '">Edit</button>';
-            html += '    </div>';
-            html += '    <div class="selector-edit-row hidden" data-source-id="' + source.id + '">';
-            html += '      <input type="text" class="input input-mono" value="' + escapeHtml(source.result_selector || '') + '" data-field="selector">';
-            html += '      <button type="button" class="btn btn-secondary btn-sm" data-action="cancel-edit" data-source-id="' + source.id + '">Cancel</button>';
-            html += '      <button type="button" class="btn btn-primary btn-sm" data-action="save-selector" data-source-id="' + source.id + '">Save</button>';
-            html += '    </div>';
-            html += '  </div>';
-            html += '</div>';
+            // Set failure warning
+            var failureWarning = clone.querySelector('[data-field="failure-warning"]');
+            if (source.consecutive_failures >= 3) {
+                failureWarning.textContent = 'Failed ' + source.consecutive_failures + ' times - auto-disabled';
+                failureWarning.classList.remove('hidden');
+            }
+
+            // Set button attributes
+            clone.querySelector('[data-action="test-source"]').setAttribute('data-source-id', source.id);
+            clone.querySelector('[data-action="edit-selector"]').setAttribute('data-source-id', source.id);
+            clone.querySelector('[data-action="cancel-edit"]').setAttribute('data-source-id', source.id);
+            clone.querySelector('[data-action="save-selector"]').setAttribute('data-source-id', source.id);
+
+            // Set input row data attributes
+            clone.querySelector('.selector-input-row').setAttribute('data-source-id', source.id);
+            clone.querySelector('.selector-edit-row').setAttribute('data-source-id', source.id);
+            clone.querySelector('[data-field="selector"]').value = source.result_selector || '';
+
+            fragment.appendChild(clone);
         }
 
-        selectorsList.innerHTML = html;
-
-        // Attach event listeners
-        var testBtns = selectorsList.querySelectorAll('[data-action="test-source"]');
-        for (var i = 0; i < testBtns.length; i++) {
-            testBtns[i].addEventListener('click', handleTestSource);
-        }
-
-        var editBtns = selectorsList.querySelectorAll('[data-action="edit-selector"]');
-        for (var i = 0; i < editBtns.length; i++) {
-            editBtns[i].addEventListener('click', handleEditSelector);
-        }
-
-        var cancelBtns = selectorsList.querySelectorAll('[data-action="cancel-edit"]');
-        for (var i = 0; i < cancelBtns.length; i++) {
-            cancelBtns[i].addEventListener('click', handleCancelEditSelector);
-        }
-
-        var saveBtns = selectorsList.querySelectorAll('[data-action="save-selector"]');
-        for (var i = 0; i < saveBtns.length; i++) {
-            saveBtns[i].addEventListener('click', handleSaveSelector);
-        }
+        selectorsList.innerHTML = '';
+        selectorsList.appendChild(fragment);
+        // Event listeners handled via delegation in setupSelectorsTab()
     }
 
     /**
@@ -635,28 +608,13 @@ Cookie.pages.settings = (function() {
         }
     }
 
-    /**
-     * Format relative time
-     */
-    function formatRelativeTime(dateStr) {
-        if (!dateStr) return 'Never';
-        var date = new Date(dateStr);
-        var now = new Date();
-        var diffMs = now.getTime() - date.getTime();
-        var diffMins = Math.floor(diffMs / 60000);
-        if (diffMins < 1) return 'Just now';
-        if (diffMins < 60) return diffMins + 'm ago';
-        var diffHours = Math.floor(diffMins / 60);
-        if (diffHours < 24) return diffHours + 'h ago';
-        var diffDays = Math.floor(diffHours / 24);
-        return diffDays + 'd ago';
-    }
+    // Use shared utility: Cookie.utils.formatRelativeTime
 
     /**
-     * Handle test source click
+     * Handle test source click (supports both direct and delegated events)
      */
     function handleTestSource(e) {
-        var btn = e.currentTarget;
+        var btn = e.delegateTarget || e.currentTarget;
         var sourceId = parseInt(btn.getAttribute('data-source-id'), 10);
         var btnText = btn.querySelector('.test-btn-text');
 
@@ -707,10 +665,11 @@ Cookie.pages.settings = (function() {
     }
 
     /**
-     * Handle edit selector click
+     * Handle edit selector click (supports both direct and delegated events)
      */
     function handleEditSelector(e) {
-        var sourceId = e.currentTarget.getAttribute('data-source-id');
+        var target = e.delegateTarget || e.currentTarget;
+        var sourceId = target.getAttribute('data-source-id');
         var inputRow = selectorsList.querySelector('.selector-input-row[data-source-id="' + sourceId + '"]');
         var editRow = selectorsList.querySelector('.selector-edit-row[data-source-id="' + sourceId + '"]');
 
@@ -719,10 +678,11 @@ Cookie.pages.settings = (function() {
     }
 
     /**
-     * Handle cancel edit selector click
+     * Handle cancel edit selector click (supports both direct and delegated events)
      */
     function handleCancelEditSelector(e) {
-        var sourceId = e.currentTarget.getAttribute('data-source-id');
+        var target = e.delegateTarget || e.currentTarget;
+        var sourceId = target.getAttribute('data-source-id');
         var inputRow = selectorsList.querySelector('.selector-input-row[data-source-id="' + sourceId + '"]');
         var editRow = selectorsList.querySelector('.selector-edit-row[data-source-id="' + sourceId + '"]');
 
@@ -731,10 +691,10 @@ Cookie.pages.settings = (function() {
     }
 
     /**
-     * Handle save selector click
+     * Handle save selector click (supports both direct and delegated events)
      */
     function handleSaveSelector(e) {
-        var btn = e.currentTarget;
+        var btn = e.delegateTarget || e.currentTarget;
         var sourceId = parseInt(btn.getAttribute('data-source-id'), 10);
         var editRow = selectorsList.querySelector('.selector-edit-row[data-source-id="' + sourceId + '"]');
         var input = editRow.querySelector('[data-field="selector"]');
@@ -766,19 +726,21 @@ Cookie.pages.settings = (function() {
         });
     }
 
-    /**
-     * Escape HTML special characters
-     */
-    function escapeHtml(str) {
-        if (!str) return '';
-        var div = document.createElement('div');
-        div.appendChild(document.createTextNode(str));
-        return div.innerHTML;
-    }
+    // Use shared utility: Cookie.utils.escapeHtml
 
     // ============================================
     // USER MANAGEMENT FUNCTIONS
     // ============================================
+
+    /**
+     * Setup users tab handlers with event delegation
+     */
+    function setupUsersTab() {
+        // Event delegation for dynamically rendered profile delete buttons
+        Cookie.utils.delegate(profilesList, 'click', {
+            'delete-profile': handleDeleteProfileClick
+        });
+    }
 
     /**
      * Load profiles from API
@@ -804,65 +766,62 @@ Cookie.pages.settings = (function() {
     }
 
     /**
-     * Render profiles list
+     * Render profiles list using HTML template
      */
     function renderProfiles() {
-        var html = '';
+        var template = document.getElementById('template-profile-card');
+        var fragment = document.createDocumentFragment();
 
         for (var i = 0; i < profiles.length; i++) {
             var profile = profiles[i];
             var isCurrent = profile.id === currentProfileId;
-            var currentBadge = isCurrent ? '<span class="profile-current-badge">Current</span>' : '';
-            var disabledAttr = isCurrent ? 'disabled' : '';
-            var disabledClass = isCurrent ? 'btn-delete-disabled' : '';
+            var clone = template.content.cloneNode(true);
+            var card = clone.querySelector('.profile-card');
 
-            html += '<div class="profile-card" data-profile-id="' + profile.id + '">';
-            html += '  <div class="profile-avatar" style="background-color: ' + escapeHtml(profile.avatar_color) + '"></div>';
-            html += '  <div class="profile-info">';
-            html += '    <div class="profile-name-row">';
-            html += '      <span class="profile-name">' + escapeHtml(profile.name) + '</span>';
-            html += '      ' + currentBadge;
-            html += '    </div>';
-            html += '    <span class="profile-meta">Created ' + formatDate(profile.created_at) + '</span>';
-            html += '    <span class="profile-stats">';
-            html += '      ' + profile.stats.favorites + ' favorites · ';
-            html += '      ' + profile.stats.collections + ' collections · ';
-            html += '      ' + profile.stats.remixes + ' remixes';
-            html += '    </span>';
-            html += '  </div>';
-            html += '  <button type="button" class="btn-delete ' + disabledClass + '" ' + disabledAttr + ' data-action="delete-profile" data-profile-id="' + profile.id + '" title="' + (isCurrent ? 'Cannot delete current profile' : 'Delete profile') + '">';
-            html += '    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
-            html += '      <path d="M3 6h18"></path>';
-            html += '      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>';
-            html += '      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>';
-            html += '    </svg>';
-            html += '  </button>';
-            html += '</div>';
+            // Set data attributes
+            card.setAttribute('data-profile-id', profile.id);
+
+            // Set avatar color
+            clone.querySelector('[data-field="avatar"]').style.backgroundColor = profile.avatar_color;
+
+            // Set text content
+            clone.querySelector('[data-field="name"]').textContent = profile.name;
+            clone.querySelector('[data-field="created"]').textContent = 'Created ' + Cookie.utils.formatDate(profile.created_at);
+            clone.querySelector('[data-field="stats"]').textContent =
+                profile.stats.favorites + ' favorites · ' +
+                profile.stats.collections + ' collections · ' +
+                profile.stats.remixes + ' remixes';
+
+            // Handle current profile badge
+            var badge = clone.querySelector('[data-field="badge"]');
+            if (isCurrent) {
+                badge.classList.remove('hidden');
+            }
+
+            // Configure delete button
+            var deleteBtn = clone.querySelector('[data-action="delete-profile"]');
+            deleteBtn.setAttribute('data-profile-id', profile.id);
+            if (isCurrent) {
+                deleteBtn.disabled = true;
+                deleteBtn.classList.add('btn-delete-disabled');
+                deleteBtn.title = 'Cannot delete current profile';
+            }
+
+            fragment.appendChild(clone);
         }
 
-        profilesList.innerHTML = html;
-
-        // Attach event listeners
-        var deleteBtns = profilesList.querySelectorAll('[data-action="delete-profile"]');
-        for (var i = 0; i < deleteBtns.length; i++) {
-            deleteBtns[i].addEventListener('click', handleDeleteProfileClick);
-        }
+        profilesList.innerHTML = '';
+        profilesList.appendChild(fragment);
+        // Event listeners handled via delegation in setupUsersTab()
     }
 
-    /**
-     * Format date for display
-     */
-    function formatDate(dateStr) {
-        if (!dateStr) return 'Unknown';
-        var date = new Date(dateStr);
-        return date.toLocaleDateString();
-    }
+    // Use shared utility: Cookie.utils.formatDate
 
     /**
-     * Handle delete profile button click
+     * Handle delete profile button click (supports both direct and delegated events)
      */
     function handleDeleteProfileClick(e) {
-        var btn = e.currentTarget;
+        var btn = e.delegateTarget || e.currentTarget;
         if (btn.disabled) return;
 
         var profileId = parseInt(btn.getAttribute('data-profile-id'), 10);
@@ -890,10 +849,10 @@ Cookie.pages.settings = (function() {
 
         // Profile info
         deleteProfileInfo.innerHTML = [
-            '<div class="profile-avatar" style="background-color: ' + escapeHtml(profile.avatar_color) + '"></div>',
+            '<div class="profile-avatar" style="background-color: ' + Cookie.utils.escapeHtml(profile.avatar_color) + '"></div>',
             '<div>',
-            '  <div class="profile-name">' + escapeHtml(profile.name) + '</div>',
-            '  <div class="profile-meta">Created ' + formatDate(profile.created_at) + '</div>',
+            '  <div class="profile-name">' + Cookie.utils.escapeHtml(profile.name) + '</div>',
+            '  <div class="profile-meta">Created ' + Cookie.utils.formatDate(profile.created_at) + '</div>',
             '</div>'
         ].join('');
 
@@ -998,7 +957,6 @@ Cookie.pages.settings = (function() {
                 return;
             }
 
-            resetPreview = preview;
             renderResetSummary(preview);
             resetModalStep1.classList.remove('hidden');
         });
@@ -1047,7 +1005,6 @@ Cookie.pages.settings = (function() {
         resetModalStep2.classList.add('hidden');
         resetConfirmInput.value = '';
         confirmResetBtn.disabled = true;
-        resetPreview = null;
     }
 
     /**

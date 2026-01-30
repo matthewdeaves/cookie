@@ -16,7 +16,7 @@ export const TimerWidget: FC<TimerWidgetProps> = ({ id, label, duration, onCompl
 
   useEffect(() => {
     let interval: number | undefined;
-    
+
     if (isRunning && timeLeft > 0) {
       interval = window.setInterval(() => {
         setTimeLeft((prev) => {
@@ -94,7 +94,7 @@ export const TimerWidget: FC<TimerWidgetProps> = ({ id, label, duration, onCompl
       </div>
       {isRunning && (
         <div className="mt-3 h-1.5 bg-secondary rounded-full overflow-hidden">
-          <div 
+          <div
             className="h-full bg-primary transition-all duration-1000 ease-linear"
             style={{ width: `${progress}%` }}
           />

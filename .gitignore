@@ -30,12 +30,18 @@ media/
 .pytest_cache/
 .coverage
 coverage/
+coverage.json
 htmlcov/
+
+# Linting/Security
+.ruff_cache/
+frontend/.secrets.baseline
 
 # Frontend
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
+frontend/coverage/
 *.local
 
 # Root node_modules (from CI tooling tests)

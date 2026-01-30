@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Link as LinkIcon, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type SearchResult } from '../api/client'
 import { cn } from '../lib/utils'
 
-interface SearchProps {
-  query: string
-  onBack: () => void
-  onImport: (url: string) => void
-}
+export default function Search() {
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const query = searchParams.get('q') || ''
 
-export default function Search({ query, onBack, onImport }: SearchProps) {
   const [results, setResults] = useState<SearchResult[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -25,11 +24,16 @@ export default function Search({ query, onBack, onImport }: SearchProps) {
   const isUrl = /^https?:\/\//i.test(query.trim())
 
   useEffect(() => {
+    if (!query) {
+      navigate('/home')
+      return
+    }
     // Reset state when query or source filter changes
     setResults([])
     setPage(1)
     setLoading(true)
     searchRecipes(1, true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate and searchRecipes are stable, only re-run when query or filter changes
   }, [query, selectedSource])
 
   const searchRecipes = async (pageNum: number, reset: boolean = false) => {
@@ -65,22 +69,26 @@ export default function Search({ query, onBack, onImport }: SearchProps) {
     setSelectedSource(source)
   }
 
-  const handleImportUrl = async () => {
-    setImporting(query)
+  const handleImport = async (url: string) => {
+    setImporting(url)
     try {
-      await onImport(query)
+      const recipe = await api.recipes.scrape(url)
+      toast.success(`Imported: ${recipe.title}`)
+      // Record in history
+      await api.history.record(recipe.id)
+      // Navigate to recipe detail
+      navigate(`/recipe/${recipe.id}`)
+    } catch (error) {
+      console.error('Failed to import recipe:', error)
+      const message = error instanceof Error ? error.message : 'Failed to import recipe'
+      toast.error(message)
     } finally {
       setImporting(null)
     }
   }
 
-  const handleImportResult = async (url: string) => {
-    setImporting(url)
-    try {
-      await onImport(url)
-    } finally {
-      setImporting(null)
-    }
+  const handleBack = () => {
+    navigate('/home')
   }
 
   // Sort sites by count descending for filter chips
@@ -92,7 +100,7 @@ export default function Search({ query, onBack, onImport }: SearchProps) {
       {/* Header with breadcrumb */}
       <header className="border-b border-border px-4 py-3">
         <button
-          onClick={onBack}
+          onClick={handleBack}
           className="flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -129,7 +137,7 @@ export default function Search({ query, onBack, onImport }: SearchProps) {
                     {query}
                   </p>
                   <button
-                    onClick={handleImportUrl}
+                    onClick={() => handleImport(query)}
                     disabled={!!importing}
                     className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
                   >
@@ -193,7 +201,7 @@ export default function Search({ query, onBack, onImport }: SearchProps) {
                   <SearchResultCard
                     key={`${result.url}-${index}`}
                     result={result}
-                    onImport={handleImportResult}
+                    onImport={handleImport}
                     importing={importing === result.url}
                   />
                 ))}

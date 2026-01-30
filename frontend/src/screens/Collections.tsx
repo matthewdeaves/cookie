@@ -1,21 +1,16 @@
 import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, FolderPlus, Plus, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type Collection } from '../api/client'
 import { cn } from '../lib/utils'
 import { CollectionGridSkeleton } from '../components/Skeletons'
 
-interface CollectionsProps {
-  onBack: () => void
-  onCollectionClick: (collectionId: number) => void
-  pendingRecipeId?: number | null
-}
+export default function Collections() {
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const pendingRecipeId = searchParams.get('addRecipe') ? Number(searchParams.get('addRecipe')) : null
 
-export default function Collections({
-  onBack,
-  onCollectionClick,
-  pendingRecipeId,
-}: CollectionsProps) {
   const [collections, setCollections] = useState<Collection[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -60,7 +55,7 @@ export default function Collections({
         } catch (error) {
           console.error('Failed to add recipe to collection:', error)
         }
-        onCollectionClick(collection.id)
+        navigate(`/collection/${collection.id}`)
       }
     } catch (error) {
       console.error('Failed to create collection:', error)
@@ -86,7 +81,15 @@ export default function Collections({
         }
       }
     }
-    onCollectionClick(collectionId)
+    navigate(`/collection/${collectionId}`)
+  }
+
+  const handleBack = () => {
+    if (pendingRecipeId) {
+      navigate(-1)
+    } else {
+      navigate('/home')
+    }
   }
 
   return (
@@ -95,7 +98,7 @@ export default function Collections({
       <header className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-4">
           <button
-            onClick={onBack}
+            onClick={handleBack}
             className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <ArrowLeft className="h-5 w-5" />

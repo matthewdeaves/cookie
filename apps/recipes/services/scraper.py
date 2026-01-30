@@ -25,16 +25,19 @@ logger = logging.getLogger(__name__)
 
 class ScraperError(Exception):
     """Base exception for scraper errors."""
+
     pass
 
 
 class FetchError(ScraperError):
     """Failed to fetch URL."""
+
     pass
 
 
 class ParseError(ScraperError):
     """Failed to parse recipe from HTML."""
+
     pass
 
 
@@ -53,7 +56,7 @@ class RecipeScraper:
     def __init__(self):
         self.timeout = self.DEFAULT_TIMEOUT
 
-    async def scrape_url(self, url: str, profile: 'Profile') -> 'Recipe':
+    async def scrape_url(self, url: str, profile: "Profile") -> "Recipe":
         """
         Scrape a recipe from a URL and save it to the database.
 
@@ -79,26 +82,23 @@ class RecipeScraper:
 
         # Check for cached search image first, then download if needed
         image_file = None
-        if data.get('image_url'):
+        if data.get("image_url"):
             # Try to reuse cached image from search results
             from apps.recipes.models import CachedSearchImage
 
             try:
-                cached = await sync_to_async(
-                    CachedSearchImage.objects.get
-                )(
-                    external_url=data['image_url'],
-                    status=CachedSearchImage.STATUS_SUCCESS
+                cached = await sync_to_async(CachedSearchImage.objects.get)(
+                    external_url=data["image_url"], status=CachedSearchImage.STATUS_SUCCESS
                 )
 
                 if cached.image:
                     # Reuse cached image file
-                    with cached.image.open('rb') as f:
+                    with cached.image.open("rb") as f:
                         image_file = ContentFile(f.read())
 
                     # Update access time to prevent cleanup
                     cached.last_accessed_at = timezone.now()
-                    await sync_to_async(cached.save)(update_fields=['last_accessed_at'])
+                    await sync_to_async(cached.save)(update_fields=["last_accessed_at"])
 
                     logger.info(f"Reused cached image for {data['image_url']}")
 
@@ -107,39 +107,39 @@ class RecipeScraper:
 
             # If no cache, download as normal
             if not image_file:
-                image_file = await self._download_image(data['image_url'])
+                image_file = await self._download_image(data["image_url"])
 
         # Create recipe record
         recipe = Recipe(
             profile=profile,
             source_url=url,
-            canonical_url=data.get('canonical_url', ''),
-            host=data['host'],
-            site_name=data.get('site_name', ''),
-            title=data['title'],
-            author=data.get('author', ''),
-            description=data.get('description', ''),
-            image_url=data.get('image_url', ''),
-            ingredients=data.get('ingredients', []),
-            ingredient_groups=data.get('ingredient_groups', []),
-            instructions=data.get('instructions', []),
-            instructions_text=data.get('instructions_text', ''),
-            prep_time=data.get('prep_time'),
-            cook_time=data.get('cook_time'),
-            total_time=data.get('total_time'),
-            yields=data.get('yields', ''),
-            servings=data.get('servings'),
-            category=data.get('category', ''),
-            cuisine=data.get('cuisine', ''),
-            cooking_method=data.get('cooking_method', ''),
-            keywords=data.get('keywords', []),
-            dietary_restrictions=data.get('dietary_restrictions', []),
-            equipment=data.get('equipment', []),
-            nutrition=data.get('nutrition', {}),
-            rating=data.get('rating'),
-            rating_count=data.get('rating_count'),
-            language=data.get('language', ''),
-            links=data.get('links', []),
+            canonical_url=data.get("canonical_url", ""),
+            host=data["host"],
+            site_name=data.get("site_name", ""),
+            title=data["title"],
+            author=data.get("author", ""),
+            description=data.get("description", ""),
+            image_url=data.get("image_url", ""),
+            ingredients=data.get("ingredients", []),
+            ingredient_groups=data.get("ingredient_groups", []),
+            instructions=data.get("instructions", []),
+            instructions_text=data.get("instructions_text", ""),
+            prep_time=data.get("prep_time"),
+            cook_time=data.get("cook_time"),
+            total_time=data.get("total_time"),
+            yields=data.get("yields", ""),
+            servings=data.get("servings"),
+            category=data.get("category", ""),
+            cuisine=data.get("cuisine", ""),
+            cooking_method=data.get("cooking_method", ""),
+            keywords=data.get("keywords", []),
+            dietary_restrictions=data.get("dietary_restrictions", []),
+            equipment=data.get("equipment", []),
+            nutrition=data.get("nutrition", {}),
+            rating=data.get("rating"),
+            rating_count=data.get("rating_count"),
+            language=data.get("language", ""),
+            links=data.get("links", []),
         )
 
         # Save first to get an ID for the image path
@@ -147,15 +147,11 @@ class RecipeScraper:
 
         # Attach image if downloaded
         if image_file:
-            filename = self._generate_image_filename(url, data.get('image_url', ''))
+            filename = self._generate_image_filename(url, data.get("image_url", ""))
             await sync_to_async(recipe.image.save)(filename, image_file, save=True)
 
         # Fire-and-forget: Generate AI tips in background thread (non-blocking)
-        thread = threading.Thread(
-            target=self._generate_tips_background,
-            args=(recipe.id,),
-            daemon=True
-        )
+        thread = threading.Thread(target=self._generate_tips_background, args=(recipe.id,), daemon=True)
         thread.start()
 
         return recipe
@@ -164,6 +160,7 @@ class RecipeScraper:
         """Generate AI tips for a recipe in background thread."""
         try:
             import django
+
             django.setup()  # Ensure Django is configured in thread
 
             from apps.core.models import AppSettings
@@ -172,16 +169,16 @@ class RecipeScraper:
             # Check if AI is available
             settings_obj = AppSettings.get()
             if not settings_obj.openrouter_api_key:
-                logger.debug(f'Skipping tips generation for recipe {recipe_id}: No API key')
+                logger.debug(f"Skipping tips generation for recipe {recipe_id}: No API key")
                 return
 
             # Generate tips
             generate_tips(recipe_id)
-            logger.info(f'Auto-generated tips for recipe {recipe_id}')
+            logger.info(f"Auto-generated tips for recipe {recipe_id}")
 
         except Exception as e:
             # Log but don't fail - tips generation is optional
-            logger.warning(f'Failed to auto-generate tips for recipe {recipe_id}: {e}')
+            logger.warning(f"Failed to auto-generate tips for recipe {recipe_id}: {e}")
 
     async def _fetch_html(self, url: str) -> str:
         """
@@ -224,40 +221,40 @@ class RecipeScraper:
 
         # Extract host from URL
         parsed_url = urlparse(url)
-        host = parsed_url.netloc.replace('www.', '')
+        host = parsed_url.netloc.replace("www.", "")
 
         # Build recipe data dict with safe attribute access
         data = {
-            'host': host,
-            'title': self._safe_get(scraper, 'title', ''),
-            'canonical_url': self._safe_get(scraper, 'canonical_url', ''),
-            'site_name': self._safe_get(scraper, 'site_name', ''),
-            'author': self._safe_get(scraper, 'author', ''),
-            'description': self._safe_get(scraper, 'description', ''),
-            'image_url': self._safe_get(scraper, 'image', ''),
-            'ingredients': self._safe_get(scraper, 'ingredients', []),
-            'ingredient_groups': self._safe_get_ingredient_groups(scraper),
-            'instructions': self._safe_get(scraper, 'instructions_list', []),
-            'instructions_text': self._safe_get(scraper, 'instructions', ''),
-            'prep_time': self._parse_time(self._safe_get(scraper, 'prep_time')),
-            'cook_time': self._parse_time(self._safe_get(scraper, 'cook_time')),
-            'total_time': self._parse_time(self._safe_get(scraper, 'total_time')),
-            'yields': self._safe_get(scraper, 'yields', ''),
-            'servings': self._parse_servings(self._safe_get(scraper, 'yields', '')),
-            'category': self._safe_get(scraper, 'category', ''),
-            'cuisine': self._safe_get(scraper, 'cuisine', ''),
-            'cooking_method': self._safe_get(scraper, 'cooking_method', ''),
-            'keywords': self._safe_get(scraper, 'keywords', []),
-            'dietary_restrictions': self._safe_get(scraper, 'dietary_restrictions', []),
-            'equipment': self._safe_get(scraper, 'equipment', []),
-            'nutrition': self._safe_get(scraper, 'nutrients', {}),
-            'rating': self._parse_rating(self._safe_get(scraper, 'ratings')),
-            'rating_count': self._parse_rating_count(self._safe_get(scraper, 'ratings_count')),
-            'language': self._safe_get(scraper, 'language', ''),
-            'links': self._safe_get(scraper, 'links', []),
+            "host": host,
+            "title": self._safe_get(scraper, "title", ""),
+            "canonical_url": self._safe_get(scraper, "canonical_url", ""),
+            "site_name": self._safe_get(scraper, "site_name", ""),
+            "author": self._safe_get(scraper, "author", ""),
+            "description": self._safe_get(scraper, "description", ""),
+            "image_url": self._safe_get(scraper, "image", ""),
+            "ingredients": self._safe_get(scraper, "ingredients", []),
+            "ingredient_groups": self._safe_get_ingredient_groups(scraper),
+            "instructions": self._safe_get(scraper, "instructions_list", []),
+            "instructions_text": self._safe_get(scraper, "instructions", ""),
+            "prep_time": self._parse_time(self._safe_get(scraper, "prep_time")),
+            "cook_time": self._parse_time(self._safe_get(scraper, "cook_time")),
+            "total_time": self._parse_time(self._safe_get(scraper, "total_time")),
+            "yields": self._safe_get(scraper, "yields", ""),
+            "servings": self._parse_servings(self._safe_get(scraper, "yields", "")),
+            "category": self._safe_get(scraper, "category", ""),
+            "cuisine": self._safe_get(scraper, "cuisine", ""),
+            "cooking_method": self._safe_get(scraper, "cooking_method", ""),
+            "keywords": self._safe_get(scraper, "keywords", []),
+            "dietary_restrictions": self._safe_get(scraper, "dietary_restrictions", []),
+            "equipment": self._safe_get(scraper, "equipment", []),
+            "nutrition": self._safe_get(scraper, "nutrients", {}),
+            "rating": self._parse_rating(self._safe_get(scraper, "ratings")),
+            "rating_count": self._parse_rating_count(self._safe_get(scraper, "ratings_count")),
+            "language": self._safe_get(scraper, "language", ""),
+            "links": self._safe_get(scraper, "links", []),
         }
 
-        if not data['title']:
+        if not data["title"]:
             raise ParseError("Recipe has no title")
 
         return data
@@ -279,11 +276,7 @@ class RecipeScraper:
             groups = scraper.ingredient_groups()
             if groups:
                 return [
-                    {
-                        'purpose': getattr(g, 'purpose', ''),
-                        'ingredients': getattr(g, 'ingredients', [])
-                    }
-                    for g in groups
+                    {"purpose": getattr(g, "purpose", ""), "ingredients": getattr(g, "ingredients", [])} for g in groups
                 ]
         except Exception:
             pass
@@ -297,7 +290,7 @@ class RecipeScraper:
             return int(value)
         if isinstance(value, str):
             # Try to extract number
-            match = re.search(r'(\d+)', value)
+            match = re.search(r"(\d+)", value)
             if match:
                 return int(match.group(1))
         return None
@@ -306,7 +299,7 @@ class RecipeScraper:
         """Extract serving count from yields string."""
         if not yields:
             return None
-        match = re.search(r'(\d+)', yields)
+        match = re.search(r"(\d+)", yields)
         if match:
             return int(match.group(1))
         return None
@@ -350,8 +343,8 @@ class RecipeScraper:
                     )
 
                     if response.status_code == 200:
-                        content_type = response.headers.get('content-type', '')
-                        if 'image' in content_type or self._is_image_url(image_url):
+                        content_type = response.headers.get("content-type", "")
+                        if "image" in content_type or self._is_image_url(image_url):
                             content = response.content
                             # Convert WebP to JPEG for iOS 9 compatibility
                             content = self._convert_webp_to_jpeg(content)
@@ -372,7 +365,7 @@ class RecipeScraper:
             img = Image.open(BytesIO(content))
 
             # Check if conversion is needed (WebP or very large)
-            needs_conversion = img.format == 'WEBP'
+            needs_conversion = img.format == "WEBP"
             needs_resize = img.width > 1200 or img.height > 1200
 
             if not needs_conversion and not needs_resize:
@@ -383,12 +376,12 @@ class RecipeScraper:
                 img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
 
             # Convert to RGB if needed (for JPEG)
-            if img.mode in ('RGBA', 'P'):
-                img = img.convert('RGB')
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
 
             # Save as JPEG
             output = BytesIO()
-            img.save(output, format='JPEG', quality=85, optimize=True)
+            img.save(output, format="JPEG", quality=85, optimize=True)
             logger.info(f"Converted image: {img.format} -> JPEG, resized: {needs_resize}")
             return output.getvalue()
 
@@ -398,7 +391,7 @@ class RecipeScraper:
 
     def _is_image_url(self, url: str) -> bool:
         """Check if URL looks like an image."""
-        image_extensions = ('.jpg', '.jpeg', '.png', '.gif', '.webp')
+        image_extensions = (".jpg", ".jpeg", ".png", ".gif", ".webp")
         parsed = urlparse(url)
         return parsed.path.lower().endswith(image_extensions)
 
@@ -409,8 +402,6 @@ class RecipeScraper:
         for iOS 9 compatibility.
         """
         # Create hash from URLs for uniqueness
-        url_hash = hashlib.md5(
-            f"{recipe_url}{image_url}".encode()
-        ).hexdigest()[:12]
+        url_hash = hashlib.md5(f"{recipe_url}{image_url}".encode()).hexdigest()[:12]
 
         return f"recipe_{url_hash}.jpg"

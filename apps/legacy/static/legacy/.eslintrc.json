@@ -7,6 +7,7 @@
     "sourceType": "script"
   },
   "globals": {
+    "Cookie": "writable",
     "CookieApp": "writable",
     "CookieState": "writable",
     "CookieToast": "writable",
@@ -25,7 +26,7 @@
     "max-lines-per-function": ["warn", 100],
     "no-unused-vars": ["warn", { "vars": "all", "args": "none" }],
     "no-undef": "error",
-    "no-redeclare": "warn",
+    "no-redeclare": ["warn", { "builtinGlobals": false }],
     "no-shadow": "warn",
     "eqeqeq": ["warn", "smart"],
     "no-eval": "error",
@@ -49,7 +50,9 @@
     "prefer-template": "off",
     "object-shorthand": "off",
     "prefer-rest-params": "off",
-    "prefer-spread": "off"
+    "prefer-spread": "off",
+    "no-script-url": "error",
+    "no-proto": "error"
   },
   "overrides": [
     {

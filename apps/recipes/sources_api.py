@@ -11,10 +11,11 @@ from ninja import Router, Schema
 from .models import SearchSource
 from .services.search import RecipeSearch
 
-router = Router(tags=['sources'])
+router = Router(tags=["sources"])
 
 
 # Schemas
+
 
 class SourceOut(Schema):
     id: int
@@ -72,25 +73,26 @@ class BulkToggleOut(Schema):
 
 # Endpoints
 
-@router.get('/', response=List[SourceOut])
+
+@router.get("/", response=List[SourceOut])
 def list_sources(request):
     """List all search sources with their status."""
-    sources = SearchSource.objects.all().order_by('name')
+    sources = SearchSource.objects.all().order_by("name")
     return list(sources)
 
 
-@router.get('/enabled-count/', response={200: dict})
+@router.get("/enabled-count/", response={200: dict})
 def enabled_count(request):
     """Get count of enabled sources vs total."""
     total = SearchSource.objects.count()
     enabled = SearchSource.objects.filter(is_enabled=True).count()
     return {
-        'enabled': enabled,
-        'total': total,
+        "enabled": enabled,
+        "total": total,
     }
 
 
-@router.get('/{source_id}/', response={200: SourceOut, 404: ErrorOut})
+@router.get("/{source_id}/", response={200: SourceOut, 404: ErrorOut})
 def get_source(request, source_id: int):
     """Get a single search source by ID."""
     try:
@@ -98,12 +100,12 @@ def get_source(request, source_id: int):
         return source
     except SearchSource.DoesNotExist:
         return 404, {
-            'error': 'not_found',
-            'message': f'Source {source_id} not found',
+            "error": "not_found",
+            "message": f"Source {source_id} not found",
         }
 
 
-@router.post('/{source_id}/toggle/', response={200: SourceToggleOut, 404: ErrorOut})
+@router.post("/{source_id}/toggle/", response={200: SourceToggleOut, 404: ErrorOut})
 def toggle_source(request, source_id: int):
     """Toggle a source's enabled status."""
     try:
@@ -111,27 +113,27 @@ def toggle_source(request, source_id: int):
         source.is_enabled = not source.is_enabled
         source.save()
         return {
-            'id': source.id,
-            'is_enabled': source.is_enabled,
+            "id": source.id,
+            "is_enabled": source.is_enabled,
         }
     except SearchSource.DoesNotExist:
         return 404, {
-            'error': 'not_found',
-            'message': f'Source {source_id} not found',
+            "error": "not_found",
+            "message": f"Source {source_id} not found",
         }
 
 
-@router.post('/bulk-toggle/', response={200: BulkToggleOut})
+@router.post("/bulk-toggle/", response={200: BulkToggleOut})
 def bulk_toggle_sources(request, data: BulkToggleIn):
     """Enable or disable all sources at once."""
     updated = SearchSource.objects.all().update(is_enabled=data.enable)
     return {
-        'updated_count': updated,
-        'is_enabled': data.enable,
+        "updated_count": updated,
+        "is_enabled": data.enable,
     }
 
 
-@router.put('/{source_id}/selector/', response={200: SourceUpdateOut, 404: ErrorOut})
+@router.put("/{source_id}/selector/", response={200: SourceUpdateOut, 404: ErrorOut})
 def update_selector(request, source_id: int, data: SourceUpdateIn):
     """Update a source's CSS selector."""
     try:
@@ -139,17 +141,17 @@ def update_selector(request, source_id: int, data: SourceUpdateIn):
         source.result_selector = data.result_selector
         source.save()
         return {
-            'id': source.id,
-            'result_selector': source.result_selector,
+            "id": source.id,
+            "result_selector": source.result_selector,
         }
     except SearchSource.DoesNotExist:
         return 404, {
-            'error': 'not_found',
-            'message': f'Source {source_id} not found',
+            "error": "not_found",
+            "message": f"Source {source_id} not found",
         }
 
 
-@router.post('/{source_id}/test/', response={200: SourceTestOut, 404: ErrorOut, 500: ErrorOut})
+@router.post("/{source_id}/test/", response={200: SourceTestOut, 404: ErrorOut, 500: ErrorOut})
 async def test_source(request, source_id: int):
     """Test a source by performing a sample search.
 
@@ -162,12 +164,12 @@ async def test_source(request, source_id: int):
         source = await sync_to_async(SearchSource.objects.get)(id=source_id)
     except SearchSource.DoesNotExist:
         return 404, {
-            'error': 'not_found',
-            'message': f'Source {source_id} not found',
+            "error": "not_found",
+            "message": f"Source {source_id} not found",
         }
 
     # Test with a common search query
-    test_query = 'chicken'
+    test_query = "chicken"
     search = RecipeSearch()
 
     try:
@@ -179,8 +181,8 @@ async def test_source(request, source_id: int):
             per_page=5,
         )
 
-        result_count = len(results.get('results', []))
-        sample_titles = [r.get('title', '')[:50] for r in results.get('results', [])[:3]]
+        result_count = len(results.get("results", []))
+        sample_titles = [r.get("title", "")[:50] for r in results.get("results", [])[:3]]
 
         # Update source validation status
         if result_count > 0:
@@ -190,10 +192,10 @@ async def test_source(request, source_id: int):
             await sync_to_async(source.save)()
 
             return {
-                'success': True,
-                'message': f'Found {result_count} results for "{test_query}"',
-                'results_count': result_count,
-                'sample_results': sample_titles,
+                "success": True,
+                "message": f'Found {result_count} results for "{test_query}"',
+                "results_count": result_count,
+                "sample_results": sample_titles,
             }
         else:
             source.consecutive_failures += 1
@@ -202,10 +204,10 @@ async def test_source(request, source_id: int):
             await sync_to_async(source.save)()
 
             return {
-                'success': False,
-                'message': f'No results found for "{test_query}". The selector may need updating.',
-                'results_count': 0,
-                'sample_results': [],
+                "success": False,
+                "message": f'No results found for "{test_query}". The selector may need updating.',
+                "results_count": 0,
+                "sample_results": [],
             }
 
     except Exception as e:
@@ -216,12 +218,12 @@ async def test_source(request, source_id: int):
         await sync_to_async(source.save)()
 
         return 500, {
-            'error': 'test_failed',
-            'message': f'Test failed: {str(e)}',
+            "error": "test_failed",
+            "message": f"Test failed: {str(e)}",
         }
 
 
-@router.post('/test-all/', response={200: dict})
+@router.post("/test-all/", response={200: dict})
 async def test_all_sources(request):
     """Test all enabled sources and return summary.
 
@@ -229,19 +231,17 @@ async def test_all_sources(request):
     """
     from asgiref.sync import sync_to_async
 
-    sources = await sync_to_async(list)(
-        SearchSource.objects.filter(is_enabled=True)
-    )
+    sources = await sync_to_async(list)(SearchSource.objects.filter(is_enabled=True))
 
     results = {
-        'tested': 0,
-        'passed': 0,
-        'failed': 0,
-        'details': [],
+        "tested": 0,
+        "passed": 0,
+        "failed": 0,
+        "details": [],
     }
 
     search = RecipeSearch()
-    test_query = 'chicken'
+    test_query = "chicken"
 
     for source in sources:
         try:
@@ -252,7 +252,7 @@ async def test_all_sources(request):
                 per_page=3,
             )
 
-            result_count = len(search_results.get('results', []))
+            result_count = len(search_results.get("results", []))
             success = result_count > 0
 
             # Update source status
@@ -266,19 +266,21 @@ async def test_all_sources(request):
             source.last_validated_at = timezone.now()
             await sync_to_async(source.save)()
 
-            results['tested'] += 1
+            results["tested"] += 1
             if success:
-                results['passed'] += 1
+                results["passed"] += 1
             else:
-                results['failed'] += 1
+                results["failed"] += 1
 
-            results['details'].append({
-                'id': source.id,
-                'name': source.name,
-                'host': source.host,
-                'success': success,
-                'results_count': result_count,
-            })
+            results["details"].append(
+                {
+                    "id": source.id,
+                    "name": source.name,
+                    "host": source.host,
+                    "success": success,
+                    "results_count": result_count,
+                }
+            )
 
         except Exception as e:
             source.consecutive_failures += 1
@@ -286,14 +288,16 @@ async def test_all_sources(request):
             source.last_validated_at = timezone.now()
             await sync_to_async(source.save)()
 
-            results['tested'] += 1
-            results['failed'] += 1
-            results['details'].append({
-                'id': source.id,
-                'name': source.name,
-                'host': source.host,
-                'success': False,
-                'error': str(e),
-            })
+            results["tested"] += 1
+            results["failed"] += 1
+            results["details"].append(
+                {
+                    "id": source.id,
+                    "name": source.name,
+                    "host": source.host,
+                    "success": False,
+                    "error": str(e),
+                }
+            )
 
     return results

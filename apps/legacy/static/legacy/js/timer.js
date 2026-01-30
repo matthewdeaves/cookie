@@ -13,7 +13,6 @@ Cookie.Timer = (function() {
 
     // Web Audio API context (created lazily on user gesture)
     var audioContext = null;
-    var audioInitialized = false;
 
     /**
      * Timer constructor
@@ -191,7 +190,6 @@ Cookie.Timer = (function() {
             var AudioContextClass = window.AudioContext || window.webkitAudioContext;
             if (AudioContextClass) {
                 audioContext = new AudioContextClass();
-                audioInitialized = true;
             }
         } catch (e) {
             // Web Audio API not supported
@@ -371,15 +369,15 @@ Cookie.Timer = (function() {
             }
             return hrs + 'h';
         }
-        var mins = Math.floor(seconds / 60);
+        var minutes = Math.floor(seconds / 60);
         var secs = seconds % 60;
-        if (mins === 0) {
+        if (minutes === 0) {
             return secs + ' sec';
         }
         if (secs === 0) {
-            return mins + ' min';
+            return minutes + ' min';
         }
-        return mins + 'm ' + secs + 's';
+        return minutes + 'm ' + secs + 's';
     }
 
     // Public API

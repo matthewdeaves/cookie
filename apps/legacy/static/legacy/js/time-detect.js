@@ -70,16 +70,16 @@ Cookie.TimeDetect = (function() {
             return hrs + 'h';
         }
 
-        var mins = Math.floor(seconds / 60);
+        var minutes = Math.floor(seconds / 60);
         var secs = seconds % 60;
 
-        if (mins === 0) {
+        if (minutes === 0) {
             return secs + ' sec';
         }
         if (secs === 0) {
-            return mins + ' min';
+            return minutes + ' min';
         }
-        return mins + 'm ' + secs + 's';
+        return minutes + 'm ' + secs + 's';
     }
 
     /**

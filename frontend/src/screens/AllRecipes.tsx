@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, BookOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type HistoryItem } from '../api/client'
 import RecipeCard from '../components/RecipeCard'
 import { RecipeGridSkeleton } from '../components/Skeletons'
 
-interface AllRecipesProps {
-  onBack: () => void
-  onRecipeClick: (recipeId: number) => void
-}
-
-export default function AllRecipes({ onBack, onRecipeClick }: AllRecipesProps) {
+export default function AllRecipes() {
+  const navigate = useNavigate()
   const [history, setHistory] = useState<HistoryItem[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -31,12 +28,21 @@ export default function AllRecipes({ onBack, onRecipeClick }: AllRecipesProps) {
     }
   }
 
+  const handleRecipeClick = async (recipeId: number) => {
+    try {
+      await api.history.record(recipeId)
+    } catch (error) {
+      console.error('Failed to record history:', error)
+    }
+    navigate(`/recipe/${recipeId}`)
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="flex items-center gap-4 border-b border-border px-4 py-3">
         <button
-          onClick={onBack}
+          onClick={() => navigate('/home')}
           className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -59,7 +65,7 @@ export default function AllRecipes({ onBack, onRecipeClick }: AllRecipesProps) {
                   <RecipeCard
                     key={item.recipe.id}
                     recipe={item.recipe}
-                    onClick={() => onRecipeClick(item.recipe.id)}
+                    onClick={() => handleRecipeClick(item.recipe.id)}
                   />
                 ))}
               </div>
@@ -77,7 +83,7 @@ export default function AllRecipes({ onBack, onRecipeClick }: AllRecipesProps) {
                 Start browsing and viewing recipes to see them here
               </p>
               <button
-                onClick={onBack}
+                onClick={() => navigate('/home')}
                 className="rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 Browse Recipes

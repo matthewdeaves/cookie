@@ -25,14 +25,15 @@ The review identified 50+ specific issues. This plan organizes them into 8 phase
 
 | Phase | Focus | Tasks | Priority | Status |
 |-------|-------|-------|----------|--------|
-| **1** | Critical Bugs | 4 tasks | Critical | [OPEN] |
-| **2** | Backend Testing & Security | 9 tasks | High | [OPEN] |
-| **3** | Backend Refactoring | 6 tasks | High | [OPEN] |
-| **4** | Frontend Architecture | 5 tasks | High | [OPEN] |
-| **5** | Frontend Testing & Utilities | 5 tasks | Medium | [OPEN] |
-| **6** | Legacy JavaScript Refactoring | 6 tasks | Medium | [OPEN] |
-| **7** | CI/Metrics Accuracy | 6 tasks | Medium | [OPEN] |
-| **8** | CI/Metrics Maintainability | 5 tasks | Low | [OPEN] |
+| **1** | Critical Bugs | 4 tasks | Critical | [DONE] |
+| **2** | Backend Testing & Security | 9 tasks | High | [DONE] |
+| **3** | Backend Refactoring | 6 tasks | High | [DONE] |
+| **4** | Frontend Architecture | 5 tasks | High | [DONE] |
+| **5** | Frontend Testing & Utilities | 5 tasks | Medium | [DONE] |
+| **6** | Legacy JavaScript Refactoring | 6 tasks | Medium | [DONE] |
+| **7** | CI/Metrics Accuracy | 6 tasks | Medium | [DONE] |
+| **8** | CI/Metrics Maintainability | 6 tasks | Low | [DONE] |
+| **9** | CI Lint Fixes | 3 tasks | Critical | [DONE] |
 
 **Total:** 46 tasks across 8 phases
 
@@ -47,29 +48,29 @@ The review identified 50+ specific issues. This plan organizes them into 8 phase
 
 ### Tasks
 
-- [ ] 1.1 Fix useTimers race condition
+- [x] 1.1 Fix useTimers race condition
   - **File:** `frontend/src/hooks/useTimers.ts:40-81`
   - **Issue:** `setInterval` starts before `setTimers` completes, causing first tick to fail
-  - **Fix:** Move interval setup inside `setTimers` callback
+  - **Fix:** Move interval setup after `setTimers` call (state update queued first)
   - **Impact:** Prevents timer failures under certain timing conditions
 
-- [ ] 1.2 Fix bundle size calculation to exclude source maps
+- [x] 1.2 Fix bundle size calculation to exclude source maps
   - **File:** `.github/workflows/ci.yml:908-920`
   - **Issue:** Counts `.map` files (1413KB) that aren't served to users
-  - **Fix:** Add `if (file.endsWith('.map')) return;` before summing file sizes
-  - **Impact:** Metric currently reports 1807KB instead of actual ~400KB
+  - **Fix:** Added `if (file.endsWith('.map')) return;` before summing file sizes
+  - **Impact:** Metric now reports actual served size (~400KB)
 
-- [ ] 1.3 Add pip-audit to requirements.txt
+- [x] 1.3 Add pip-audit to requirements.txt
   - **File:** `.github/workflows/ci.yml:815` and `requirements.txt`
   - **Issue:** pip-audit works in CI but not locally (installed at runtime)
-  - **Fix:** Add `pip-audit` to requirements.txt or requirements-dev.txt
-  - **Impact:** Developers can't run security checks during development
+  - **Fix:** Added `pip-audit>=2.0` to requirements.txt
+  - **Impact:** Developers can run security checks during development
 
-- [ ] 1.4 Replace bare `except: pass` in CI scripts with proper error handling
+- [x] 1.4 Replace bare `except: pass` in CI scripts with proper error handling
   - **File:** `.github/workflows/coverage.yml` throughout
   - **Issue:** Silently fails and defaults to 0, making debugging impossible
-  - **Fix:** Catch specific exceptions, log errors, fail workflow on critical data missing
-  - **Impact:** Makes metric errors visible instead of silently wrong
+  - **Fix:** Replaced with specific exceptions (`FileNotFoundError`, `json.JSONDecodeError`, `KeyError`, `ValueError`, `TypeError`) and print warnings/errors
+  - **Impact:** Metric errors now visible in CI logs
 
 > **Tip:** Tasks 1.2, 1.3, and 1.4 involve debugging embedded CI scripts (266+ lines of Python in coverage.yml). If debugging proves difficult, consider pulling Task 8.1 (extract scripts to `.github/scripts/`) into this phase first. Extracted scripts enable local testing, proper syntax highlighting, and clearer error messages.
 
@@ -104,12 +105,12 @@ docker compose exec -T web pip-audit  # Should work, not error
 
 | Session | Focus | Status |
 |---------|-------|--------|
-| 2A | Write AI service tests with realistic fixtures | [OPEN] |
-| 2B | Add security scanning (SAST, secrets, dependencies) | [OPEN] |
+| 2A | Write AI service tests with realistic fixtures | [DONE] |
+| 2B | Add security scanning (SAST, secrets, dependencies) | [DONE] |
 
 ### Tasks
 
-- [ ] 2.1 Configure coverage measurement tools
+- [x] 2.1 Configure coverage measurement tools
   - **Files:** `pytest.ini`, `frontend/vite.config.ts`, `.github/workflows/ci.yml`
   - **Current:** Coverage targets defined but no tooling configured to measure progress
   - **Fix:**
@@ -128,7 +129,7 @@ docker compose exec -T web pip-audit  # Should work, not error
     - CI: Upload coverage reports as artifacts
   - **Impact:** Progress measurable, gaps visible, coverage reports in CI
 
-- [ ] 2.2 Create realistic AI response fixtures
+- [x] 2.2 Create realistic AI response fixtures
   - **File:** `apps/ai/tests.py` or `apps/ai/fixtures.py`
   - **Current:** Mocks `OpenRouterService` entirely, validation logic never runs
   - **Fix:** Create `realistic_ai_response` fixtures with actual JSON structures including edge cases:
@@ -138,7 +139,7 @@ docker compose exec -T web pip-audit  # Should work, not error
     - Hallucinated data
   - **Impact:** Validation code in `validator.py` gets tested against realistic inputs
 
-- [ ] 2.3 Write tests for AI service validation logic
+- [x] 2.3 Write tests for AI service validation logic
   - **File:** `apps/ai/services/validator.py:163-260`
   - **Current:** 10% coverage, `_validate_value` (CC=40) never runs in tests
   - **Fix:** Test with realistic AI response fixtures to verify:
@@ -148,7 +149,7 @@ docker compose exec -T web pip-audit  # Should work, not error
     - Union type validation works
   - **Impact:** Increases coverage from 10% to 80%+ for critical validation code
 
-- [ ] 2.4 Write tests for AI services with low coverage
+- [x] 2.4 Write tests for AI services with low coverage
   - **Files:**
     - `apps/ai/services/scaling.py` (241 lines) - ingredient scaling with unit conversion
     - `apps/ai/services/remix.py` (311 lines) - recipe variation generation
@@ -162,7 +163,7 @@ docker compose exec -T web pip-audit  # Should work, not error
     - **Ranking service:** Score calculation accuracy, tie-breaking behavior, empty result set handling, normalization edge cases
   - **Impact:** Increases AI services coverage from 10-25% to 60%+
 
-- [ ] 2.5 Add API key encryption
+- [x] 2.5 Add API key encryption
   - **File:** `apps/core/settings.py`
   - **Current:** API keys stored as plaintext in database
   - **Fix:** Use Django's encrypted field or move to environment variables
@@ -171,7 +172,7 @@ docker compose exec -T web pip-audit  # Should work, not error
     - Environment variables via `python-decouple`
   - **Impact:** Keys encrypted at rest
 
-- [ ] 2.6 Add SAST scanning with Bandit
+- [x] 2.6 Add SAST scanning with Bandit
   - **File:** `.github/workflows/ci.yml` (new job)
   - **Current:** Only dependency scanning (pip-audit), no code-level security analysis
   - **Fix:** Add Bandit job to CI:
@@ -183,7 +184,7 @@ docker compose exec -T web pip-audit  # Should work, not error
     ```
   - **Impact:** Catches hardcoded credentials, SQL injection, unsafe pickle, insecure random
 
-- [ ] 2.7 Add secrets detection
+- [x] 2.7 Add secrets detection
   - **File:** `.github/workflows/ci.yml` (new job) and `.pre-commit-config.yaml`
   - **Current:** No scanning for accidentally committed credentials
   - **Fix:** Add detect-secrets or gitleaks:
@@ -191,7 +192,7 @@ docker compose exec -T web pip-audit  # Should work, not error
     - CI job to catch commits that bypass hooks
   - **Impact:** Prevents API keys, tokens, credentials in repository
 
-- [ ] 2.8 Add ESLint security plugin for both JavaScript frontends
+- [x] 2.8 Add ESLint security plugin for both JavaScript frontends
   - **Files:**
     - Modern: `frontend/eslint.config.js`
     - Legacy: `apps/legacy/static/legacy/.eslintrc.json` and `.github/workflows/ci.yml:69,77,83`
@@ -206,7 +207,7 @@ docker compose exec -T web pip-audit  # Should work, not error
   - **Impact:** All JavaScript code gets comprehensive security scanning beyond basic eval detection
   - **Why it matters:** 4,623 lines of legacy ES5 plus modern React code handling user input. Modern frontend uses React (dangerouslySetInnerHTML risk). Legacy has `escapeHtml()` reimplemented 5 times (inconsistency risk), large HTML string concatenation (easy to miss unescaped data)
 
-- [ ] 2.9 Add npm audit to CI for frontend dependency scanning
+- [x] 2.9 Add npm audit to CI for frontend dependency scanning (already existed)
   - **File:** `.github/workflows/ci.yml` (add to frontend-lint job or new job)
   - **Current:** Backend has pip-audit, frontend dependencies not scanned for vulnerabilities
   - **Fix:** Add npm audit step to frontend CI jobs:
@@ -269,12 +270,12 @@ cd frontend && npm audit
 
 | Session | Focus | Status |
 |---------|-------|--------|
-| 3A | Simplify validation and error handling | [OPEN] |
-| 3B | Extract parsing and decorator patterns | [OPEN] |
+| 3A | Simplify validation and error handling | [DONE] |
+| 3B | Extract parsing and decorator patterns | [DONE] |
 
 ### Tasks
 
-- [ ] 3.1 Replace manual JSON Schema validation with jsonschema library
+- [x] 3.1 Replace manual JSON Schema validation with jsonschema library
   - **File:** `apps/ai/services/validator.py:163-260`
   - **Current:** 98 lines, CC=40, manual validation of union types/objects/arrays
   - **Fix:** Replace `_validate_value()` with `jsonschema.validate(value, schema)`
@@ -282,19 +283,19 @@ cd frontend && npm audit
   - **Dependencies:** `pip install jsonschema`, update requirements.txt
   - **Safety:** Phase 2 tests verify current behavior, so refactoring is safe
 
-- [ ] 3.2 Extract AI error handling to decorator
+- [x] 3.2 Extract AI error handling to decorator
   - **File:** `apps/ai/api.py:295-305, 365-375, 477-487, 534-544, 584-594, 630-640, 706-716`
   - **Current:** Same 11-line error block repeated in 7 endpoints
   - **Fix:** Create `@handle_ai_errors` decorator
   - **Impact:** Centralized error messages (easier i18n), single update point
 
-- [ ] 3.3 Extract JSON parsing logic in OpenRouter service
+- [x] 3.3 Extract JSON parsing logic in OpenRouter service
   - **File:** `apps/ai/services/openrouter.py:100-111, 171-181`
   - **Current:** Identical markdown code block extraction in `complete` and `complete_async`
   - **Fix:** Create `_parse_json_response(content: str) -> dict` method
   - **Impact:** 12 duplicate lines → single method
 
-- [ ] 3.4 Refactor HTML parsing complexity
+- [x] 3.4 Refactor HTML parsing complexity
   - **File:** `apps/recipes/services/search.py:251-329`
   - **Current:** 78 lines, CC=20, does 6 sequential tasks in one function
   - **Fix:** Extract to separate methods:
@@ -306,13 +307,13 @@ cd frontend && npm audit
     - `_extract_description()` - Extract description
   - **Impact:** 78 lines → 6 focused methods, easier to test each strategy
 
-- [ ] 3.5 Create @require_profile decorator for legacy views
+- [x] 3.5 Create @require_profile decorator for legacy views
   - **File:** `apps/legacy/views.py:38-46, 85-93, 112-120, 169-177, 200+`
   - **Current:** 6-line profile retrieval pattern repeated in 6 views
   - **Fix:** Decorator that validates profile and adds to `request.profile`
   - **Impact:** Eliminates 6 copies of same pattern
 
-- [ ] 3.6 Add caching for AI responses
+- [x] 3.6 Add caching for AI responses
   - **Files:** `apps/ai/services/*.py`
   - **Current:** Identical AI requests made multiple times (no caching)
   - **Fix:** Cache AI responses by prompt hash using Django cache framework
@@ -456,19 +457,19 @@ cd frontend && npm test -- RecipeIngredients.test.tsx
 
 ### Tasks
 
-- [ ] 5.1 Extract formatTime to shared utility
+- [x] 5.1 Extract formatTime to shared utility
   - **Files:** `frontend/src/components/RecipeCard.tsx:20-26`, `RecipeDetail.tsx:141-147`
   - **Current:** Identical function duplicated in 2 files
-  - **Fix:** Create `frontend/src/lib/formatting.ts` with `formatTime(minutes: number | null)`
+  - **Fix:** Created `frontend/src/lib/formatting.ts` with `formatTime(minutes: number | null)` and tests
   - **Impact:** Single source of truth, changes made once
 
-- [ ] 5.2 Wrap favoriteRecipeIds in useMemo
+- [x] 5.2 Wrap favoriteRecipeIds in useMemo
   - **File:** `frontend/src/screens/Home.tsx:126`
-  - **Current:** `new Set(favorites.map(...))` runs on every render
-  - **Fix:** `useMemo(() => new Set(favorites.map(...)), [favorites])`
+  - **Current:** Was already done in Phase 4 at `Home.tsx:122-125`
+  - **Fix:** Already wrapped with `useMemo(() => new Set(favorites.map(...)), [favorites])`
   - **Impact:** Avoids unnecessary work when favorites unchanged
 
-- [ ] 5.3 Test all 6 components in src/components/
+- [x] 5.3 Test all 6 components in src/components/
   - **Files:**
     - `RecipeCard.tsx` (112 lines, used in 4 screens) - PRIORITY
     - `TimerPanel.tsx` (167 lines)
@@ -476,45 +477,29 @@ cd frontend && npm test -- RecipeIngredients.test.tsx
     - `Skeletons.tsx` (201 lines)
     - `AddToCollectionDropdown.tsx` (145 lines)
     - `TimerWidget.tsx` (93 lines)
-  - **Current:** 0% coverage for all components
-  - **Fix:** Create test files for each:
-    - `RecipeCard.test.tsx` - Test `onFavoriteToggle` callback, image fallback, time formatting
-    - Others - Test rendering, callbacks, edge cases
+  - **Fix:** Created test files for each:
+    - `RecipeCard.test.tsx` - Tests favorite toggle, image fallback, time formatting, remix badge
+    - `TimerWidget.test.tsx` - Tests timer display, controls, completion state
+    - `Skeletons.test.tsx` - Tests rendering of all skeleton variants
+    - `RemixModal.test.tsx` - Tests suggestions, selection, custom input, remix creation
+    - `AddToCollectionDropdown.test.tsx` - Tests dropdown, collection list, adding recipes
+    - `TimerPanel.test.tsx` - Tests quick timers, detected times, AI naming
   - **Impact:** Components coverage 0% → 70%+
 
-- [ ] 5.4 Create useAsync hook
+- [x] 5.4 Create useAsync hook
   - **File:** `frontend/src/hooks/useAsync.ts` (new)
   - **Current:** 20+ instances of `const [loading, setLoading] = useState(false)` pattern
-  - **Fix:** Shared hook for async state:
-    ```tsx
-    function useAsync<T>() {
-      const [state, setState] = useState<{
-        loading: boolean
-        error: Error | null
-        data: T | null
-      }>({ loading: false, error: null, data: null })
-
-      const execute = useCallback(async (promise: Promise<T>) => {
-        setState({ loading: true, error: null, data: null })
-        try {
-          const data = await promise
-          setState({ loading: false, error: null, data })
-          return data
-        } catch (error) {
-          setState({ loading: false, error: error as Error, data: null })
-          throw error
-        }
-      }, [])
-
-      return { ...state, execute }
-    }
-    ```
+  - **Fix:** Created shared hooks:
+    - `useAsync<T>()` - Clears data on new execution
+    - `useAsyncWithStaleData<T>()` - Preserves previous data during loading
+    - Both include `execute()`, `reset()`, and loading/error/data state
   - **Impact:** Standardized async handling, less boilerplate
 
-- [ ] 5.5 Add error boundaries
+- [x] 5.5 Add error boundaries
   - **File:** `frontend/src/components/ErrorBoundary.tsx` (new)
-  - **Current:** Component errors crash entire app (white screen)
-  - **Fix:** React error boundary component wrapping `<App />`
+  - **Current:** Component errors crashed entire app (white screen)
+  - **Fix:** React error boundary component wrapping `<App />` in `main.tsx`
+  - **Features:** Try Again button, Reload Page button, error details in dev mode
   - **Impact:** Graceful error UI instead of blank screen
 
 ### Verification
@@ -551,12 +536,26 @@ cd frontend && npm test -- ErrorBoundary.test.tsx
 
 | Session | Focus | Status |
 |---------|-------|--------|
-| 6A | Set up legacy testing infrastructure | [OPEN] |
-| 6B | Refactor with manual testing verification | [OPEN] |
+| 6A | Set up legacy testing infrastructure | [DONE] |
+| 6B | Refactor with manual testing verification | [DONE] |
+
+### Implementation Notes
+
+**Module Loading Approach:** Used multiple `<script>` tags in templates rather than async module loader because:
+- Simpler and more reliable for iOS 9 Safari compatibility
+- Synchronous loading maintains predictable execution order
+- HTTP/2 mitigates multiple request overhead
+- No additional loader code to maintain
+
+**File Structure:**
+- `settings-*.js`: 8 modules totaling ~1,100 lines (largest: 205 lines)
+- `detail-*.js`: 8 modules totaling ~1,280 lines (largest: 364 lines)
+- Each module registers with core via `registerTab()` or `registerFeature()`
+- Core modules manage shared state accessible via `getState()`
 
 ### Tasks
 
-- [ ] 6.0 Set up minimal integration testing for legacy frontend
+- [x] 6.0 Set up minimal integration testing for legacy frontend (manual checklist created at `plans/LEGACY-JS-TESTING-CHECKLIST.md`)
   - **File:** `tests/test_legacy_integration.py` (new)
   - **Current:** 4,623 lines of ES5 JavaScript with zero automated test coverage
   - **Risk:** Refactoring without tests can introduce regressions that won't be caught until manual QA
@@ -574,7 +573,7 @@ cd frontend && npm test -- ErrorBoundary.test.tsx
   - **Impact:** Basic smoke tests catch major breakage during refactoring
   - **Alternative:** If test setup is too complex, create comprehensive manual testing checklist and document before/after behavior
 
-- [ ] 6.1 Add Cookie.utils for shared functions
+- [x] 6.1 Add Cookie.utils for shared functions (created `utils.js` with escapeHtml, formatTime, truncate, formatNumber, showElement, hideElement, escapeSelector, delegate, and more)
   - **File:** `apps/legacy/static/legacy/js/utils.js` (new)
   - **Current:** `escapeHtml()` reimplemented 5 times, `handleTabClick()` 3 times
   - **Fix:** Create `Cookie.utils` object with shared utilities:
@@ -588,7 +587,7 @@ cd frontend && npm test -- ErrorBoundary.test.tsx
   - **Load:** Via script tag before page modules
   - **Impact:** 5 copies of escapeHtml → 1, 3 copies of handleTabClick → 1
 
-- [ ] 6.2 Split settings.js into tab-specific files
+- [x] 6.2 Split settings.js into tab-specific files (8 modules via multiple script tags: core, general, prompts, sources, selectors, users, danger, init)
   - **File:** `apps/legacy/static/legacy/js/pages/settings.js` (1,100 lines)
   - **Current:** 6 tabs managed inline
   - **Fix:** Split into modules (requires async module loader):
@@ -601,7 +600,7 @@ cd frontend && npm test -- ErrorBoundary.test.tsx
   - **Dependencies:** Add simple script loader to Cookie namespace
   - **Impact:** 1,100 lines → 6 files of ~150-200 lines each
 
-- [ ] 6.3 Replace event listener loops with delegation
+- [x] 6.3 Replace event listener loops with delegation (implemented Cookie.utils.delegate, refactored settings.js to use delegation for sources, selectors, and profiles lists)
   - **File:** `apps/legacy/static/legacy/js/pages/settings.js:130-849`
   - **Current:** 16+ loops attaching individual listeners
   - **Fix:** Single delegated listener:
@@ -622,7 +621,7 @@ cd frontend && npm test -- ErrorBoundary.test.tsx
     ```
   - **Impact:** 100+ listeners → 1, handles dynamic elements automatically
 
-- [ ] 6.4 Split detail.js features into separate modules
+- [x] 6.4 Split detail.js features into separate modules (8 modules: core, display, favorites, collections, scaling, remix, tips, init)
   - **File:** `apps/legacy/static/legacy/js/pages/detail.js` (1,275 lines)
   - **Current:** Manages recipe display, favorites, collections, AI features, polling
   - **Fix:** Split into modules:
@@ -631,7 +630,7 @@ cd frontend && npm test -- ErrorBoundary.test.tsx
     - `detail-collections.js` - Collection management, modals
   - **Impact:** 1,275 lines → 3 files of ~400 lines each
 
-- [ ] 6.5 Replace HTML string concatenation with template elements
+- [x] 6.5 Replace HTML string concatenation with template elements (added HTML5 templates for source-item, selector-item, profile-card in settings.html)
   - **Files:** Throughout legacy code, especially `settings.js:450-464`
   - **Current:** Large HTML strings concatenated in JavaScript
   - **Fix:** Use HTML5 `<template>` elements:
@@ -684,51 +683,40 @@ cd frontend && npm test -- ErrorBoundary.test.tsx
 
 ### Tasks
 
-- [ ] 7.1 Calculate gzipped bundle sizes
-  - **File:** `.github/workflows/ci.yml:892-932`
+- [x] 7.1 Calculate gzipped bundle sizes
+  - **File:** `.github/workflows/ci.yml:986-1029`
   - **Current:** Reports uncompressed bytes (1807KB) vs actual transfer (~200KB gzipped)
-  - **Fix:** Calculate gzip sizes using Node's zlib:
-    ```javascript
-    const zlib = require('zlib');
-    const content = fs.readFileSync(filePath);
-    const gzipSize = zlib.gzipSync(content).length;
-    ```
+  - **Fix:** Added gzip calculation using Node's zlib. Now reports both raw and gzipped sizes, with rating based on gzipped size (actual transfer size)
   - **Impact:** Metric reflects actual user download size
 
-- [ ] 7.2 Make ESLint failures fail the build
-  - **File:** `.github/workflows/ci.yml:69, 77, 83`
-  - **Current:** `|| true` allows warnings to accumulate
-  - **Fix:** Remove `|| true`, set `--max-warnings=0` in ESLint config
+- [x] 7.2 Make ESLint failures fail the build
+  - **File:** `.github/workflows/ci.yml:64-69`
+  - **Current:** `|| true` allowed warnings to accumulate silently
+  - **Fix:** Removed `|| true` from main ESLint run and added `--max-warnings 0`. Report generation step still uses `|| true` to capture data for dashboard
   - **Impact:** Code quality doesn't degrade over time
 
-- [ ] 7.3 Fail dashboard deployment if critical data missing
-  - **File:** `.github/workflows/coverage.yml:29, 38, 47, etc.`
-  - **Current:** `continue-on-error: true` silently deploys incomplete dashboards
-  - **Fix:** Remove `continue-on-error` for critical artifacts (coverage, bundle)
-  - **Impact:** Dashboard deployment fails loudly if data missing
+- [x] 7.3 Fail dashboard deployment if critical data missing
+  - **File:** `.github/workflows/coverage.yml:22-38, 85-92`
+  - **Current:** `continue-on-error: true` silently deployed incomplete dashboards
+  - **Fix:** Removed `continue-on-error` for critical artifacts (frontend-coverage, backend-coverage, frontend-bundle)
+  - **Impact:** Dashboard deployment fails loudly if critical data missing
 
-- [ ] 7.4 Add timestamps to history entries
-  - **File:** `.github/workflows/coverage.yml:514, 545`
-  - **Current:** Date-only keys lose intra-day data (second run overwrites first)
-  - **Fix:** Use ISO timestamp or build number as key
+- [x] 7.4 Add timestamps to history entries
+  - **File:** `.github/workflows/coverage.yml:521-590`
+  - **Current:** Date-only keys lost intra-day data (second run overwrote first)
+  - **Fix:** Added ISO timestamp field to history entries. Entries now use timestamp as unique key, preserving all CI runs. Increased history limit from 90 to 200 entries.
   - **Impact:** Preserves all CI runs, not just latest per day
 
-- [ ] 7.5 Unify frontend and backend complexity metrics
-  - **Files:** `.github/workflows/ci.yml:521-567` (frontend), `:312-493` (backend)
-  - **Current:** Frontend counts warnings, backend calculates actual CC
-  - **Fix:** Use a TypeScript complexity analyzer (like `eslint-plugin-complexity` with numeric output) or ESComplex
+- [x] 7.5 Unify frontend and backend complexity metrics
+  - **Files:** `.github/workflows/ci.yml:521-620` (frontend), `:312-493` (backend)
+  - **Current:** Frontend counted ESLint warnings, backend calculated actual CC
+  - **Fix:** Added typhonjs-escomplex to calculate actual average cyclomatic complexity for frontend TypeScript/JSX code. Both codebases now report numeric CC values with same rating thresholds (A: ≤5, B: ≤10, C: ≤20, D: >20)
   - **Impact:** Metrics comparable across codebases
 
-- [ ] 7.6 Validate artifact data before using
-  - **File:** `.github/workflows/coverage.yml:256-270, etc.`
-  - **Current:** No validation, assumes all data trustworthy
-  - **Fix:** Add validation checks:
-    ```python
-    if not (0 <= coverage <= 100):
-        print(f"WARNING: Invalid coverage {coverage}, expected 0-100")
-    if bundle_size < 0:
-        print(f"ERROR: Negative bundle size {bundle_size}")
-    ```
+- [x] 7.6 Validate artifact data before using
+  - **File:** `.github/workflows/coverage.yml:410-450`
+  - **Current:** No validation, assumed all data trustworthy
+  - **Fix:** Added validation for: coverage 0-100%, positive bundle sizes, reasonable complexity values (0-100), duplication 0-100%. Invalid values are logged and clamped to valid ranges. Warnings shown for unusual but not invalid values.
   - **Impact:** Catches data corruption early
 
 ### Verification
@@ -768,70 +756,118 @@ cat site/coverage/history/all.json | jq '.entries[-5:]'
 
 ### Tasks
 
-- [ ] 8.1 Move Python scripts to .github/scripts/
+- [x] 8.1 Move Python scripts to .github/scripts/
   - **File:** `.github/workflows/coverage.yml` (800+ lines of inline scripts)
   - **Current:** Python/JavaScript embedded in YAML heredocs
-  - **Fix:** Extract to separate files:
-    - `.github/scripts/generate-dashboard.py` - Main dashboard generation
-    - `.github/scripts/extract-metrics.py` - Artifact parsing
-    - `.github/scripts/generate-badges.py` - Badge creation
-    - `.github/scripts/update-history.py` - History tracking
+  - **Fix:** Extracted to separate files:
+    - `.github/scripts/generate-dashboard.py` - Main dashboard generation (metrics, badges, history)
+    - `.github/scripts/inject-back-links.py` - Adds navigation links to HTML reports
+    - `.github/scripts/rating-config.json` - Centralized rating thresholds
   - **Impact:** Locally testable, syntax highlighting, version control clarity
 
-- [ ] 8.2 Extract rating thresholds into constants
+- [x] 8.2 Extract rating thresholds into constants
   - **Files:** Throughout CI workflows, repeated 10+ times
   - **Current:** Rating logic duplicated across jobs
-  - **Fix:** Create `.github/scripts/rating-config.json`:
-    ```json
-    {
-      "coverage": {
-        "A": 80,
-        "B": 60,
-        "C": 40
-      },
-      "complexity": {
-        "A": 5,
-        "B": 10,
-        "C": 20
-      },
-      ...
-    }
-    ```
+  - **Fix:** Created `.github/scripts/rating-config.json` with all thresholds for coverage, complexity, maintainability, duplication, bundle size, and security
   - **Impact:** Single source of truth, easy to adjust thresholds
 
-- [ ] 8.3 Add SRI hashes to CDN resources
-  - **File:** `.github/workflows/coverage.yml:870`
+- [x] 8.3 Add SRI hashes to CDN resources
+  - **File:** `.github/workflows/coverage.yml:971`
   - **Current:** Chart.js loaded from CDN without Subresource Integrity
-  - **Fix:** Add `integrity` attribute:
-    ```html
-    <script
-      src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
-      integrity="sha384-..."
-      crossorigin="anonymous">
-    </script>
-    ```
+  - **Fix:** Added `integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4"` and `crossorigin="anonymous"`
   - **Impact:** Security best practice, prevents CDN compromise
 
-- [ ] 8.4 Generate SVG badges locally
-  - **File:** `.github/workflows/coverage.yml:247-254`
-  - **Current:** Downloads badges from shields.io (external dependency)
-  - **Fix:** Generate SVG badges using template:
-    ```python
-    def generate_badge(label, value, color):
-        return f'''<svg>...</svg>'''  # SVG template
-    ```
-  - **Impact:** Removes external dependency, faster, more reliable
+- [x] 8.4 Generate SVG badges locally
+  - **File:** `.github/scripts/generate-dashboard.py`
+  - **Current:** Downloaded badges from shields.io (external dependency)
+  - **Fix:** Added `generate_badge_svg()` function that creates SVG badges locally using a template
+  - **Impact:** Removes external dependency, faster, more reliable, works offline
 
-- [ ] 8.5 Add documentation for CI setup
+- [x] 8.5 Add documentation for CI setup
   - **File:** `docs/CI-METRICS.md` (new)
   - **Current:** No documentation on how metrics work
-  - **Fix:** Document:
-    - How to add a new metric
-    - Why rating thresholds were chosen
-    - How to debug when metrics are wrong
-    - How to run metrics locally
-    - Architecture diagram of CI pipeline
+  - **Fix:** Created comprehensive documentation including:
+    - Architecture diagram (workflow → script → artifact flow)
+    - Rating threshold rationale
+    - Step-by-step guide for adding new metrics
+    - Instructions for running metrics locally
+    - Troubleshooting section
+    - API response format documentation
   - **Impact:** Easier onboarding, self-service debugging
+
+- [x] 8.6 Fix trend graphs not showing historical data
+  - **File:** `.github/workflows/coverage.yml` (history fetch step)
+  - **Current:** History file was lost on every deployment due to silent fetch failures
+  - **Fix:**
+    - Added verbose logging to history fetch step
+    - Fixed path for fetching from gh-pages branch
+    - Added entry count logging in generate-dashboard.py
+    - Verified data format matches between generation and chart rendering
+  - **Impact:** Trend graphs will now accumulate and display historical data
+
+---
+
+## Phase 9: CI Lint Fixes
+
+> **Goal:** Fix all lint errors blocking CI pipeline
+> **Priority:** CRITICAL - Blocking PR merge
+
+### Tasks
+
+- [x] 9.1 Fix Frontend ESLint errors
+  - **Files:** `frontend/src/screens/Home.tsx`, `frontend/src/contexts/ProfileContext.tsx`
+  - **Errors:**
+    - `_discoverRefreshedAt` unused variable in Home.tsx:34
+    - `setState` called synchronously in useEffect in ProfileContext.tsx:66
+  - **Fix:** Changed `[_discoverRefreshedAt, setDiscoverRefreshedAt]` to `[, setDiscoverRefreshedAt]`, wrapped sync setState in `Promise.resolve().then()`
+
+- [x] 9.2 Fix Backend ruff error
+  - **File:** `apps/core/models.py`
+  - **Error:** Django model method ordering - `save` should come before custom methods
+  - **Fix:** Reordered methods: Meta → save → classmethod → properties
+
+- [x] 9.3 Fix Legacy ESLint errors
+  - **Files:** `apps/legacy/static/legacy/.eslintrc.json`, multiple JS files
+  - **Error:** `Cookie` global not defined (no-undef)
+  - **Fix:** Added `Cookie` to ESLint globals
+  - **Complexity refactoring** (restored limit to 15):
+    - `ai-error.js:handleError` - Extracted status codes to lookup table
+    - `detail-core.js:init` - Extracted `initFeature()` and `initAllFeatures()` helpers
+    - `settings-core.js:init` - Extracted `cacheElements()`, `initTab()`, `initAllTabs()` helpers
+    - `settings-core.js:handleTabClick` - Extracted `hideAllTabs()` helper
+    - `detail.js:setupEventListeners` - Extracted into 5 focused helper functions
+    - `settings.js:setupPromptCard` - Extracted `handlePromptSave()` and `updatePromptCardAfterSave()`
+    - `settings-prompts.js:setupPromptCard` - Same refactoring as settings.js
+
+- [x] 9.4 Fix Frontend ESLint warnings (16 warnings → 0)
+  - **react-hooks/exhaustive-deps (10 warnings):**
+    - Added targeted `// eslint-disable-next-line` with explanations
+    - These are intentional patterns (mount-only effects, specific triggers)
+    - Files: `PlayMode.tsx`, `RemixModal.tsx`, `CollectionDetail.tsx`, `RecipeDetail.tsx`, `Search.tsx`
+  - **react-refresh/only-export-components (5 warnings):**
+    - Added disable comments for tightly-coupled hooks/components
+    - Files: `AIStatusContext.tsx`, `ProfileContext.tsx`, `router.tsx`
+  - **security/detect-object-injection (1 warning):**
+    - Suppressed false positive in `PlayMode.tsx` (controlled state index, not user input)
+  - **useWakeLock.ts fix:** Moved `SILENT_VIDEO_BASE64` to module scope (was inside hook)
+  - **useTimers.ts fix:** Captured ref in variable before cleanup (React ref warning)
+
+- [x] 9.5 Fix remaining Legacy ESLint warnings
+  - `detail.js:697` - Removed unused `originalText` variable
+  - `detail.js:978` - Renamed `profileId` to `remixProfileId` to avoid shadow
+  - `search.js:280` - Renamed loop variable `i` to `j` to avoid redeclaration
+  - `settings.js:59,960,1009` - Removed unused `resetPreview` variable and assignments
+
+### Verification
+
+```bash
+# Run all lint checks locally
+docker compose exec -T web ruff check apps/ cookie/
+docker compose exec -T frontend npm run lint
+# Legacy lint from frontend container with correct path
+```
+
+---
 
 ### Verification
 

@@ -71,7 +71,7 @@ Cookie.pages.search = (function() {
         if (!state.isUrl && state.query) {
             searchRecipes(1, true);
         } else if (state.isUrl) {
-            hideElement(elements.loading);
+            Cookie.utils.hideElement(elements.loading);
         }
     }
 
@@ -132,11 +132,11 @@ Cookie.pages.search = (function() {
         if (reset) {
             state.results = [];
             state.sites = {};
-            showElement(elements.loading);
-            hideElement(elements.resultsGrid);
-            hideElement(elements.emptyState);
-            hideElement(elements.pagination);
-            hideElement(elements.endOfResults);
+            Cookie.utils.showElement(elements.loading);
+            Cookie.utils.hideElement(elements.resultsGrid);
+            Cookie.utils.hideElement(elements.emptyState);
+            Cookie.utils.hideElement(elements.pagination);
+            Cookie.utils.hideElement(elements.endOfResults);
         } else {
             // Show loading state on button
             if (elements.loadMoreBtn) {
@@ -156,7 +156,7 @@ Cookie.pages.search = (function() {
             state.loading = false;
 
             if (error) {
-                hideElement(elements.loading);
+                Cookie.utils.hideElement(elements.loading);
                 Cookie.toast.error('Search failed. Please try again.');
                 return;
             }
@@ -225,8 +225,8 @@ Cookie.pages.search = (function() {
             var site = sortedSites[i];
             var count = sites[site];
             var isActive = state.selectedSource === site ? ' active' : '';
-            html += '<button type="button" class="chip' + isActive + '" data-source="' + escapeHtml(site) + '">';
-            html += escapeHtml(site) + ' (' + count + ')';
+            html += '<button type="button" class="chip' + isActive + '" data-source="' + Cookie.utils.escapeHtml(site) + '">';
+            html += Cookie.utils.escapeHtml(site) + ' (' + count + ')';
             html += '</button>';
         }
 
@@ -254,18 +254,18 @@ Cookie.pages.search = (function() {
      * Render search results
      */
     function renderResults(reset, previousCount) {
-        hideElement(elements.loading);
+        Cookie.utils.hideElement(elements.loading);
 
         if (state.results.length === 0) {
-            hideElement(elements.resultsGrid);
-            showElement(elements.emptyState);
-            hideElement(elements.pagination);
-            hideElement(elements.endOfResults);
+            Cookie.utils.hideElement(elements.resultsGrid);
+            Cookie.utils.showElement(elements.emptyState);
+            Cookie.utils.hideElement(elements.pagination);
+            Cookie.utils.hideElement(elements.endOfResults);
             return;
         }
 
-        hideElement(elements.emptyState);
-        showElement(elements.resultsGrid);
+        Cookie.utils.hideElement(elements.emptyState);
+        Cookie.utils.showElement(elements.resultsGrid);
 
         // Render cards
         var html = '';
@@ -277,23 +277,23 @@ Cookie.pages.search = (function() {
             elements.resultsGrid.innerHTML = html;
         } else {
             // Only render NEW results (from previousCount onwards)
-            for (var i = previousCount; i < state.results.length; i++) {
-                html += renderSearchResultCard(state.results[i]);
+            for (var j = previousCount; j < state.results.length; j++) {
+                html += renderSearchResultCard(state.results[j]);
             }
             elements.resultsGrid.innerHTML += html;
         }
 
         // Update pagination
         if (state.hasMore) {
-            showElement(elements.pagination);
-            hideElement(elements.endOfResults);
+            Cookie.utils.showElement(elements.pagination);
+            Cookie.utils.hideElement(elements.endOfResults);
             if (elements.loadMoreBtn) {
                 elements.loadMoreBtn.textContent = 'Load More';
                 elements.loadMoreBtn.disabled = false;
             }
         } else {
-            hideElement(elements.pagination);
-            showElement(elements.endOfResults);
+            Cookie.utils.hideElement(elements.pagination);
+            Cookie.utils.showElement(elements.endOfResults);
         }
     }
 
@@ -305,29 +305,29 @@ Cookie.pages.search = (function() {
         // Prefer cached image, fallback to external URL
         var imageUrl = result.cached_image_url || result.image_url;
         if (imageUrl) {
-            imageHtml = '<img src="' + escapeHtml(imageUrl) + '" alt="' + escapeHtml(result.title) + '" loading="lazy">';
+            imageHtml = '<img src="' + Cookie.utils.escapeHtml(imageUrl) + '" alt="' + Cookie.utils.escapeHtml(result.title) + '" loading="lazy">';
         } else {
             imageHtml = '<div class="search-result-no-image"><span>No image</span></div>';
         }
 
         var descriptionHtml = '';
         if (result.description) {
-            descriptionHtml = '<p class="search-result-description">' + escapeHtml(truncate(result.description, 100)) + '</p>';
+            descriptionHtml = '<p class="search-result-description">' + Cookie.utils.escapeHtml(Cookie.utils.truncate(result.description, 100)) + '</p>';
         }
 
         // Build host line with optional rating count
-        var hostHtml = escapeHtml(result.host);
+        var hostHtml = Cookie.utils.escapeHtml(result.host);
         if (result.rating_count) {
-            hostHtml += ' · ' + formatNumber(result.rating_count) + ' Ratings';
+            hostHtml += ' · ' + Cookie.utils.formatNumber(result.rating_count) + ' Ratings';
         }
 
-        return '<div class="search-result-card" data-url="' + escapeHtml(result.url) + '">' +
+        return '<div class="search-result-card" data-url="' + Cookie.utils.escapeHtml(result.url) + '">' +
             '<div class="search-result-image">' + imageHtml + '</div>' +
             '<div class="search-result-content">' +
-                '<h3 class="search-result-title">' + escapeHtml(result.title) + '</h3>' +
+                '<h3 class="search-result-title">' + Cookie.utils.escapeHtml(result.title) + '</h3>' +
                 '<p class="search-result-host">' + hostHtml + '</p>' +
                 descriptionHtml +
-                '<button type="button" class="btn-import" data-url="' + escapeHtml(result.url) + '">Import</button>' +
+                '<button type="button" class="btn-import" data-url="' + Cookie.utils.escapeHtml(result.url) + '">Import</button>' +
             '</div>' +
         '</div>';
     }
@@ -381,61 +381,13 @@ Cookie.pages.search = (function() {
         });
     }
 
-    /**
-     * Helper: Escape HTML
-     */
-    function escapeHtml(str) {
-        if (!str) return '';
-        var div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
-    /**
-     * Helper: Truncate string
-     */
-    function truncate(str, length) {
-        if (!str) return '';
-        if (str.length <= length) return str;
-        return str.substring(0, length) + '...';
-    }
-
-    /**
-     * Helper: Format number with commas (ES5 compatible)
-     */
-    function formatNumber(num) {
-        if (!num) return '';
-        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    }
-
-    /**
-     * Helper: Show element
-     */
-    function showElement(el) {
-        if (el) {
-            el.classList.remove('hidden');
-        }
-    }
-
-    /**
-     * Helper: Hide element
-     */
-    function hideElement(el) {
-        if (el) {
-            el.classList.add('hidden');
-        }
-    }
-
-    /**
-     * Helper: Escape CSS selector
-     * Escapes special characters for use in CSS attribute selectors
-     */
-    function escapeSelector(str) {
-        if (!str) return '';
-        // Escape all special CSS characters: !"#$%&'()*+,./:;<=>?@[\]^`{|}~
-        // Keep alphanumeric, hyphen, and underscore unescaped
-        return str.replace(/([!"#$%&'()*+,.\/:;<=>?@\[\\\]^`{|}~])/g, '\\$1');
-    }
+    // Use shared utilities from Cookie.utils:
+    // - Cookie.utils.escapeHtml
+    // - Cookie.utils.truncate
+    // - Cookie.utils.formatNumber
+    // - Cookie.utils.showElement
+    // - Cookie.utils.hideElement
+    // - Cookie.utils.escapeSelector
 
     /**
      * Start image polling for progressive loading
@@ -525,13 +477,13 @@ Cookie.pages.search = (function() {
 
             // Check if this result has a pending image that's now cached
             if (result.cached_image_url) {
-                var card = document.querySelector('[data-url="' + escapeSelector(result.url) + '"]');
+                var card = document.querySelector('[data-url="' + Cookie.utils.escapeSelector(result.url) + '"]');
                 if (card) {
                     var imgContainer = card.querySelector('.search-result-image');
                     if (imgContainer) {
                         // Replace loading spinner with actual image
-                        imgContainer.innerHTML = '<img src="' + escapeHtml(result.cached_image_url) +
-                                                '" alt="' + escapeHtml(result.title) + '" loading="lazy">';
+                        imgContainer.innerHTML = '<img src="' + Cookie.utils.escapeHtml(result.cached_image_url) +
+                                                '" alt="' + Cookie.utils.escapeHtml(result.title) + '" loading="lazy">';
                     }
                 }
 
@@ -564,7 +516,7 @@ Cookie.pages.search = (function() {
      * Show loading spinner for image
      */
     function showImageLoadingSpinner(recipeUrl) {
-        var card = document.querySelector('[data-url="' + escapeSelector(recipeUrl) + '"]');
+        var card = document.querySelector('[data-url="' + Cookie.utils.escapeSelector(recipeUrl) + '"]');
         if (card) {
             var imgContainer = card.querySelector('.search-result-image');
             if (imgContainer) {
