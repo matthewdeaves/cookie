@@ -17,30 +17,30 @@ import random
 # These are the most common browsers that recipe sites expect
 # Order matters: Chrome first as most compatible, then Safari, then Firefox
 BROWSER_PROFILES = [
-    'chrome136',     # Latest Chrome (most compatible with majority of sites)
-    'safari184',     # Latest Safari desktop
-    'firefox133',    # Latest Firefox
-    'chrome131',     # Fallback Chrome version
+    "chrome136",  # Latest Chrome (most compatible with majority of sites)
+    "safari184",  # Latest Safari desktop
+    "firefox133",  # Latest Firefox
+    "chrome131",  # Fallback Chrome version
 ]
 
 # Convenience aliases that auto-update to latest versions
 # Use these if you want curl_cffi to always use the newest fingerprint
 BROWSER_ALIASES = {
-    'chrome': 'chrome',      # Auto-resolves to latest Chrome
-    'safari': 'safari',      # Auto-resolves to latest Safari
-    'firefox': 'firefox133', # No alias for Firefox in curl_cffi
+    "chrome": "chrome",  # Auto-resolves to latest Chrome
+    "safari": "safari",  # Auto-resolves to latest Safari
+    "firefox": "firefox133",  # No alias for Firefox in curl_cffi
 }
 
 # Mobile profiles for sites that serve different content to mobile
 MOBILE_PROFILES = [
-    'safari184_ios',      # Latest iOS Safari
-    'chrome131_android',  # Android Chrome
+    "safari184_ios",  # Latest iOS Safari
+    "chrome131_android",  # Android Chrome
 ]
 
 # Request timing configuration (in seconds)
 # Randomizing delays helps avoid bot detection patterns
-MIN_DELAY = 0.5   # Minimum delay between requests to same domain
-MAX_DELAY = 2.5   # Maximum delay between requests to same domain
+MIN_DELAY = 0.5  # Minimum delay between requests to same domain
+MAX_DELAY = 2.5  # Maximum delay between requests to same domain
 
 
 def get_random_profile() -> str:

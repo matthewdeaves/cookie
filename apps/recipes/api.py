@@ -19,10 +19,11 @@ from .services.image_cache import SearchImageCache
 from .services.scraper import RecipeScraper, FetchError, ParseError
 from .services.search import RecipeSearch
 
-router = Router(tags=['recipes'])
+router = Router(tags=["recipes"])
 
 
 # Schemas
+
 
 class RecipeOut(Schema):
     id: int
@@ -78,6 +79,7 @@ class RecipeOut(Schema):
 
 class RecipeListOut(Schema):
     """Condensed recipe output for list views."""
+
     id: int
     title: str
     host: str
@@ -128,7 +130,8 @@ class SearchOut(Schema):
 # Endpoints
 # NOTE: Static routes must come before dynamic routes (e.g., /search/ before /{recipe_id}/)
 
-@router.get('/', response=List[RecipeListOut])
+
+@router.get("/", response=List[RecipeListOut])
 def list_recipes(
     request,
     host: Optional[str] = None,
@@ -151,17 +154,17 @@ def list_recipes(
         return []
 
     # Only show recipes owned by this profile
-    qs = Recipe.objects.filter(profile=profile).order_by('-scraped_at')
+    qs = Recipe.objects.filter(profile=profile).order_by("-scraped_at")
 
     if host:
         qs = qs.filter(host=host)
     if is_remix is not None:
         qs = qs.filter(is_remix=is_remix)
 
-    return qs[offset:offset + limit]
+    return qs[offset : offset + limit]
 
 
-@router.post('/scrape/', response={201: RecipeOut, 400: ErrorOut, 403: ErrorOut, 502: ErrorOut})
+@router.post("/scrape/", response={201: RecipeOut, 400: ErrorOut, 403: ErrorOut, 502: ErrorOut})
 async def scrape_recipe(request, payload: ScrapeIn):
     """
     Scrape a recipe from a URL.
@@ -174,24 +177,24 @@ async def scrape_recipe(request, payload: ScrapeIn):
     """
     profile = await aget_current_profile_or_none(request)
     if not profile:
-        return 403, {'detail': 'Profile required to scrape recipes'}
+        return 403, {"detail": "Profile required to scrape recipes"}
 
     scraper = RecipeScraper()
-    logger.info(f'Scrape request: {payload.url}')
+    logger.info(f"Scrape request: {payload.url}")
 
     try:
         recipe = await scraper.scrape_url(payload.url, profile)
         logger.info(f'Scrape success: {payload.url} -> recipe {recipe.id} "{recipe.title}"')
         return 201, recipe
     except FetchError as e:
-        logger.warning(f'Scrape fetch error: {payload.url} - {e}')
-        return 502, {'detail': str(e)}
+        logger.warning(f"Scrape fetch error: {payload.url} - {e}")
+        return 502, {"detail": str(e)}
     except ParseError as e:
-        logger.warning(f'Scrape parse error: {payload.url} - {e}')
-        return 400, {'detail': str(e)}
+        logger.warning(f"Scrape parse error: {payload.url} - {e}")
+        return 400, {"detail": str(e)}
 
 
-@router.get('/search/', response=SearchOut)
+@router.get("/search/", response=SearchOut)
 async def search_recipes(
     request,
     q: str,
@@ -213,7 +216,7 @@ async def search_recipes(
     """
     source_list = None
     if sources:
-        source_list = [s.strip() for s in sources.split(',') if s.strip()]
+        source_list = [s.strip() for s in sources.split(",") if s.strip()]
 
     search = RecipeSearch()
     results = await search.search(
@@ -224,16 +227,16 @@ async def search_recipes(
     )
 
     # Extract image URLs from search results
-    image_urls = [r['image_url'] for r in results['results'] if r.get('image_url')]
+    image_urls = [r["image_url"] for r in results["results"] if r.get("image_url")]
 
     # Look up already-cached images
     image_cache = SearchImageCache()
     cached_urls = await image_cache.get_cached_urls_batch(image_urls)
 
     # Add cached_image_url to results
-    for result in results['results']:
-        external_url = result.get('image_url', '')
-        result['cached_image_url'] = cached_urls.get(external_url)
+    for result in results["results"]:
+        external_url = result.get("image_url", "")
+        result["cached_image_url"] = cached_urls.get(external_url)
 
     # Cache uncached images in background thread (fire-and-forget)
     uncached_urls = [url for url in image_urls if url not in cached_urls]
@@ -249,6 +252,7 @@ async def search_recipes(
                 loop.run_until_complete(image_cache.cache_images(uncached_urls))
             except Exception as e:
                 import logging
+
                 logger = logging.getLogger(__name__)
                 logger.error(f"Background image caching failed: {e}")
             finally:
@@ -261,7 +265,7 @@ async def search_recipes(
     return results
 
 
-@router.get('/cache/health/', response={200: dict})
+@router.get("/cache/health/", response={200: dict})
 def cache_health(request):
     """
     Health check endpoint for image cache monitoring.
@@ -278,20 +282,21 @@ def cache_health(request):
     failed = CachedSearchImage.objects.filter(status=CachedSearchImage.STATUS_FAILED).count()
 
     return {
-        'status': 'healthy',
-        'cache_stats': {
-            'total': total,
-            'success': success,
-            'pending': pending,
-            'failed': failed,
-            'success_rate': f"{(success/total*100):.1f}%" if total > 0 else "N/A"
-        }
+        "status": "healthy",
+        "cache_stats": {
+            "total": total,
+            "success": success,
+            "pending": pending,
+            "failed": failed,
+            "success_rate": f"{(success / total * 100):.1f}%" if total > 0 else "N/A",
+        },
     }
 
 
 # Dynamic routes with {recipe_id} must come last
 
-@router.get('/{recipe_id}/', response={200: RecipeOut, 404: ErrorOut})
+
+@router.get("/{recipe_id}/", response={200: RecipeOut, 404: ErrorOut})
 def get_recipe(request, recipe_id: int):
     """
     Get a recipe by ID.
@@ -300,14 +305,14 @@ def get_recipe(request, recipe_id: int):
     """
     profile = get_current_profile_or_none(request)
     if not profile:
-        return 404, {'detail': 'Recipe not found'}
+        return 404, {"detail": "Recipe not found"}
 
     # Only allow access to recipes owned by this profile
     recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)
     return recipe
 
 
-@router.delete('/{recipe_id}/', response={204: None, 404: ErrorOut})
+@router.delete("/{recipe_id}/", response={204: None, 404: ErrorOut})
 def delete_recipe(request, recipe_id: int):
     """
     Delete a recipe by ID.
@@ -316,7 +321,7 @@ def delete_recipe(request, recipe_id: int):
     """
     profile = get_current_profile_or_none(request)
     if not profile:
-        return 404, {'detail': 'Recipe not found'}
+        return 404, {"detail": "Recipe not found"}
 
     # Only allow deletion of recipes owned by this profile
     recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)

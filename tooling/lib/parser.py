@@ -9,11 +9,11 @@ class CSSParser:
     """Parses CSS files to extract CSS variables."""
 
     # Pattern to match CSS variable declarations: --name: value;
-    VAR_PATTERN = re.compile(r'(--[\w-]+)\s*:\s*([^;]+);')
+    VAR_PATTERN = re.compile(r"(--[\w-]+)\s*:\s*([^;]+);")
 
     # Pattern to match :root or .dark blocks specifically
-    ROOT_PATTERN = re.compile(r':root\s*\{([^}]*)\}', re.DOTALL)
-    DARK_PATTERN = re.compile(r'\.dark\s*\{([^}]*)\}', re.DOTALL)
+    ROOT_PATTERN = re.compile(r":root\s*\{([^}]*)\}", re.DOTALL)
+    DARK_PATTERN = re.compile(r"\.dark\s*\{([^}]*)\}", re.DOTALL)
 
     def __init__(self, file_path: str | Path):
         self.file_path = Path(file_path)
@@ -23,7 +23,7 @@ class CSSParser:
     def content(self) -> str:
         """Load and cache file content."""
         if self._content is None:
-            self._content = self.file_path.read_text(encoding='utf-8')
+            self._content = self.file_path.read_text(encoding="utf-8")
         return self._content
 
     def _extract_variables(self, block_content: str) -> Dict[str, str]:
@@ -52,26 +52,26 @@ class CSSParser:
         if root_match:
             variables = self._extract_variables(root_match.group(1))
             if variables:
-                result[':root'] = variables
+                result[":root"] = variables
 
         # Extract .dark variables
         dark_match = self.DARK_PATTERN.search(self.content)
         if dark_match:
             variables = self._extract_variables(dark_match.group(1))
             if variables:
-                result['.dark'] = variables
+                result[".dark"] = variables
 
         return result
 
     def get_root_variables(self) -> Dict[str, str]:
         """Get variables from :root (light mode)."""
         variables = self.parse_variables()
-        return variables.get(':root', {})
+        return variables.get(":root", {})
 
     def get_dark_variables(self) -> Dict[str, str]:
         """Get variables from .dark (dark mode)."""
         variables = self.parse_variables()
-        return variables.get('.dark', {})
+        return variables.get(".dark", {})
 
 
 def parse_css_file(file_path: str | Path) -> Dict[str, Dict[str, str]]:

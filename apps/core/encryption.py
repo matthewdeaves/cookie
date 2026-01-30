@@ -7,6 +7,7 @@ from django.conf import settings
 
 try:
     from cryptography.fernet import Fernet, InvalidToken
+
     CRYPTOGRAPHY_AVAILABLE = True
 except ImportError:
     CRYPTOGRAPHY_AVAILABLE = False
@@ -36,7 +37,7 @@ def encrypt_value(plaintext: str) -> str:
         Returns plaintext if cryptography is not available.
     """
     if not plaintext:
-        return ''
+        return ""
 
     if not CRYPTOGRAPHY_AVAILABLE:
         # Fallback: store as-is if cryptography not installed
@@ -45,7 +46,7 @@ def encrypt_value(plaintext: str) -> str:
     key = _get_encryption_key()
     fernet = Fernet(key)
     encrypted = fernet.encrypt(plaintext.encode())
-    return f'enc:{encrypted.decode()}'
+    return f"enc:{encrypted.decode()}"
 
 
 def decrypt_value(ciphertext: str) -> str:
@@ -59,16 +60,16 @@ def decrypt_value(ciphertext: str) -> str:
         Returns original value if not encrypted or decryption fails.
     """
     if not ciphertext:
-        return ''
+        return ""
 
     # Check if value is encrypted (has our prefix)
-    if not ciphertext.startswith('enc:'):
+    if not ciphertext.startswith("enc:"):
         # Return as-is (legacy unencrypted value)
         return ciphertext
 
     if not CRYPTOGRAPHY_AVAILABLE:
         # Can't decrypt without cryptography - return empty for safety
-        return ''
+        return ""
 
     try:
         key = _get_encryption_key()
@@ -78,9 +79,9 @@ def decrypt_value(ciphertext: str) -> str:
         return decrypted.decode()
     except (InvalidToken, ValueError):
         # If decryption fails, return empty string for safety
-        return ''
+        return ""
 
 
 def is_encrypted(value: str) -> bool:
     """Check if a value is already encrypted."""
-    return value.startswith('enc:') if value else False
+    return value.startswith("enc:") if value else False

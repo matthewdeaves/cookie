@@ -16,13 +16,13 @@ class DeviceDetectionMiddleware:
     """
 
     # Pattern to match iOS version from user agent
-    IOS_PATTERN = re.compile(r'(?:iPhone|iPad|iPod).*OS (\d+)_')
+    IOS_PATTERN = re.compile(r"(?:iPhone|iPad|iPod).*OS (\d+)_")
 
     # Pattern to match Chrome version
-    CHROME_PATTERN = re.compile(r'Chrome/(\d+)\.')
+    CHROME_PATTERN = re.compile(r"Chrome/(\d+)\.")
 
     # Pattern to match Firefox version
-    FIREFOX_PATTERN = re.compile(r'Firefox/(\d+)\.')
+    FIREFOX_PATTERN = re.compile(r"Firefox/(\d+)\.")
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -33,7 +33,7 @@ class DeviceDetectionMiddleware:
 
     def _is_legacy_device(self, request):
         """Check if the request is from a browser that can't run modern React."""
-        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        user_agent = request.META.get("HTTP_USER_AGENT", "")
         if not user_agent:
             return False
 
@@ -43,15 +43,15 @@ class DeviceDetectionMiddleware:
             return int(match.group(1)) < 11
 
         # Internet Explorer
-        if 'MSIE ' in user_agent or 'Trident/' in user_agent:
+        if "MSIE " in user_agent or "Trident/" in user_agent:
             return True
 
         # Edge Legacy (non-Chromium)
-        if 'Edge/' in user_agent and 'Edg/' not in user_agent:
+        if "Edge/" in user_agent and "Edg/" not in user_agent:
             return True
 
         # Chrome < 60
-        if 'Chrome/' in user_agent and 'Edg' not in user_agent and 'OPR/' not in user_agent:
+        if "Chrome/" in user_agent and "Edg" not in user_agent and "OPR/" not in user_agent:
             match = self.CHROME_PATTERN.search(user_agent)
             if match and int(match.group(1)) < 60:
                 return True

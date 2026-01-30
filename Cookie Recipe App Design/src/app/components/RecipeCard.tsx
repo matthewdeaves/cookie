@@ -19,12 +19,12 @@ const formatDate = (timestamp: number): string => {
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-  
+
   // Reset time for comparison
   const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const yesterdayOnly = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
-  
+
   if (dateOnly.getTime() === todayOnly.getTime()) {
     return 'Today';
   } else if (dateOnly.getTime() === yesterdayOnly.getTime()) {
@@ -50,8 +50,8 @@ export const RecipeCard: FC<RecipeCardProps> = ({
   return (
     <div className="group bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
       <div className="relative aspect-[4/3] overflow-hidden cursor-pointer" onClick={onClick}>
-        <img 
-          src={image} 
+        <img
+          src={image}
           alt={title}
           className="w-full h-full object-cover transition-transform group-hover:scale-105"
         />
@@ -63,7 +63,7 @@ export const RecipeCard: FC<RecipeCardProps> = ({
           className="absolute top-3 right-3 w-12 h-12 bg-white/90 dark:bg-card/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm transition-colors hover:bg-white dark:hover:bg-card"
           aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
         >
-          <Heart 
+          <Heart
             className={`w-6 h-6 transition-colors ${
               isFavorite ? 'fill-accent text-accent' : 'text-muted-foreground'
             }`}
@@ -77,7 +77,7 @@ export const RecipeCard: FC<RecipeCardProps> = ({
           className="absolute bottom-3 right-3 w-12 h-12 bg-primary/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm transition-all hover:bg-primary hover:scale-110"
           aria-label="Play recipe"
         >
-          <Play 
+          <Play
             className="w-6 h-6 text-primary-foreground fill-primary-foreground"
           />
         </button>

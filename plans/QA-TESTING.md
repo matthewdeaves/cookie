@@ -3096,4 +3096,3 @@ jobs:
 - [x] `docker manifest inspect mndeaves/cookie:latest` shows both platforms
 - [x] Docker Hub description updated
 - [x] Old Docker Hub tags cleaned up (only `latest` remains)
-

@@ -28,15 +28,15 @@ def _make_cache_key(prefix: str, *args, **kwargs) -> str:
     """
     # Create a deterministic representation of the arguments
     key_data = {
-        'args': list(args),
-        'kwargs': sorted(kwargs.items()),
+        "args": list(args),
+        "kwargs": sorted(kwargs.items()),
     }
     key_json = json.dumps(key_data, sort_keys=True, default=str)
 
     # Hash to keep key length manageable
     key_hash = hashlib.sha256(key_json.encode()).hexdigest()[:16]
 
-    return f'ai:{prefix}:{key_hash}'
+    return f"ai:{prefix}:{key_hash}"
 
 
 def cache_ai_response(
@@ -61,6 +61,7 @@ def cache_ai_response(
         def generate_timer_name(step_text: str, duration_minutes: int) -> dict:
             ...
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -80,7 +81,7 @@ def cache_ai_response(
             # Check cache
             cached_result = cache.get(cache_key)
             if cached_result is not None:
-                logger.debug(f'Cache hit for {prefix}: {cache_key}')
+                logger.debug(f"Cache hit for {prefix}: {cache_key}")
                 return cached_result
 
             # Call the actual function
@@ -88,10 +89,12 @@ def cache_ai_response(
 
             # Cache the result
             cache.set(cache_key, result, timeout)
-            logger.debug(f'Cached {prefix} result: {cache_key}')
+            logger.debug(f"Cached {prefix} result: {cache_key}")
 
             return result
+
         return wrapper
+
     return decorator
 
 

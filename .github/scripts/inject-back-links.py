@@ -15,7 +15,7 @@ import glob
 import os
 
 
-BACK_LINK_HTML = '''<div style="position:fixed;top:10px;right:10px;z-index:9999;"><a href="/cookie/coverage/" style="background:#0066cc;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;box-shadow:0 2px 4px rgba(0,0,0,0.2);">&#8592; Back to Dashboard</a></div>'''
+BACK_LINK_HTML = """<div style="position:fixed;top:10px;right:10px;z-index:9999;"><a href="/cookie/coverage/" style="background:#0066cc;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;box-shadow:0 2px 4px rgba(0,0,0,0.2);">&#8592; Back to Dashboard</a></div>"""
 
 
 def inject_back_links(site_dir: str):
@@ -23,13 +23,13 @@ def inject_back_links(site_dir: str):
     count = 0
     skipped = 0
 
-    for html_file in glob.glob(f'{site_dir}/**/*.html', recursive=True):
+    for html_file in glob.glob(f"{site_dir}/**/*.html", recursive=True):
         # Skip the main dashboard index
-        if html_file == f'{site_dir}/index.html':
+        if html_file == f"{site_dir}/index.html":
             continue
 
         try:
-            with open(html_file, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(html_file, encoding="utf-8", errors="ignore") as f:
                 content = f.read()
 
             # Skip if already has the back link or no body tag
@@ -37,14 +37,14 @@ def inject_back_links(site_dir: str):
                 skipped += 1
                 continue
 
-            if '</body>' not in content:
+            if "</body>" not in content:
                 skipped += 1
                 continue
 
             # Inject the back link before </body>
-            content = content.replace('</body>', BACK_LINK_HTML + '</body>')
+            content = content.replace("</body>", BACK_LINK_HTML + "</body>")
 
-            with open(html_file, 'w', encoding='utf-8') as f:
+            with open(html_file, "w", encoding="utf-8") as f:
                 f.write(content)
 
             print(f"Injected: {html_file}")
@@ -60,13 +60,12 @@ def inject_back_links(site_dir: str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Inject back links into HTML reports')
-    parser.add_argument('--site-dir', default='site/coverage',
-                        help='Directory containing HTML reports')
+    parser = argparse.ArgumentParser(description="Inject back links into HTML reports")
+    parser.add_argument("--site-dir", default="site/coverage", help="Directory containing HTML reports")
     args = parser.parse_args()
 
     inject_back_links(args.site_dir)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

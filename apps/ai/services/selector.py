@@ -18,7 +18,7 @@ DEFAULT_CONFIDENCE_THRESHOLD = 0.8
 def repair_selector(
     source: SearchSource,
     html_sample: str,
-    target: str = 'recipe search result',
+    target: str = "recipe search result",
     confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD,
     auto_update: bool = True,
 ) -> dict:
@@ -50,14 +50,14 @@ def repair_selector(
     original_selector = source.result_selector
 
     # Get the selector_repair prompt
-    prompt = AIPrompt.get_prompt('selector_repair')
+    prompt = AIPrompt.get_prompt("selector_repair")
 
     # Truncate HTML to avoid token limits (keep first ~50KB)
     truncated_html = html_sample[:50000]
 
     # Format the user prompt
     user_prompt = prompt.format_user_prompt(
-        selector=original_selector or '(none)',
+        selector=original_selector or "(none)",
         target=target,
         html_sample=truncated_html,
     )
@@ -73,17 +73,17 @@ def repair_selector(
 
     # Validate response
     validator = AIResponseValidator()
-    validated = validator.validate('selector_repair', response)
+    validated = validator.validate("selector_repair", response)
 
-    suggestions = validated.get('suggestions', [])
-    confidence = validated.get('confidence', 0)
+    suggestions = validated.get("suggestions", [])
+    confidence = validated.get("confidence", 0)
 
     result = {
-        'suggestions': suggestions,
-        'confidence': confidence,
-        'original_selector': original_selector,
-        'updated': False,
-        'new_selector': None,
+        "suggestions": suggestions,
+        "confidence": confidence,
+        "original_selector": original_selector,
+        "updated": False,
+        "new_selector": None,
     }
 
     # Auto-update if confidence is high enough and we have suggestions
@@ -91,20 +91,20 @@ def repair_selector(
         new_selector = suggestions[0]
         source.result_selector = new_selector
         source.needs_attention = False  # Clear the attention flag
-        source.save(update_fields=['result_selector', 'needs_attention'])
+        source.save(update_fields=["result_selector", "needs_attention"])
 
-        result['updated'] = True
-        result['new_selector'] = new_selector
+        result["updated"] = True
+        result["new_selector"] = new_selector
 
         logger.info(
-            f'Auto-updated selector for {source.host}: '
+            f"Auto-updated selector for {source.host}: "
             f'"{original_selector}" -> "{new_selector}" (confidence: {confidence:.2f})'
         )
     else:
         logger.info(
-            f'Selector repair suggestions for {source.host} '
-            f'(confidence: {confidence:.2f}, threshold: {confidence_threshold}): '
-            f'{suggestions}'
+            f"Selector repair suggestions for {source.host} "
+            f"(confidence: {confidence:.2f}, threshold: {confidence_threshold}): "
+            f"{suggestions}"
         )
 
     return result
@@ -116,10 +116,12 @@ def get_sources_needing_attention() -> list[SearchSource]:
     Returns sources that have consecutive failures >= 3 or
     have needs_attention flag set.
     """
-    return list(SearchSource.objects.filter(
-        needs_attention=True,
-        is_enabled=True,
-    ))
+    return list(
+        SearchSource.objects.filter(
+            needs_attention=True,
+            is_enabled=True,
+        )
+    )
 
 
 def repair_all_broken_selectors(
@@ -161,19 +163,19 @@ def repair_all_broken_selectors(
             )
             results[host] = result
 
-            if result['updated']:
+            if result["updated"]:
                 repaired.append(host)
             else:
                 failed.append(host)
 
         except (AIUnavailableError, AIResponseError, ValidationError) as e:
-            logger.error(f'Failed to repair selector for {host}: {e}')
+            logger.error(f"Failed to repair selector for {host}: {e}")
             failed.append(host)
-            results[host] = {'error': str(e)}
+            results[host] = {"error": str(e)}
 
     return {
-        'repaired': repaired,
-        'failed': failed,
-        'skipped': skipped,
-        'results': results,
+        "repaired": repaired,
+        "failed": failed,
+        "skipped": skipped,
+        "results": results,
     }

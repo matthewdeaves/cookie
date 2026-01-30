@@ -7,16 +7,12 @@ class AppSettings(models.Model):
     """Singleton model for application-wide settings."""
 
     # Stored encrypted with 'enc:' prefix
-    _openrouter_api_key = models.CharField(
-        max_length=500, blank=True, db_column='openrouter_api_key'
-    )
-    default_ai_model = models.CharField(
-        max_length=100, default='anthropic/claude-3.5-haiku'
-    )
+    _openrouter_api_key = models.CharField(max_length=500, blank=True, db_column="openrouter_api_key")
+    default_ai_model = models.CharField(max_length=100, default="anthropic/claude-3.5-haiku")
 
     class Meta:
-        verbose_name = 'App Settings'
-        verbose_name_plural = 'App Settings'
+        verbose_name = "App Settings"
+        verbose_name_plural = "App Settings"
 
     def save(self, *args, **kwargs):
         self.pk = 1  # Enforce singleton

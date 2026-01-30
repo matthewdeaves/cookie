@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { toast, Toaster } from 'sonner';
-import { 
-  Heart, 
-  BookOpen, 
-  Settings as SettingsIcon, 
+import {
+  Heart,
+  BookOpen,
+  Settings as SettingsIcon,
   Home as HomeIcon,
   Plus,
   X,
@@ -71,7 +71,7 @@ interface RecipeList {
   recipeIds: string[];
 }
 
-type Screen = 
+type Screen =
   | { type: 'profile-selector' }
   | { type: 'home' }
   | { type: 'search'; query: string }
@@ -347,12 +347,12 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [timers, setTimers] = useState<Array<{ id: string; label: string; duration: number }>>([]);
-  
+
   // Profile selector state
   const [showCreateProfile, setShowCreateProfile] = useState(false);
   const [newProfileName, setNewProfileName] = useState('');
   const [selectedProfileColor, setSelectedProfileColor] = useState(PROFILE_COLORS[0]);
-  
+
   // Recipe detail state
   const [activeRecipeTab, setActiveRecipeTab] = useState<'ingredients' | 'instructions' | 'nutrition' | 'tips'>('ingredients');
   const [showListPicker, setShowListPicker] = useState(false);
@@ -448,11 +448,11 @@ export default function App() {
       setSearchPage(1);
     }
   }, [screen.type === 'search' ? screen.query : null]);
-  
+
   // Lists state
   const [showCreateList, setShowCreateList] = useState(false);
   const [newListName, setNewListName] = useState('');
-  
+
   // Home view state
   const [homeView, setHomeView] = useState<'favorites' | 'discover'>('favorites');
 
@@ -574,10 +574,10 @@ export default function App() {
   // Recipe interactions
   const toggleFavorite = (recipeId: string) => {
     if (!currentProfile) return;
-    
+
     const profileFavorites = favorites[currentProfile.id] || [];
     const isFavorite = profileFavorites.includes(recipeId);
-    
+
     if (isFavorite) {
       setFavorites({
         ...favorites,
@@ -595,7 +595,7 @@ export default function App() {
 
   const addToRecent = (recipeId: string) => {
     if (!currentProfile) return;
-    
+
     const profileRecent = recentRecipes[currentProfile.id] || [];
     const filtered = profileRecent.filter(entry => entry.id !== recipeId);
     setRecentRecipes({
@@ -612,7 +612,7 @@ export default function App() {
   // AI Serving Adjustment
   const adjustServings = (recipeId: string, newServings: number) => {
     setIsAdjustingServings(true);
-    
+
     // Simulate AI processing time
     setTimeout(() => {
       setAdjustedServings({
@@ -634,7 +634,7 @@ export default function App() {
   // AI Recipe Remix
   const handleRemixRecipe = (prompt: string, newName: string) => {
     if (!remixingRecipeId) return;
-    
+
     const originalRecipe = getRecipe(remixingRecipeId);
     if (!originalRecipe) return;
 
@@ -653,16 +653,16 @@ export default function App() {
 
     // Add to remixed recipes list
     setRemixedRecipes([...remixedRecipes, remixedRecipe]);
-    
+
     // Add to recent recipes
     addToRecent(remixedRecipe.id);
-    
+
     // Close modal and navigate to new recipe
     setShowAIRemixModal(false);
     setRemixingRecipeId(null);
-    
+
     toast.success('Recipe remix created! Check your recently viewed recipes.');
-    
+
     // Navigate to the new remixed recipe
     viewRecipe(remixedRecipe.id);
   };
@@ -679,7 +679,7 @@ export default function App() {
     }
 
     const scale = currentServings / recipe.servings;
-    
+
     // Scale ingredients (simple multiplication for demo)
     const scaledIngredients = recipe.ingredients.map(ing => {
       // Try to find and scale numbers in ingredient strings
@@ -725,19 +725,19 @@ export default function App() {
   // List management
   const createList = (name: string) => {
     if (!currentProfile) return;
-    
+
     const newList: RecipeList = {
       id: Date.now().toString(),
       name,
       recipeIds: pendingRecipeToAdd ? [pendingRecipeToAdd] : []
     };
-    
+
     const profileLists = lists[currentProfile.id] || [];
     setLists({
       ...lists,
       [currentProfile.id]: [...profileLists, newList]
     });
-    
+
     if (pendingRecipeToAdd) {
       toast.success(`Added to "${name}"`);
       setPendingRecipeToAdd(null);
@@ -748,7 +748,7 @@ export default function App() {
 
   const deleteList = (listId: string) => {
     if (!currentProfile) return;
-    
+
     const profileLists = lists[currentProfile.id] || [];
     setLists({
       ...lists,
@@ -760,7 +760,7 @@ export default function App() {
 
   const addRecipeToList = (recipeId: string, listId: string) => {
     if (!currentProfile) return;
-    
+
     const profileLists = lists[currentProfile.id] || [];
     const updatedLists = profileLists.map(list => {
       if (list.id === listId && !list.recipeIds.includes(recipeId)) {
@@ -768,7 +768,7 @@ export default function App() {
       }
       return list;
     });
-    
+
     setLists({
       ...lists,
       [currentProfile.id]: updatedLists
@@ -778,7 +778,7 @@ export default function App() {
 
   const removeRecipeFromList = (recipeId: string, listId: string) => {
     if (!currentProfile) return;
-    
+
     const profileLists = lists[currentProfile.id] || [];
     const updatedLists = profileLists.map(list => {
       if (list.id === listId) {
@@ -786,7 +786,7 @@ export default function App() {
       }
       return list;
     });
-    
+
     setLists({
       ...lists,
       [currentProfile.id]: updatedLists
@@ -803,9 +803,9 @@ export default function App() {
   const getSearchResults = (query: string): Recipe[] => {
     const allRecipes = [...MOCK_RECIPES, ...remixedRecipes];
     if (!query.trim()) return allRecipes;
-    
+
     const lowerQuery = query.toLowerCase();
-    return allRecipes.filter(recipe => 
+    return allRecipes.filter(recipe =>
       recipe.title.toLowerCase().includes(lowerQuery) ||
       recipe.ingredients.some(ing => ing.toLowerCase().includes(lowerQuery))
     );
@@ -819,7 +819,7 @@ export default function App() {
     // Then check original recipes
     return MOCK_RECIPES.find(r => r.id === id);
   };
-  
+
   const isFavorite = (recipeId: string) => {
     if (!currentProfile) return false;
     return (favorites[currentProfile.id] || []).includes(recipeId);
@@ -866,7 +866,7 @@ export default function App() {
                   <X className="w-6 h-6" />
                 </button>
               </div>
-              
+
               <div className="space-y-6">
                 <div>
                   <label className="block mb-2">Name</label>
@@ -879,7 +879,7 @@ export default function App() {
                     autoFocus
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-3">Choose a color</label>
                   <div className="grid grid-cols-5 gap-3">
@@ -895,7 +895,7 @@ export default function App() {
                     ))}
                   </div>
                 </div>
-                
+
                 <button
                   onClick={() => {
                     if (newProfileName.trim()) {
@@ -920,12 +920,12 @@ export default function App() {
   const renderHome = () => {
     const profileFavorites = currentProfile ? (favorites[currentProfile.id] || []) : [];
     const favoriteRecipes = MOCK_RECIPES.filter(r => profileFavorites.includes(r.id));
-    
+
     const profileRecent = currentProfile ? (recentRecipes[currentProfile.id] || []) : [];
     const recentRecipesList = profileRecent
       .map(entry => getRecipe(entry.id))
       .filter(Boolean) as Recipe[];
-    
+
     // AI-suggested recipes for Discover (not in favorites)
     const discoverRecipes = MOCK_RECIPES.filter(r => !profileFavorites.includes(r.id));
 
@@ -952,14 +952,14 @@ export default function App() {
                 }}
               />
             </div>
-            
+
             {/* View Toggle */}
             <div className="inline-flex bg-secondary rounded-lg p-1 w-full md:w-auto">
               <button
                 onClick={() => setHomeView('favorites')}
                 className={`flex-1 md:flex-initial px-4 md:px-6 h-12 md:h-14 rounded-md transition-all whitespace-nowrap text-sm md:text-base ${
-                  homeView === 'favorites' 
-                    ? 'bg-card shadow-sm text-foreground' 
+                  homeView === 'favorites'
+                    ? 'bg-card shadow-sm text-foreground'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -968,8 +968,8 @@ export default function App() {
               <button
                 onClick={() => setHomeView('discover')}
                 className={`flex-1 md:flex-initial px-4 md:px-6 h-12 md:h-14 rounded-md transition-all whitespace-nowrap text-sm md:text-base ${
-                  homeView === 'discover' 
-                    ? 'bg-card shadow-sm text-foreground' 
+                  homeView === 'discover'
+                    ? 'bg-card shadow-sm text-foreground'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -1089,7 +1089,7 @@ export default function App() {
     const uniqueSources = Array.from(new Set(allResults.map(recipe => recipe.source))).sort();
 
     // Filter by selected source
-    const results = selectedSource 
+    const results = selectedSource
       ? allResults.filter(recipe => recipe.source === selectedSource)
       : allResults;
 
@@ -1215,7 +1215,7 @@ export default function App() {
                       Showing {paginatedResults.length} of {results.length} results
                     </p>
                     <div className="w-full max-w-xs bg-secondary rounded-full h-2 overflow-hidden">
-                      <div 
+                      <div
                         className="bg-primary h-full transition-all duration-300"
                         style={{ width: `${(endIndex / results.length) * 100}%` }}
                       />
@@ -1288,14 +1288,14 @@ export default function App() {
           <div className="max-w-6xl mx-auto">
             <div className="relative h-60 md:h-80 rounded-t-xl">
               <div className="overflow-hidden rounded-t-xl h-full">
-                <img 
-                  src={recipe.image} 
+                <img
+                  src={recipe.image}
                   alt={recipe.title}
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-transparent to-background/90 rounded-t-xl pointer-events-none" />
-              
+
               {/* Title and Rating - Top Left */}
               <div className="absolute top-0 left-0 right-0 p-4 md:p-8 pr-4 md:pr-8 pointer-events-none">
                 <div>
@@ -1325,7 +1325,7 @@ export default function App() {
                 >
                   <Heart className={`w-5 h-5 ${isFavorite(recipe.id) ? 'fill-current' : ''}`} />
                 </button>
-                
+
                 <div className="relative">
                   <button
                     onClick={() => setShowListPicker(!showListPicker)}
@@ -1334,7 +1334,7 @@ export default function App() {
                   >
                     <Plus className="w-5 h-5" />
                   </button>
-                  
+
                   {showListPicker && (
                     <div className="absolute right-0 top-14 w-64 bg-popover border border-border rounded-xl shadow-lg p-2 z-50">
                       {profileLists.length > 0 && (
@@ -1387,7 +1387,7 @@ export default function App() {
                 </button>
               </div>
             </div>
-            
+
             {/* Meta Info */}
             <div className="bg-card rounded-b-xl shadow-lg mb-4 md:mb-6">
               <button
@@ -1406,7 +1406,7 @@ export default function App() {
                   </>
                 )}
               </button>
-              
+
               {!isMetaInfoCollapsed && (
                 <div className="flex flex-wrap items-start justify-center gap-4 sm:gap-6 md:gap-12 px-4 md:px-6 sm:pt-6 pb-4 md:pb-6">
                   <div className="flex items-start gap-3">
@@ -1424,7 +1424,7 @@ export default function App() {
                       <div className="font-medium">{recipe.cookTime} min</div>
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-col items-center">
                     <div className="flex items-center gap-2 mb-2">
                       <Users className="w-5 h-5 text-muted-foreground" />
@@ -1464,7 +1464,7 @@ export default function App() {
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start gap-1.5">
                     <div className="flex flex-col items-center">
                       <div className="flex items-center gap-2 mb-2">
@@ -1474,8 +1474,8 @@ export default function App() {
                         <button
                           onClick={() => setUnitPreference('metric')}
                           className={`px-3 h-10 rounded-lg transition-colors flex items-center justify-center text-sm ${
-                            unitPreference === 'metric' 
-                              ? 'bg-primary text-primary-foreground' 
+                            unitPreference === 'metric'
+                              ? 'bg-primary text-primary-foreground'
                               : 'bg-secondary hover:bg-muted'
                           }`}
                         >
@@ -1484,8 +1484,8 @@ export default function App() {
                         <button
                           onClick={() => setUnitPreference('imperial')}
                           className={`px-3 h-10 rounded-lg transition-colors flex items-center justify-center text-sm ${
-                            unitPreference === 'imperial' 
-                              ? 'bg-primary text-primary-foreground' 
+                            unitPreference === 'imperial'
+                              ? 'bg-primary text-primary-foreground'
                               : 'bg-secondary hover:bg-muted'
                           }`}
                         >
@@ -1643,7 +1643,7 @@ export default function App() {
     // Generate a smart timer label from the step text
     const generateTimerLabel = (stepText: string, duration: number): string => {
       const text = stepText.toLowerCase();
-      
+
       // Common cooking actions and their contexts
       const actions: { [key: string]: string[] } = {
         'bake': ['baking', 'oven'],
@@ -1719,7 +1719,7 @@ export default function App() {
       <div className="min-h-screen bg-card flex flex-col">
         {/* Progress Bar */}
         <div className="h-1.5 bg-secondary">
-          <div 
+          <div
             className="h-full bg-primary transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
@@ -2025,8 +2025,8 @@ export default function App() {
                     className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group"
                   >
                     <div className="relative aspect-[4/3] overflow-hidden">
-                      <img 
-                        src={coverImage} 
+                      <img
+                        src={coverImage}
                         alt={list.name}
                         className="w-full h-full object-cover transition-transform group-hover:scale-105"
                       />
@@ -2055,7 +2055,7 @@ export default function App() {
   const renderListDetail = (listId: string) => {
     const profileLists = currentProfile ? (lists[currentProfile.id] || []) : [];
     const list = profileLists.find(l => l.id === listId);
-    
+
     if (!list) return null;
 
     const listRecipes = MOCK_RECIPES.filter(r => list.recipeIds.includes(r.id));
@@ -2343,7 +2343,7 @@ export default function App() {
               <p className="text-muted-foreground text-sm mb-4">
                 Version 1.0.0
               </p>
-              <a 
+              <a
                 href="https://github.com/matthewdeaves/cookie.git"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -2580,7 +2580,7 @@ export default function App() {
                 <div className="space-y-4">
                   {RECIPE_SOURCES.map((source) => {
                     const selectorData = sourceSelectors[source.name];
-                    
+
                     const getStatusIcon = () => {
                       switch (selectorData.status) {
                         case 'working':
@@ -2612,7 +2612,7 @@ export default function App() {
                       // Simulate testing
                       const isSuccess = Math.random() > 0.3; // 70% success rate
                       const newFailCount = isSuccess ? 0 : selectorData.failCount + 1;
-                      
+
                       setSourceSelectors(prev => ({
                         ...prev,
                         [sourceName]: {
@@ -2715,7 +2715,7 @@ export default function App() {
                           const isSuccess = Math.random() > 0.3;
                           const currentData = sourceSelectors[source.name];
                           const newFailCount = isSuccess ? 0 : currentData.failCount + 1;
-                          
+
                           setSourceSelectors(prev => ({
                             ...prev,
                             [source.name]: {
@@ -2760,37 +2760,37 @@ export default function App() {
       const recipe = getRecipe(screen.recipeId);
       // If we came from search, add a clickable breadcrumb back to search
       if (screen.fromScreen?.type === 'search') {
-        items.push({ 
-          label: 'Search Results', 
-          onClick: () => setScreen(screen.fromScreen!) 
+        items.push({
+          label: 'Search Results',
+          onClick: () => setScreen(screen.fromScreen!)
         });
       }
       // If we came from favorites, add a clickable breadcrumb back to favorites
       if (screen.fromScreen?.type === 'favorites') {
-        items.push({ 
-          label: 'Favorites', 
-          onClick: () => setScreen({ type: 'favorites' }) 
+        items.push({
+          label: 'Favorites',
+          onClick: () => setScreen({ type: 'favorites' })
         });
       }
       // If we came from all recipes, add a clickable breadcrumb back to all recipes
       if (screen.fromScreen?.type === 'all-recipes') {
-        items.push({ 
-          label: 'All Recipes', 
-          onClick: () => setScreen({ type: 'all-recipes' }) 
+        items.push({
+          label: 'All Recipes',
+          onClick: () => setScreen({ type: 'all-recipes' })
         });
       }
       // If we came from a collection, add clickable breadcrumbs back to collections
       if (screen.fromScreen?.type === 'list-detail') {
         const profileLists = currentProfile ? (lists[currentProfile.id] || []) : [];
         const list = profileLists.find(l => l.id === screen.fromScreen!.listId);
-        items.push({ 
-          label: 'Collections', 
-          onClick: () => setScreen({ type: 'lists' }) 
+        items.push({
+          label: 'Collections',
+          onClick: () => setScreen({ type: 'lists' })
         });
         if (list) {
-          items.push({ 
-            label: list.name, 
-            onClick: () => setScreen(screen.fromScreen!) 
+          items.push({
+            label: list.name,
+            onClick: () => setScreen(screen.fromScreen!)
           });
         }
       }
@@ -2798,8 +2798,8 @@ export default function App() {
     } else if (screen.type === 'play-mode') {
       const recipe = getRecipe(screen.recipeId);
       if (recipe) {
-        items.push({ 
-          label: recipe.title, 
+        items.push({
+          label: recipe.title,
           onClick: () => setScreen({ type: 'recipe-detail', recipeId: screen.recipeId })
         });
         items.push({ label: 'Cooking' });
@@ -2851,13 +2851,13 @@ export default function App() {
         darkMode={isDarkMode}
         onDarkModeToggle={toggleDarkMode}
       />
-      
+
       {screen.type !== 'home' && <BreadcrumbNav items={getBreadcrumbs()} />}
 
       {/* Side Menu */}
       {menuOpen && (
         <>
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 z-40 transition-opacity"
             onClick={() => setMenuOpen(false)}
           />
@@ -2868,7 +2868,7 @@ export default function App() {
                 <X className="w-6 h-6" />
               </button>
             </div>
-            
+
             <nav className="space-y-2">
               <button
                 onClick={() => {
@@ -2927,7 +2927,7 @@ export default function App() {
       </main>
 
       <Toaster position="bottom-center" />
-      
+
       {/* AI Remix Modal */}
       {showAIRemixModal && remixingRecipeId && (
         <AIRemixModal

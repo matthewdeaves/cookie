@@ -26,7 +26,7 @@ from .models import (
 # Favorites Router
 # =============================================================================
 
-favorites_router = Router(tags=['favorites'])
+favorites_router = Router(tags=["favorites"])
 
 
 class FavoriteIn(Schema):
@@ -46,14 +46,14 @@ class ErrorOut(Schema):
     detail: str
 
 
-@favorites_router.get('/', response=List[FavoriteOut])
+@favorites_router.get("/", response=List[FavoriteOut])
 def list_favorites(request):
     """List all favorites for the current profile."""
     profile = get_current_profile(request)
-    return RecipeFavorite.objects.filter(profile=profile).select_related('recipe')
+    return RecipeFavorite.objects.filter(profile=profile).select_related("recipe")
 
 
-@favorites_router.post('/', response={201: FavoriteOut, 400: ErrorOut, 404: ErrorOut})
+@favorites_router.post("/", response={201: FavoriteOut, 400: ErrorOut, 404: ErrorOut})
 def add_favorite(request, payload: FavoriteIn):
     """Add a recipe to favorites."""
     profile = get_current_profile(request)
@@ -63,16 +63,14 @@ def add_favorite(request, payload: FavoriteIn):
         favorite = RecipeFavorite.objects.create(profile=profile, recipe=recipe)
         return 201, favorite
     except IntegrityError:
-        return 400, {'detail': 'Recipe is already a favorite'}
+        return 400, {"detail": "Recipe is already a favorite"}
 
 
-@favorites_router.delete('/{recipe_id}/', response={204: None, 404: ErrorOut})
+@favorites_router.delete("/{recipe_id}/", response={204: None, 404: ErrorOut})
 def remove_favorite(request, recipe_id: int):
     """Remove a recipe from favorites."""
     profile = get_current_profile(request)
-    favorite = get_object_or_404(
-        RecipeFavorite, profile=profile, recipe_id=recipe_id
-    )
+    favorite = get_object_or_404(RecipeFavorite, profile=profile, recipe_id=recipe_id)
     favorite.delete()
     return 204, None
 
@@ -81,12 +79,12 @@ def remove_favorite(request, recipe_id: int):
 # Collections Router
 # =============================================================================
 
-collections_router = Router(tags=['collections'])
+collections_router = Router(tags=["collections"])
 
 
 class CollectionIn(Schema):
     name: str
-    description: str = ''
+    description: str = ""
 
 
 class CollectionItemIn(Schema):
@@ -134,7 +132,7 @@ class CollectionDetailOut(Schema):
 
     @staticmethod
     def resolve_recipes(obj):
-        return obj.items.select_related('recipe').all()
+        return obj.items.select_related("recipe").all()
 
     @staticmethod
     def resolve_created_at(obj):
@@ -145,14 +143,14 @@ class CollectionDetailOut(Schema):
         return obj.updated_at.isoformat()
 
 
-@collections_router.get('/', response=List[CollectionOut])
+@collections_router.get("/", response=List[CollectionOut])
 def list_collections(request):
     """List all collections for the current profile."""
     profile = get_current_profile(request)
-    return RecipeCollection.objects.filter(profile=profile).prefetch_related('items')
+    return RecipeCollection.objects.filter(profile=profile).prefetch_related("items")
 
 
-@collections_router.post('/', response={201: CollectionOut, 400: ErrorOut})
+@collections_router.post("/", response={201: CollectionOut, 400: ErrorOut})
 def create_collection(request, payload: CollectionIn):
     """Create a new collection."""
     profile = get_current_profile(request)
@@ -165,26 +163,22 @@ def create_collection(request, payload: CollectionIn):
         )
         return 201, collection
     except IntegrityError:
-        return 400, {'detail': 'A collection with this name already exists'}
+        return 400, {"detail": "A collection with this name already exists"}
 
 
-@collections_router.get('/{collection_id}/', response={200: CollectionDetailOut, 404: ErrorOut})
+@collections_router.get("/{collection_id}/", response={200: CollectionDetailOut, 404: ErrorOut})
 def get_collection(request, collection_id: int):
     """Get a collection with its recipes."""
     profile = get_current_profile(request)
-    collection = get_object_or_404(
-        RecipeCollection, id=collection_id, profile=profile
-    )
+    collection = get_object_or_404(RecipeCollection, id=collection_id, profile=profile)
     return collection
 
 
-@collections_router.put('/{collection_id}/', response={200: CollectionOut, 400: ErrorOut, 404: ErrorOut})
+@collections_router.put("/{collection_id}/", response={200: CollectionOut, 400: ErrorOut, 404: ErrorOut})
 def update_collection(request, collection_id: int, payload: CollectionIn):
     """Update a collection."""
     profile = get_current_profile(request)
-    collection = get_object_or_404(
-        RecipeCollection, id=collection_id, profile=profile
-    )
+    collection = get_object_or_404(RecipeCollection, id=collection_id, profile=profile)
 
     try:
         collection.name = payload.name
@@ -192,31 +186,27 @@ def update_collection(request, collection_id: int, payload: CollectionIn):
         collection.save()
         return collection
     except IntegrityError:
-        return 400, {'detail': 'A collection with this name already exists'}
+        return 400, {"detail": "A collection with this name already exists"}
 
 
-@collections_router.delete('/{collection_id}/', response={204: None, 404: ErrorOut})
+@collections_router.delete("/{collection_id}/", response={204: None, 404: ErrorOut})
 def delete_collection(request, collection_id: int):
     """Delete a collection."""
     profile = get_current_profile(request)
-    collection = get_object_or_404(
-        RecipeCollection, id=collection_id, profile=profile
-    )
+    collection = get_object_or_404(RecipeCollection, id=collection_id, profile=profile)
     collection.delete()
     return 204, None
 
 
-@collections_router.post('/{collection_id}/recipes/', response={201: CollectionItemOut, 400: ErrorOut, 404: ErrorOut})
+@collections_router.post("/{collection_id}/recipes/", response={201: CollectionItemOut, 400: ErrorOut, 404: ErrorOut})
 def add_recipe_to_collection(request, collection_id: int, payload: CollectionItemIn):
     """Add a recipe to a collection."""
     profile = get_current_profile(request)
-    collection = get_object_or_404(
-        RecipeCollection, id=collection_id, profile=profile
-    )
+    collection = get_object_or_404(RecipeCollection, id=collection_id, profile=profile)
     recipe = get_object_or_404(Recipe, id=payload.recipe_id)
 
     # Get the next order value
-    max_order = collection.items.aggregate(max_order=Max('order'))['max_order']
+    max_order = collection.items.aggregate(max_order=Max("order"))["max_order"]
     next_order = (max_order or 0) + 1
 
     try:
@@ -227,19 +217,15 @@ def add_recipe_to_collection(request, collection_id: int, payload: CollectionIte
         )
         return 201, item
     except IntegrityError:
-        return 400, {'detail': 'Recipe is already in this collection'}
+        return 400, {"detail": "Recipe is already in this collection"}
 
 
-@collections_router.delete('/{collection_id}/recipes/{recipe_id}/', response={204: None, 404: ErrorOut})
+@collections_router.delete("/{collection_id}/recipes/{recipe_id}/", response={204: None, 404: ErrorOut})
 def remove_recipe_from_collection(request, collection_id: int, recipe_id: int):
     """Remove a recipe from a collection."""
     profile = get_current_profile(request)
-    collection = get_object_or_404(
-        RecipeCollection, id=collection_id, profile=profile
-    )
-    item = get_object_or_404(
-        RecipeCollectionItem, collection=collection, recipe_id=recipe_id
-    )
+    collection = get_object_or_404(RecipeCollection, id=collection_id, profile=profile)
+    item = get_object_or_404(RecipeCollectionItem, collection=collection, recipe_id=recipe_id)
     item.delete()
     return 204, None
 
@@ -248,7 +234,7 @@ def remove_recipe_from_collection(request, collection_id: int, recipe_id: int):
 # History Router
 # =============================================================================
 
-history_router = Router(tags=['history'])
+history_router = Router(tags=["history"])
 
 
 class HistoryIn(Schema):
@@ -264,7 +250,7 @@ class HistoryOut(Schema):
         return obj.viewed_at.isoformat()
 
 
-@history_router.get('/', response=List[HistoryOut])
+@history_router.get("/", response=List[HistoryOut])
 def list_history(request, limit: int = 6):
     """
     Get recently viewed recipes for the current profile.
@@ -272,13 +258,10 @@ def list_history(request, limit: int = 6):
     Returns up to 6 most recent recipes by default.
     """
     profile = get_current_profile(request)
-    return (
-        RecipeViewHistory.objects.filter(profile=profile)
-        .select_related('recipe')[:limit]
-    )
+    return RecipeViewHistory.objects.filter(profile=profile).select_related("recipe")[:limit]
 
 
-@history_router.post('/', response={200: HistoryOut, 201: HistoryOut, 404: ErrorOut})
+@history_router.post("/", response={200: HistoryOut, 201: HistoryOut, 404: ErrorOut})
 def record_view(request, payload: HistoryIn):
     """
     Record a recipe view.
@@ -298,7 +281,7 @@ def record_view(request, payload: HistoryIn):
     return status, history
 
 
-@history_router.delete('/', response={204: None})
+@history_router.delete("/", response={204: None})
 def clear_history(request):
     """Clear all view history for the current profile."""
     profile = get_current_profile(request)

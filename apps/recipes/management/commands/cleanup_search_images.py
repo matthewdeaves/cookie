@@ -22,66 +22,56 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Delete cached search images older than specified days (default: 30)'
+    help = "Delete cached search images older than specified days (default: 30)"
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--days',
+            "--days",
             type=int,
             default=30,
-            help='Delete images not accessed in this many days (default: 30)',
+            help="Delete images not accessed in this many days (default: 30)",
         )
         parser.add_argument(
-            '--dry-run',
-            action='store_true',
-            help='Show what would be deleted without actually deleting',
+            "--dry-run",
+            action="store_true",
+            help="Show what would be deleted without actually deleting",
         )
 
     def handle(self, *args, **options):
-        days = options['days']
-        dry_run = options['dry_run']
+        days = options["days"]
+        dry_run = options["dry_run"]
 
         # Calculate cutoff date
         cutoff_date = timezone.now() - timedelta(days=days)
 
         # Find old cached images
-        old_images = CachedSearchImage.objects.filter(
-            last_accessed_at__lt=cutoff_date
-        )
+        old_images = CachedSearchImage.objects.filter(last_accessed_at__lt=cutoff_date)
 
         count = old_images.count()
 
         if count == 0:
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f'No cached images older than {days} days found.'
-                )
-            )
+            self.stdout.write(self.style.SUCCESS(f"No cached images older than {days} days found."))
             return
 
         # Show what will be deleted
         self.stdout.write(
             self.style.WARNING(
-                f'Found {count} cached image(s) not accessed since {cutoff_date.strftime("%Y-%m-%d %H:%M:%S")}'
+                f"Found {count} cached image(s) not accessed since {cutoff_date.strftime('%Y-%m-%d %H:%M:%S')}"
             )
         )
 
         if dry_run:
-            self.stdout.write(
-                self.style.NOTICE('\n[DRY RUN] Would delete the following images:')
-            )
+            self.stdout.write(self.style.NOTICE("\n[DRY RUN] Would delete the following images:"))
             for img in old_images[:10]:  # Show first 10
                 self.stdout.write(
-                    f'  - ID {img.id}: {img.external_url[:80]}... '
-                    f'(last accessed: {img.last_accessed_at.strftime("%Y-%m-%d")})'
+                    f"  - ID {img.id}: {img.external_url[:80]}... "
+                    f"(last accessed: {img.last_accessed_at.strftime('%Y-%m-%d')})"
                 )
             if count > 10:
-                self.stdout.write(f'  ... and {count - 10} more')
+                self.stdout.write(f"  ... and {count - 10} more")
 
             self.stdout.write(
-                self.style.NOTICE(
-                    f'\n[DRY RUN] Run without --dry-run to actually delete {count} image(s)'
-                )
+                self.style.NOTICE(f"\n[DRY RUN] Run without --dry-run to actually delete {count} image(s)")
             )
             return
 
@@ -97,17 +87,15 @@ class Command(BaseCommand):
                 img.delete()
                 deleted_count += 1
             except Exception as e:
-                logger.error(f'Failed to delete cached image {img.id}: {e}')
+                logger.error(f"Failed to delete cached image {img.id}: {e}")
 
         self.stdout.write(
-            self.style.SUCCESS(
-                f'Successfully deleted {deleted_count} cached image(s) older than {days} days.'
-            )
+            self.style.SUCCESS(f"Successfully deleted {deleted_count} cached image(s) older than {days} days.")
         )
 
         if deleted_count < count:
             self.stdout.write(
                 self.style.WARNING(
-                    f'Warning: {count - deleted_count} image(s) failed to delete. Check logs for details.'
+                    f"Warning: {count - deleted_count} image(s) failed to delete. Check logs for details."
                 )
             )

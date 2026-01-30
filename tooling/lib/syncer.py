@@ -12,6 +12,7 @@ from .parser import CSSParser
 @dataclass
 class ThemeChange:
     """Represents a single theme variable change."""
+
     target: str  # 'react' or 'legacy'
     variable: str
     old_value: Optional[str]
@@ -25,30 +26,30 @@ class ThemeSyncer:
 
     def __init__(self, project_root: Path, mapping_path: Optional[Path] = None):
         self.project_root = Path(project_root)
-        self.mapping_path = mapping_path or self.project_root / 'tooling' / 'theme-mapping.json'
+        self.mapping_path = mapping_path or self.project_root / "tooling" / "theme-mapping.json"
         self._mapping: Optional[dict] = None
 
     @property
     def mapping(self) -> dict:
         """Load and cache the theme mapping."""
         if self._mapping is None:
-            self._mapping = json.loads(self.mapping_path.read_text(encoding='utf-8'))
+            self._mapping = json.loads(self.mapping_path.read_text(encoding="utf-8"))
         return self._mapping
 
     @property
     def figma_path(self) -> Path:
         """Path to Figma theme.css."""
-        return self.project_root / self.mapping['figma_source']
+        return self.project_root / self.mapping["figma_source"]
 
     @property
     def react_path(self) -> Path:
         """Path to React theme.css."""
-        return self.project_root / self.mapping['react_target']
+        return self.project_root / self.mapping["react_target"]
 
     @property
     def legacy_path(self) -> Path:
         """Path to Legacy base.css."""
-        return self.project_root / self.mapping['legacy_target']
+        return self.project_root / self.mapping["legacy_target"]
 
     def analyze(self) -> Dict[str, List[ThemeChange]]:
         """
@@ -61,34 +62,34 @@ class ThemeSyncer:
         figma_dark = figma_parser.get_dark_variables()
 
         changes = {
-            'react': [],
-            'legacy': [],
-            'summary': {
-                'react_updates': 0,
-                'react_skipped': 0,
-                'legacy_updates': 0,
-                'legacy_skipped': 0,
-            }
+            "react": [],
+            "legacy": [],
+            "summary": {
+                "react_updates": 0,
+                "react_skipped": 0,
+                "legacy_updates": 0,
+                "legacy_skipped": 0,
+            },
         }
 
         # Analyze React changes (supports both light and dark)
         react_changes = self._analyze_react(figma_root, figma_dark)
-        changes['react'] = react_changes
-        changes['summary']['react_updates'] = sum(1 for c in react_changes if c.action in ('update', 'add'))
-        changes['summary']['react_skipped'] = sum(1 for c in react_changes if c.action == 'skip')
+        changes["react"] = react_changes
+        changes["summary"]["react_updates"] = sum(1 for c in react_changes if c.action in ("update", "add"))
+        changes["summary"]["react_skipped"] = sum(1 for c in react_changes if c.action == "skip")
 
         # Analyze Legacy changes (light mode only)
         legacy_changes = self._analyze_legacy(figma_root)
-        changes['legacy'] = legacy_changes
-        changes['summary']['legacy_updates'] = sum(1 for c in legacy_changes if c.action in ('update', 'add'))
-        changes['summary']['legacy_skipped'] = sum(1 for c in legacy_changes if c.action == 'skip')
+        changes["legacy"] = legacy_changes
+        changes["summary"]["legacy_updates"] = sum(1 for c in legacy_changes if c.action in ("update", "add"))
+        changes["summary"]["legacy_skipped"] = sum(1 for c in legacy_changes if c.action == "skip")
 
         return changes
 
     def _analyze_react(self, figma_root: dict, figma_dark: dict) -> List[ThemeChange]:
         """Analyze changes needed for React theme."""
         changes = []
-        var_mapping = self.mapping['variables']
+        var_mapping = self.mapping["variables"]
 
         # Get current React variables if file exists
         current_root = {}
@@ -99,7 +100,7 @@ class ThemeSyncer:
             current_dark = react_parser.get_dark_variables()
 
         for figma_var, mapping in var_mapping.items():
-            react_var = mapping.get('react')
+            react_var = mapping.get("react")
             if not react_var:
                 continue
 
@@ -108,33 +109,37 @@ class ThemeSyncer:
                 new_value = figma_root[figma_var]
                 old_value = current_root.get(react_var)
                 if old_value != new_value:
-                    changes.append(ThemeChange(
-                        target='react',
-                        variable=f':root {react_var}',
-                        old_value=old_value,
-                        new_value=new_value,
-                        action='update' if old_value else 'add',
-                    ))
+                    changes.append(
+                        ThemeChange(
+                            target="react",
+                            variable=f":root {react_var}",
+                            old_value=old_value,
+                            new_value=new_value,
+                            action="update" if old_value else "add",
+                        )
+                    )
 
             # Dark mode
             if figma_var in figma_dark:
                 new_value = figma_dark[figma_var]
                 old_value = current_dark.get(react_var)
                 if old_value != new_value:
-                    changes.append(ThemeChange(
-                        target='react',
-                        variable=f'.dark {react_var}',
-                        old_value=old_value,
-                        new_value=new_value,
-                        action='update' if old_value else 'add',
-                    ))
+                    changes.append(
+                        ThemeChange(
+                            target="react",
+                            variable=f".dark {react_var}",
+                            old_value=old_value,
+                            new_value=new_value,
+                            action="update" if old_value else "add",
+                        )
+                    )
 
         return changes
 
     def _analyze_legacy(self, figma_root: dict) -> List[ThemeChange]:
         """Analyze changes needed for Legacy CSS (light mode only)."""
         changes = []
-        var_mapping = self.mapping['variables']
+        var_mapping = self.mapping["variables"]
 
         # Get current Legacy variables if file exists
         current_vars = {}
@@ -143,29 +148,33 @@ class ThemeSyncer:
             current_vars = legacy_parser.get_root_variables()
 
         for figma_var, mapping in var_mapping.items():
-            legacy_var = mapping.get('legacy')
+            legacy_var = mapping.get("legacy")
             if not legacy_var:
-                changes.append(ThemeChange(
-                    target='legacy',
-                    variable=figma_var,
-                    old_value=None,
-                    new_value=figma_root.get(figma_var, ''),
-                    action='skip',
-                    reason='No legacy mapping',
-                ))
+                changes.append(
+                    ThemeChange(
+                        target="legacy",
+                        variable=figma_var,
+                        old_value=None,
+                        new_value=figma_root.get(figma_var, ""),
+                        action="skip",
+                        reason="No legacy mapping",
+                    )
+                )
                 continue
 
             if figma_var in figma_root:
                 new_value = figma_root[figma_var]
                 old_value = current_vars.get(legacy_var)
                 if old_value != new_value:
-                    changes.append(ThemeChange(
-                        target='legacy',
-                        variable=legacy_var,
-                        old_value=old_value,
-                        new_value=new_value,
-                        action='update' if old_value else 'add',
-                    ))
+                    changes.append(
+                        ThemeChange(
+                            target="legacy",
+                            variable=legacy_var,
+                            old_value=old_value,
+                            new_value=new_value,
+                            action="update" if old_value else "add",
+                        )
+                    )
 
         return changes
 
@@ -185,28 +194,28 @@ class ThemeSyncer:
 
         if dry_run:
             return {
-                'dry_run': True,
-                'changes': analysis,
+                "dry_run": True,
+                "changes": analysis,
             }
 
         result = {
-            'dry_run': False,
-            'changes': analysis,
-            'synced': {
-                'react': False,
-                'legacy': False,
-            }
+            "dry_run": False,
+            "changes": analysis,
+            "synced": {
+                "react": False,
+                "legacy": False,
+            },
         }
 
         # Sync to React
-        if not legacy_only and analysis['react']:
-            self._sync_react(analysis['react'])
-            result['synced']['react'] = True
+        if not legacy_only and analysis["react"]:
+            self._sync_react(analysis["react"])
+            result["synced"]["react"] = True
 
         # Sync to Legacy
-        if not react_only and analysis['legacy']:
-            self._sync_legacy(analysis['legacy'])
-            result['synced']['legacy'] = True
+        if not react_only and analysis["legacy"]:
+            self._sync_legacy(analysis["legacy"])
+            result["synced"]["legacy"] = True
 
         return result
 
@@ -214,9 +223,9 @@ class ThemeSyncer:
         """Apply changes to React theme.css by copying from Figma."""
         # For React, we mostly just copy the Figma file since it's nearly identical
         # This ensures we get any new variables or structural changes
-        figma_content = self.figma_path.read_text(encoding='utf-8')
+        figma_content = self.figma_path.read_text(encoding="utf-8")
         self.react_path.parent.mkdir(parents=True, exist_ok=True)
-        self.react_path.write_text(figma_content, encoding='utf-8')
+        self.react_path.write_text(figma_content, encoding="utf-8")
 
     def _sync_legacy(self, changes: List[ThemeChange]):
         """Apply changes to Legacy base.css."""
@@ -225,44 +234,41 @@ class ThemeSyncer:
             self._create_legacy_css(changes)
             return
 
-        content = self.legacy_path.read_text(encoding='utf-8')
+        content = self.legacy_path.read_text(encoding="utf-8")
 
         for change in changes:
-            if change.action == 'skip':
+            if change.action == "skip":
                 continue
 
             var_name = change.variable
             new_value = change.new_value
 
             # Pattern to match the variable declaration
-            pattern = re.compile(
-                rf'({re.escape(var_name)})\s*:\s*[^;]+;',
-                re.MULTILINE
-            )
+            pattern = re.compile(rf"({re.escape(var_name)})\s*:\s*[^;]+;", re.MULTILINE)
 
             if pattern.search(content):
                 # Update existing variable
-                content = pattern.sub(f'{var_name}: {new_value};', content)
+                content = pattern.sub(f"{var_name}: {new_value};", content)
             else:
                 # Add new variable to :root block
-                root_pattern = re.compile(r'(:root\s*\{)([^}]*)\}', re.DOTALL)
+                root_pattern = re.compile(r"(:root\s*\{)([^}]*)\}", re.DOTALL)
                 match = root_pattern.search(content)
                 if match:
                     existing = match.group(2)
-                    new_block = f'{existing}  {var_name}: {new_value};\n'
-                    content = root_pattern.sub(f'{match.group(1)}{new_block}}}', content)
+                    new_block = f"{existing}  {var_name}: {new_value};\n"
+                    content = root_pattern.sub(f"{match.group(1)}{new_block}}}", content)
 
-        self.legacy_path.write_text(content, encoding='utf-8')
+        self.legacy_path.write_text(content, encoding="utf-8")
 
     def _create_legacy_css(self, changes: List[ThemeChange]):
         """Create a new Legacy CSS file with theme variables."""
-        lines = ['/* Cookie 2 - Legacy Theme Variables */\n', '/* Generated by figma-sync-theme */\n\n', ':root {\n']
+        lines = ["/* Cookie 2 - Legacy Theme Variables */\n", "/* Generated by figma-sync-theme */\n\n", ":root {\n"]
 
         for change in changes:
-            if change.action != 'skip':
-                lines.append(f'  {change.variable}: {change.new_value};\n')
+            if change.action != "skip":
+                lines.append(f"  {change.variable}: {change.new_value};\n")
 
-        lines.append('}\n')
+        lines.append("}\n")
 
         self.legacy_path.parent.mkdir(parents=True, exist_ok=True)
-        self.legacy_path.write_text(''.join(lines), encoding='utf-8')
+        self.legacy_path.write_text("".join(lines), encoding="utf-8")
