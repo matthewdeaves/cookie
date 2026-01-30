@@ -39,7 +39,7 @@
     "eslint-plugin-react-refresh": "^0.4.16",
     "eslint-plugin-security": "^3.0.0",
     "globals": "^15.13.0",
-    "jsdom": "^25.0.1",
+    "jsdom": "^27.4.0",
     "tailwindcss": "^4.1.3",
     "tw-animate-css": "^1.2.5",
     "typescript": "~5.9.3",
