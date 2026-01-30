@@ -1,15 +1,15 @@
 {
-  "total_size_kb": 485.73,
-  "total_gzip_kb": 137.92,
-  "js_size_kb": 447.38,
-  "js_gzip_kb": 130.81,
+  "total_size_kb": 490.99,
+  "total_gzip_kb": 139.42,
+  "js_size_kb": 452.64,
+  "js_gzip_kb": 132.32,
   "css_size_kb": 38.35,
   "css_gzip_kb": 7.1,
   "files": [
     {
-      "name": "index-Ct0ND-sW.js",
-      "size_kb": 447.38,
-      "gzip_kb": 130.81
+      "name": "index-Dw4uBVYZ.js",
+      "size_kb": 452.64,
+      "gzip_kb": 132.32
     },
     {
       "name": "index-D3FYsSyn.css",
