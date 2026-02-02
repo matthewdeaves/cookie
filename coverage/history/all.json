@@ -301,6 +301,43 @@
         "warnings": 0,
         "duplication": 5.35
       }
+    },
+    {
+      "timestamp": "2026-02-02T06:54:32.168683+00:00",
+      "date": "2026-02-02",
+      "coverage": {
+        "frontend": 28.46,
+        "backend": 61.0
+      },
+      "complexity": {
+        "frontend_warnings": 11,
+        "frontend_avg_cc": 0,
+        "backend_cc": 2.62,
+        "backend_mi": 85.45
+      },
+      "duplication": {
+        "frontend": 1.32,
+        "backend": 1.82,
+        "frontend_clones": 9,
+        "backend_clones": 7
+      },
+      "bundle": {
+        "total_kb": 491.02,
+        "gzip_kb": 139.43
+      },
+      "security": {
+        "frontend_vulns": 0,
+        "backend_vulns": 0,
+        "bandit_high": 0,
+        "bandit_medium": 0,
+        "bandit_low": 0,
+        "secrets_found": 0
+      },
+      "legacy": {
+        "errors": 0,
+        "warnings": 0,
+        "duplication": 5.35
+      }
     }
   ]
 }
