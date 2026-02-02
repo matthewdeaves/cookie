@@ -24,6 +24,7 @@
 | FE-013 | Linked recipe navigation (original ↔ remix toggle) | Low | Low |
 | FE-014 | Legacy frontend discover suggestions grid layout | Low | Low |
 | FE-015 | Replace Figma workflow with Claude Code frontend-design skill | Medium | Medium |
+| FE-016 | Handle non-recipe search queries with query classification | Medium | Medium |
 
 ---
 
@@ -1708,3 +1709,421 @@ Remove Figma references from:
 ### Priority
 
 Medium - No functional impact, but simplifies project and improves workflow
+
+---
+
+## FE-016: Handle Non-Recipe Search Queries with Query Classification
+
+**Status:** Backlog
+
+### Problem
+
+Users sometimes enter search terms that aren't recipe-related (e.g., "bbc food", "google", brand names, or random terms), expecting the app to work like a general search engine. When this happens, they receive irrelevant or confusing results because the search sources are optimized for actual recipe queries (ingredients, dish names, cuisines).
+
+**Real-world example:** A user searched for "bbc food" instead of searching for a specific recipe, expecting to browse BBC's recipe collection rather than searching for recipes containing those terms.
+
+### Current Behavior
+
+- Search terms are passed directly to configured recipe sources
+- No validation or classification of query intent
+- Non-recipe queries produce poor results (e.g., articles about BBC, food news, non-recipe content)
+- No user feedback that their query might not be recipe-related
+- No suggestions to help users refine their search
+
+### User Impact
+
+- Confusion when results don't match expectations
+- Poor user experience for non-technical users unfamiliar with recipe search patterns
+- Wasted searches on irrelevant queries
+- No guidance on how to search effectively
+
+### Proposed Solutions
+
+Two complementary approaches depending on whether AI features are enabled:
+
+---
+
+### Solution A: Non-AI Query Classification (Always Available)
+
+Implement rule-based query validation and classification without requiring AI features:
+
+#### 1. Query Pattern Detection
+
+Classify queries into categories:
+
+```python
+# apps/recipes/services/query_classifier.py
+
+class QueryClassifier:
+    # Known recipe-related patterns
+    INGREDIENT_TERMS = {'chicken', 'beef', 'pasta', 'rice', 'tomato', ...}  # ~500 common ingredients
+    DISH_TYPES = {'soup', 'salad', 'cake', 'pie', 'stew', 'curry', ...}     # ~200 dish types
+    CUISINES = {'italian', 'chinese', 'thai', 'mexican', 'french', ...}     # ~50 cuisines
+    COOKING_METHODS = {'roasted', 'baked', 'grilled', 'fried', ...}         # ~50 methods
+
+    # Non-recipe patterns (red flags)
+    BRAND_NAMES = {'bbc', 'food network', 'allrecipes', 'epicurious', ...}
+    NAVIGATION_TERMS = {'home', 'search', 'browse', 'categories', ...}
+    WEBSITE_DOMAINS = {'.com', '.co.uk', 'www', 'http', ...}
+
+    def classify_query(self, query: str) -> dict:
+        """
+        Returns: {
+            'is_recipe_related': bool,
+            'confidence': float (0-1),
+            'category': 'ingredient' | 'dish' | 'brand' | 'navigation' | 'unknown',
+            'suggestions': list[str]  # Suggested recipe terms
+        }
+        """
+```
+
+#### 2. Query Preprocessing
+
+Before searching:
+
+```python
+def preprocess_search(query: str) -> dict:
+    classification = QueryClassifier().classify_query(query)
+
+    # If clearly non-recipe related, suggest alternatives
+    if not classification['is_recipe_related'] and classification['confidence'] > 0.7:
+        return {
+            'should_search': False,
+            'message': 'Try searching for ingredients (e.g., "chicken") or dish names (e.g., "beef pie")',
+            'suggestions': classification['suggestions']
+        }
+
+    # If uncertain, warn but allow search
+    elif classification['confidence'] < 0.5:
+        return {
+            'should_search': True,
+            'warning': 'Did you mean to search for a recipe? Try ingredient or dish names for better results.',
+            'query': query
+        }
+
+    # Confident recipe query, proceed normally
+    return {'should_search': True, 'query': query}
+```
+
+#### 3. UI Feedback
+
+Show helpful messages when non-recipe terms detected:
+
+```
+┌─────────────────────────────────────────────┐
+│  Search: "bbc food"                         │
+│                                             │
+│  ⚠️  This doesn't look like a recipe search │
+│                                             │
+│  Try searching for:                         │
+│  • Ingredients: "chicken", "pasta", "beef"  │
+│  • Dishes: "chicken pie", "beef stew"       │
+│  • Cuisines: "Italian recipes", "Thai food" │
+│                                             │
+│  [Search Anyway]  [Clear]                   │
+└─────────────────────────────────────────────┘
+```
+
+#### 4. Ingredient/Food Term Dictionary
+
+Build a comprehensive food vocabulary from existing data:
+
+```python
+# One-time population from existing recipes
+python manage.py build_food_vocabulary
+
+# Creates dictionary from:
+# - Scraped recipe ingredients (deduplicated)
+# - Recipe titles (extract nouns)
+# - External food databases (USDA, schema.org food ontology)
+```
+
+Store in database for fast lookup:
+
+```python
+class FoodVocabulary(models.Model):
+    term = models.CharField(max_length=100, unique=True, db_index=True)
+    category = models.CharField(max_length=50)  # ingredient, dish, cuisine, method
+    frequency = models.IntegerField(default=0)  # How often it appears in recipes
+    aliases = models.JSONField(default=list)    # Synonyms
+```
+
+---
+
+### Solution B: AI-Powered Query Understanding (When AI Enabled)
+
+Use AI for sophisticated query interpretation and rewriting:
+
+#### 1. Intent Classification
+
+Use AI to detect whether query has recipe intent:
+
+```python
+# apps/ai/services/query_intent.py
+
+async def classify_query_intent(query: str) -> dict:
+    prompt = f"""
+    Analyze this search query: "{query}"
+
+    Classify whether the user is looking for:
+    1. A recipe (ingredient, dish name, cuisine, cooking method)
+    2. A website/brand (BBC Food, AllRecipes, etc.)
+    3. General food information (not a recipe)
+    4. Something unrelated to food
+
+    If it's not a clear recipe search, suggest 2-3 recipe-related alternatives.
+
+    Return JSON:
+    {{
+        "intent": "recipe" | "brand" | "general_food" | "unrelated",
+        "confidence": 0.0-1.0,
+        "reasoning": "brief explanation",
+        "recipe_suggestions": ["alternative 1", "alternative 2", ...]
+    }}
+    """
+
+    response = await openrouter_client.chat(prompt)
+    return parse_json_response(response)
+```
+
+#### 2. Query Rewriting
+
+Transform ambiguous queries into recipe-focused ones:
+
+```python
+async def rewrite_query(query: str) -> str:
+    """
+    Examples:
+    - "bbc food" → "popular British recipes"
+    - "google recipes" → "popular recipes"
+    - "something with chicken" → "chicken recipes"
+    - "dinner ideas" → "easy dinner recipes"
+    """
+
+    prompt = f"""
+    Rewrite this search query to be more recipe-focused: "{query}"
+
+    Rules:
+    - Remove brand names and replace with recipe intent
+    - Convert vague terms to specific ingredients/dishes
+    - Keep user's implied preferences (e.g., "quick" → "quick recipes")
+    - Return only the rewritten query, nothing else
+    """
+
+    return await openrouter_client.chat(prompt)
+```
+
+#### 3. Semantic Search Enhancement
+
+When AI features enabled, use embeddings to understand broader concepts:
+
+```python
+# User searches: "healthy dinner"
+# Semantic search also finds: "low-calorie meals", "nutritious recipes", "light dishes"
+
+async def semantic_recipe_search(query: str) -> list:
+    # Generate query embedding
+    query_embedding = await get_text_embedding(query)
+
+    # Find recipes with similar semantic meaning
+    # (Requires pre-computed recipe embeddings - see implementation notes)
+    similar_recipes = find_similar_by_embedding(query_embedding, top_k=20)
+
+    return similar_recipes
+```
+
+#### 4. Smart Suggestions
+
+Generate contextual recipe suggestions when query is ambiguous:
+
+```
+┌──────────────────────────────────────────────┐
+│  Search: "bbc food"                          │
+│                                              │
+│  🤖 AI Suggestion:                           │
+│  It looks like you're searching for a        │
+│  website. Here are popular recipe searches:  │
+│                                              │
+│  🔍 British classics                         │
+│  🔍 Popular UK recipes                       │
+│  🔍 Traditional English dishes               │
+│                                              │
+│  [Use suggestion] [Search anyway]            │
+└──────────────────────────────────────────────┘
+```
+
+---
+
+### Implementation Strategy
+
+#### Phase 1: Non-AI Foundation (Always Available)
+
+1. Build food vocabulary from existing recipes
+2. Implement rule-based query classifier
+3. Add UI feedback for non-recipe queries
+4. Track query patterns to improve classification
+
+**Files:**
+- `apps/recipes/models.py` - Add `FoodVocabulary` model
+- `apps/recipes/services/query_classifier.py` - New classification service
+- `apps/recipes/management/commands/build_food_vocabulary.py` - Vocabulary builder
+- `frontend/src/components/SearchQueryFeedback.tsx` - UI feedback component
+- `apps/legacy/templates/legacy/includes/search_feedback.html` - Legacy UI
+
+#### Phase 2: AI Enhancement (Optional, AI-Enabled Only)
+
+1. Implement intent classification with OpenRouter
+2. Add query rewriting capability
+3. Generate smart recipe suggestions
+4. Consider semantic search (requires embeddings infrastructure)
+
+**Files:**
+- `apps/ai/services/query_intent.py` - New AI query service
+- `apps/recipes/views.py` - Integrate AI classification before search
+- Frontend/legacy - Update UI to show AI suggestions
+
+---
+
+### Technical Considerations
+
+#### Dictionary Size & Performance
+
+- Food vocabulary: ~2000-5000 terms (ingredients + dishes + cuisines)
+- In-memory cache for fast lookup (< 1MB)
+- Database index on `term` field for persistence
+- Consider Trie data structure for prefix matching
+
+#### False Positives/Negatives
+
+- "Turkey soup" - Could be country or bird (use context: "turkey" alone = likely country, "turkey soup" = recipe)
+- "Chicken Google" - Mixed signals (ingredient + brand)
+- "BBC Good Food roast chicken" - Brand name + recipe (allow, extract recipe part)
+
+Solution: Use confidence scoring and warn rather than block
+
+#### AI Costs
+
+- Intent classification: ~100 tokens per query
+- Query rewriting: ~150 tokens per query
+- Only trigger when non-AI classifier is uncertain (confidence < 0.5)
+- Cache results for common queries
+
+#### Semantic Search Infrastructure
+
+Full semantic search requires:
+- Pre-computed embeddings for all recipes (one-time cost)
+- Vector similarity search (consider pgvector if using PostgreSQL)
+- Embedding API costs (OpenAI, Cohere, etc.)
+
+**Recommendation:** Start with intent + rewriting, defer semantic search to future enhancement
+
+---
+
+### Success Metrics
+
+Track improvements:
+
+```python
+class SearchQueryMetrics(models.Model):
+    query = models.CharField(max_length=200)
+    classification = models.CharField(max_length=50)
+    confidence = models.FloatField()
+    user_action = models.CharField(max_length=50)  # 'searched_anyway', 'used_suggestion', 'cleared'
+    results_count = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+```
+
+Monitor:
+- % of non-recipe queries detected
+- User acceptance of suggestions vs. "search anyway"
+- Result quality improvement (proxy: recipes saved from search)
+- Reduction in zero-result searches
+
+---
+
+### User Experience Examples
+
+#### Example 1: Brand Name
+
+**Query:** "bbc food"
+
+**Non-AI Response:**
+```
+⚠️  Tip: Try searching for specific recipes instead of website names
+Suggestions: "British recipes", "classic UK dishes", "traditional English food"
+```
+
+**AI Response:**
+```
+🤖 It looks like you're looking for BBC's recipe collection.
+Try these popular searches instead:
+• "Traditional British recipes"
+• "Classic UK comfort food"
+• "British baking recipes"
+```
+
+#### Example 2: Vague Query
+
+**Query:** "something for dinner"
+
+**Non-AI Response:**
+```
+⚠️  Try being more specific for better results
+Examples: "quick chicken dinner", "vegetarian dinner recipes", "easy pasta dishes"
+```
+
+**AI Response:**
+```
+🤖 Rewriting your search...
+Searching for: "easy dinner recipes"
+```
+
+#### Example 3: Good Query
+
+**Query:** "chicken curry"
+
+**Response:** (Proceeds to search normally - no intervention needed)
+
+---
+
+### Benefits
+
+**For all users:**
+- Better search results (fewer irrelevant queries)
+- Educational feedback (learn how to search effectively)
+- Reduced frustration from poor results
+- Faster path to finding recipes
+
+**With AI enabled:**
+- Intelligent query understanding
+- Automatic query optimization
+- Contextual suggestions
+- Natural language support ("make me something spicy")
+
+---
+
+### Related Enhancements
+
+- **FE-001:** Database-driven search URL filters (complements this by filtering results)
+- **FE-009:** AI-powered meal pairing (similar AI-driven recipe discovery)
+
+---
+
+### Research Sources
+
+This enhancement is informed by current research and industry practices:
+
+- **Intent Classification:** [Intent Detection for AI Systems](https://medium.com/@tombastaner/intent-detection-for-ai-systems-understanding-what-users-really-want-2399064e3cf4) - Understanding user intent through AI
+- **Query Rewriting:** [GenRewrite: Query Rewriting via Large Language Models](https://arxiv.org/pdf/2403.09060) - LLM-based query optimization
+- **Semantic Search:** [Semantic Search: Why It Matters For Enterprises](https://www.voiceflow.com/blog/semantic-search) - Context-aware search understanding
+- **Recipe NER:** [Revisiting named entity recognition in food computing](https://link.springer.com/article/10.1007/s10462-024-10834-y) - Food domain entity recognition
+- **Search Intent:** [Search Intent Optimisation with AI: The 2026 Best Strategy Guide](https://www.clickrank.ai/search-intent-optimisation-with-ai/) - Modern search intent strategies
+- **Google's Approach:** [Google AI Overviews recipe searches: Implicit Query Optimization](https://topmostads.com/google-ai-overviews-recipe-searches/) - How Google interprets recipe intent
+- **Query Understanding:** [Query understanding 101](https://www.algolia.com/blog/product/query-understanding-101) - Fundamentals of query processing
+- **AI-Powered Search:** [AI-powered search: What you need to know](https://www.meilisearch.com/blog/ai-powered-search) - Modern AI search techniques
+
+---
+
+### Priority
+
+Medium - Improves UX significantly but doesn't block core functionality
