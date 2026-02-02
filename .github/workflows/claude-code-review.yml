@@ -38,7 +38,80 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
-          prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
+          allowed_bots: 'dependabot'
+          prompt: |
+            You are reviewing Cookie - a self-hosted recipe manager with dual frontends.
+
+            CRITICAL: Read claude.md in the repository root for complete project rules.
+
+            ## Tech Stack
+
+            **Backend:**
+            - Django 5.x with Django Ninja (REST API)
+            - Python with Gunicorn (2 workers, 2 threads for background tasks)
+            - Docker-only environment (NO commands run on host)
+            - recipe-scrapers + curl_cffi for web scraping
+            - OpenRouter for AI features (10 total)
+            - Pillow for image processing
+
+            **Modern Frontend (frontend/):**
+            - React 19 + TypeScript
+            - Vite build system
+            - Tailwind CSS 4.x
+            - Radix UI components
+            - Motion animations
+            - Vitest for testing
+
+            **Legacy Frontend (apps/legacy/):**
+            - ES5 JavaScript ONLY (for iOS 9 on old iPads)
+            - No const/let, arrow functions, async/await, template literals
+            - Django templates + static JS
+            - Light theme only (no dark mode)
+            - Requires container restart after changes
+
+            ## Review Focus
+
+            1. **Docker Environment Compliance:**
+               - NEVER suggest running Python/Django commands on host
+               - All backend: `docker compose exec web python ...`
+               - All frontend: `docker compose exec frontend npm ...`
+
+            2. **Legacy Frontend ES5 Compliance:**
+               - Check for ES6+ syntax (const/let, arrows, template literals, async/await)
+               - Flag any modern JS that won't work on iOS 9 Safari
+               - Verify container restart instructions after static file changes
+
+            3. **AI Feature Integration:**
+               - Verify AI-dependent features hide when API key missing
+               - Check serving adjustment is AI-only (no frontend fallback)
+               - Ensure 10 AI features align with claude.md list
+
+            4. **Code Quality Limits (NEVER raise these):**
+               - Max function complexity: 15
+               - Max lines per function: 100
+               - Max file size: 500 lines
+               - If exceeded, REFACTOR - don't raise limits
+
+            5. **Security & Performance:**
+               - Django injection risks (SQL, XSS, template)
+               - React XSS risks (dangerouslySetInnerHTML, dynamic imports)
+               - Image caching background threads working correctly
+               - curl_cffi usage for scraping (not requests)
+
+            6. **Architecture Decisions (from claude.md):**
+               - Single environment (dev=prod)
+               - 15 curated search sources (not all 563)
+               - Remixes create new Recipe records (is_remix=True)
+               - Serving adjustment not persisted (AI on-the-fly)
+               - Images stored locally in media/ directory
+               - Play mode is stateless
+
+            7. **Testing:**
+               - Backend: pytest only (no unittest)
+               - Frontend: Vitest with React Testing Library
+               - Django test client for API integration tests
+
+            Provide specific line references and suggest concrete improvements.
+            Flag any violations of claude.md rules.
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
-

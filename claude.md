@@ -1,163 +1,219 @@
-# Claude Code Instructions for Cookie 2
+# Claude Code Instructions for Cookie
 
-## Critical Rules
+**Recipe manager with dual frontends: Modern (React) + Legacy (iOS 9 iPad)**
 
-### Docker is the ONLY Environment
+## Critical Rules - Read These First
 
-**⚠️ STOP - READ THIS FIRST ⚠️**
+> **Complete rules in `.claude/rules/` directory** - This file is an overview. For detailed patterns, see individual rule files.
 
-The host machine has NO Python/Django installed. ALL backend commands MUST run inside Docker:
+### 1. Docker is the ONLY Environment
 
-```bash
-# Tests
-docker compose exec web python -m pytest
+⚠️ **The host has NO Python/Django installed!**
 
-# Django shell
-docker compose exec web python manage.py shell
+❌ Never run: `python`, `pytest`, `manage.py` on host
+✅ Always use: `docker compose exec web python ...`
 
-# Any management command
-docker compose exec web python manage.py <command>
-
-# Frontend tests
-docker compose exec frontend npm test
-```
-
-**If you see `ModuleNotFoundError: No module named 'django'`, you ran on the host instead of the container.**
+**See:** `.claude/rules/docker-environment.md` for complete command reference
 
 ---
 
+### 2. Legacy Frontend = ES5 JavaScript ONLY
+
+⚠️ **iOS 9 Safari compatibility required!**
+
+❌ Forbidden: `const`, `let`, arrow functions, template literals, `async/await`
+✅ Required: `var`, `function()`, string concatenation, callbacks
+
+**See:** `.claude/rules/es5-compliance.md` for complete syntax rules
+
+**After legacy changes:**
+```bash
+docker compose down && docker compose up -d  # Restart to run collectstatic
+```
+
+---
+
+### 3. Code Quality Limits are IMMUTABLE
+
+❌ **NEVER raise these limits in linter configs:**
+- Max function length: 100 lines (prefer 50)
+- Max complexity: 15
+- Max file size: 500 lines
+
+✅ **ALWAYS refactor** by extracting helper functions
+
+**See:** `.claude/rules/code-quality.md` for refactoring examples
+
+---
+
+### 4. AI Features Must Hide When Unavailable
+
+⚠️ **10 AI features total** - When API key missing or API fails:
+
+❌ Don't: Show disabled buttons, display errors to users
+✅ Do: Hide ALL AI features completely
+
+**See:** `.claude/rules/ai-features.md` for complete list and fallback patterns
+
+---
+
+### 5. Security First
+
+**Django:** SQL injection, XSS, CSRF protection
+**React:** XSS prevention, URL validation, safe rendering
+
+**See:**
+- `.claude/rules/django-security.md`
+- `.claude/rules/react-security.md`
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Backend** | Django 5.x + Django Ninja (REST API) |
+| **Database** | PostgreSQL |
+| **Modern Frontend** | React 19 + TypeScript + Vite + Tailwind 4 |
+| **Legacy Frontend** | ES5 JavaScript (iOS 9 Safari) |
+| **Scraping** | recipe-scrapers + curl_cffi |
+| **AI** | OpenRouter (10 features) |
+| **Testing** | pytest (backend), Vitest (frontend) |
+
+---
+
+## Quick Reference
+
 ### Figma Design Interpretation
 
-1. **Settings AI Prompts page is FOR LAYOUT ONLY** - The 4 prompts shown (Recipe Remix, Serving Adjustment, Tips Generation, Nutrition Analysis) are just examples to show how the settings page should look. DO NOT use this to determine which AI features exist.
+- **Settings AI Prompts page is LAYOUT ONLY** - Shows 4 example prompts, but project has 10 AI features
+- **Scan screens for sparkles icons** - Indicate actual AI features
+- **Nutrition is SCRAPED ONLY** - No AI for nutrition analysis
 
-2. **Scan OTHER screens for AI features** - To find all AI integrations, look for:
-   - Sparkles icons (indicate AI-powered features)
-   - Buttons/toggles that trigger AI functionality
-   - Features that require generated content
+### 10 AI Features
 
-3. **Actual AI features (10 total):**
-   - `recipe_remix` - Create recipe variations
-   - `serving_adjustment` - Scale ingredients
-   - `tips_generation` - Generate cooking tips
-   - `discover_favorites` - Suggest based on user favorites
-   - `discover_seasonal` - Suggest seasonal/holiday recipes
-   - `discover_new` - Suggest outside comfort zone
-   - `search_ranking` - Rank search results by relevance
-   - `timer_naming` - Generate descriptive timer labels
-   - `remix_suggestions` - Generate contextual remix prompts per recipe
-   - `selector_repair` - Auto-fix broken CSS selectors for search sources
-
-4. **Nutrition is SCRAPED ONLY** - No AI for nutrition analysis. Display whatever the recipe-scrapers library extracts from the source site.
+1. `recipe_remix` - Create variations
+2. `serving_adjustment` - Scale ingredients (AI-only, no frontend fallback)
+3. `tips_generation` - Generate cooking tips
+4. `discover_favorites` - Suggest based on favorites
+5. `discover_seasonal` - Seasonal/holiday recipes
+6. `discover_new` - Outside comfort zone
+7. `search_ranking` - Rank search results
+8. `timer_naming` - Descriptive timer labels
+9. `remix_suggestions` - Contextual remix prompts
+10. `selector_repair` - Auto-fix broken CSS selectors
 
 ### Architecture Decisions
 
-5. **Single environment** - One Docker environment for dev that uses production-grade tools (nginx, Gunicorn). No separate dev/test/prod configurations.
+| Question | Answer |
+|----------|--------|
+| Environments? | Single (dev=prod) |
+| Search sources? | 15 curated (not all 563) |
+| Remix source_url? | Nullable (user-generated) |
+| Remix visibility? | Per-profile only |
+| Serving adjustment? | AI-only, not persisted |
+| AI unavailable? | Hide all AI features |
+| Unit toggle? | Persisted profile setting |
+| Play mode state? | Stateless (browser-only) |
+| Legacy dark mode? | No (light only) |
+| Timer audio? | Default browser notification |
+| Re-scraping URL? | Creates new recipe (no dedup) |
 
-6. **15 curated search sources** - Not the full 563 from recipe-scrapers. Only the most popular sites with implemented search.
+---
 
-7. **source_url nullable for remixes** - Remixed recipes don't have a source URL since they're AI-generated, not scraped.
+## Testing & QA
 
-8. **Discover view = mixed feed** - Combine results from all 3 AI search types (favorites-based, seasonal, try-new) into one unified feed. Include a mix of similar recipes, opposite/new cuisines, and date-relevant suggestions.
-
-9. **AI fallback = HIDE features** - When OpenRouter API key is not set or API fails:
-   - Hide ALL AI-dependent features from the user
-   - Hide buttons, toggles, options that require AI
-   - Return suitable error from backend API if called
-   - Serving Adjustment is AI-ONLY (no frontend math fallback) - hide +/- buttons completely
-
-10. **Collections terminology** - Use "Collections" in UI (not "Lists"). The internal code may use "lists" but user-facing text should say "Collections".
-
-### Legacy Frontend
-
-11. **Light theme only** - No dark mode for iOS 9 legacy interface
-12. **Function over form** - Full user journey with simplified layout
-13. **ES5 JavaScript only** - No const/let, arrow functions, template literals, async/await
-14. **Timers are REQUIRED** - Play mode must have working timers on legacy
-15. **NEVER raise complexity limits** - If a function exceeds complexity thresholds (e.g., `complexity: 15`, `max-lines-per-function: 100`, cyclomatic complexity limits in any linter), REFACTOR the code by extracting helper functions. Do NOT raise the limits in any linter config file. The limits exist to maintain code quality.
-
-### Container Restart After Legacy Changes (IMPORTANT)
-
-**After ANY change to legacy frontend files (JS, CSS), restart containers:**
+### Manual QA (especially iPad testing)
 
 ```bash
-docker compose down && docker compose up -d
+/qa-session           # Full QA checklist
+/qa-session legacy    # iOS 9 iPad testing
+/qa-session ai        # AI features
 ```
 
-The entrypoint script automatically runs `collectstatic` on every container start.
+### Running Tests
 
-**Why restart is required:**
-- Static files are served from `./staticfiles/` on the host (mounted into nginx)
-- `collectstatic` copies from `apps/legacy/static/` to `./staticfiles/`
-- The entrypoint runs this automatically, but only on container start
-
-**Quick verification before QA:**
 ```bash
-# Check static file has your changes
-grep "unique string from your change" ./staticfiles/legacy/js/pages/detail.js
+# Backend
+docker compose exec web python -m pytest
+docker compose exec web python -m pytest --cov
 
-# Check container logs show collectstatic ran
-docker compose logs web | grep "Collecting static"
+# Frontend
+docker compose exec frontend npm test
+docker compose exec frontend npm run test:watch
+docker compose exec frontend npm run test:coverage
 ```
 
-**Template changes (.html)** - No restart needed, Django serves directly.
-
-**Remind user to clear iPad Safari cache** after deploying changes:
-Settings → Safari → Clear History and Website Data
-
-### Data Model
-
-15. **Full recipe-scrapers support** - Database schema supports ALL fields from the library (ingredient_groups, equipment, dietary_restrictions, etc.)
-
-16. **Images stored locally** - Two-tier storage: (1) Search results cached immediately for iOS 9 compatibility, (2) Recipe images downloaded at import/scrape time and stored permanently. Search cache has 30-day TTL (cleanup via `cleanup_search_images` command), recipe images permanent.
-
-17. **Serving adjustment not persisted** - Computed on-the-fly via AI, original recipe data stays pristine. AI-only, no frontend math fallback.
-
-18. **Remixes ARE persisted** - Create new Recipe records with `is_remix=True`. No need to track parent recipe (original_recipe FK removed - UI doesn't use it).
-
-19. **Unit toggle persisted** - Metric/Imperial is a profile setting applied to all recipe views. Uses AI conversion when needed, or code conversion if scraped data is granular enough.
-
-20. **Discover for new users** - Show seasonal/holiday suggestions based on current date and worldwide holidays when user has no favorites/history.
-
-21. **Timer audio** - Use default browser notification sound. No custom audio files.
-
-22. **Recipe deletion + remixes** - When original recipe is deleted, remixes become standalone (orphans). They keep `is_remix=True` but have no link to original.
-
-23. **Debug mode** - Ignore for now. Figma shows it in Settings but defer implementation until needed.
-
-24. **Remixed recipe fields** - For `is_remix=True` recipes: `host="user-generated"`, `site_name="User Generated"`. Frontend displays "User Generated" badge.
-
-25. **Serving adjustment visibility** - Only show when BOTH: (a) API key configured, AND (b) recipe has servings value. Hide completely if either condition fails.
-
-26. **GitHub repo** - https://github.com/matthewdeaves/cookie.git (shown in Settings About section)
-
-27. **Re-scraping creates new recipe** - Importing a URL that already exists creates a new Recipe record. No deduplication or cache lookup. Tips regenerated for new recipe.
-
-28. **Remixes are per-profile** - When Profile A creates a remix, Profile B cannot see it. Remixes belong to the creating profile only.
-
-29. **Play mode is stateless** - No server-side state. If user navigates away mid-cook, they lose their place. This is acceptable.
-
-30. **Testing framework** - pytest for all tests (unit + integration). Use Django's test client for API tests.
-
-31. **ALL backend commands run in Docker** - The host has NO Python/Django environment. NEVER run Python, pytest, manage.py, or any backend command on the host. Docker is the ONLY environment.
-    - **Backend tests:** `docker compose exec web python -m pytest`
-    - **Django shell:** `docker compose exec web python manage.py shell`
-    - **Management commands:** `docker compose exec web python manage.py <command>`
-    - **Frontend tests:** `docker compose exec frontend npm test` (runs and exits)
-    - **Frontend watch:** `docker compose exec frontend npm run test:watch`
-
-    ⚠️ If you see `ModuleNotFoundError: No module named 'django'`, you forgot to use the container!
-
-32. **Selector AI fallback** - When a search source's CSS selector fails, AI analyzes the HTML and suggests a new selector. Auto-updates the source setting on success.
+---
 
 ## File Locations
 
 - **Figma export:** `/home/matt/cookie/Cookie Recipe App Design/`
 - **recipe-scrapers:** `/home/matt/recipe-scrapers`
 - **curl_cffi:** `/home/matt/curl_cffi`
-- **Phase plans:** `/home/matt/cookie/plans/` (10 focused phase files)
+- **Phase plans:** `/home/matt/cookie/plans/`
 - **Workflow guide:** `/home/matt/cookie/WORKFLOW.md`
 
-### Phase Files
+---
+
+## .claude/ Directory Structure
+
+Cookie uses Claude Code's extensibility features:
+
+```
+.claude/
+├── rules/                    # Domain-specific knowledge
+│   ├── es5-compliance.md    # iOS 9 Safari ES5 requirements
+│   ├── docker-environment.md # Docker-only command patterns
+│   ├── code-quality.md      # Immutable quality gates
+│   ├── ai-features.md       # 10 AI features + fallback patterns
+│   ├── django-security.md   # SQL injection, XSS, CSRF
+│   └── react-security.md    # React XSS, safe rendering
+├── hooks/                    # Pre-commit validation (auto-runs)
+│   ├── es5-syntax-check.sh  # Blocks ES6+ in legacy/
+│   ├── complexity-check.sh  # Blocks functions >100 lines
+│   └── docker-command-check.sh # Warns about host commands
+├── skills/                   # User-invocable workflows
+│   └── qa-session/          # Manual testing checklist
+└── settings.local.json       # Hooks config + permissions
+```
+
+**Hooks auto-run before Edit/Write/Bash operations** - No manual action needed!
+
+---
+
+## Data Model Key Points
+
+- **Images stored locally** - Two-tier: search cache (30-day TTL) + recipe images (permanent)
+- **Remixes persisted** - New Recipe records with `is_remix=True`, `host="user-generated"`
+- **Remixes per-profile** - Not shared between profiles
+- **Remix orphaning** - If original deleted, remixes become standalone
+- **Serving adjustment** - NOT persisted, AI-computed on-the-fly
+- **Full recipe-scrapers support** - DB schema supports ALL fields (ingredient_groups, equipment, etc.)
+
+---
+
+## Image Cache Monitoring
+
+Check health:
+```bash
+curl http://localhost/api/recipes/cache/health/
+```
+
+View caching logs:
+```bash
+docker compose logs -f web | grep "Cached image from"
+```
+
+Cleanup old images (30+ days):
+```bash
+docker compose exec -T web python manage.py cleanup_search_images --days=30 --dry-run
+docker compose exec -T web python manage.py cleanup_search_images --days=30  # actual delete
+```
+
+---
+
+## Phase Files
 
 | Phase | File | Focus |
 |-------|------|-------|
@@ -172,140 +228,25 @@ Settings → Safari → Clear History and Website Data
 | 8B | `PHASE-8B-AI-FEATURES.md` | All 10 AI Features |
 | 9 | `PHASE-9-POLISH.md` | Settings + Testing |
 
-## Quick Reference
+---
 
-| Question | Answer |
-|----------|--------|
-| How many AI prompts? | 10 |
-| How many search sources? | 15 |
-| Nutrition AI? | No, scraped only |
-| Environments? | Single (dev=prod) |
-| Remix source_url? | Nullable |
-| Remix host/site_name? | "user-generated" / "User Generated" |
-| Track remix parent? | No (UI doesn't use it) |
-| AI unavailable behavior? | Hide all AI features |
-| Serving adjustment persisted? | No, AI-only on-the-fly |
-| Serving adjustment fallback? | None - hide when no API key |
-| Serving adjustment no servings? | Hide (can't scale without base) |
-| Unit toggle persisted? | Yes, profile setting applied to all views |
-| Timer audio? | Default browser notification |
-| Legacy dark mode? | No, light only |
-| Discover for new user? | Seasonal/holiday only |
-| Debug mode? | Ignore for now |
-| GitHub repo? | github.com/matthewdeaves/cookie.git |
-| Re-scraping URL? | Creates new recipe (no dedup) |
-| Remix visibility? | Per-profile only |
-| Play mode state? | Stateless, browser-only |
-| Testing framework? | pytest |
-| Selector failure fallback? | AI suggests new selector |
+## GitHub
 
-## Image Cache Monitoring
+- **Repository:** https://github.com/matthewdeaves/cookie.git
+- **CI:** `.github/workflows/ci.yml`
+- **Claude Code Review:** `.github/workflows/claude-code-review.yml`
 
-The image caching system (QA-009) uses background threading to cache search result images for iOS 9 compatibility. Monitor system health and performance using these tools:
+---
 
-### Health Check Endpoint
+## For Complete Rules
 
-Check cache status and statistics:
-```bash
-curl http://localhost/api/recipes/cache/health/
-```
+This file is a quick reference. For detailed patterns and examples:
 
-Returns:
-```json
-{
-  "status": "healthy",
-  "cache_stats": {
-    "total": 50,
-    "success": 48,
-    "pending": 0,
-    "failed": 2,
-    "success_rate": "96.0%"
-  }
-}
-```
+1. **ES5 compliance:** `.claude/rules/es5-compliance.md`
+2. **Docker commands:** `.claude/rules/docker-environment.md`
+3. **Code quality:** `.claude/rules/code-quality.md`
+4. **AI features:** `.claude/rules/ai-features.md`
+5. **Django security:** `.claude/rules/django-security.md`
+6. **React security:** `.claude/rules/react-security.md`
 
-### Background Thread Activity
-
-View logs for background caching operations:
-```bash
-docker compose logs -f web | grep "Cached image from"
-docker compose logs -f web | grep "Background image caching"
-```
-
-### Database Queries
-
-Check cache statistics directly:
-```bash
-docker compose exec -T web python manage.py shell
-```
-
-```python
-from apps.recipes.models import CachedSearchImage
-CachedSearchImage.objects.filter(status='success').count()
-CachedSearchImage.objects.filter(status='failed').count()
-CachedSearchImage.objects.filter(status='pending').count()
-```
-
-### Performance Metrics
-
-Monitor search API response time:
-```bash
-time curl "http://localhost/api/recipes/search/?q=chicken"
-# Expected: 2-4 seconds (search + fire-and-forget caching)
-# Images appear on refresh/subsequent searches
-```
-
-### Cleanup Automation
-
-Run weekly cleanup to remove old cached images (30+ days):
-```bash
-# Dry run to preview deletions
-docker compose exec -T web python manage.py cleanup_search_images --days=30 --dry-run
-
-# Actually delete old images
-docker compose exec -T web python manage.py cleanup_search_images --days=30
-```
-
-Add to crontab for weekly automation:
-```bash
-# Run weekly on Sunday at 2am
-0 2 * * 0 cd /path/to/cookie && docker compose exec -T web python manage.py cleanup_search_images --days=30
-```
-
-### Image Quality Settings
-
-- **Format**: All images converted to JPEG for iOS 9 compatibility (no WebP support)
-- **Quality**: JPEG quality=92 for high-DPI displays (Retina, 4K)
-- **File sizes**: Average 50-100KB per image
-- **Storage**: Two-tier system
-  - Search cache: `media/search_images/` (30-day TTL)
-  - Recipe images: `media/recipe_images/` (permanent)
-
-### Production Configuration
-
-Gunicorn configured with threading support for background caching:
-```bash
-# Dockerfile CMD
-gunicorn --bind 0.0.0.0:8000 --reload --workers 2 --threads 2 cookie.wsgi:application
-```
-
-- **Workers**: 2 processes to handle concurrent requests
-- **Threads**: 2 threads per worker for background threading
-- **Worker class**: sync (default, compatible with threading.Thread)
-
-### Troubleshooting
-
-**Images not appearing:**
-1. Check health endpoint for failed caches
-2. Verify background threads are running (check logs)
-3. Check media directory permissions: `ls -l media/search_images/`
-
-**High failure rate:**
-1. Check logs for HTTP errors: `docker compose logs web | grep "Failed to cache"`
-2. Verify curl_cffi is working: Test scraping manually
-3. Check network connectivity to external recipe sites
-
-**Slow performance:**
-1. Verify threading is enabled (check Gunicorn config)
-2. Check for pending caches: May indicate thread backlog
-3. Monitor CPU/memory usage during searches
+**Hooks auto-run - no need to remember!** 🎉
