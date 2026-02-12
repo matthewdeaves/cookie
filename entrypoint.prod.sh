@@ -25,6 +25,24 @@ if [ -z "$SECRET_KEY" ]; then
     export SECRET_KEY=$(cat "$SECRET_KEY_FILE")
 fi
 
+# Wait for PostgreSQL if configured
+if [[ "$DATABASE_URL" == postgres* ]] || [[ "$DATABASE_URL" == postgresql* ]]; then
+    echo "Waiting for PostgreSQL..."
+    for i in {1..30}; do
+        if python -c "
+import django
+django.setup()
+from django.db import connection
+connection.ensure_connection()
+" 2>/dev/null; then
+            echo "PostgreSQL is ready!"
+            break
+        fi
+        echo "Waiting for database... ($i/30)"
+        sleep 2
+    done
+fi
+
 echo "Running migrations..."
 python manage.py migrate --noinput
 

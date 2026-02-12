@@ -109,9 +109,11 @@ def populated_database(db, test_profile):
         notes=["Double the baking time"],
     )
 
-    # Create cached search image
+    # Create cached search image with unique URL to avoid conflicts
+    import uuid
+
     cached_image = CachedSearchImage.objects.create(
-        external_url="https://example.com/image.jpg",
+        external_url=f"https://example.com/system-api-test-{uuid.uuid4()}.jpg",
         status=CachedSearchImage.STATUS_SUCCESS,
     )
 
@@ -146,7 +148,7 @@ class TestHealthCheck:
 class TestResetPreview:
     """Tests for GET /api/system/reset-preview/"""
 
-    def test_preview_empty_database(self, client):
+    def test_preview_empty_database(self, client, db):
         """Test preview with empty database returns zero counts."""
         response = client.get("/api/system/reset-preview/")
         assert response.status_code == 200
@@ -154,6 +156,7 @@ class TestResetPreview:
         data = response.json()
         counts = data["data_counts"]
 
+        # These should be zero in a fresh database transaction
         assert counts["profiles"] == 0
         assert counts["recipes"] == 0
         assert counts["recipe_images"] == 0
@@ -183,7 +186,7 @@ class TestResetPreview:
         assert counts["serving_adjustments"] == 1
         assert counts["cached_search_images"] == 1
 
-    def test_preview_returns_preserved_items(self, client):
+    def test_preview_returns_preserved_items(self, client, db):
         """Test preview lists items that will be preserved."""
         response = client.get("/api/system/reset-preview/")
         assert response.status_code == 200
@@ -195,7 +198,7 @@ class TestResetPreview:
         assert "AI prompt templates" in preserved
         assert "Application settings" in preserved
 
-    def test_preview_returns_warnings(self, client):
+    def test_preview_returns_warnings(self, client, db):
         """Test preview includes safety warnings."""
         response = client.get("/api/system/reset-preview/")
         assert response.status_code == 200
