@@ -78,6 +78,13 @@ class Recipe(models.Model):
         blank=True,
         related_name="remixes",
     )
+    remixed_from = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="remix_children",
+    )
 
     # Timestamps
     scraped_at = models.DateTimeField(auto_now_add=True)
@@ -89,6 +96,7 @@ class Recipe(models.Model):
             models.Index(fields=["is_remix"]),
             models.Index(fields=["scraped_at"]),
             models.Index(fields=["profile"]),
+            models.Index(fields=["remixed_from"]),
         ]
 
     def __str__(self):

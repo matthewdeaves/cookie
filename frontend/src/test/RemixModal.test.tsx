@@ -60,6 +60,8 @@ const mockRecipe: RecipeDetail = {
   language: 'en',
   links: [],
   remix_profile_id: null,
+  remixed_from_id: null,
+  linked_recipes: [],
   updated_at: '2024-01-01T00:00:00Z',
 }
 
@@ -189,6 +191,91 @@ describe('RemixModal', () => {
     fireEvent.click(suggestionBtn)
 
     expect(suggestionBtn).toHaveClass('bg-muted')
+  })
+
+  it('allows selecting multiple suggestions', async () => {
+    vi.mocked(api.ai.remix.getSuggestions).mockResolvedValue({
+      suggestions: ['Make it vegan', 'Make it spicy', 'Add nuts'],
+    })
+
+    render(
+      <RemixModal
+        recipe={mockRecipe}
+        profileId={1}
+        isOpen={true}
+        onClose={vi.fn()}
+        onRemixCreated={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Make it vegan')).toBeInTheDocument()
+    })
+
+    // Select multiple suggestions
+    fireEvent.click(screen.getByText('Make it vegan'))
+    fireEvent.click(screen.getByText('Make it spicy'))
+
+    // Both should be selected
+    expect(screen.getByText('Make it vegan').closest('button')).toHaveClass('bg-primary')
+    expect(screen.getByText('Make it spicy').closest('button')).toHaveClass('bg-primary')
+    expect(screen.getByText('Add nuts').closest('button')).toHaveClass('bg-muted')
+
+    // Should show selection count
+    expect(screen.getByText('2 selected')).toBeInTheDocument()
+  })
+
+  it('combines multiple suggestions when creating remix', async () => {
+    vi.mocked(api.ai.remix.getSuggestions).mockResolvedValue({
+      suggestions: ['Make it vegan', 'Make it spicy'],
+    })
+    vi.mocked(api.ai.remix.create).mockResolvedValue({
+      id: 2,
+      title: 'Vegan Spicy Chocolate Chip Cookies',
+      description: '',
+      ingredients: [],
+      instructions: [],
+      host: 'cookie-remix',
+      site_name: 'Cookie Remix',
+      is_remix: true,
+      prep_time: 15,
+      cook_time: 12,
+      total_time: 27,
+      yields: '24 cookies',
+      servings: 24,
+    })
+
+    const handleRemixCreated = vi.fn()
+    const handleClose = vi.fn()
+
+    render(
+      <RemixModal
+        recipe={mockRecipe}
+        profileId={1}
+        isOpen={true}
+        onClose={handleClose}
+        onRemixCreated={handleRemixCreated}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Make it vegan')).toBeInTheDocument()
+    })
+
+    // Select multiple suggestions
+    fireEvent.click(screen.getByText('Make it vegan'))
+    fireEvent.click(screen.getByText('Make it spicy'))
+    fireEvent.click(screen.getByText('Create Remix'))
+
+    await waitFor(() => {
+      // Should combine suggestions with AND
+      expect(api.ai.remix.create).toHaveBeenCalledWith(
+        1,
+        'Make it vegan AND Make it spicy',
+        1
+      )
+      expect(handleRemixCreated).toHaveBeenCalledWith(2)
+    })
   })
 
   it('allows entering custom input', async () => {

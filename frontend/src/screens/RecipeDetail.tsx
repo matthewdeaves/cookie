@@ -11,6 +11,7 @@ import {
   ChevronUp,
   Minus,
   Plus,
+  GitCompareArrows,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -436,6 +437,40 @@ export default function RecipeDetail() {
           </div>
         )}
       </div>
+
+      {/* Linked Recipes Navigation */}
+      {recipe.linked_recipes && recipe.linked_recipes.length > 0 && (
+        <div className="border-b border-border px-4 py-3">
+          <div className="flex items-center gap-2 text-sm">
+            <GitCompareArrows className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Linked recipes:</span>
+            <div className="flex flex-wrap gap-2">
+              {recipe.linked_recipes.map((linked) => (
+                <button
+                  key={linked.id}
+                  onClick={() => navigate(`/recipes/${linked.id}`)}
+                  className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted/80"
+                >
+                  <span
+                    className={cn(
+                      'h-1.5 w-1.5 rounded-full',
+                      linked.relationship === 'original'
+                        ? 'bg-primary'
+                        : linked.relationship === 'remix'
+                          ? 'bg-accent'
+                          : 'bg-muted-foreground'
+                    )}
+                  />
+                  {linked.title}
+                  <span className="text-muted-foreground">
+                    ({linked.relationship})
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="border-b border-border">

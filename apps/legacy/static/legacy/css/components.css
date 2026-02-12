@@ -337,23 +337,13 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Discover Grid */
+/* Discover Grid - iOS 9 compatible flexbox layout */
 .discover-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-}
-
-@media (min-width: 640px) {
-    .discover-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (min-width: 1024px) {
-    .discover-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    margin: -0.5rem;
 }
 
 /* Discover Card */
@@ -370,6 +360,25 @@
     cursor: pointer;
     -webkit-transition: border-color 0.15s ease, box-shadow 0.15s ease;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    /* Responsive grid sizing */
+    width: 100%;
+    margin: 0.5rem;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 640px) {
+    .discover-card {
+        width: calc(50% - 1rem);
+    }
+}
+
+/* Desktop: 3 columns */
+@media (min-width: 1024px) {
+    .discover-card {
+        width: calc(33.333% - 1rem);
+    }
 }
 
 .discover-card:hover {

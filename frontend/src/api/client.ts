@@ -182,6 +182,12 @@ export interface IngredientGroup {
   ingredients: string[]
 }
 
+export interface LinkedRecipe {
+  id: number
+  title: string
+  relationship: 'original' | 'remix' | 'sibling'
+}
+
 export interface RecipeDetail extends Recipe {
   source_url: string | null
   canonical_url: string
@@ -208,6 +214,8 @@ export interface RecipeDetail extends Recipe {
   links: string[]
   ai_tips: string[]
   remix_profile_id: number | null
+  remixed_from_id: number | null
+  linked_recipes: LinkedRecipe[]
   updated_at: string
 }
 
