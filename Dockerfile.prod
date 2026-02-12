@@ -28,6 +28,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libffi-dev \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install dependencies
@@ -42,6 +43,7 @@ FROM python:3.12-slim AS production
 # Install runtime dependencies including nginx and curl (for healthcheck)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi8 \
+    libpq5 \
     nginx \
     curl \
     && rm -rf /var/lib/apt/lists/* \

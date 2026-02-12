@@ -259,6 +259,22 @@ jobs:
   backend-test:
     name: Backend Tests (pytest)
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: cookie_test
+          POSTGRES_USER: cookie
+          POSTGRES_PASSWORD: cookie_test  # pragma: allowlist secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v6
 
@@ -285,7 +301,7 @@ jobs:
             -v
         env:
           DJANGO_SETTINGS_MODULE: cookie.settings
-          DATABASE_PATH: /tmp/test_db.sqlite3
+          DATABASE_URL: postgres://cookie:cookie_test@localhost:5432/cookie_test  # pragma: allowlist secret
 
       - name: Upload backend coverage artifact
         uses: actions/upload-artifact@v6
