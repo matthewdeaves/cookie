@@ -233,6 +233,19 @@ class TestLegacySearch:
         assert "header-title" in content
         assert "Cookie" in content
 
+    def test_search_has_search_bar(self, client):
+        """Search results page has search bar for new searches."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/search/?q=pasta")
+        assert response.status_code == 200
+        content = response.content.decode()
+        # Search bar should be present with the query value
+        assert 'id="search-form"' in content
+        assert 'id="search-input"' in content
+        assert 'value="pasta"' in content
+
     def test_search_empty_query(self, client):
         """Search handles empty query gracefully."""
         profile = Profile.objects.create(name="Test", avatar_color="#d97850")

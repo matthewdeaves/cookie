@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Link as LinkIcon, Loader2 } from 'lucide-react'
+import { Link as LinkIcon, Loader2, Search as SearchIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type SearchResult } from '../api/client'
 import { cn } from '../lib/utils'
@@ -11,6 +11,7 @@ export default function Search() {
   const [searchParams] = useSearchParams()
   const query = searchParams.get('q') || ''
 
+  const [searchInput, setSearchInput] = useState(query)
   const [results, setResults] = useState<SearchResult[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -23,6 +24,19 @@ export default function Search() {
 
   // Detect if query is a URL
   const isUrl = /^https?:\/\//i.test(query.trim())
+
+  // Update search input when query changes
+  useEffect(() => {
+    setSearchInput(query)
+  }, [query])
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const trimmed = searchInput.trim()
+    if (trimmed && trimmed !== query) {
+      navigate(`/search?q=${encodeURIComponent(trimmed)}`)
+    }
+  }
 
   useEffect(() => {
     if (!query) {
@@ -98,17 +112,26 @@ export default function Search() {
 
       <main className="flex-1 px-4 py-6">
         <div className="mx-auto max-w-4xl">
-          {/* Query info */}
-          <div className="mb-6">
-            <h1 className="mb-1 text-xl font-medium text-foreground">
-              {isUrl ? 'Import Recipe' : `Search: "${query}"`}
-            </h1>
-            {!isUrl && !loading && (
-              <p className="text-sm text-muted-foreground">
-                {total} {total === 1 ? 'result' : 'results'} found
-              </p>
-            )}
-          </div>
+          {/* Search bar */}
+          <form onSubmit={handleSearchSubmit} className="mb-6">
+            <div className="relative">
+              <SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search recipes or paste a URL..."
+                className="w-full rounded-xl border border-border bg-input-background py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+          </form>
+
+          {/* Result count */}
+          {!isUrl && !loading && (
+            <p className="mb-4 text-sm text-muted-foreground">
+              {total} {total === 1 ? 'result' : 'results'} found
+            </p>
+          )}
 
           {/* URL Import Card */}
           {isUrl && (
