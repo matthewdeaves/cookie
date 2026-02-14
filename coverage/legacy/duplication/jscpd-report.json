@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-02-14T17:52:17.613Z",
+    "detectionDate": "2026-02-14T17:58:08.141Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -125,14 +125,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/play.js": {
-            "lines": 584,
-            "tokens": 4236,
+            "lines": 609,
+            "tokens": 4389,
             "sources": 1,
             "clones": 4,
             "duplicatedLines": 131,
             "duplicatedTokens": 1017,
-            "percentage": 22.43,
-            "percentageTokens": 24.01,
+            "percentage": 21.51,
+            "percentageTokens": 23.17,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -402,28 +402,28 @@
           }
         },
         "total": {
-          "lines": 6082,
-          "tokens": 46067,
+          "lines": 6107,
+          "tokens": 46220,
           "sources": 33,
           "clones": 32,
           "duplicatedLines": 322,
           "duplicatedTokens": 2686,
-          "percentage": 5.29,
-          "percentageTokens": 5.83,
+          "percentage": 5.27,
+          "percentageTokens": 5.81,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 6082,
-      "tokens": 46067,
+      "lines": 6107,
+      "tokens": 46220,
       "sources": 33,
       "clones": 32,
       "duplicatedLines": 322,
       "duplicatedTokens": 2686,
-      "percentage": 5.29,
-      "percentageTokens": 5.83,
+      "percentage": 5.27,
+      "percentageTokens": 5.81,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -688,32 +688,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/play.js",
-        "start": 386,
-        "end": 445,
+        "start": 411,
+        "end": 470,
         "startLoc": {
-          "line": 386,
+          "line": 411,
           "column": 20,
-          "position": 2819
+          "position": 2972
         },
         "endLoc": {
-          "line": 445,
+          "line": 470,
           "column": 8,
-          "position": 3275
+          "position": 3428
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/play.js",
-        "start": 325,
-        "end": 385,
+        "start": 350,
+        "end": 410,
         "startLoc": {
-          "line": 325,
+          "line": 350,
           "column": 17,
-          "position": 2357
+          "position": 2510
         },
         "endLoc": {
-          "line": 385,
+          "line": 410,
           "column": 8,
-          "position": 2813
+          "position": 2966
         }
       }
     },
@@ -724,17 +724,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/play.js",
-        "start": 573,
-        "end": 581,
+        "start": 598,
+        "end": 606,
         "startLoc": {
-          "line": 573,
+          "line": 598,
           "column": 5,
-          "position": 4147
+          "position": 4300
         },
         "endLoc": {
-          "line": 581,
+          "line": 606,
           "column": 5,
-          "position": 4204
+          "position": 4357
         }
       },
       "secondFile": {
@@ -1567,17 +1567,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/play.js",
-        "start": 342,
-        "end": 347,
+        "start": 367,
+        "end": 372,
         "startLoc": {
-          "line": 342,
+          "line": 367,
           "column": 21,
-          "position": 2529
+          "position": 2682
         },
         "endLoc": {
-          "line": 347,
+          "line": 372,
           "column": 4,
-          "position": 2577
+          "position": 2730
         }
       }
     }
