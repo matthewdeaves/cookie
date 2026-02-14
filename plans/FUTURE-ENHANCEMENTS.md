@@ -11,7 +11,7 @@
 |----|---------|----------|------------|
 | FE-001 | Database-driven search URL filters with settings UI | Medium | Medium |
 | FE-002 | Automatic selector repair on search failure | Low | Medium |
-| FE-003 | OAuth/social login for production deployment mode | High | High |
+| FE-003 | ~~Dual-mode authentication (home/public)~~ | ~~High~~ | ~~High~~ | See PHASE-12-AUTHENTICATION.md |
 | FE-004 | Settings page access control (admin-only restriction) | Medium | Medium |
 | FE-005 | ~~Migrate from SQLite to MySQL/PostgreSQL~~ | ~~Medium~~ | ~~Medium~~ |
 | FE-006 | ~~Multi-selection for AI remix suggestions~~ | ~~Low~~ | ~~Low~~ |

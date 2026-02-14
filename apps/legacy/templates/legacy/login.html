@@ -1,0 +1,60 @@
+{% extends 'legacy/base.html' %}
+{% load static %}
+
+{% block title %}{{ instance_name }} - Login{% endblock %}
+
+{% block content %}
+<div class="screen screen-centered" data-page="login">
+    <div class="container text-center">
+        <!-- Title -->
+        <h1 class="mb-2">{{ instance_name }}</h1>
+        <p class="mb-10">Sign in to continue</p>
+
+        <!-- Login form -->
+        <div class="card">
+            <form method="post" action="{% url 'legacy:login' %}">
+                {% csrf_token %}
+
+                {% if error %}
+                <div class="mb-4" style="padding: 0.75rem; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 0.5rem; color: #ef4444;">
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                <div class="mb-4">
+                    <input
+                        type="text"
+                        name="username"
+                        class="input"
+                        placeholder="Username"
+                        autocomplete="username"
+                        required
+                    >
+                </div>
+
+                <div class="mb-6">
+                    <input
+                        type="password"
+                        name="password"
+                        class="input"
+                        placeholder="Password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Sign In
+                </button>
+            </form>
+
+            {% if allow_registration %}
+            <p class="mt-4" style="color: var(--muted-foreground); font-size: 0.875rem;">
+                Don't have an account?
+                <a href="{% url 'legacy:register' %}" style="color: var(--primary); text-decoration: none;">Register</a>
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

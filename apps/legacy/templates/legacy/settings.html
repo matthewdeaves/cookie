@@ -113,6 +113,85 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Deployment Section -->
+            <div class="card mt-4" id="deployment-card">
+                <h2 class="settings-section-title">Deployment</h2>
+
+                <!-- Loading state -->
+                <div id="deployment-loading" class="loading-placeholder">Loading deployment settings...</div>
+
+                <!-- Settings form (hidden until loaded) -->
+                <div id="deployment-settings" class="hidden">
+                    <!-- Deployment Mode -->
+                    <div class="form-group">
+                        <label class="form-label">Deployment Mode</label>
+                        <div id="deployment-mode-env-notice" class="env-notice hidden">
+                            <svg class="env-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            <span>Set via environment variable</span>
+                        </div>
+                        <div class="radio-group" id="deployment-mode-group">
+                            <label class="radio-option">
+                                <input type="radio" name="deployment_mode" value="home" id="deployment-mode-home">
+                                <span class="radio-label">
+                                    <span class="radio-title">Home Server</span>
+                                    <span class="radio-desc">Simple profile selection, no passwords required</span>
+                                </span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="deployment_mode" value="public" id="deployment-mode-public">
+                                <span class="radio-label">
+                                    <span class="radio-title">Public Hosting</span>
+                                    <span class="radio-desc">Username and password authentication required</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Allow Registration (only visible in public mode) -->
+                    <div class="form-group" id="registration-group">
+                        <label class="form-label">User Registration</label>
+                        <div id="registration-env-notice" class="env-notice hidden">
+                            <svg class="env-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            <span>Set via environment variable</span>
+                        </div>
+                        <label class="toggle-row">
+                            <input type="checkbox" id="allow-registration" class="toggle-input">
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">Allow new user registration</span>
+                        </label>
+                    </div>
+
+                    <!-- Instance Name (only visible in public mode) -->
+                    <div class="form-group" id="instance-name-group">
+                        <label class="form-label" for="instance-name">Instance Name</label>
+                        <div id="instance-name-env-notice" class="env-notice hidden">
+                            <svg class="env-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            <span>Set via environment variable</span>
+                        </div>
+                        <input type="text" id="instance-name" class="input" placeholder="Cookie" maxlength="100">
+                        <p class="form-help">Displayed on login and register pages</p>
+                    </div>
+
+                    <!-- Save Button -->
+                    <div class="btn-group">
+                        <button type="button" id="save-deployment-btn" class="btn btn-primary" disabled>
+                            <span class="btn-icon-wrapper">
+                                <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                <span id="save-deployment-text">Save Changes</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Prompts Tab Content -->

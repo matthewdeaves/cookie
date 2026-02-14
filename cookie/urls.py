@@ -1,7 +1,11 @@
 """URL configuration for cookie project."""
 
+from typing import Any, Optional
+
+from django.http import HttpRequest
 from django.urls import path, include
 from ninja import NinjaAPI
+from ninja.security import APIKeyCookie
 
 from apps.ai.api import router as ai_router
 from apps.core.api import router as system_router
@@ -14,7 +18,23 @@ from apps.recipes.api_user import (
 )
 from apps.recipes.sources_api import router as sources_router
 
-api = NinjaAPI()
+
+class CsrfCheck(APIKeyCookie):
+    """CSRF check that allows unauthenticated requests.
+
+    This auth class enables CSRF checking (via APIKeyCookie) but doesn't
+    require the user to be authenticated. It always returns True for the
+    authentication check, but the CSRF token must be valid.
+    """
+
+    param_name: str = "csrftoken"
+
+    def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:
+        # Always allow - we just want CSRF checking, not auth
+        return True
+
+
+api = NinjaAPI(auth=CsrfCheck())
 api.add_router("/ai", ai_router)
 api.add_router("/profiles", profiles_router)
 api.add_router("/recipes", recipes_router)

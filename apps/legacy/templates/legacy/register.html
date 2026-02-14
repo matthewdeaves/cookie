@@ -1,0 +1,137 @@
+{% extends 'legacy/base.html' %}
+{% load static %}
+
+{% block title %}{{ instance_name }} - Register{% endblock %}
+
+{% block content %}
+<div class="screen screen-centered" data-page="register">
+    <div class="container text-center">
+        <!-- Title -->
+        <h1 class="mb-2">{{ instance_name }}</h1>
+        <p class="mb-10">Create your account</p>
+
+        <!-- Register form -->
+        <div class="card">
+            <form method="post" action="{% url 'legacy:register' %}" id="register-form">
+                {% csrf_token %}
+
+                {% if error %}
+                <div class="mb-4" style="padding: 0.75rem; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 0.5rem; color: #ef4444;">
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                <div class="mb-4">
+                    <input
+                        type="text"
+                        name="username"
+                        class="input"
+                        placeholder="Username (3-30 characters)"
+                        autocomplete="username"
+                        minlength="3"
+                        maxlength="30"
+                        pattern="[a-zA-Z0-9_]+"
+                        required
+                    >
+                </div>
+
+                <div class="mb-4">
+                    <input
+                        type="password"
+                        name="password"
+                        class="input"
+                        placeholder="Password (8+ characters)"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required
+                    >
+                </div>
+
+                <div class="mb-4">
+                    <input
+                        type="password"
+                        name="password_confirm"
+                        class="input"
+                        placeholder="Confirm password"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required
+                    >
+                </div>
+
+                <!-- Color picker -->
+                <div class="mb-6">
+                    <label class="mb-2" style="display: block; font-size: 0.875rem; color: var(--muted-foreground);">
+                        Choose an avatar color
+                    </label>
+                    <div id="color-picker" class="flex flex-wrap justify-center" style="margin: -0.25rem;">
+                        <!-- Colors populated by inline script below -->
+                    </div>
+                    <input type="hidden" name="avatar_color" id="avatar-color" value="#6366f1">
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Create Account
+                </button>
+            </form>
+
+            <p class="mt-4" style="color: var(--muted-foreground); font-size: 0.875rem;">
+                Already have an account?
+                <a href="{% url 'legacy:login' %}" style="color: var(--primary); text-decoration: none;">Sign in</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ES5 compatible color picker
+(function() {
+    var colors = [
+        '#ef4444', '#f97316', '#f59e0b', '#eab308',
+        '#84cc16', '#22c55e', '#10b981', '#14b8a6',
+        '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1',
+        '#8b5cf6', '#a855f7', '#d946ef', '#ec4899'
+    ];
+
+    var container = document.getElementById('color-picker');
+    var hiddenInput = document.getElementById('avatar-color');
+    var selectedColor = '#6366f1';
+
+    function renderColors() {
+        container.innerHTML = '';
+        for (var i = 0; i < colors.length; i++) {
+            var color = colors[i];
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'color-btn';
+            btn.setAttribute('data-color', color);
+            btn.style.cssText = 'width: 2.5rem; height: 2.5rem; border-radius: 50%; margin: 0.25rem; border: 3px solid transparent; cursor: pointer; background-color: ' + color + ';';
+
+            if (color === selectedColor) {
+                btn.style.borderColor = 'var(--foreground)';
+            }
+
+            btn.onclick = function(e) {
+                var target = e.target;
+                var newColor = target.getAttribute('data-color');
+                selectedColor = newColor;
+                hiddenInput.value = newColor;
+
+                // Update all button borders
+                var allBtns = container.querySelectorAll('.color-btn');
+                for (var j = 0; j < allBtns.length; j++) {
+                    allBtns[j].style.borderColor = 'transparent';
+                }
+                target.style.borderColor = 'var(--foreground)';
+            };
+
+            container.appendChild(btn);
+        }
+    }
+
+    renderColors();
+})();
+</script>
+{% endblock %}

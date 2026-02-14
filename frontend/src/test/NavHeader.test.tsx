@@ -33,9 +33,20 @@ vi.mock('../contexts/ProfileContext', () => ({
   }),
 }))
 
+// Mock auth context - default to admin
+const mockIsAdmin = vi.fn(() => true)
+vi.mock('../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    get isAdmin() {
+      return mockIsAdmin()
+    },
+  }),
+}))
+
 describe('NavHeader', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockIsAdmin.mockReturnValue(true)
   })
 
   const renderNavHeader = () => {
@@ -51,12 +62,21 @@ describe('NavHeader', () => {
     expect(screen.getByText('Cookie')).toBeInTheDocument()
   })
 
-  it('renders all navigation icons', () => {
+  it('renders all navigation icons for admin', () => {
     renderNavHeader()
     expect(screen.getByLabelText('Home')).toBeInTheDocument()
     expect(screen.getByLabelText('View favorites')).toBeInTheDocument()
     expect(screen.getByLabelText('View collections')).toBeInTheDocument()
     expect(screen.getByLabelText('Settings')).toBeInTheDocument()
+  })
+
+  it('hides settings icon for non-admin', () => {
+    mockIsAdmin.mockReturnValue(false)
+    renderNavHeader()
+    expect(screen.getByLabelText('Home')).toBeInTheDocument()
+    expect(screen.getByLabelText('View favorites')).toBeInTheDocument()
+    expect(screen.getByLabelText('View collections')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Settings')).not.toBeInTheDocument()
   })
 
   it('renders theme toggle button', () => {

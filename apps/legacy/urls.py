@@ -8,6 +8,9 @@ app_name = "legacy"
 
 urlpatterns = [
     path("", views.profile_selector, name="profile_selector"),
+    path("login/", views.login_view, name="login"),
+    path("register/", views.register_view, name="register"),
+    path("logout/", views.logout_view, name="logout"),
     path("home/", views.home, name="home"),
     path("search/", views.search, name="search"),
     path("settings/", views.settings, name="settings"),

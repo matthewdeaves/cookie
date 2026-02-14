@@ -9,6 +9,8 @@ from django.core.management import call_command
 from django.contrib.sessions.models import Session
 from ninja import Router, Schema
 
+from apps.core.models import AppSettings
+from apps.core.utils import is_admin
 from apps.profiles.models import Profile
 from apps.recipes.models import (
     Recipe,
@@ -43,6 +45,127 @@ def health_check(request):
         return {"status": "unhealthy", "database": "error"}
 
 
+class ErrorSchema(Schema):
+    error: str
+    message: str
+
+
+class EnvOverridesSchema(Schema):
+    deployment_mode: bool
+    allow_registration: bool
+    instance_name: bool
+
+
+class AuthSettingsSchema(Schema):
+    deployment_mode: str
+    allow_registration: bool
+    instance_name: str
+    is_admin: bool
+    env_overrides: EnvOverridesSchema
+
+
+class AuthSettingsUpdateSchema(Schema):
+    deployment_mode: str | None = None
+    allow_registration: bool | None = None
+    instance_name: str | None = None
+
+
+class AuthSettingsUpdateResponseSchema(Schema):
+    success: bool
+    deployment_mode: str
+    allow_registration: bool
+    instance_name: str
+    env_overrides: EnvOverridesSchema
+    warnings: list[str]
+
+
+@router.get("/auth-settings/", response=AuthSettingsSchema)
+def get_auth_settings(request):
+    """Get authentication/deployment settings for frontend."""
+    app_settings = AppSettings.get()
+
+    return {
+        "deployment_mode": app_settings.get_deployment_mode(),
+        "allow_registration": app_settings.get_allow_registration(),
+        "instance_name": app_settings.get_instance_name(),
+        "is_admin": is_admin(request.user),
+        "env_overrides": {
+            "deployment_mode": bool(os.environ.get("COOKIE_DEPLOYMENT_MODE")),
+            "allow_registration": bool(os.environ.get("COOKIE_ALLOW_REGISTRATION")),
+            "instance_name": bool(os.environ.get("COOKIE_INSTANCE_NAME")),
+        },
+    }
+
+
+@router.put(
+    "/auth-settings/",
+    response={200: AuthSettingsUpdateResponseSchema, 400: ErrorSchema, 403: ErrorSchema},
+)
+def update_auth_settings(request, data: AuthSettingsUpdateSchema):
+    """Update authentication/deployment settings.
+
+    Admin-only endpoint. In home mode, all users are admin.
+    In public mode, only COOKIE_ADMIN_USERNAME is admin.
+    """
+    if not is_admin(request.user):
+        return 403, {"error": "forbidden", "message": "Admin access required"}
+
+    app_settings = AppSettings.get()
+    warnings = []
+
+    # Check if deployment_mode is env-controlled
+    if data.deployment_mode is not None:
+        if os.environ.get("COOKIE_DEPLOYMENT_MODE"):
+            warnings.append("deployment_mode is controlled by environment variable and cannot be changed")
+        elif data.deployment_mode in ("home", "public"):
+            app_settings.deployment_mode = data.deployment_mode
+        else:
+            return 400, {
+                "error": "invalid_deployment_mode",
+                "message": "deployment_mode must be 'home' or 'public'",
+            }
+
+    # Check if allow_registration is env-controlled
+    if data.allow_registration is not None:
+        if os.environ.get("COOKIE_ALLOW_REGISTRATION"):
+            warnings.append("allow_registration is controlled by environment variable and cannot be changed")
+        else:
+            app_settings.allow_registration = data.allow_registration
+
+    # Check if instance_name is env-controlled
+    if data.instance_name is not None:
+        if os.environ.get("COOKIE_INSTANCE_NAME"):
+            warnings.append("instance_name is controlled by environment variable and cannot be changed")
+        else:
+            # Validate instance name length
+            if len(data.instance_name.strip()) == 0:
+                return 400, {
+                    "error": "invalid_instance_name",
+                    "message": "instance_name cannot be empty",
+                }
+            if len(data.instance_name) > 100:
+                return 400, {
+                    "error": "invalid_instance_name",
+                    "message": "instance_name cannot exceed 100 characters",
+                }
+            app_settings.instance_name = data.instance_name.strip()
+
+    app_settings.save()
+
+    return {
+        "success": True,
+        "deployment_mode": app_settings.get_deployment_mode(),
+        "allow_registration": app_settings.get_allow_registration(),
+        "instance_name": app_settings.get_instance_name(),
+        "env_overrides": {
+            "deployment_mode": bool(os.environ.get("COOKIE_DEPLOYMENT_MODE")),
+            "allow_registration": bool(os.environ.get("COOKIE_ALLOW_REGISTRATION")),
+            "instance_name": bool(os.environ.get("COOKIE_INSTANCE_NAME")),
+        },
+        "warnings": warnings,
+    }
+
+
 class DataCountsSchema(Schema):
     profiles: int
     recipes: int
@@ -66,21 +189,22 @@ class ResetConfirmSchema(Schema):
     confirmation_text: str  # Must be "RESET"
 
 
-class ErrorSchema(Schema):
-    error: str
-    message: str
-
-
 class ResetSuccessSchema(Schema):
     success: bool
     message: str
     actions_performed: list[str]
 
 
-@router.get("/reset-preview/", response=ResetPreviewSchema)
+@router.get("/reset-preview/", response={200: ResetPreviewSchema, 403: ErrorSchema})
 def get_reset_preview(request):
-    """Get summary of data that will be deleted on reset."""
-    return {
+    """Get summary of data that will be deleted on reset.
+
+    Admin-only endpoint.
+    """
+    if not is_admin(request.user):
+        return 403, {"error": "forbidden", "message": "Admin access required"}
+
+    return 200, {
         "data_counts": {
             "profiles": Profile.objects.count(),
             "recipes": Recipe.objects.count(),
@@ -106,13 +230,16 @@ def get_reset_preview(request):
     }
 
 
-@router.post("/reset/", response={200: ResetSuccessSchema, 400: ErrorSchema})
+@router.post("/reset/", response={200: ResetSuccessSchema, 400: ErrorSchema, 403: ErrorSchema})
 def reset_database(request, data: ResetConfirmSchema):
     """
     Completely reset the database to factory state.
 
-    Requires confirmation_text="RESET" to proceed.
+    Admin-only endpoint. Requires confirmation_text="RESET" to proceed.
     """
+    if not is_admin(request.user):
+        return 403, {"error": "forbidden", "message": "Admin access required"}
+
     if data.confirmation_text != "RESET":
         return 400, {
             "error": "invalid_confirmation",

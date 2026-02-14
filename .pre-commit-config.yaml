@@ -58,3 +58,18 @@ repos:
         language: system
         files: ^frontend/src/.*\.(ts|tsx)$
         pass_filenames: false
+
+      # Conventional commit message format
+      - id: conventional-commit
+        name: Conventional Commit
+        entry: .claude/hooks/commit-msg-check.sh
+        language: script
+        stages: [commit-msg]
+
+      # Run tests before push
+      - id: pre-push-tests
+        name: Run Tests Before Push
+        entry: .claude/hooks/pre-push-tests.sh
+        language: script
+        stages: [pre-push]
+        pass_filenames: false

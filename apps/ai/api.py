@@ -8,6 +8,7 @@ from typing import Callable, List, Optional
 from ninja import Router, Schema
 
 from apps.core.models import AppSettings
+from apps.core.utils import is_admin
 from apps.profiles.models import Profile
 from apps.recipes.models import Recipe
 
@@ -175,9 +176,15 @@ def test_api_key(request, data: TestApiKeyIn):
     }
 
 
-@router.post("/save-api-key", response={200: SaveApiKeyOut, 400: ErrorOut})
+@router.post("/save-api-key", response={200: SaveApiKeyOut, 400: ErrorOut, 403: ErrorOut})
 def save_api_key(request, data: SaveApiKeyIn):
-    """Save the OpenRouter API key."""
+    """Save the OpenRouter API key.
+
+    Admin-only endpoint.
+    """
+    if not is_admin(request.user):
+        return 403, {"error": "forbidden", "message": "Admin access required"}
+
     settings = AppSettings.get()
     settings.openrouter_api_key = data.api_key
     settings.save()
@@ -211,9 +218,15 @@ def get_prompt(request, prompt_type: str):
         }
 
 
-@router.put("/prompts/{prompt_type}", response={200: PromptOut, 404: ErrorOut, 422: ErrorOut})
+@router.put("/prompts/{prompt_type}", response={200: PromptOut, 403: ErrorOut, 404: ErrorOut, 422: ErrorOut})
 def update_prompt(request, prompt_type: str, data: PromptUpdateIn):
-    """Update a specific AI prompt."""
+    """Update a specific AI prompt.
+
+    Admin-only endpoint.
+    """
+    if not is_admin(request.user):
+        return 403, {"error": "forbidden", "message": "Admin access required"}
+
     try:
         prompt = AIPrompt.objects.get(prompt_type=prompt_type)
     except AIPrompt.DoesNotExist:

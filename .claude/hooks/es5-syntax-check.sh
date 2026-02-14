@@ -9,28 +9,13 @@
 
 set -e
 
-# Require jq for JSON parsing
-if ! command -v jq >/dev/null 2>&1; then
-    echo "[es5-check] jq not found - install with: sudo apt install jq"
-    exit 0  # Don't block, just warn
-fi
+# Source common hook library
+source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
+init_hook "es5-check"
 
-# Hook logging setup
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOOK_LOG_DIR="$SCRIPT_DIR/../logs"
-HOOK_LOG="$HOOK_LOG_DIR/hooks.log"
-mkdir -p "$HOOK_LOG_DIR"
-
-log_hook() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [es5-check] $1" >> "$HOOK_LOG"
-}
-
-# Read JSON input from stdin
-INPUT=$(cat)
-
-# Extract file path and new content from JSON
-FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-NEW_CONTENT=$(echo "$INPUT" | jq -r '.tool_input.new_string // .tool_input.content // empty')
+# Extract file path and new content
+FILE_PATH=$(get_file_path)
+NEW_CONTENT=$(get_new_content)
 
 # Skip if no file path
 if [[ -z "$FILE_PATH" ]]; then
@@ -49,75 +34,96 @@ fi
 
 log_hook "Checking: $FILE_PATH"
 
-VIOLATIONS=""
+# Run all checks in a single pass for efficiency
+VIOLATIONS=$(echo "$NEW_CONTENT" | awk '
+    # const declarations
+    /\<const[[:space:]]+/ {
+        violations = violations "  - Found const declaration (use var for ES5)\n"
+    }
 
-# Check for const declarations
-if echo "$NEW_CONTENT" | grep -qE '\bconst\s+'; then
-    VIOLATIONS="${VIOLATIONS}  - Found 'const' declaration (use 'var' for ES5)\n"
-fi
+    # let declarations
+    /\<let[[:space:]]+/ {
+        violations = violations "  - Found let declaration (use var for ES5)\n"
+    }
 
-# Check for let declarations
-if echo "$NEW_CONTENT" | grep -qE '\blet\s+'; then
-    VIOLATIONS="${VIOLATIONS}  - Found 'let' declaration (use 'var' for ES5)\n"
-fi
+    # Arrow functions: => but not >= or <=
+    # Look for patterns like ) => or x => or (x) =>
+    /[)a-zA-Z_0-9][[:space:]]*=>/ {
+        violations = violations "  - Found arrow function => (use function() for ES5)\n"
+    }
 
-# Check for arrow functions
-if echo "$NEW_CONTENT" | grep -qE '=>'; then
-    VIOLATIONS="${VIOLATIONS}  - Found arrow function '=>' (use 'function()' for ES5)\n"
-fi
+    # Template literals with interpolation
+    /`[^`]*\$\{/ {
+        violations = violations "  - Found template literal ${} (use string concatenation for ES5)\n"
+    }
 
-# Check for template literals
-if echo "$NEW_CONTENT" | grep -qE '`[^`]*\$\{'; then
-    VIOLATIONS="${VIOLATIONS}  - Found template literal with \${} (use string concatenation for ES5)\n"
-fi
+    # async keyword
+    /\<async[[:space:]]+(function|\(|[a-zA-Z_])/ {
+        violations = violations "  - Found async keyword (use callbacks/promises for ES5)\n"
+    }
 
-# Check for async functions
-if echo "$NEW_CONTENT" | grep -qE '\basync\s+(function|\(|[a-zA-Z_])'; then
-    VIOLATIONS="${VIOLATIONS}  - Found 'async' keyword (use callbacks/promises for ES5)\n"
-fi
+    # await keyword
+    /\<await[[:space:]]+/ {
+        violations = violations "  - Found await keyword (use .then() for ES5)\n"
+    }
 
-# Check for await
-if echo "$NEW_CONTENT" | grep -qE '\bawait\s+'; then
-    VIOLATIONS="${VIOLATIONS}  - Found 'await' keyword (use .then() for ES5)\n"
-fi
+    # class declarations
+    /\<class[[:space:]]+[A-Z]/ {
+        violations = violations "  - Found class declaration (use function constructors for ES5)\n"
+    }
 
-# Check for class declarations
-if echo "$NEW_CONTENT" | grep -qE '\bclass\s+[A-Z]'; then
-    VIOLATIONS="${VIOLATIONS}  - Found 'class' declaration (use function constructors for ES5)\n"
-fi
+    # for...of loops
+    /\<for[[:space:]]*\([^)]*\<of\>/ {
+        violations = violations "  - Found for...of loop (use for loop with index for ES5)\n"
+    }
 
-# Check for destructuring in variable declarations
-if echo "$NEW_CONTENT" | grep -qE '\b(var|let|const)\s+\{.*\}\s*='; then
-    VIOLATIONS="${VIOLATIONS}  - Found object destructuring (use direct property access for ES5)\n"
-fi
+    # Object destructuring: var/let/const { = or function({
+    /\<(var|let|const)[[:space:]]+\{[^}]*\}[[:space:]]*=/ {
+        violations = violations "  - Found object destructuring (use direct property access for ES5)\n"
+    }
 
-if echo "$NEW_CONTENT" | grep -qE '\b(var|let|const)\s+\[.*\]\s*='; then
-    VIOLATIONS="${VIOLATIONS}  - Found array destructuring (use array indices for ES5)\n"
-fi
+    # Array destructuring
+    /\<(var|let|const)[[:space:]]+\[[^\]]*\][[:space:]]*=/ {
+        violations = violations "  - Found array destructuring (use array indices for ES5)\n"
+    }
 
-# Check for spread operator
-if echo "$NEW_CONTENT" | grep -qE '\.\.\.[a-zA-Z_]'; then
-    VIOLATIONS="${VIOLATIONS}  - Found spread operator '...' (use .concat() or loops for ES5)\n"
-fi
+    # Spread operator in array/object context (not rest params)
+    /\.\.\.[a-zA-Z_][a-zA-Z0-9_]*/ {
+        # Skip if it looks like rest parameter in function definition
+        if (!/function[^{]*\.\.\.[a-zA-Z_]/) {
+            violations = violations "  - Found spread operator ... (use .concat() or loops for ES5)\n"
+        }
+    }
 
-# Check for default parameters
-if echo "$NEW_CONTENT" | grep -qE 'function\s+\w+\s*\([^)]*=[^)]*\)'; then
-    VIOLATIONS="${VIOLATIONS}  - Found default parameters (check inside function for ES5)\n"
-fi
+    # Default parameters in function
+    /function[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\([^)]*=[^)]*\)/ {
+        violations = violations "  - Found default parameters (use x = x || default inside function for ES5)\n"
+    }
 
-# Check for object method shorthand
-if echo "$NEW_CONTENT" | grep -qE '\{\s*\w+\s*\([^)]*\)\s*\{'; then
-    VIOLATIONS="${VIOLATIONS}  - Found method shorthand {method() {}} (use {method: function() {}} for ES5)\n"
-fi
+    # ES6 built-ins that dont exist in ES5
+    /\<(Symbol|Map|Set|WeakMap|WeakSet|Proxy|Reflect)\>/ {
+        violations = violations "  - Found ES6 built-in (Symbol/Map/Set/etc not available in ES5)\n"
+    }
 
-# Check for object property shorthand
-if echo "$NEW_CONTENT" | grep -qE '\{\s*\w+\s*,|\{\s*\w+\s*\}'; then
-    # This is a heuristic - might have false positives
-    # Only warn, don't block
-    log_hook "WARNING: Possible object shorthand {x} - verify it's {x: x} for ES5"
-fi
+    # Object method shorthand { method() {} }
+    /\{[^}]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\([^)]*\)[[:space:]]*\{/ {
+        # Crude check - may have false positives
+        if (!/function/) {
+            violations = violations "  - Possible method shorthand {method(){}} (use {method: function(){}} for ES5)\n"
+        }
+    }
 
-if [[ -n "$VIOLATIONS" ]]; then
+    END {
+        if (violations != "") {
+            print violations
+            exit 1
+        }
+        exit 0
+    }
+')
+AWK_EXIT=$?
+
+if [[ $AWK_EXIT -ne 0 ]]; then
     log_hook "BLOCKED: ES6+ syntax in $FILE_PATH"
     echo ""
     echo "BLOCKED: ES6+ Syntax Detected in Legacy Frontend"
@@ -127,23 +133,18 @@ if [[ -n "$VIOLATIONS" ]]; then
     echo -e "$VIOLATIONS"
     echo ""
     echo "Common fixes:"
-    echo "  const/let           → var"
-    echo "  () => {}            → function() {}"
-    echo "  \`Hello \${name}\`    → 'Hello ' + name"
-    echo "  async/await         → callbacks or .then()"
-    echo "  {x, y} = obj        → var x = obj.x; var y = obj.y;"
-    echo "  [...arr]            → arr.slice() or arr.concat()"
-    echo "  class Foo {}        → function Foo() {}"
-    echo "  function(x = 1) {}  → function(x) { x = x || 1; }"
-    echo "  {method() {}}       → {method: function() {}}"
+    echo "  const/let           -> var"
+    echo "  () => {}            -> function() {}"
+    echo "  \`Hello \${name}\`    -> 'Hello ' + name"
+    echo "  async/await         -> callbacks or .then()"
+    echo "  for (x of arr)      -> for (var i = 0; i < arr.length; i++)"
+    echo "  {x, y} = obj        -> var x = obj.x; var y = obj.y;"
+    echo "  [...arr]            -> arr.slice() or arr.concat()"
+    echo "  class Foo {}        -> function Foo() {}"
+    echo "  function(x = 1)     -> function(x) { x = x || 1; }"
+    echo "  {method() {}}       -> {method: function() {}}"
     echo ""
     echo "Reference: .claude/rules/es5-compliance.md"
-    echo ""
-    echo "After fixing:"
-    echo "  1. Re-attempt your edit"
-    echo "  2. Restart containers: docker compose down && docker compose up -d"
-    echo "  3. Verify: grep 'your change' ./staticfiles/legacy/js/..."
-    echo "  4. Test on iPad: Clear Safari cache before testing"
     exit 1
 fi
 

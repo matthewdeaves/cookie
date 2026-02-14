@@ -59,6 +59,13 @@ vi.mock('../contexts/ProfileContext', () => ({
   ProfileProvider: ({ children }: { children: React.ReactNode }) => children,
 }))
 
+// Mock AuthContext
+vi.mock('../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    isAdmin: true,
+  }),
+}))
+
 // Shared test fixtures
 const mockStats: ProfileStats = {
   favorites: 0,

@@ -14,6 +14,15 @@ class Profile(models.Model):
         ("imperial", "Imperial"),
     ]
 
+    # Link to Django User (nullable for home mode, required for public mode)
+    user = models.OneToOneField(
+        "auth.User",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="profile",
+    )
+
     name = models.CharField(max_length=100)
     avatar_color = models.CharField(max_length=7)  # Hex color
     theme = models.CharField(max_length=10, choices=THEME_CHOICES, default="light")

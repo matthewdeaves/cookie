@@ -1,12 +1,20 @@
 """Views for legacy frontend."""
 
+import logging
+import re
 from functools import wraps
 
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 
+from apps.core.decorators import require_admin
 from apps.core.models import AppSettings
+from apps.core.utils import is_admin
 from apps.profiles.models import Profile
 from apps.ai.models import AIPrompt
+
+logger = logging.getLogger(__name__)
 from apps.ai.services.openrouter import OpenRouterService, AIUnavailableError, AIResponseError
 from apps.recipes.models import (
     Recipe,
@@ -19,25 +27,45 @@ from apps.recipes.models import (
 def require_profile(view_func):
     """Decorator to ensure a profile is selected and valid.
 
-    Gets profile_id from session, validates it exists, and adds
-    the Profile instance to request.profile.
+    Home mode:
+    - Gets profile_id from session, validates it exists
+    - Redirects to profile_selector if no session or profile missing
 
-    Redirects to profile_selector if:
-    - No profile_id in session
-    - Profile doesn't exist (also clears session)
+    Public mode:
+    - Requires user to be authenticated
+    - Uses request.user.profile
+    - Redirects to login if not authenticated
+
+    Adds the Profile instance to request.profile.
     """
 
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        profile_id = request.session.get("profile_id")
-        if not profile_id:
-            return redirect("legacy:profile_selector")
+        settings = AppSettings.get()
+        deployment_mode = settings.get_deployment_mode()
 
-        try:
-            request.profile = Profile.objects.get(id=profile_id)
-        except Profile.DoesNotExist:
-            del request.session["profile_id"]
-            return redirect("legacy:profile_selector")
+        if deployment_mode == "public":
+            # Public mode: require authentication
+            if not request.user.is_authenticated:
+                return redirect("legacy:login")
+
+            # Get user's profile
+            if not hasattr(request.user, "profile"):
+                # User exists but no profile - shouldn't happen, redirect to login
+                return redirect("legacy:login")
+
+            request.profile = request.user.profile
+        else:
+            # Home mode: use session
+            profile_id = request.session.get("profile_id")
+            if not profile_id:
+                return redirect("legacy:profile_selector")
+
+            try:
+                request.profile = Profile.objects.get(id=profile_id)
+            except Profile.DoesNotExist:
+                del request.session["profile_id"]
+                return redirect("legacy:profile_selector")
 
         return view_func(request, *args, **kwargs)
 
@@ -63,6 +91,138 @@ def profile_selector(request):
             "profiles": profiles,
         },
     )
+
+
+def _get_client_ip(request):
+    """Get client IP address from request."""
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        return x_forwarded_for.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR", "unknown")
+
+
+def login_view(request):
+    """Login view for public mode."""
+    settings = AppSettings.get()
+
+    # If home mode, redirect to profile selector
+    if settings.get_deployment_mode() == "home":
+        return redirect("legacy:profile_selector")
+
+    # If already authenticated, redirect to home
+    if request.user.is_authenticated:
+        return redirect("legacy:home")
+
+    error = None
+
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "")
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            # Successful login - django.contrib.auth.login regenerates session ID
+            login(request, user)
+
+            # Set profile_id in session for compatibility
+            if hasattr(user, "profile"):
+                request.session["profile_id"] = user.profile.id
+
+            return redirect("legacy:home")
+        else:
+            # Failed login - use same error message for all failures (prevents username enumeration)
+            logger.warning(f"Failed login attempt for username={username} ip={_get_client_ip(request)}")
+            error = "Invalid username or password"
+
+    return render(
+        request,
+        "legacy/login.html",
+        {
+            "error": error,
+            "instance_name": settings.get_instance_name(),
+            "allow_registration": settings.get_allow_registration(),
+        },
+    )
+
+
+def register_view(request):
+    """Registration view for public mode."""
+    settings = AppSettings.get()
+
+    # If home mode, redirect to profile selector
+    if settings.get_deployment_mode() == "home":
+        return redirect("legacy:profile_selector")
+
+    # If registration disabled, redirect to login
+    if not settings.get_allow_registration():
+        return redirect("legacy:login")
+
+    # If already authenticated, redirect to home
+    if request.user.is_authenticated:
+        return redirect("legacy:home")
+
+    error = None
+
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "")
+        password_confirm = request.POST.get("password_confirm", "")
+        avatar_color = request.POST.get("avatar_color", "#6366f1")
+
+        # Validation
+        if len(username) < 3 or len(username) > 30:
+            error = "Username must be 3-30 characters"
+        elif not re.match(r"^[a-zA-Z0-9_]+$", username):
+            error = "Username can only contain letters, numbers, and underscores"
+        elif len(password) < 8:
+            error = "Password must be at least 8 characters"
+        elif password != password_confirm:
+            error = "Passwords do not match"
+        elif User.objects.filter(username__iexact=username).exists():
+            error = "Username already taken"
+        else:
+            # Create user and profile
+            user = User.objects.create_user(username=username, password=password)
+            Profile.objects.create(
+                user=user,
+                name=username,
+                avatar_color=avatar_color,
+            )
+
+            # Log in the new user
+            login(request, user)
+            request.session["profile_id"] = user.profile.id
+
+            return redirect("legacy:home")
+
+    return render(
+        request,
+        "legacy/register.html",
+        {
+            "error": error,
+            "instance_name": settings.get_instance_name(),
+        },
+    )
+
+
+def logout_view(request):
+    """Logout view."""
+    settings = AppSettings.get()
+    deployment_mode = settings.get_deployment_mode()
+
+    # Clear Django auth
+    logout(request)
+
+    # Clear session profile_id
+    if "profile_id" in request.session:
+        del request.session["profile_id"]
+
+    # Redirect based on mode
+    if deployment_mode == "public":
+        return redirect("legacy:login")
+    else:
+        return redirect("legacy:profile_selector")
 
 
 @require_profile
@@ -103,6 +263,7 @@ def home(request):
             "recipes_count": recipes_count,
             "favorite_recipe_ids": favorite_recipe_ids,
             "ai_available": ai_available,
+            "is_admin": is_admin(request.user),
         },
     )
 
@@ -362,9 +523,15 @@ def collection_detail(request, collection_id):
     )
 
 
+@require_admin
 @require_profile
 def settings(request):
-    """Settings screen - AI prompts and sources configuration."""
+    """Settings screen - AI prompts and sources configuration.
+
+    Protected by @require_admin - only accessible to admin users.
+    In home mode, all users are admin. In public mode, only
+    the user matching COOKIE_ADMIN_USERNAME is admin.
+    """
     profile = request.profile
 
     # Get app settings

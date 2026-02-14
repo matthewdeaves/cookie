@@ -30,6 +30,13 @@ vi.mock('../contexts/ProfileContext', () => ({
   }),
 }))
 
+// Mock auth context
+vi.mock('../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    isAdmin: true,
+  }),
+}))
+
 // Mock API
 vi.mock('../api/client', () => ({
   api: {

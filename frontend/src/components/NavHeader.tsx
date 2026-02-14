@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 import { Moon, Sun, Home, Heart, FolderOpen, Settings, LogOut } from 'lucide-react'
 import { useProfile } from '../contexts/ProfileContext'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function NavHeader() {
   const navigate = useNavigate()
   const { profile, theme, toggleTheme, logout } = useProfile()
+  const { isAdmin } = useAuth()
 
   const handleLogout = () => {
     logout()
@@ -67,14 +69,16 @@ export default function NavHeader() {
           )}
         </button>
 
-        {/* Settings */}
-        <button
-          onClick={() => navigate('/settings')}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          aria-label="Settings"
-        >
-          <Settings className="h-5 w-5" />
-        </button>
+        {/* Settings - only shown to admins */}
+        {isAdmin && (
+          <button
+            onClick={() => navigate('/settings')}
+            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label="Settings"
+          >
+            <Settings className="h-5 w-5" />
+          </button>
+        )}
 
         {/* Profile avatar */}
         <button

@@ -343,10 +343,15 @@ async function request<T>(
 ): Promise<T> {
   const url = `${API_BASE}${endpoint}`
 
+  // Include CSRF token for mutating requests
+  const method = options.method?.toUpperCase() || 'GET'
+  const csrfHeader = method !== 'GET' ? { 'X-CSRFToken': getCSRFToken() } : {}
+
   const config: RequestInit = {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...csrfHeader,
       ...options.headers,
     },
   }
@@ -374,6 +379,31 @@ async function request<T>(
   }
 
   return response.json()
+}
+
+// Auth types
+export interface AuthSettings {
+  deployment_mode: 'home' | 'public'
+  allow_registration: boolean
+  instance_name: string
+  is_admin: boolean
+  env_overrides: {
+    deployment_mode: boolean
+    allow_registration: boolean
+    instance_name: boolean
+  }
+}
+
+export interface LoginRequest {
+  username: string
+  password: string
+}
+
+export interface RegisterRequest {
+  username: string
+  password: string
+  password_confirm: string
+  avatar_color: string
 }
 
 export const api = {
@@ -619,5 +649,82 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ confirmation_text: confirmationText }),
       }),
+
+    authSettings: () => request<AuthSettings>('/system/auth-settings/'),
   },
+
+  auth: {
+    login: (username: string, password: string) =>
+      fetch('/legacy/login/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          username,
+          password,
+          csrfmiddlewaretoken: getCSRFToken(),
+        }),
+        credentials: 'same-origin',
+        redirect: 'manual', // Don't follow redirects automatically
+      }).then(async (response) => {
+        // A redirect (302) means successful login
+        if (response.type === 'opaqueredirect' || response.status === 302 || response.status === 200) {
+          // Get the profile from the session
+          const profiles = await api.profiles.list()
+          // Return the most recently created profile (likely the logged-in user's)
+          // In public mode, there should only be one profile per user
+          return profiles[0] || null
+        }
+        throw new Error('Invalid username or password')
+      }),
+
+    register: (username: string, password: string, passwordConfirm: string, avatarColor: string) =>
+      fetch('/legacy/register/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          username,
+          password,
+          password_confirm: passwordConfirm,
+          avatar_color: avatarColor,
+          csrfmiddlewaretoken: getCSRFToken(),
+        }),
+        credentials: 'same-origin',
+        redirect: 'manual',
+      }).then(async (response) => {
+        if (response.type === 'opaqueredirect' || response.status === 302 || response.status === 200) {
+          const profiles = await api.profiles.list()
+          return profiles[0] || null
+        }
+        // Try to parse error from response
+        const text = await response.text()
+        if (text.includes('Username already taken')) {
+          throw new Error('Username already taken')
+        }
+        if (text.includes('Passwords do not match')) {
+          throw new Error('Passwords do not match')
+        }
+        if (text.includes('Password must be at least')) {
+          throw new Error('Password must be at least 8 characters')
+        }
+        if (text.includes('can only contain')) {
+          throw new Error('Username can only contain letters, numbers, and underscores')
+        }
+        throw new Error('Registration failed')
+      }),
+
+    logout: () =>
+      fetch('/legacy/logout/', {
+        method: 'GET',
+        credentials: 'same-origin',
+      }).then(() => undefined),
+  },
+}
+
+function getCSRFToken(): string {
+  const match = document.cookie.match(/csrftoken=([^;]+)/)
+  return match ? match[1] : ''
 }

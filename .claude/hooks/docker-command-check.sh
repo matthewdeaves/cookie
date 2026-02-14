@@ -9,26 +9,12 @@
 
 set -e
 
-# Require jq for JSON parsing
-if ! command -v jq >/dev/null 2>&1; then
-    exit 0  # No jq, can't check
-fi
-
-# Hook logging setup
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOOK_LOG_DIR="$SCRIPT_DIR/../logs"
-HOOK_LOG="$HOOK_LOG_DIR/hooks.log"
-mkdir -p "$HOOK_LOG_DIR"
-
-log_hook() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [docker-check] $1" >> "$HOOK_LOG"
-}
-
-# Read JSON input from stdin
-INPUT=$(cat)
+# Source common hook library
+source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
+init_hook "docker-check"
 
 # Extract command from Bash tool input
-COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
+COMMAND=$(get_command)
 
 # Skip if no command
 if [[ -z "$COMMAND" ]]; then
@@ -39,61 +25,93 @@ log_hook "Checking command: $COMMAND"
 
 WARNINGS=""
 
+# Helper to check if command already uses docker
+uses_docker() {
+    echo "$COMMAND" | grep -qE "(docker compose exec|docker exec|docker run)"
+}
+
 # Check for Python commands (should be in web container)
-if echo "$COMMAND" | grep -qE '^\s*python\s+'; then
-    if ! echo "$COMMAND" | grep -q "docker compose exec"; then
-        WARNINGS="${WARNINGS}  - Running Python on host (should use: docker compose exec web python ...)\n"
+if echo "$COMMAND" | grep -qE '^\s*(python|python3)\s+'; then
+    if ! uses_docker; then
+        WARNINGS="${WARNINGS}  - python/python3: use 'docker compose exec web python ...'\n"
     fi
 fi
 
 # Check for Django manage.py (should be in web container)
 if echo "$COMMAND" | grep -qE 'manage\.py'; then
-    if ! echo "$COMMAND" | grep -q "docker compose exec"; then
-        WARNINGS="${WARNINGS}  - Running manage.py on host (should use: docker compose exec web python manage.py ...)\n"
+    if ! uses_docker; then
+        WARNINGS="${WARNINGS}  - manage.py: use 'docker compose exec web python manage.py ...'\n"
     fi
 fi
 
 # Check for pytest (should be in web container)
-if echo "$COMMAND" | grep -qE '^\s*pytest\s+'; then
-    if ! echo "$COMMAND" | grep -q "docker compose exec"; then
-        WARNINGS="${WARNINGS}  - Running pytest on host (should use: docker compose exec web python -m pytest)\n"
+if echo "$COMMAND" | grep -qE '^\s*pytest'; then
+    if ! uses_docker; then
+        WARNINGS="${WARNINGS}  - pytest: use 'docker compose exec web python -m pytest'\n"
     fi
 fi
 
 # Check for pip (should be in web container)
-if echo "$COMMAND" | grep -qE '^\s*pip\s+'; then
-    if ! echo "$COMMAND" | grep -q "docker compose exec"; then
-        WARNINGS="${WARNINGS}  - Running pip on host (should use: docker compose exec web pip ...)\n"
+if echo "$COMMAND" | grep -qE '^\s*pip3?\s+'; then
+    if ! uses_docker; then
+        WARNINGS="${WARNINGS}  - pip: use 'docker compose exec web pip ...'\n"
     fi
 fi
 
-# Check for npm commands (might need frontend container)
-if echo "$COMMAND" | grep -qE '^\s*npm\s+(test|install|run)'; then
-    # Check if we're in frontend directory or if it's frontend-related
-    if ! echo "$COMMAND" | grep -q "docker compose exec"; then
-        # Could be OK if in frontend dir on host, but warn anyway
-        log_hook "WARNING: npm command on host - verify it's intentional"
+# Check for ruff (should be in web container)
+if echo "$COMMAND" | grep -qE '^\s*ruff\s+'; then
+    if ! uses_docker; then
+        WARNINGS="${WARNINGS}  - ruff: use 'docker compose exec web ruff ...'\n"
+    fi
+fi
+
+# Check for mypy (should be in web container)
+if echo "$COMMAND" | grep -qE '^\s*mypy\s+'; then
+    if ! uses_docker; then
+        WARNINGS="${WARNINGS}  - mypy: use 'docker compose exec web mypy ...'\n"
+    fi
+fi
+
+# Check for django-admin (should be in web container)
+if echo "$COMMAND" | grep -qE '^\s*django-admin\s+'; then
+    if ! uses_docker; then
+        WARNINGS="${WARNINGS}  - django-admin: use 'docker compose exec web django-admin ...'\n"
+    fi
+fi
+
+# Check for npm commands (should be in frontend container)
+if echo "$COMMAND" | grep -qE '^\s*npm\s+(test|install|run|start|build)'; then
+    if ! uses_docker; then
+        WARNINGS="${WARNINGS}  - npm: use 'docker compose exec frontend npm ...'\n"
+    fi
+fi
+
+# Check for npx commands related to frontend
+if echo "$COMMAND" | grep -qE '^\s*npx\s+(eslint|tsc|vite|vitest)'; then
+    if ! uses_docker; then
+        WARNINGS="${WARNINGS}  - npx: use 'docker compose exec frontend npx ...'\n"
     fi
 fi
 
 if [[ -n "$WARNINGS" ]]; then
     log_hook "WARNING: Possible host command in Docker-only environment"
     echo ""
-    echo "⚠️  WARNING: Docker Environment Check"
-    echo "====================================="
+    echo "WARNING: Docker Environment Check"
+    echo "=================================="
     echo ""
-    echo "This command may run on host instead of in Docker:"
+    echo "These commands should run in Docker containers:"
     echo -e "$WARNINGS"
     echo ""
-    echo "The host has NO Python/Django installed!"
+    echo "The host has NO Python/Django/Node installed!"
     echo ""
-    echo "If you see 'ModuleNotFoundError', use Docker:"
-    echo "  docker compose exec web python ..."
-    echo "  docker compose exec frontend npm ..."
+    echo "Correct usage:"
+    echo "  docker compose exec web python ...       # Python/Django"
+    echo "  docker compose exec web python -m pytest # Tests"
+    echo "  docker compose exec frontend npm ...     # Frontend"
     echo ""
     echo "See .claude/rules/docker-environment.md for details"
     echo ""
-    # Allow the command but warn
+    # Allow the command but warn - user might know what they're doing
 fi
 
 log_hook "Checked: $COMMAND"

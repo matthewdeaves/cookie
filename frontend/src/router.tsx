@@ -2,7 +2,10 @@ import { createBrowserRouter, Outlet, Navigate, useLocation } from 'react-router
 import { Toaster } from 'sonner'
 import { AIStatusProvider } from './contexts/AIStatusContext'
 import { ProfileProvider, useProfile } from './contexts/ProfileContext'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import ProfileSelector from './screens/ProfileSelector'
+import Login from './screens/Login'
+import Register from './screens/Register'
 import Home from './screens/Home'
 import Search from './screens/Search'
 import RecipeDetail from './screens/RecipeDetail'
@@ -16,21 +19,24 @@ import Settings from './screens/Settings'
 // eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function AppLayout() {
   return (
-    <AIStatusProvider>
-      <ProfileProvider>
-        <Toaster position="top-center" richColors />
-        <Outlet />
-      </ProfileProvider>
-    </AIStatusProvider>
+    <AuthProvider>
+      <AIStatusProvider>
+        <ProfileProvider>
+          <Toaster position="top-center" richColors />
+          <Outlet />
+        </ProfileProvider>
+      </AIStatusProvider>
+    </AuthProvider>
   )
 }
 
 // eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { profile, loading } = useProfile()
+  const { profile, loading: profileLoading } = useProfile()
+  const { isPublicMode, isAuthenticated, loading: authLoading } = useAuth()
   const location = useLocation()
 
-  if (loading) {
+  if (profileLoading || authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-muted-foreground">Loading...</div>
@@ -38,7 +44,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (!profile) {
+  // Public mode: require authentication
+  if (isPublicMode && !isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  // Home mode: require profile selection
+  if (!isPublicMode && !profile) {
     return <Navigate to="/" state={{ from: location }} replace />
   }
 
@@ -46,8 +58,66 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 // eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { profile, loading: profileLoading } = useProfile()
+  const { isPublicMode, isAuthenticated, isAdmin, loading: authLoading } = useAuth()
+  const location = useLocation()
+
+  if (profileLoading || authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    )
+  }
+
+  // Public mode: require authentication
+  if (isPublicMode && !isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  // Home mode: require profile selection
+  if (!isPublicMode && !profile) {
+    return <Navigate to="/" state={{ from: location }} replace />
+  }
+
+  // Require admin access
+  if (!isAdmin) {
+    return <Navigate to="/home" replace />
+  }
+
+  return <>{children}</>
+}
+
+// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { profile, loading } = useProfile()
+  const { profile, loading: profileLoading } = useProfile()
+  const { isPublicMode, isAuthenticated, loading: authLoading } = useAuth()
+
+  if (profileLoading || authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    )
+  }
+
+  // Public mode: redirect authenticated users to home
+  if (isPublicMode && isAuthenticated) {
+    return <Navigate to="/home" replace />
+  }
+
+  // Home mode: redirect users with profile to home
+  if (!isPublicMode && profile) {
+    return <Navigate to="/home" replace />
+  }
+
+  return <>{children}</>
+}
+
+// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
+function AuthRoute({ children }: { children: React.ReactNode }) {
+  const { isPublicMode, isAuthenticated, loading } = useAuth()
 
   if (loading) {
     return (
@@ -57,7 +127,13 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (profile) {
+  // Home mode: redirect to profile selector (no login needed)
+  if (!isPublicMode) {
+    return <Navigate to="/" replace />
+  }
+
+  // Public mode: redirect authenticated users to home
+  if (isAuthenticated) {
     return <Navigate to="/home" replace />
   }
 
@@ -74,6 +150,22 @@ export const router = createBrowserRouter([
           <PublicRoute>
             <ProfileSelector />
           </PublicRoute>
+        ),
+      },
+      {
+        path: '/login',
+        element: (
+          <AuthRoute>
+            <Login />
+          </AuthRoute>
+        ),
+      },
+      {
+        path: '/register',
+        element: (
+          <AuthRoute>
+            <Register />
+          </AuthRoute>
         ),
       },
       {
@@ -143,9 +235,9 @@ export const router = createBrowserRouter([
       {
         path: '/settings',
         element: (
-          <ProtectedRoute>
+          <AdminRoute>
             <Settings />
-          </ProtectedRoute>
+          </AdminRoute>
         ),
       },
       // Catch-all redirect to home

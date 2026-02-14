@@ -1,10 +1,19 @@
 ---
-description: ES5 JavaScript compliance for iOS 9 Safari compatibility
+description: ES5 JavaScript syntax compliance for iOS 9 Safari compatibility
+paths:
+  - "apps/legacy/static/legacy/js/**/*"
+globs:
+  - "apps/legacy/static/legacy/js/**/*.js"
 ---
 
 # ES5 Compliance for Legacy Frontend
 
 All code in `apps/legacy/static/legacy/js/` MUST be ES5 compatible for iOS 9.3 Safari.
+
+**Related documents:**
+- `ios9-safari-api.md` - JavaScript API limitations
+- `ios9-safari-css.md` - CSS feature limitations
+- `legacy-patterns.md` - Approved code patterns
 
 ## Target Environment
 
@@ -110,8 +119,26 @@ See `/qa-session` skill for complete manual testing checklist.
 **Clear cache after deploy:**
 Settings → Safari → Clear History and Website Data
 
+## Pre-commit Hook
+
+ES5 compliance is enforced by:
+1. **Claude Code hook**: `.claude/hooks/es5-syntax-check.sh` (blocks before write)
+2. **Git pre-commit**: `legacy-eslint` in `.pre-commit-config.yaml`
+
+The Claude Code hook catches:
+- `const`, `let` declarations
+- Arrow functions (`=>`)
+- Template literals (`` `${...}` ``)
+- `async`/`await`
+- `class` declarations
+- `for...of` loops
+- Destructuring (`{x, y} = obj`)
+- Spread operator (`...arr`)
+- Default parameters
+- ES6 built-ins (`Symbol`, `Map`, `Set`, `WeakMap`, `WeakSet`)
+
 ## References
 
 - ES5 Specification: https://262.ecma-international.org/5.1/
 - iOS 9 Safari compatibility: https://caniuse.com/?compare=ios_saf+9.3&compareCats=all
-- Inside Macintosh: Not applicable (this is web, not Classic Mac!)
+- Cookie polyfills: `apps/legacy/static/legacy/js/polyfills.js`

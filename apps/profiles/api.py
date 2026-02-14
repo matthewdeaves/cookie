@@ -6,6 +6,9 @@ from django.conf import settings
 from django.db.models import Count, Q
 from ninja import Router, Schema
 
+from apps.core.models import AppSettings
+from apps.core.utils import is_admin
+
 from .models import Profile
 
 router = Router(tags=["profiles"])
@@ -77,8 +80,17 @@ class ErrorSchema(Schema):
 
 @router.get("/", response=List[ProfileWithStatsSchema])
 def list_profiles(request):
-    """List all profiles with stats for user management."""
+    """List all profiles with stats for user management.
+
+    In home mode: Returns all profiles.
+    In public mode:
+      - Admin: Returns all profiles
+      - Regular user: Returns only their own profile
+    """
     from apps.recipes.models import RecipeCollectionItem
+
+    app_settings = AppSettings.get()
+    deployment_mode = app_settings.get_deployment_mode()
 
     profiles = Profile.objects.annotate(
         favorites_count=Count("favorites", distinct=True),
@@ -87,7 +99,16 @@ def list_profiles(request):
         view_history_count=Count("view_history", distinct=True),
         scaling_cache_count=Count("serving_adjustments", distinct=True),
         discover_cache_count=Count("ai_discovery_suggestions", distinct=True),
-    ).order_by("-created_at")
+    )
+
+    # In public mode, non-admin users can only see their own profile
+    if deployment_mode == "public" and not is_admin(request.user):
+        if request.user.is_authenticated and hasattr(request.user, "profile"):
+            profiles = profiles.filter(id=request.user.profile.id)
+        else:
+            profiles = profiles.none()
+
+    profiles = profiles.order_by("-created_at")
 
     result = []
     for p in profiles:
@@ -194,10 +215,15 @@ def get_deletion_preview(request, profile_id: int):
     }
 
 
-@router.delete("/{profile_id}/", response={204: None, 400: ErrorSchema, 404: ErrorSchema})
+@router.delete("/{profile_id}/", response={204: None, 400: ErrorSchema, 403: ErrorSchema, 404: ErrorSchema})
 def delete_profile(request, profile_id: int):
     """
     Delete a profile and ALL associated data.
+
+    In home mode: Any user can delete any profile.
+    In public mode:
+      - Users can delete their own profile
+      - Only admin can delete other users' profiles
 
     Cascade deletes:
     - Recipe remixes (is_remix=True, remix_profile=this)
@@ -216,6 +242,17 @@ def delete_profile(request, profile_id: int):
         profile = Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
         return 404, {"error": "not_found", "message": "Profile not found"}
+
+    # Check permissions in public mode
+    app_settings = AppSettings.get()
+    if app_settings.get_deployment_mode() == "public":
+        # Check if user is deleting their own profile or is admin
+        is_own_profile = (
+            request.user.is_authenticated and hasattr(request.user, "profile") and request.user.profile.id == profile_id
+        )
+
+        if not is_own_profile and not is_admin(request.user):
+            return 403, {"error": "forbidden", "message": "Cannot delete another user's profile"}
 
     # Check if this is the current session profile
     current_profile_id = request.session.get("profile_id")
@@ -246,9 +283,29 @@ def delete_profile(request, profile_id: int):
     return 204, None
 
 
-@router.post("/{profile_id}/select/", response={200: ProfileOut})
+@router.post("/{profile_id}/select/", response={200: ProfileOut, 401: ErrorSchema, 403: ErrorSchema})
 def select_profile(request, profile_id: int):
-    """Set a profile as the current profile (stored in session)."""
-    profile = Profile.objects.get(id=profile_id)
+    """Set a profile as the current profile (stored in session).
+
+    In home mode: Any user can select any profile.
+    In public mode: User must be authenticated and own the profile.
+    """
+    app_settings = AppSettings.get()
+    deployment_mode = app_settings.get_deployment_mode()
+
+    try:
+        profile = Profile.objects.get(id=profile_id)
+    except Profile.DoesNotExist:
+        return 404, {"error": "not_found", "message": "Profile not found"}
+
+    if deployment_mode == "public":
+        # Public mode: require authentication
+        if not request.user.is_authenticated:
+            return 401, {"error": "unauthorized", "message": "Authentication required"}
+
+        # Public mode: user can only select their own profile
+        if not hasattr(request.user, "profile") or request.user.profile.id != profile_id:
+            return 403, {"error": "forbidden", "message": "Cannot select another user's profile"}
+
     request.session["profile_id"] = profile.id
     return profile
