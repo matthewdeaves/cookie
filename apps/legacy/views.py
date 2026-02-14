@@ -392,7 +392,7 @@ def settings(request):
                 "name": profile.name,
                 "avatar_color": profile.avatar_color,
             },
-            "current_profile_id": profile_id,
+            "current_profile_id": profile.id,
             "ai_available": ai_available,
             "default_model": app_settings.default_ai_model,
             "prompts": prompts,

@@ -406,7 +406,8 @@ Cookie.pages.search = (function() {
                 };
 
                 // Show loading spinner on image placeholder
-                showImageLoadingSpinner(result.url);
+                // Pass image URL to detect WebP (iOS 9 can't display)
+                showImageLoadingSpinner(result.url, result.image_url);
             }
         }
 
@@ -436,7 +437,7 @@ Cookie.pages.search = (function() {
      */
     function pollForCachedImages() {
         var MAX_POLL_DURATION = 20000; // 20 seconds
-        var POLL_INTERVAL = 4000; // 4 seconds
+        var POLL_INTERVAL = 2000; // 2 seconds (faster for WebP conversion)
 
         imagePollingState.pollInterval = setInterval(function() {
             var elapsed = Date.now() - imagePollingState.pollStartTime;
@@ -516,18 +517,32 @@ Cookie.pages.search = (function() {
     }
 
     /**
-     * Show loading spinner for image (only if no image is displayed)
-     * We keep external images visible as fallback - don't replace them with spinners
+     * Check if image URL is WebP format (not supported on iOS 9)
      */
-    function showImageLoadingSpinner(recipeUrl) {
+    function isWebPUrl(url) {
+        if (!url) return false;
+        var lowerUrl = url.toLowerCase();
+        // Check for .webp extension or format=webp in URL
+        return lowerUrl.indexOf('.webp') !== -1 ||
+               lowerUrl.indexOf('format=webp') !== -1 ||
+               lowerUrl.indexOf('format(webp)') !== -1;
+    }
+
+    /**
+     * Show loading spinner for image
+     * For WebP images: show spinner (iOS 9 can't display WebP)
+     * For other formats: keep external image as fallback
+     */
+    function showImageLoadingSpinner(recipeUrl, imageUrl) {
         var card = document.querySelector('[data-url="' + Cookie.utils.escapeSelector(recipeUrl) + '"]');
         if (card) {
             var imgContainer = card.querySelector('.search-result-image');
             if (imgContainer) {
                 var existingImg = imgContainer.querySelector('img');
-                // Only show spinner if there's NO image at all (not even external)
-                // If there's an external image, keep it visible as fallback
-                if (!existingImg) {
+                // Show spinner if:
+                // 1. No image exists, OR
+                // 2. Image is WebP (iOS 9 can't display it anyway)
+                if (!existingImg || isWebPUrl(imageUrl)) {
                     imgContainer.innerHTML = '<div class="image-loading-spinner"></div>';
                 }
             }
