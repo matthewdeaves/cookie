@@ -13,16 +13,16 @@
 | FE-002 | Automatic selector repair on search failure | Low | Medium |
 | FE-003 | OAuth/social login for production deployment mode | High | High |
 | FE-004 | Settings page access control (admin-only restriction) | Medium | Medium |
-| FE-005 | Migrate from SQLite to MySQL/PostgreSQL | Medium | Medium |
-| FE-006 | Multi-selection for AI remix suggestions | Low | Low |
+| FE-005 | ~~Migrate from SQLite to MySQL/PostgreSQL~~ | ~~Medium~~ | ~~Medium~~ |
+| FE-006 | ~~Multi-selection for AI remix suggestions~~ | ~~Low~~ | ~~Low~~ |
 | FE-007 | ~~Add nginx to production container for dev/prod parity~~ | ~~High~~ | ~~Medium~~ |
 | FE-008 | ~~Docker Hub: Only maintain latest image, no version history~~ | ~~Low~~ | ~~Low~~ |
 | FE-009 | AI-powered meal pairing suggestions | Medium | Medium |
 | FE-010 | ~~Investigate GitHub native ARM64 runners for faster CD builds~~ | ~~Low~~ | ~~Low~~ |
 | FE-011 | ~~Modern frontend nutrition labels show raw camelCase keys~~ | ~~Low~~ | ~~Low~~ |
 | FE-012 | ~~Historical code quality metrics with trend graphs~~ | ~~Low~~ | ~~Medium~~ |
-| FE-013 | Linked recipe navigation (original ↔ remix toggle) | Low | Low |
-| FE-014 | Legacy frontend discover suggestions grid layout | Low | Low |
+| FE-013 | ~~Linked recipe navigation (original ↔ remix toggle)~~ | ~~Low~~ | ~~Low~~ |
+| FE-014 | ~~Legacy frontend discover suggestions grid layout~~ | ~~Low~~ | ~~Low~~ |
 | FE-015 | Replace Figma workflow with Claude Code frontend-design skill | Medium | Medium |
 | FE-016 | Handle non-recipe search queries with query classification | Medium | Medium |
 

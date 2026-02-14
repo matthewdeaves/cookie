@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Sparkles, Loader2 } from 'lucide-react'
+import { X, Sparkles, Loader2, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type RecipeDetail } from '../api/client'
 import { cn } from '../lib/utils'
@@ -21,7 +21,7 @@ export default function RemixModal({
 }: RemixModalProps) {
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
-  const [selectedSuggestion, setSelectedSuggestion] = useState<string | null>(null)
+  const [selectedSuggestions, setSelectedSuggestions] = useState<string[]>([])
   const [customInput, setCustomInput] = useState('')
   const [creating, setCreating] = useState(false)
 
@@ -32,7 +32,7 @@ export default function RemixModal({
     } else {
       // Reset state when modal closes
       setSuggestions([])
-      setSelectedSuggestion(null)
+      setSelectedSuggestions([])
       setCustomInput('')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- loadSuggestions is stable, only re-run when modal opens or recipe changes
@@ -52,18 +52,28 @@ export default function RemixModal({
   }
 
   const handleSuggestionClick = (suggestion: string) => {
-    if (selectedSuggestion === suggestion) {
-      setSelectedSuggestion(null)
-    } else {
-      setSelectedSuggestion(suggestion)
-      setCustomInput('')
-    }
+    setSelectedSuggestions((prev) => {
+      if (prev.includes(suggestion)) {
+        // Remove if already selected
+        return prev.filter((s) => s !== suggestion)
+      } else {
+        // Add to selection (limit to 4 to keep remixes focused)
+        if (prev.length >= 4) {
+          toast.info('You can select up to 4 modifications')
+          return prev
+        }
+        // Clear custom input when selecting suggestions
+        setCustomInput('')
+        return [...prev, suggestion]
+      }
+    })
   }
 
   const handleCustomInputChange = (value: string) => {
     setCustomInput(value)
     if (value.trim()) {
-      setSelectedSuggestion(null)
+      // Clear suggestions when typing custom input
+      setSelectedSuggestions([])
     }
   }
 
@@ -71,11 +81,18 @@ export default function RemixModal({
     if (customInput.trim()) {
       return customInput.trim()
     }
-    return selectedSuggestion
+    if (selectedSuggestions.length === 1) {
+      return selectedSuggestions[0]
+    }
+    if (selectedSuggestions.length > 1) {
+      // Combine multiple suggestions into a natural sentence
+      return selectedSuggestions.join(' AND ')
+    }
+    return null
   }
 
   const canSubmit = () => {
-    return !creating && (selectedSuggestion !== null || customInput.trim() !== '')
+    return !creating && (selectedSuggestions.length > 0 || customInput.trim() !== '')
   }
 
   const handleCreateRemix = async () => {
@@ -119,12 +136,19 @@ export default function RemixModal({
         {/* Content */}
         <div className="px-6 py-5">
           <p className="mb-4 text-sm text-muted-foreground">
-            Choose a modification or describe your own remix of "{recipe.title}"
+            Choose one or more modifications, or describe your own remix of "{recipe.title}"
           </p>
 
           {/* AI Suggestions */}
           <div className="mb-5">
-            <h3 className="mb-3 text-sm font-medium text-foreground">Suggestions</h3>
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-medium text-foreground">Suggestions</h3>
+              {selectedSuggestions.length > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  {selectedSuggestions.length} selected
+                </span>
+              )}
+            </div>
             {loadingSuggestions ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -134,21 +158,25 @@ export default function RemixModal({
               </div>
             ) : (
               <div className="flex flex-wrap gap-2">
-                {suggestions.map((suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    disabled={creating}
-                    className={cn(
-                      'rounded-full px-3 py-1.5 text-sm transition-colors',
-                      selectedSuggestion === suggestion
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-foreground hover:bg-muted/80'
-                    )}
-                  >
-                    {suggestion}
-                  </button>
-                ))}
+                {suggestions.map((suggestion, index) => {
+                  const isSelected = selectedSuggestions.includes(suggestion)
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      disabled={creating}
+                      className={cn(
+                        'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-colors',
+                        isSelected
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-foreground hover:bg-muted/80'
+                      )}
+                    >
+                      {isSelected && <Check className="h-3.5 w-3.5" />}
+                      {suggestion}
+                    </button>
+                  )
+                })}
               </div>
             )}
           </div>

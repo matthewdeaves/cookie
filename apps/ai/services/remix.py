@@ -145,6 +145,7 @@ def create_remix(
         source_url=None,
         is_remix=True,
         remix_profile=profile,
+        remixed_from=original,  # Link to original recipe
         prep_time=prep_time,
         cook_time=cook_time,
         total_time=total_time,

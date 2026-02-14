@@ -25,6 +25,14 @@ router = Router(tags=["recipes"])
 # Schemas
 
 
+class LinkedRecipeOut(Schema):
+    """Minimal recipe info for linked recipe navigation."""
+
+    id: int
+    title: str
+    relationship: str  # "original", "remix", "sibling"
+
+
 class RecipeOut(Schema):
     id: int
     source_url: Optional[str]
@@ -59,6 +67,8 @@ class RecipeOut(Schema):
     ai_tips: list
     is_remix: bool
     remix_profile_id: Optional[int]
+    remixed_from_id: Optional[int]
+    linked_recipes: List[LinkedRecipeOut] = []
     scraped_at: str
     updated_at: str
 
@@ -75,6 +85,15 @@ class RecipeOut(Schema):
     @staticmethod
     def resolve_updated_at(obj):
         return obj.updated_at.isoformat()
+
+    @staticmethod
+    def resolve_remixed_from_id(obj):
+        return getattr(obj, "remixed_from_id", None)
+
+    @staticmethod
+    def resolve_linked_recipes(obj):
+        # Return linked_recipes if set, otherwise empty list
+        return getattr(obj, "linked_recipes", [])
 
 
 class RecipeListOut(Schema):
@@ -302,6 +321,7 @@ def get_recipe(request, recipe_id: int):
     Get a recipe by ID.
 
     Only returns recipes owned by the current profile.
+    Includes linked_recipes for navigation between original and remixes.
     """
     profile = get_current_profile_or_none(request)
     if not profile:
@@ -309,6 +329,56 @@ def get_recipe(request, recipe_id: int):
 
     # Only allow access to recipes owned by this profile
     recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)
+
+    # Build linked recipes list for navigation
+    linked_recipes = []
+
+    # Add original recipe if this is a remix
+    if recipe.remixed_from_id:
+        original = recipe.remixed_from
+        if original and original.profile_id == profile.id:
+            linked_recipes.append(
+                {
+                    "id": original.id,
+                    "title": original.title,
+                    "relationship": "original",
+                }
+            )
+            # Add siblings (other remixes of the same original)
+            siblings = (
+                Recipe.objects.filter(
+                    remixed_from=original,
+                    profile=profile,
+                )
+                .exclude(id=recipe.id)
+                .values("id", "title")
+            )
+            for sibling in siblings:
+                linked_recipes.append(
+                    {
+                        "id": sibling["id"],
+                        "title": sibling["title"],
+                        "relationship": "sibling",
+                    }
+                )
+
+    # Add children (remixes of this recipe)
+    children = Recipe.objects.filter(
+        remixed_from=recipe,
+        profile=profile,
+    ).values("id", "title")
+    for child in children:
+        linked_recipes.append(
+            {
+                "id": child["id"],
+                "title": child["title"],
+                "relationship": "remix",
+            }
+        )
+
+    # Attach linked recipes to the recipe object for serialization
+    recipe.linked_recipes = linked_recipes
+
     return recipe
 
 
