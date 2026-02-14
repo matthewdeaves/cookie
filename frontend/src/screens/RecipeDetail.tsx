@@ -448,7 +448,7 @@ export default function RecipeDetail() {
               {recipe.linked_recipes.map((linked) => (
                 <button
                   key={linked.id}
-                  onClick={() => navigate(`/recipes/${linked.id}`)}
+                  onClick={() => navigate(`/recipe/${linked.id}`)}
                   className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted/80"
                 >
                   <span
