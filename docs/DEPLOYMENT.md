@@ -24,7 +24,7 @@ docker run -d \
   --name cookie \
   -p 80:80 \
   -v cookie-data:/app/data \
-  mndeaves/cookie:latest
+  ghcr.io/matthewdeaves/cookie:latest
 ```
 
 The app will be available at `http://localhost`.
@@ -97,8 +97,8 @@ This single-container approach simplifies deployment while maintaining productio
 
 | Property | Value |
 |----------|-------|
-| **Registry** | Docker Hub |
-| **Repository** | `mndeaves/cookie` |
+| **Registry** | GitHub Container Registry (ghcr.io) |
+| **Repository** | `matthewdeaves/cookie` |
 | **Architectures** | `linux/amd64`, `linux/arm64` |
 | **Base Image** | `python:3.12-slim` |
 | **Exposed Port** | `80` (nginx) |
@@ -168,7 +168,7 @@ docker run -d \
   --restart unless-stopped \
   -p 80:80 \
   -v cookie-data:/app/data \
-  mndeaves/cookie:latest
+  ghcr.io/matthewdeaves/cookie:latest
 ```
 
 For custom domain with SSL (via reverse proxy):
@@ -181,7 +181,7 @@ docker run -d \
   -v cookie-data:/app/data \
   -e ALLOWED_HOSTS=cookie.example.com \
   -e CSRF_TRUSTED_ORIGINS=https://cookie.example.com \
-  mndeaves/cookie:latest
+  ghcr.io/matthewdeaves/cookie:latest
 ```
 
 ### Option 2: Docker Compose (Recommended)
@@ -191,7 +191,7 @@ Create `docker-compose.prod.yml`:
 ```yaml
 services:
   cookie:
-    image: mndeaves/cookie:latest
+    image: ghcr.io/matthewdeaves/cookie:latest
     container_name: cookie
     restart: unless-stopped
     ports:
@@ -232,7 +232,7 @@ bin/prod update  # Pull latest and restart
 ```yaml
 services:
   cookie:
-    image: mndeaves/cookie:latest
+    image: ghcr.io/matthewdeaves/cookie:latest
     restart: unless-stopped
     volumes:
       - cookie-data:/app/data
@@ -288,7 +288,7 @@ spec:
     spec:
       containers:
       - name: cookie
-        image: mndeaves/cookie:latest
+        image: ghcr.io/matthewdeaves/cookie:latest
         ports:
         - containerPort: 80
         env:
@@ -387,7 +387,7 @@ cookie.example.com {
 ```yaml
 services:
   cookie:
-    image: mndeaves/cookie:latest
+    image: ghcr.io/matthewdeaves/cookie:latest
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.cookie.rule=Host(`cookie.example.com`)"
@@ -555,7 +555,7 @@ Or manually:
 
 ```bash
 # Pull latest image
-docker pull mndeaves/cookie:latest
+docker pull ghcr.io/matthewdeaves/cookie:latest
 
 # Recreate container
 docker stop cookie
@@ -565,7 +565,7 @@ docker run -d \
   --restart unless-stopped \
   -p 80:80 \
   -v cookie-data:/app/data \
-  mndeaves/cookie:latest
+  ghcr.io/matthewdeaves/cookie:latest
 ```
 
 Or with Docker Compose:
@@ -594,5 +594,5 @@ Before exposing to the internet:
 
 ## Support
 
-- **GitHub Issues**: [github.com/mndeaves/cookie/issues](https://github.com/mndeaves/cookie/issues)
-- **Documentation**: [github.com/mndeaves/cookie/docs](https://github.com/mndeaves/cookie/docs)
+- **GitHub Issues**: [github.com/ghcr.io/matthewdeaves/cookie/issues](https://github.com/ghcr.io/matthewdeaves/cookie/issues)
+- **Documentation**: [github.com/ghcr.io/matthewdeaves/cookie/docs](https://github.com/ghcr.io/matthewdeaves/cookie/docs)

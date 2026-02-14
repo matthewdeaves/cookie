@@ -18,7 +18,7 @@ A self-hosted recipe manager for searching, importing, organising, and cooking t
 Run the production container with a single command:
 
 ```bash
-docker run -d -p 80:80 -v cookie-data:/app/data mndeaves/cookie:latest
+docker run -d -p 80:80 -v cookie-data:/app/data ghcr.io/matthewdeaves/cookie:latest
 ```
 
 Open http://localhost and start importing recipes.
@@ -156,10 +156,10 @@ AI features are configured through the Settings UI, not environment variables.
 
 ```bash
 # Docker volume (recommended)
-docker run -v cookie-data:/app/data mndeaves/cookie:latest
+docker run -v cookie-data:/app/data ghcr.io/matthewdeaves/cookie:latest
 
 # Or bind mount
-docker run -v /path/to/data:/app/data mndeaves/cookie:latest
+docker run -v /path/to/data:/app/data ghcr.io/matthewdeaves/cookie:latest
 ```
 
 Data stored in `/app/data`:
@@ -212,7 +212,7 @@ bin/dev npm test        # Run frontend tests
 ```bash
 bin/prod up             # Start production container (port 80)
 bin/prod down           # Stop production container
-bin/prod pull           # Pull latest image from Docker Hub
+bin/prod pull           # Pull latest image from GHCR
 bin/prod update         # Pull and restart
 bin/prod logs -f        # Follow logs
 bin/prod health         # Check container health

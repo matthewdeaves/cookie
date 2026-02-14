@@ -63,14 +63,14 @@ jobs:
             echo ""
             echo "### Docker"
             echo "\`\`\`bash"
-            echo "docker pull mndeaves/cookie:${CURRENT_TAG#v}"
+            echo "docker pull ghcr.io/matthewdeaves/cookie:${CURRENT_TAG#v}"
             echo "# or"
-            echo "docker pull mndeaves/cookie:latest"
+            echo "docker pull ghcr.io/matthewdeaves/cookie:latest"
             echo "\`\`\`"
             echo ""
 
             if [ -n "$PREV_TAG" ]; then
-              echo "**Full Changelog**: https://github.com/mndeaves/cookie/compare/$PREV_TAG...$CURRENT_TAG"
+              echo "**Full Changelog**: https://github.com/matthewdeaves/cookie/compare/$PREV_TAG...$CURRENT_TAG"
             fi
           } > changelog.md
 

@@ -21,7 +21,7 @@ services:
       retries: 5
 
   web:
-    image: mndeaves/cookie:latest
+    image: ghcr.io/matthewdeaves/cookie:latest
     container_name: cookie-web
     restart: unless-stopped
     ports:

@@ -1,12 +1,12 @@
 # Production Docker Compose for local testing of production image
 # Usage: docker compose -f docker-compose.prod.yml up
 #
-# This uses the published Docker Hub image to test production behavior locally.
+# This uses the published GHCR image to test production behavior locally.
 # For development, use: docker compose up (uses docker-compose.yml)
 
 services:
   web:
-    image: mndeaves/cookie:latest
+    image: ghcr.io/matthewdeaves/cookie:latest
     container_name: cookie-prod
     ports:
       - "80:80"
