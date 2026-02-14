@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-02-12T20:10:33.407Z",
+    "detectionDate": "2026-02-14T15:51:35.094Z",
     "formats": {
       "python": {
         "sources": {
@@ -173,14 +173,14 @@
             "newClones": 0
           },
           "apps/ai/services/remix.py": {
-            "lines": 309,
-            "tokens": 1851,
+            "lines": 310,
+            "tokens": 1859,
             "sources": 1,
             "clones": 3,
             "duplicatedLines": 45,
             "duplicatedTokens": 273,
-            "percentage": 14.56,
-            "percentageTokens": 14.75,
+            "percentage": 14.52,
+            "percentageTokens": 14.69,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -257,8 +257,8 @@
             "newClones": 0
           },
           "apps/recipes/models.py": {
-            "lines": 275,
-            "tokens": 2135,
+            "lines": 283,
+            "tokens": 2191,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -281,8 +281,8 @@
             "newClones": 0
           },
           "apps/recipes/api.py": {
-            "lines": 328,
-            "tokens": 2059,
+            "lines": 398,
+            "tokens": 2481,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -474,28 +474,28 @@
           }
         },
         "total": {
-          "lines": 7328,
-          "tokens": 45992,
+          "lines": 7407,
+          "tokens": 46478,
           "sources": 39,
           "clones": 7,
           "duplicatedLines": 133,
           "duplicatedTokens": 890,
-          "percentage": 1.81,
-          "percentageTokens": 1.94,
+          "percentage": 1.8,
+          "percentageTokens": 1.91,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7328,
-      "tokens": 45992,
+      "lines": 7407,
+      "tokens": 46478,
       "sources": 39,
       "clones": 7,
       "duplicatedLines": 133,
       "duplicatedTokens": 890,
-      "percentage": 1.81,
-      "percentageTokens": 1.94,
+      "percentage": 1.8,
+      "percentageTokens": 1.91,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -580,17 +580,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/services/remix.py",
-        "start": 229,
-        "end": 244,
+        "start": 230,
+        "end": 245,
         "startLoc": {
-          "line": 229,
+          "line": 230,
           "column": 13,
-          "position": 1363
+          "position": 1371
         },
         "endLoc": {
-          "line": 244,
+          "line": 245,
           "column": 21,
-          "position": 1450
+          "position": 1458
         }
       },
       "secondFile": {
@@ -616,17 +616,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/services/remix.py",
-        "start": 259,
-        "end": 274,
+        "start": 260,
+        "end": 275,
         "startLoc": {
-          "line": 259,
+          "line": 260,
           "column": 5,
-          "position": 1531
+          "position": 1539
         },
         "endLoc": {
-          "line": 274,
+          "line": 275,
           "column": 16,
-          "position": 1630
+          "position": 1638
         }
       },
       "secondFile": {

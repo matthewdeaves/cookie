@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-02-12T20:10:48.889Z",
+    "detectionDate": "2026-02-14T15:51:41.181Z",
     "formats": {
       "typescript": {
         "sources": {
@@ -89,8 +89,8 @@
             "newClones": 0
           },
           "src/api/client.ts": {
-            "lines": 611,
-            "tokens": 4395,
+            "lines": 619,
+            "tokens": 4450,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -102,14 +102,14 @@
           }
         },
         "total": {
-          "lines": 1298,
-          "tokens": 9511,
+          "lines": 1306,
+          "tokens": 9566,
           "sources": 8,
           "clones": 3,
           "duplicatedLines": 42,
           "duplicatedTokens": 421,
-          "percentage": 3.24,
-          "percentageTokens": 4.43,
+          "percentage": 3.22,
+          "percentageTokens": 4.4,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -213,8 +213,8 @@
             "newClones": 0
           },
           "src/screens/RecipeDetail.tsx": {
-            "lines": 523,
-            "tokens": 4032,
+            "lines": 557,
+            "tokens": 4284,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -369,8 +369,8 @@
             "newClones": 0
           },
           "src/components/RemixModal.tsx": {
-            "lines": 73,
-            "tokens": 467,
+            "lines": 84,
+            "tokens": 569,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -442,8 +442,8 @@
           }
         },
         "total": {
-          "lines": 2730,
-          "tokens": 19968,
+          "lines": 2775,
+          "tokens": 20322,
           "sources": 27,
           "clones": 0,
           "duplicatedLines": 0,
@@ -553,8 +553,8 @@
             "newClones": 0
           },
           "src/screens/RecipeDetail.tsx": {
-            "lines": 745,
-            "tokens": 5906,
+            "lines": 780,
+            "tokens": 6162,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -709,8 +709,8 @@
             "newClones": 0
           },
           "src/components/RemixModal.tsx": {
-            "lines": 201,
-            "tokens": 1484,
+            "lines": 229,
+            "tokens": 1727,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -794,28 +794,28 @@
           }
         },
         "total": {
-          "lines": 5572,
-          "tokens": 43312,
+          "lines": 5635,
+          "tokens": 43811,
           "sources": 28,
           "clones": 6,
           "duplicatedLines": 85,
           "duplicatedTokens": 627,
-          "percentage": 1.53,
-          "percentageTokens": 1.45,
+          "percentage": 1.51,
+          "percentageTokens": 1.43,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 9600,
-      "tokens": 72791,
+      "lines": 9716,
+      "tokens": 73699,
       "sources": 63,
       "clones": 9,
       "duplicatedLines": 127,
       "duplicatedTokens": 1048,
-      "percentage": 1.32,
-      "percentageTokens": 1.44,
+      "percentage": 1.31,
+      "percentageTokens": 1.42,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
