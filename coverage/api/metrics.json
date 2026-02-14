@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-14T18:05:03.788163+00:00",
+  "generated_at": "2026-02-14T18:25:21.578692+00:00",
   "repo": "matthewdeaves/cookie",
   "coverage": {
     "frontend": {
@@ -80,7 +80,7 @@
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/legacy-lint.svg"
     },
     "duplication": {
-      "percentage": 5.27,
+      "percentage": 5.26,
       "rating": "B",
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/legacy-duplication.svg"
     }
