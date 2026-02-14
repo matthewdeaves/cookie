@@ -214,6 +214,77 @@
     }
 }
 
+/* Landscape mode adjustments - more compact layout */
+@media (orientation: landscape) and (max-height: 500px) {
+    .play-header-content {
+        padding: 0.5rem 1rem;
+    }
+
+    .play-title {
+        font-size: 0.75rem;
+    }
+
+    .play-step-counter {
+        font-size: 0.625rem;
+    }
+
+    .play-exit-btn {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .play-exit-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .instruction-area {
+        padding: 0.5rem;
+    }
+
+    .instruction-content {
+        padding: 0;
+    }
+
+    .step-number {
+        width: 2rem;
+        height: 2rem;
+        margin: 0 auto 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .instruction-text {
+        font-size: 1rem;
+        line-height: 1.4;
+        margin: 0;
+    }
+
+    /* Hide step indicators in landscape - not enough space */
+    .step-indicators {
+        display: none;
+    }
+
+    .side-nav svg {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+/* Very short landscape (phones) - even more compact */
+@media (orientation: landscape) and (max-height: 380px) {
+    .play-header {
+        display: none;
+    }
+
+    .step-number {
+        display: none;
+    }
+
+    .instruction-text {
+        font-size: 0.9375rem;
+    }
+}
+
 /* Step indicators - compact, at bottom of content */
 .step-indicators {
     display: -webkit-flex;

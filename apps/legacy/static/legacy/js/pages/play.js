@@ -59,6 +59,8 @@ Cookie.pages.play = (function() {
      */
     function cacheElements() {
         elements = {
+            playMode: document.querySelector('.play-mode'),
+            instructionArea: document.querySelector('.instruction-area'),
             progressBar: document.getElementById('progress-bar'),
             currentStep: document.getElementById('current-step'),
             totalSteps: document.getElementById('total-steps'),
@@ -91,6 +93,10 @@ Cookie.pages.play = (function() {
         };
         document.addEventListener('touchstart', initMediaHandler, false);
         document.addEventListener('click', initMediaHandler, false);
+
+        // Handle orientation changes - iOS Safari needs viewport recalculation
+        window.addEventListener('orientationchange', handleOrientationChange, false);
+        window.addEventListener('resize', handleOrientationChange, false);
 
         // Exit button - use location.replace() to avoid Play Mode in history
         var exitBtn = document.getElementById('exit-btn');
@@ -148,6 +154,25 @@ Cookie.pages.play = (function() {
             var exitBtn = document.getElementById('exit-btn');
             var recipeUrl = exitBtn ? exitBtn.getAttribute('href') : '/legacy/home/';
             window.location.href = recipeUrl;
+        }
+    }
+
+    /**
+     * Handle orientation change
+     * iOS Safari doesn't always recalculate viewport height properly
+     */
+    function handleOrientationChange() {
+        // Force layout recalculation by triggering a reflow
+        if (elements.playMode) {
+            // Small delay to let iOS finish orientation animation
+            setTimeout(function() {
+                // Force reflow by reading offsetHeight
+                void elements.playMode.offsetHeight;
+                // Scroll instruction area to ensure content is visible
+                if (elements.instructionArea) {
+                    elements.instructionArea.scrollTop = 0;
+                }
+            }, 150);
         }
     }
 
