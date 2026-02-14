@@ -393,28 +393,8 @@ describe('Search', () => {
     })
   })
 
-  it('navigates back when back button is clicked', async () => {
-    vi.mocked(api.recipes.search).mockResolvedValueOnce({
-      results: [],
-      total: 0,
-      page: 1,
-      has_more: false,
-      sites: {},
-    })
-
-    renderSearch('cookies')
-
-    await waitFor(() => {
-      expect(screen.getByText('Back to Home')).toBeInTheDocument()
-    })
-
-    fireEvent.click(screen.getByText('Back to Home'))
-
-    // Should navigate to /home
-    await waitFor(() => {
-      expect(screen.getByText('Home')).toBeInTheDocument()
-    })
-  })
+  // Note: Navigation to home is now handled via NavHeader which requires ProfileContext.
+  // NavHeader navigation should be tested separately in its own test suite.
 
   it('shows empty state when no results', async () => {
     vi.mocked(api.recipes.search).mockResolvedValueOnce({

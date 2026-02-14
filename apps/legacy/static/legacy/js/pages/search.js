@@ -79,14 +79,6 @@ Cookie.pages.search = (function() {
      * Setup event listeners
      */
     function setupEventListeners() {
-        // Back button
-        var backBtn = document.getElementById('back-btn');
-        if (backBtn) {
-            backBtn.addEventListener('click', function() {
-                window.location.href = '/legacy/home/';
-            });
-        }
-
         // Load more button
         if (elements.loadMoreBtn) {
             elements.loadMoreBtn.addEventListener('click', function() {

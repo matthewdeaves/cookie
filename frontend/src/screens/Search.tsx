@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Link as LinkIcon, Loader2 } from 'lucide-react'
+import { Link as LinkIcon, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type SearchResult } from '../api/client'
 import { cn } from '../lib/utils'
+import NavHeader from '../components/NavHeader'
 
 export default function Search() {
   const navigate = useNavigate()
@@ -87,26 +88,13 @@ export default function Search() {
     }
   }
 
-  const handleBack = () => {
-    navigate('/home')
-  }
-
   // Sort sites by count descending for filter chips
   const sortedSites = Object.entries(sites).sort(([, a], [, b]) => b - a)
   const allSourcesCount = Object.values(sites).reduce((sum, n) => sum + n, 0)
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Header with breadcrumb */}
-      <header className="border-b border-border px-4 py-3">
-        <button
-          onClick={handleBack}
-          className="flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          <span>Back to Home</span>
-        </button>
-      </header>
+      <NavHeader />
 
       <main className="flex-1 px-4 py-6">
         <div className="mx-auto max-w-4xl">

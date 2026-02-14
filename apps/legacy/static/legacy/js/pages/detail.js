@@ -88,7 +88,6 @@ Cookie.pages.detail = (function() {
      * Setup navigation event listeners
      */
     function setupNavigationListeners() {
-        bindClick('back-btn', handleBack);
         bindClick('meta-toggle', handleMetaToggle);
         bindClick('cook-btn', handleCookClick);
 
@@ -172,18 +171,6 @@ Cookie.pages.detail = (function() {
         setupServingListeners();
         setupRemixListeners();
         setupTipsListeners();
-    }
-
-    /**
-     * Handle back button click
-     */
-    function handleBack() {
-        // Go back to previous page, or home if no history
-        if (window.history.length > 1) {
-            window.history.back();
-        } else {
-            window.location.href = '/legacy/home/';
-        }
     }
 
     /**

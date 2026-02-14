@@ -5,22 +5,11 @@
 
 {% block content %}
 <div class="screen" data-page="favorites">
-    <!-- Header with back button -->
-    <header class="header">
-        <a href="{% url 'legacy:home' %}" class="header-back">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-        </a>
-        <span class="header-title">Favorites</span>
-        <div class="header-right">
-            <div class="avatar avatar-md" style="background-color: {{ profile.avatar_color }};">
-                {{ profile.name|slice:":1"|upper }}
-            </div>
-        </div>
-    </header>
+    {% include 'legacy/partials/nav_header.html' %}
 
     <div class="container container-wide p-4">
+        <!-- Page title -->
+        <h2 class="section-title mb-4">Favorites</h2>
         {% if favorites %}
         <!-- Recipe count -->
         <p class="text-muted mb-4">{{ favorites|length }} recipe{{ favorites|length|pluralize }}</p>

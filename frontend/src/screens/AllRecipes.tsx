@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, BookOpen, Search, X } from 'lucide-react'
+import { BookOpen, Search, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type Recipe } from '../api/client'
+import NavHeader from '../components/NavHeader'
 import RecipeCard from '../components/RecipeCard'
 import { RecipeGridSkeleton } from '../components/Skeletons'
 
@@ -51,20 +52,12 @@ export default function AllRecipes() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="flex items-center gap-4 border-b border-border px-4 py-3">
-        <button
-          onClick={() => navigate('/home')}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <h1 className="text-xl font-medium text-foreground">My Recipes</h1>
-      </header>
+      <NavHeader />
 
       {/* Content */}
       <main className="px-4 py-6">
         <div className="mx-auto max-w-4xl">
+          <h2 className="mb-4 text-lg font-medium text-foreground">My Recipes</h2>
           {loading ? (
             <RecipeGridSkeleton count={8} />
           ) : recipes.length > 0 ? (

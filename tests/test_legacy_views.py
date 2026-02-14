@@ -221,15 +221,17 @@ class TestLegacySearch:
         # Should NOT have URL import card
         assert "url-import-card" not in content
 
-    def test_search_back_button_present(self, client):
-        """Search page has back button to home."""
+    def test_search_has_nav_header(self, client):
+        """Search page has navigation header with link to home."""
         profile = Profile.objects.create(name="Test", avatar_color="#d97850")
         client.post(f"/api/profiles/{profile.id}/select/")
 
         response = client.get("/legacy/search/?q=test")
         assert response.status_code == 200
         content = response.content.decode()
-        assert "back-btn" in content
+        # Nav header includes the Cookie logo/title that links home
+        assert "header-title" in content
+        assert "Cookie" in content
 
     def test_search_empty_query(self, client):
         """Search handles empty query gracefully."""
@@ -240,6 +242,104 @@ class TestLegacySearch:
         assert response.status_code == 200
         content = response.content.decode()
         assert 'data-page="search"' in content
+
+
+@pytest.mark.django_db
+class TestLegacyNavHeader:
+    """Tests for the persistent navigation header across pages."""
+
+    def test_nav_header_on_home(self, client):
+        """Home page has navigation header."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/home/")
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "header-title" in content
+        assert "header-nav" in content
+        assert "Cookie" in content
+
+    def test_nav_header_on_favorites(self, client):
+        """Favorites page has navigation header."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/favorites/")
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "header-title" in content
+        assert "header-nav" in content
+
+    def test_nav_header_on_collections(self, client):
+        """Collections page has navigation header."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/collections/")
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "header-title" in content
+        assert "header-nav" in content
+
+    def test_nav_header_on_settings(self, client):
+        """Settings page has navigation header."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/settings/")
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "header-title" in content
+        assert "header-nav" in content
+
+    def test_nav_header_has_home_link(self, client):
+        """Navigation header includes home link."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/favorites/")
+        content = response.content.decode()
+        # Check for home link (aria-label="Home")
+        assert 'aria-label="Home"' in content
+
+    def test_nav_header_has_favorites_link(self, client):
+        """Navigation header includes favorites link."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/home/")
+        content = response.content.decode()
+        assert 'aria-label="Favorites"' in content
+
+    def test_nav_header_has_collections_link(self, client):
+        """Navigation header includes collections link."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/home/")
+        content = response.content.decode()
+        assert 'aria-label="Collections"' in content
+
+    def test_nav_header_has_settings_link(self, client):
+        """Navigation header includes settings link."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/home/")
+        content = response.content.decode()
+        assert 'aria-label="Settings"' in content
+
+    def test_nav_header_shows_profile_initial(self, client):
+        """Navigation header shows profile initial in avatar."""
+        profile = Profile.objects.create(name="Alice", avatar_color="#d97850")
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/home/")
+        content = response.content.decode()
+        assert "logout-btn" in content
+        # Profile initial 'A' should be in the content
+        assert ">A<" in content
 
 
 @pytest.mark.django_db

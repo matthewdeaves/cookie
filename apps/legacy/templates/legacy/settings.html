@@ -9,19 +9,11 @@
 
 {% block content %}
 <div class="screen" data-page="settings" data-profile-id="{{ current_profile_id|default:'' }}">
-    <!-- Header -->
-    <header class="header">
-        <a href="{% url 'legacy:home' %}" class="header-back">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m12 19-7-7 7-7"></path>
-                <path d="M19 12H5"></path>
-            </svg>
-        </a>
-        <span class="header-title">Settings</span>
-        <div class="header-spacer"></div>
-    </header>
+    {% include 'legacy/partials/nav_header.html' %}
 
     <div class="container container-wide p-4">
+        <!-- Page title -->
+        <h2 class="section-title mb-4">Settings</h2>
         <!-- Tab toggle (6 tabs) -->
         <div class="flex justify-center mb-6">
             <div class="tab-toggle tab-toggle-6">

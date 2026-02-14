@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Trash2, X, FolderOpen } from 'lucide-react'
+import { Trash2, X, FolderOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type CollectionDetail as CollectionDetailType, type Recipe } from '../api/client'
+import NavHeader from '../components/NavHeader'
 import RecipeCard from '../components/RecipeCard'
 import { LoadingSpinner } from '../components/Skeletons'
 
@@ -98,33 +99,30 @@ export default function CollectionDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="flex items-center justify-between border-b border-border px-4 py-3">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate('/collections')}
-            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <div>
-            <h1 className="text-xl font-medium text-foreground">
-              {collection.name}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {collection.recipes.length} recipe
-              {collection.recipes.length !== 1 ? 's' : ''}
-            </p>
+      <NavHeader />
+
+      {/* Content */}
+      <main className="px-4 py-6">
+        <div className="mx-auto max-w-4xl">
+          {/* Page header with title and delete button */}
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-medium text-foreground">
+                {collection.name}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {collection.recipes.length} recipe
+                {collection.recipes.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+              title="Delete collection"
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
           </div>
-        </div>
-        <button
-          onClick={() => setShowDeleteConfirm(true)}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-          title="Delete collection"
-        >
-          <Trash2 className="h-5 w-5" />
-        </button>
-      </header>
 
       {/* Delete confirmation */}
       {showDeleteConfirm && (
@@ -152,9 +150,6 @@ export default function CollectionDetail() {
         </div>
       )}
 
-      {/* Content */}
-      <main className="px-4 py-6">
-        <div className="mx-auto max-w-4xl">
           {collection.recipes.length > 0 ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
               {collection.recipes.map((item) => (

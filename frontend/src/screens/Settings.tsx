@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft,
   Bot,
   AlertTriangle,
   Loader2,
@@ -21,6 +19,7 @@ import {
 } from '../api/client'
 import { cn } from '../lib/utils'
 import { useProfile } from '../contexts/ProfileContext'
+import NavHeader from '../components/NavHeader'
 import {
   SettingsGeneral,
   SettingsPrompts,
@@ -33,7 +32,6 @@ import {
 type Tab = 'general' | 'prompts' | 'sources' | 'selectors' | 'users' | 'danger'
 
 export default function Settings() {
-  const navigate = useNavigate()
   const { profile } = useProfile()
   const currentProfileId = profile?.id
 
@@ -74,16 +72,7 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="flex items-center gap-4 border-b border-border px-4 py-3">
-        <button
-          onClick={() => navigate('/home')}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <h1 className="text-xl font-medium text-foreground">Settings</h1>
-      </header>
+      <NavHeader />
 
       {/* Tab navigation */}
       <div className="border-b border-border px-4">

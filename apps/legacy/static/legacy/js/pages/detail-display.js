@@ -6,25 +6,9 @@
     'use strict';
 
     function init() {
-        setupBackButton();
         setupMetaToggle();
         setupTabs();
         setupCookButton();
-    }
-
-    function setupBackButton() {
-        var backBtn = document.getElementById('back-btn');
-        if (backBtn) {
-            backBtn.addEventListener('click', handleBack);
-        }
-    }
-
-    function handleBack() {
-        if (window.history.length > 1) {
-            window.history.back();
-        } else {
-            window.location.href = '/legacy/home/';
-        }
     }
 
     function setupMetaToggle() {

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  ArrowLeft,
   Star,
   Clock,
   Heart,
@@ -23,6 +22,7 @@ import { cn, formatNutritionKey } from '../lib/utils'
 import { formatTime } from '../lib/formatting'
 import { useProfile } from '../contexts/ProfileContext'
 import { useAIStatus } from '../contexts/AIStatusContext'
+import NavHeader from '../components/NavHeader'
 import AddToCollectionDropdown from '../components/AddToCollectionDropdown'
 import RemixModal from '../components/RemixModal'
 import { RecipeDetailSkeleton } from '../components/Skeletons'
@@ -232,6 +232,8 @@ export default function RecipeDetail() {
 
   return (
     <div className="min-h-screen bg-background">
+      <NavHeader />
+
       {/* Hero Image */}
       <div className="relative h-64 sm:h-80">
         {imageUrl ? (
@@ -248,14 +250,6 @@ export default function RecipeDetail() {
 
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-
-        {/* Back button */}
-        <button
-          onClick={handleBack}
-          className="absolute left-4 top-4 rounded-full bg-black/40 p-2 text-white backdrop-blur-sm transition-colors hover:bg-black/60"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
 
         {/* Title and rating overlay */}
         <div className="absolute bottom-4 left-4 right-4">
