@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/54</span>
+                <span class='fraction'>0/53</span>
             </div>
         
             
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>0/13</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/53</span>
+                <span class='fraction'>0/52</span>
             </div>
         
             
@@ -256,12 +256,8 @@
 <a name='L191'></a><a href='#L191'>191</a>
 <a name='L192'></a><a href='#L192'>192</a>
 <a name='L193'></a><a href='#L193'>193</a>
-<a name='L194'></a><a href='#L194'>194</a>
-<a name='L195'></a><a href='#L195'>195</a>
-<a name='L196'></a><a href='#L196'>196</a>
-<a name='L197'></a><a href='#L197'>197</a>
-<a name='L198'></a><a href='#L198'>198</a>
-<a name='L199'></a><a href='#L199'>199</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L194'></a><a href='#L194'>194</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -365,9 +361,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -399,9 +392,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -461,9 +451,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Trash2, X, FolderOpen } from 'lucide-react'
+import { Trash2, X, FolderOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type CollectionDetail as CollectionDetailType, type Recipe } from '../api/client'
+import NavHeader from '../components/NavHeader'
 import RecipeCard from '../components/RecipeCard'
 import { LoadingSpinner } from '../components/Skeletons'
 &nbsp;
@@ -559,33 +550,30 @@ export default function <span class="fstat-no" title="function not covered" >Col
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
     &lt;div className="min-h-screen bg-background"&gt;
-      {/* Header */}
-      &lt;header className="flex items-center justify-between border-b border-border px-4 py-3"&gt;
-        &lt;div className="flex items-center gap-4"&gt;
-          &lt;button
-            onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >n</span>avigate('/collections')}</span>
-            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          &gt;
-            &lt;ArrowLeft className="h-5 w-5" /&gt;
-          &lt;/button&gt;
-          &lt;div&gt;
-            &lt;h1 className="text-xl font-medium text-foreground"&gt;
-              {collection.name}
-            &lt;/h1&gt;
-            &lt;p className="text-sm text-muted-foreground"&gt;
-              {collection.recipes.length} recipe
-              {collection.recipes.length !== 1 ? 's' : ''}
-            &lt;/p&gt;
+      &lt;NavHeader /&gt;
+&nbsp;
+      {/* Content */}
+      &lt;main className="px-4 py-6"&gt;
+        &lt;div className="mx-auto max-w-4xl"&gt;
+          {/* Page header with title and delete button */}
+          &lt;div className="mb-4 flex items-center justify-between"&gt;
+            &lt;div&gt;
+              &lt;h2 className="text-lg font-medium text-foreground"&gt;
+                {collection.name}
+              &lt;/h2&gt;
+              &lt;p className="text-sm text-muted-foreground"&gt;
+                {collection.recipes.length} recipe
+                {collection.recipes.length !== 1 ? 's' : ''}
+              &lt;/p&gt;
+            &lt;/div&gt;
+            &lt;button
+              onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etShowDeleteConfirm(true)}</span>
+              className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+              title="Delete collection"
+            &gt;
+              &lt;Trash2 className="h-5 w-5" /&gt;
+            &lt;/button&gt;
           &lt;/div&gt;
-        &lt;/div&gt;
-        &lt;button
-          onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etShowDeleteConfirm(true)}</span>
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-          title="Delete collection"
-        &gt;
-          &lt;Trash2 className="h-5 w-5" /&gt;
-        &lt;/button&gt;
-      &lt;/header&gt;
 &nbsp;
       {/* Delete confirmation */}
       {showDeleteConfirm &amp;&amp; (
@@ -613,9 +601,6 @@ export default function <span class="fstat-no" title="function not covered" >Col
         &lt;/div&gt;
       )}
 &nbsp;
-      {/* Content */}
-      &lt;main className="px-4 py-6"&gt;
-        &lt;div className="mx-auto max-w-4xl"&gt;
           {collection.recipes.length &gt; 0 ? (
             &lt;div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4"&gt;
               {collection.recipes.map(<span class="fstat-no" title="function not covered" >(i</span>tem) =&gt; (
@@ -664,7 +649,7 @@ export default function <span class="fstat-no" title="function not covered" >Col
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-02-14T18:24:01.047Z
+                at 2026-02-14T18:58:36.456Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

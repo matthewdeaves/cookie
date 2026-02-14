@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-02-14T18:23:53.415Z",
+    "detectionDate": "2026-02-14T18:58:25.259Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -101,14 +101,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/search.js": {
-            "lines": 574,
-            "tokens": 4523,
+            "lines": 566,
+            "tokens": 4461,
             "sources": 1,
             "clones": 5,
             "duplicatedLines": 44,
             "duplicatedTokens": 321,
-            "percentage": 7.67,
-            "percentageTokens": 7.1,
+            "percentage": 7.77,
+            "percentageTokens": 7.2,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -221,8 +221,8 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/detail-display.js": {
-            "lines": 114,
-            "tokens": 1002,
+            "lines": 98,
+            "tokens": 882,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -402,28 +402,28 @@
           }
         },
         "total": {
-          "lines": 6124,
-          "tokens": 46319,
+          "lines": 6100,
+          "tokens": 46137,
           "sources": 33,
           "clones": 32,
           "duplicatedLines": 322,
           "duplicatedTokens": 2686,
-          "percentage": 5.26,
-          "percentageTokens": 5.8,
+          "percentage": 5.28,
+          "percentageTokens": 5.82,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 6124,
-      "tokens": 46319,
+      "lines": 6100,
+      "tokens": 46137,
       "sources": 33,
       "clones": 32,
       "duplicatedLines": 322,
       "duplicatedTokens": 2686,
-      "percentage": 5.26,
-      "percentageTokens": 5.8,
+      "percentage": 5.28,
+      "percentageTokens": 5.82,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -580,32 +580,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 455,
-        "end": 462,
+        "start": 447,
+        "end": 454,
         "startLoc": {
-          "line": 455,
+          "line": 447,
           "column": 13,
-          "position": 3651
+          "position": 3589
         },
         "endLoc": {
-          "line": 462,
+          "line": 454,
           "column": 3,
-          "position": 3719
+          "position": 3657
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 149,
-        "end": 156,
+        "start": 141,
+        "end": 148,
         "startLoc": {
-          "line": 149,
+          "line": 141,
           "column": 6,
-          "position": 1125
+          "position": 1063
         },
         "endLoc": {
-          "line": 156,
+          "line": 148,
           "column": 6,
-          "position": 1193
+          "position": 1131
         }
       }
     },
@@ -667,17 +667,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 561,
-        "end": 571,
+        "start": 553,
+        "end": 563,
         "startLoc": {
-          "line": 561,
+          "line": 553,
           "column": 5,
-          "position": 4430
+          "position": 4368
         },
         "endLoc": {
-          "line": 571,
+          "line": 563,
           "column": 7,
-          "position": 4491
+          "position": 4429
         }
       }
     },
@@ -739,17 +739,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 563,
-        "end": 571,
+        "start": 555,
+        "end": 563,
         "startLoc": {
-          "line": 563,
+          "line": 555,
           "column": 5,
-          "position": 4434
+          "position": 4372
         },
         "endLoc": {
-          "line": 571,
+          "line": 563,
           "column": 7,
-          "position": 4491
+          "position": 4429
         }
       }
     },
@@ -775,17 +775,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 559,
-        "end": 571,
+        "start": 551,
+        "end": 563,
         "startLoc": {
-          "line": 559,
+          "line": 551,
           "column": 66,
-          "position": 4424
+          "position": 4362
         },
         "endLoc": {
-          "line": 571,
+          "line": 563,
           "column": 7,
-          "position": 4491
+          "position": 4429
         }
       }
     },
@@ -920,16 +920,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
         "start": 352,
-        "end": 571,
+        "end": 563,
         "startLoc": {
           "line": 352,
           "column": 13,
           "position": 2655
         },
         "endLoc": {
-          "line": 571,
+          "line": 563,
           "column": 7,
-          "position": 4491
+          "position": 4429
         }
       }
     },
@@ -1244,16 +1244,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
         "start": 222,
-        "end": 571,
+        "end": 563,
         "startLoc": {
           "line": 222,
           "column": 7,
           "position": 1549
         },
         "endLoc": {
-          "line": 571,
+          "line": 563,
           "column": 7,
-          "position": 4491
+          "position": 4429
         }
       }
     },
@@ -1352,16 +1352,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/favorites.js",
         "start": 85,
-        "end": 571,
+        "end": 563,
         "startLoc": {
           "line": 85,
           "column": 6,
           "position": 554
         },
         "endLoc": {
-          "line": 571,
+          "line": 563,
           "column": 7,
-          "position": 4491
+          "position": 4429
         }
       }
     },

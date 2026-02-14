@@ -1,20 +1,20 @@
 {
-  "total_size_kb": 494.17,
-  "total_gzip_kb": 140.1,
-  "js_size_kb": 455.37,
-  "js_gzip_kb": 132.94,
-  "css_size_kb": 38.8,
-  "css_gzip_kb": 7.16,
+  "total_size_kb": 492.57,
+  "total_gzip_kb": 139.96,
+  "js_size_kb": 453.93,
+  "js_gzip_kb": 132.8,
+  "css_size_kb": 38.65,
+  "css_gzip_kb": 7.15,
   "files": [
     {
-      "name": "index-CSrMvDeP.js",
-      "size_kb": 455.37,
-      "gzip_kb": 132.94
+      "name": "index-BCuYSUc_.js",
+      "size_kb": 453.93,
+      "gzip_kb": 132.8
     },
     {
-      "name": "index-D-l7HbvN.css",
-      "size_kb": 38.8,
-      "gzip_kb": 7.16
+      "name": "index-DCDvmRw-.css",
+      "size_kb": 38.65,
+      "gzip_kb": 7.15
     }
   ],
   "rating": "A"
