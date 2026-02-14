@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-02-14T16:26:15.864Z",
+    "detectionDate": "2026-02-14T17:52:17.613Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -101,14 +101,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/search.js": {
-            "lines": 554,
-            "tokens": 4411,
+            "lines": 557,
+            "tokens": 4424,
             "sources": 1,
             "clones": 5,
             "duplicatedLines": 44,
             "duplicatedTokens": 321,
-            "percentage": 7.94,
-            "percentageTokens": 7.28,
+            "percentage": 7.9,
+            "percentageTokens": 7.26,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -125,14 +125,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/play.js": {
-            "lines": 579,
-            "tokens": 4197,
+            "lines": 584,
+            "tokens": 4236,
             "sources": 1,
             "clones": 4,
             "duplicatedLines": 131,
             "duplicatedTokens": 1017,
-            "percentage": 22.63,
-            "percentageTokens": 24.23,
+            "percentage": 22.43,
+            "percentageTokens": 24.01,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -185,14 +185,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/detail-remix.js": {
-            "lines": 236,
-            "tokens": 1998,
+            "lines": 292,
+            "tokens": 2546,
             "sources": 1,
             "clones": 6,
             "duplicatedLines": 34,
             "duplicatedTokens": 312,
-            "percentage": 14.41,
-            "percentageTokens": 15.62,
+            "percentage": 11.64,
+            "percentageTokens": 12.25,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -402,28 +402,28 @@
           }
         },
         "total": {
-          "lines": 6018,
-          "tokens": 45467,
+          "lines": 6082,
+          "tokens": 46067,
           "sources": 33,
           "clones": 32,
           "duplicatedLines": 322,
           "duplicatedTokens": 2686,
-          "percentage": 5.35,
-          "percentageTokens": 5.91,
+          "percentage": 5.29,
+          "percentageTokens": 5.83,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 6018,
-      "tokens": 45467,
+      "lines": 6082,
+      "tokens": 46067,
       "sources": 33,
       "clones": 32,
       "duplicatedLines": 322,
       "duplicatedTokens": 2686,
-      "percentage": 5.35,
-      "percentageTokens": 5.91,
+      "percentage": 5.29,
+      "percentageTokens": 5.83,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -580,17 +580,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 451,
-        "end": 458,
+        "start": 454,
+        "end": 461,
         "startLoc": {
-          "line": 451,
+          "line": 454,
           "column": 13,
-          "position": 3630
+          "position": 3643
         },
         "endLoc": {
-          "line": 458,
+          "line": 461,
           "column": 3,
-          "position": 3698
+          "position": 3711
         }
       },
       "secondFile": {
@@ -667,17 +667,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 541,
-        "end": 551,
+        "start": 544,
+        "end": 554,
         "startLoc": {
-          "line": 541,
+          "line": 544,
           "column": 5,
-          "position": 4318
+          "position": 4331
         },
         "endLoc": {
-          "line": 551,
+          "line": 554,
           "column": 7,
-          "position": 4379
+          "position": 4392
         }
       }
     },
@@ -688,32 +688,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/play.js",
-        "start": 381,
-        "end": 440,
+        "start": 386,
+        "end": 445,
         "startLoc": {
-          "line": 381,
+          "line": 386,
           "column": 20,
-          "position": 2780
+          "position": 2819
         },
         "endLoc": {
-          "line": 440,
+          "line": 445,
           "column": 8,
-          "position": 3236
+          "position": 3275
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/play.js",
-        "start": 320,
-        "end": 380,
+        "start": 325,
+        "end": 385,
         "startLoc": {
-          "line": 320,
+          "line": 325,
           "column": 17,
-          "position": 2318
+          "position": 2357
         },
         "endLoc": {
-          "line": 380,
+          "line": 385,
           "column": 8,
-          "position": 2774
+          "position": 2813
         }
       }
     },
@@ -724,32 +724,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/play.js",
-        "start": 568,
-        "end": 576,
+        "start": 573,
+        "end": 581,
         "startLoc": {
-          "line": 568,
+          "line": 573,
           "column": 5,
-          "position": 4108
+          "position": 4147
         },
         "endLoc": {
-          "line": 576,
+          "line": 581,
           "column": 5,
-          "position": 4165
+          "position": 4204
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 543,
-        "end": 551,
+        "start": 546,
+        "end": 554,
         "startLoc": {
-          "line": 543,
+          "line": 546,
           "column": 5,
-          "position": 4322
+          "position": 4335
         },
         "endLoc": {
-          "line": 551,
+          "line": 554,
           "column": 7,
-          "position": 4379
+          "position": 4392
         }
       }
     },
@@ -775,17 +775,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 539,
-        "end": 551,
+        "start": 542,
+        "end": 554,
         "startLoc": {
-          "line": 539,
+          "line": 542,
           "column": 66,
-          "position": 4312
+          "position": 4325
         },
         "endLoc": {
-          "line": 551,
+          "line": 554,
           "column": 7,
-          "position": 4379
+          "position": 4392
         }
       }
     },
@@ -920,16 +920,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
         "start": 352,
-        "end": 551,
+        "end": 554,
         "startLoc": {
           "line": 352,
           "column": 13,
           "position": 2655
         },
         "endLoc": {
-          "line": 551,
+          "line": 554,
           "column": 7,
-          "position": 4379
+          "position": 4392
         }
       }
     },
@@ -1048,32 +1048,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/detail-remix.js",
-        "start": 106,
-        "end": 111,
+        "start": 107,
+        "end": 112,
         "startLoc": {
-          "line": 106,
+          "line": 107,
           "column": 23,
-          "position": 804
+          "position": 811
         },
         "endLoc": {
-          "line": 111,
+          "line": 112,
           "column": 3,
-          "position": 855
+          "position": 862
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/detail-remix.js",
-        "start": 82,
-        "end": 87,
+        "start": 83,
+        "end": 88,
         "startLoc": {
-          "line": 82,
+          "line": 83,
           "column": 21,
-          "position": 569
+          "position": 576
         },
         "endLoc": {
-          "line": 87,
+          "line": 88,
           "column": 21,
-          "position": 620
+          "position": 627
         }
       }
     },
@@ -1084,32 +1084,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/detail-remix.js",
-        "start": 168,
-        "end": 172,
+        "start": 188,
+        "end": 192,
         "startLoc": {
-          "line": 168,
+          "line": 188,
           "column": 21,
-          "position": 1398
+          "position": 1563
         },
         "endLoc": {
-          "line": 172,
+          "line": 192,
           "column": 7,
-          "position": 1456
+          "position": 1621
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/detail-remix.js",
-        "start": 155,
-        "end": 159,
+        "start": 173,
+        "end": 177,
         "startLoc": {
-          "line": 155,
+          "line": 173,
           "column": 23,
-          "position": 1276
+          "position": 1409
         },
         "endLoc": {
-          "line": 159,
-          "column": 6,
-          "position": 1334
+          "line": 177,
+          "column": 59,
+          "position": 1467
         }
       }
     },
@@ -1120,32 +1120,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/detail-remix.js",
-        "start": 218,
-        "end": 226,
+        "start": 274,
+        "end": 282,
         "startLoc": {
-          "line": 218,
+          "line": 274,
           "column": 25,
-          "position": 1861
+          "position": 2409
         },
         "endLoc": {
-          "line": 226,
+          "line": 282,
           "column": 7,
-          "position": 1908
+          "position": 2456
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/detail-remix.js",
-        "start": 93,
-        "end": 101,
+        "start": 94,
+        "end": 102,
         "startLoc": {
-          "line": 93,
+          "line": 94,
           "column": 29,
-          "position": 722
+          "position": 729
         },
         "endLoc": {
-          "line": 101,
+          "line": 102,
           "column": 6,
-          "position": 769
+          "position": 776
         }
       }
     },
@@ -1244,16 +1244,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
         "start": 222,
-        "end": 551,
+        "end": 554,
         "startLoc": {
           "line": 222,
           "column": 7,
           "position": 1549
         },
         "endLoc": {
-          "line": 551,
+          "line": 554,
           "column": 7,
-          "position": 4379
+          "position": 4392
         }
       }
     },
@@ -1352,16 +1352,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/favorites.js",
         "start": 85,
-        "end": 551,
+        "end": 554,
         "startLoc": {
           "line": 85,
           "column": 6,
           "position": 554
         },
         "endLoc": {
-          "line": 551,
+          "line": 554,
           "column": 7,
-          "position": 4379
+          "position": 4392
         }
       }
     },
@@ -1567,17 +1567,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/play.js",
-        "start": 337,
-        "end": 342,
+        "start": 342,
+        "end": 347,
         "startLoc": {
-          "line": 337,
+          "line": 342,
           "column": 21,
-          "position": 2490
+          "position": 2529
         },
         "endLoc": {
-          "line": 342,
+          "line": 347,
           "column": 4,
-          "position": 2538
+          "position": 2577
         }
       }
     }

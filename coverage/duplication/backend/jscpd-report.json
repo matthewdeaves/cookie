@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-02-14T16:26:13.033Z",
+    "detectionDate": "2026-02-14T17:52:18.676Z",
     "formats": {
       "python": {
         "sources": {
@@ -29,8 +29,8 @@
             "newClones": 0
           },
           "cookie/settings.py": {
-            "lines": 184,
-            "tokens": 1013,
+            "lines": 187,
+            "tokens": 1022,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -341,8 +341,8 @@
             "newClones": 0
           },
           "apps/legacy/views.py": {
-            "lines": 356,
-            "tokens": 2198,
+            "lines": 400,
+            "tokens": 2472,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -474,28 +474,28 @@
           }
         },
         "total": {
-          "lines": 7407,
-          "tokens": 46478,
+          "lines": 7454,
+          "tokens": 46761,
           "sources": 39,
           "clones": 7,
           "duplicatedLines": 133,
           "duplicatedTokens": 890,
-          "percentage": 1.8,
-          "percentageTokens": 1.91,
+          "percentage": 1.78,
+          "percentageTokens": 1.9,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7407,
-      "tokens": 46478,
+      "lines": 7454,
+      "tokens": 46761,
       "sources": 39,
       "clones": 7,
       "duplicatedLines": 133,
       "duplicatedTokens": 890,
-      "percentage": 1.8,
-      "percentageTokens": 1.91,
+      "percentage": 1.78,
+      "percentageTokens": 1.9,
       "newDuplicatedLines": 0,
       "newClones": 0
     }

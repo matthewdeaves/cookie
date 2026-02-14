@@ -1,16 +1,16 @@
 apps/legacy/views.py
-    F 133:0 recipe_detail - A (5)
-    F 187:0 play_mode - A (5)
+    F 135:0 recipe_detail - B (9)
+    F 231:0 play_mode - A (5)
     F 47:0 _is_ai_available - A (2)
     F 69:0 home - A (2)
-    F 109:0 search - A (2)
-    F 322:0 settings - A (2)
+    F 111:0 search - A (2)
+    F 366:0 settings - A (2)
     F 19:0 require_profile - A (1)
     F 56:0 profile_selector - A (1)
-    F 220:0 all_recipes - A (1)
-    F 246:0 favorites - A (1)
-    F 268:0 collections - A (1)
-    F 292:0 collection_detail - A (1)
+    F 264:0 all_recipes - A (1)
+    F 290:0 favorites - A (1)
+    F 312:0 collections - A (1)
+    F 336:0 collection_detail - A (1)
 apps/legacy/apps.py
     C 6:0 LegacyConfig - A (1)
 apps/legacy/templatetags/legacy_tags.py
@@ -631,4 +631,4 @@ cookie/urls.py
     F 29:0 health - A (1)
 
 570 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.617543859649123)
+Average complexity: A (2.624561403508772)
