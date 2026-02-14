@@ -111,6 +111,39 @@ class TestLegacyHome:
         assert "Recently Viewed" in content
         assert "Viewed Recipe" in content
 
+    def test_home_shows_my_recipes_link_with_count(self, client):
+        """Home shows 'My Recipes' link with total recipe count."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        # Create 3 recipes (mix of imports and remixes)
+        Recipe.objects.create(
+            profile=profile,
+            title="Recipe 1",
+            host="example.com",
+            site_name="Example",
+        )
+        Recipe.objects.create(
+            profile=profile,
+            title="Recipe 2",
+            host="example.com",
+            site_name="Example",
+        )
+        recipe3 = Recipe.objects.create(
+            profile=profile,
+            title="Remix Recipe",
+            host="user-generated",
+            site_name="User Generated",
+            is_remix=True,
+            remix_profile=profile,
+        )
+        # Only add one to view history to verify count is total recipes, not history
+        RecipeViewHistory.objects.create(profile=profile, recipe=recipe3)
+
+        client.post(f"/api/profiles/{profile.id}/select/")
+        response = client.get("/legacy/home/")
+        content = response.content.decode()
+        # Should show "My Recipes (3)" not "View All (1)"
+        assert "My Recipes (3)" in content
+
     def test_home_empty_state(self, client):
         """Home shows empty state when no favorites."""
         profile = Profile.objects.create(name="Test", avatar_color="#d97850")
@@ -573,6 +606,74 @@ class TestLegacyRecipeDetail:
         assert "legacy/js/pages/detail-core.js" in content
         assert "legacy/js/pages/detail-init.js" in content
 
+    def test_recipe_detail_shows_linked_recipes_for_remix(self, client):
+        """Recipe detail shows linked recipes when viewing a remix."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        original = Recipe.objects.create(
+            profile=profile,
+            title="Original Recipe",
+            host="example.com",
+            site_name="Example",
+        )
+        remix = Recipe.objects.create(
+            profile=profile,
+            title="Remix Recipe",
+            host="user-generated",
+            site_name="User Generated",
+            is_remix=True,
+            remix_profile=profile,
+            remixed_from=original,
+        )
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get(f"/legacy/recipe/{remix.id}/")
+        content = response.content.decode()
+        assert "linked-recipes-section" in content
+        assert "Original Recipe" in content
+        assert "(original)" in content
+
+    def test_recipe_detail_shows_linked_recipes_for_original(self, client):
+        """Recipe detail shows linked recipes when viewing an original with remixes."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        original = Recipe.objects.create(
+            profile=profile,
+            title="Original Recipe",
+            host="example.com",
+            site_name="Example",
+        )
+        # Create remix (not assigned to variable - we just need it to exist)
+        Recipe.objects.create(
+            profile=profile,
+            title="Remix Recipe",
+            host="user-generated",
+            site_name="User Generated",
+            is_remix=True,
+            remix_profile=profile,
+            remixed_from=original,
+        )
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get(f"/legacy/recipe/{original.id}/")
+        content = response.content.decode()
+        assert "linked-recipes-section" in content
+        assert "Remix Recipe" in content
+        assert "(remix)" in content
+
+    def test_recipe_detail_no_linked_recipes_when_none(self, client):
+        """Recipe detail does not show linked recipes section when there are none."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        recipe = Recipe.objects.create(
+            profile=profile,
+            title="Standalone Recipe",
+            host="example.com",
+            site_name="Example",
+        )
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get(f"/legacy/recipe/{recipe.id}/")
+        content = response.content.decode()
+        assert "linked-recipes-section" not in content
+
     def test_recipe_detail_shows_serving_adjuster_without_ai(self, client):
         """Recipe detail shows static servings when AI not configured."""
         profile = Profile.objects.create(name="Test", avatar_color="#d97850")
@@ -825,6 +926,164 @@ class TestLegacyPlayMode:
         response = client.get(f"/legacy/recipe/{recipe.id}/play/")
         content = response.content.decode()
         assert "play-mode.css" in content
+
+
+@pytest.mark.django_db
+class TestLegacyAllRecipes:
+    """Tests for the legacy all_recipes (My Recipes) view."""
+
+    def test_all_recipes_redirects_without_profile(self, client):
+        """All recipes redirects to profile selector when no profile in session."""
+        response = client.get("/legacy/all-recipes/")
+        assert response.status_code == 302
+        assert response.url == "/legacy/"
+
+    def test_all_recipes_renders_with_profile(self, client):
+        """All recipes page renders when profile is selected."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/all-recipes/")
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert 'data-page="all-recipes"' in content
+        assert "My Recipes" in content
+
+    def test_all_recipes_shows_profile_recipes(self, client):
+        """All recipes page displays user's recipes (imports and remixes)."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        # Create an imported recipe
+        Recipe.objects.create(
+            profile=profile,
+            title="Imported Recipe",
+            host="example.com",
+            site_name="Example",
+        )
+        # Create a remix recipe
+        Recipe.objects.create(
+            profile=profile,
+            title="My Remix",
+            host="user-generated",
+            site_name="User Generated",
+            is_remix=True,
+            remix_profile=profile,
+        )
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/all-recipes/")
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "Imported Recipe" in content
+        assert "My Remix" in content
+
+    def test_all_recipes_shows_recipe_count(self, client):
+        """All recipes page shows correct recipe count."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        for i in range(3):
+            Recipe.objects.create(
+                profile=profile,
+                title=f"Recipe {i}",
+                host="example.com",
+                site_name="Example",
+            )
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/all-recipes/")
+        content = response.content.decode()
+        assert "3 recipes" in content
+
+    def test_all_recipes_empty_state(self, client):
+        """All recipes page shows empty state when no recipes."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/all-recipes/")
+        content = response.content.decode()
+        assert "No recipes yet" in content
+        assert "Import Recipes" in content
+
+    def test_all_recipes_does_not_show_other_profiles_recipes(self, client):
+        """All recipes page does not show other profile's recipes."""
+        profile1 = Profile.objects.create(name="User1", avatar_color="#d97850")
+        profile2 = Profile.objects.create(name="User2", avatar_color="#6b8e5f")
+        Recipe.objects.create(
+            profile=profile1,
+            title="User1 Recipe",
+            host="example.com",
+            site_name="Example",
+        )
+        Recipe.objects.create(
+            profile=profile2,
+            title="User2 Recipe",
+            host="example.com",
+            site_name="Example",
+        )
+        client.post(f"/api/profiles/{profile1.id}/select/")
+
+        response = client.get("/legacy/all-recipes/")
+        content = response.content.decode()
+        assert "User1 Recipe" in content
+        assert "User2 Recipe" not in content
+
+    def test_all_recipes_shows_remix_without_viewing(self, client):
+        """All recipes shows newly created remixes without requiring view history."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        # Create a remix (simulating the AI feature creating one)
+        Recipe.objects.create(
+            profile=profile,
+            title="Just Created Remix",
+            host="user-generated",
+            site_name="User Generated",
+            is_remix=True,
+            remix_profile=profile,
+        )
+        # Note: No RecipeViewHistory entry created - this is the key test
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/all-recipes/")
+        content = response.content.decode()
+        assert "Just Created Remix" in content
+
+    def test_all_recipes_has_back_button(self, client):
+        """All recipes page has back button to home."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/all-recipes/")
+        content = response.content.decode()
+        assert "/legacy/home/" in content
+
+    def test_all_recipes_has_filter_input(self, client):
+        """All recipes page has filter input when recipes exist."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        Recipe.objects.create(
+            profile=profile,
+            title="Test Recipe",
+            host="example.com",
+            site_name="Example",
+        )
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/all-recipes/")
+        content = response.content.decode()
+        assert 'id="recipe-filter"' in content
+        assert 'placeholder="Filter recipes..."' in content
+
+    def test_all_recipes_cards_have_data_attributes(self, client):
+        """All recipes page cards have data attributes for filtering."""
+        profile = Profile.objects.create(name="Test", avatar_color="#d97850")
+        Recipe.objects.create(
+            profile=profile,
+            title="Chocolate Cake",
+            host="example.com",
+            site_name="Example",
+        )
+        client.post(f"/api/profiles/{profile.id}/select/")
+
+        response = client.get("/legacy/all-recipes/")
+        content = response.content.decode()
+        assert 'data-title="Chocolate Cake"' in content
+        assert 'data-host="example.com"' in content
 
 
 @pytest.mark.django_db

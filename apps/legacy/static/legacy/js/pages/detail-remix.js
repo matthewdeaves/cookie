@@ -67,7 +67,7 @@
 
     function resetRemixModal() {
         var state = Cookie.pages.detail.getState();
-        state.selectedRemixSuggestion = null;
+        state.selectedRemixSuggestions = [];
         state.remixSuggestions = [];
         state.isCreatingRemix = false;
 
@@ -77,6 +77,7 @@
         }
 
         updateRemixCreateButton();
+        updateSelectionCount();
     }
 
     function loadRemixSuggestions() {
@@ -131,18 +132,34 @@
         var chip = e.currentTarget;
         var suggestion = chip.getAttribute('data-suggestion');
 
-        if (state.selectedRemixSuggestion === suggestion) {
-            state.selectedRemixSuggestion = null;
+        // Initialize array if needed
+        if (!state.selectedRemixSuggestions) {
+            state.selectedRemixSuggestions = [];
+        }
+
+        // Check if already selected
+        var index = -1;
+        for (var i = 0; i < state.selectedRemixSuggestions.length; i++) {
+            if (state.selectedRemixSuggestions[i] === suggestion) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index !== -1) {
+            // Remove if already selected
+            state.selectedRemixSuggestions.splice(index, 1);
             chip.classList.remove('active');
         } else {
-            var prevActive = document.querySelector('.remix-chip.active');
-            if (prevActive) {
-                prevActive.classList.remove('active');
+            // Add to selection (limit to 4)
+            if (state.selectedRemixSuggestions.length >= 4) {
+                Cookie.toast.info('You can select up to 4 modifications');
+                return;
             }
-
-            state.selectedRemixSuggestion = suggestion;
+            state.selectedRemixSuggestions.push(suggestion);
             chip.classList.add('active');
 
+            // Clear custom input when selecting suggestions
             var customInput = document.getElementById('remix-custom-input');
             if (customInput) {
                 customInput.value = '';
@@ -150,17 +167,20 @@
         }
 
         updateRemixCreateButton();
+        updateSelectionCount();
     }
 
     function handleRemixCustomInput() {
         var state = Cookie.pages.detail.getState();
         var customInput = document.getElementById('remix-custom-input');
         if (customInput && customInput.value.trim()) {
-            state.selectedRemixSuggestion = null;
-            var activeChip = document.querySelector('.remix-chip.active');
-            if (activeChip) {
-                activeChip.classList.remove('active');
+            // Clear all selected suggestions when typing custom input
+            state.selectedRemixSuggestions = [];
+            var activeChips = document.querySelectorAll('.remix-chip.active');
+            for (var i = 0; i < activeChips.length; i++) {
+                activeChips[i].classList.remove('active');
             }
+            updateSelectionCount();
         }
         updateRemixCreateButton();
     }
@@ -171,7 +191,28 @@
         if (customInput && customInput.value.trim()) {
             return customInput.value.trim();
         }
-        return state.selectedRemixSuggestion;
+        // Join multiple selections with " AND "
+        if (state.selectedRemixSuggestions && state.selectedRemixSuggestions.length > 0) {
+            if (state.selectedRemixSuggestions.length === 1) {
+                return state.selectedRemixSuggestions[0];
+            }
+            return state.selectedRemixSuggestions.join(' AND ');
+        }
+        return null;
+    }
+
+    function updateSelectionCount() {
+        var state = Cookie.pages.detail.getState();
+        var countEl = document.getElementById('remix-selection-count');
+        if (countEl) {
+            var count = state.selectedRemixSuggestions ? state.selectedRemixSuggestions.length : 0;
+            if (count > 0) {
+                countEl.textContent = count + ' selected';
+                countEl.classList.remove('hidden');
+            } else {
+                countEl.classList.add('hidden');
+            }
+        }
     }
 
     function updateRemixCreateButton() {
@@ -180,6 +221,21 @@
         if (createBtn) {
             var modification = getRemixModification();
             createBtn.disabled = !modification || state.isCreatingRemix;
+        }
+
+        // Update button text to show how many selected
+        var btnText = document.getElementById('remix-btn-text');
+        if (btnText && !state.isCreatingRemix) {
+            var count = state.selectedRemixSuggestions ? state.selectedRemixSuggestions.length : 0;
+            var customInput = document.getElementById('remix-custom-input');
+            var hasCustom = customInput && customInput.value.trim();
+            if (hasCustom) {
+                btnText.textContent = 'Create Remix';
+            } else if (count > 1) {
+                btnText.textContent = 'Create Remix (' + count + ' mods)';
+            } else {
+                btnText.textContent = 'Create Remix';
+            }
         }
     }
 

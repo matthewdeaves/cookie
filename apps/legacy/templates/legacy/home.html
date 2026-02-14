@@ -71,7 +71,7 @@
             <section class="section">
                 <div class="section-header">
                     <h2 class="section-title">Recently Viewed</h2>
-                    <a href="{% url 'legacy:all_recipes' %}" class="section-link">View All ({{ history_count }})</a>
+                    <a href="{% url 'legacy:all_recipes' %}" class="section-link">My Recipes ({{ recipes_count }})</a>
                 </div>
                 <div class="recipe-grid">
                     {% for item in history %}

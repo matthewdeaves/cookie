@@ -35,6 +35,11 @@ Cookie.pages.play = (function() {
         // Cache DOM elements
         cacheElements();
 
+        // Add class for recipes with many steps (hide dots, show simpler progress)
+        if (totalSteps > 12 && elements.stepIndicators) {
+            elements.stepIndicators.classList.add('many-steps');
+        }
+
         // Setup event listeners
         setupEventListeners();
 

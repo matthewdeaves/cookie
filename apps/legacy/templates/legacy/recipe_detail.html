@@ -174,6 +174,30 @@
         </div>
     </div>
 
+    {% if linked_recipes %}
+    <!-- Linked Recipes Navigation -->
+    <div class="linked-recipes-section">
+        <div class="linked-recipes-content">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="linked-recipes-icon">
+                <circle cx="18" cy="18" r="3"></circle>
+                <circle cx="6" cy="6" r="3"></circle>
+                <path d="M13 6h3a2 2 0 0 1 2 2v7"></path>
+                <path d="M11 18H8a2 2 0 0 1-2-2V9"></path>
+            </svg>
+            <span class="linked-recipes-label">Linked:</span>
+            <div class="linked-recipes-list">
+                {% for linked in linked_recipes %}
+                <a href="{% url 'legacy:recipe_detail' linked.id %}" class="linked-recipe-chip">
+                    <span class="linked-recipe-dot linked-recipe-dot-{{ linked.relationship }}"></span>
+                    <span class="linked-recipe-title">{{ linked.title }}</span>
+                    <span class="linked-recipe-type">({{ linked.relationship }})</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Tabs -->
     <div class="tabs-section">
         <div class="tabs">
@@ -409,11 +433,14 @@
                 </button>
             </div>
             <div class="modal-body">
-                <p class="remix-description">Choose a modification or describe your own remix of "{{ recipe.title }}"</p>
+                <p class="remix-description">Choose one or more modifications, or describe your own remix of "{{ recipe.title }}"</p>
 
                 <!-- AI Suggestions -->
                 <div class="remix-section">
-                    <h3 class="remix-section-title">Suggestions</h3>
+                    <div class="remix-section-header">
+                        <h3 class="remix-section-title">Suggestions</h3>
+                        <span id="remix-selection-count" class="remix-selection-count hidden"></span>
+                    </div>
                     <div id="remix-suggestions" class="remix-suggestions">
                         <div class="remix-loading">
                             <div class="spinner"></div>

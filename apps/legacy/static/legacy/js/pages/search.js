@@ -321,13 +321,16 @@ Cookie.pages.search = (function() {
             hostHtml += ' · ' + Cookie.utils.formatNumber(result.rating_count) + ' Ratings';
         }
 
+        // Inner div wrapper required for CSS card styling (flex column layout)
         return '<div class="search-result-card" data-url="' + Cookie.utils.escapeHtml(result.url) + '">' +
-            '<div class="search-result-image">' + imageHtml + '</div>' +
-            '<div class="search-result-content">' +
-                '<h3 class="search-result-title">' + Cookie.utils.escapeHtml(result.title) + '</h3>' +
-                '<p class="search-result-host">' + hostHtml + '</p>' +
-                descriptionHtml +
-                '<button type="button" class="btn-import" data-url="' + Cookie.utils.escapeHtml(result.url) + '">Import</button>' +
+            '<div>' +
+                '<div class="search-result-image">' + imageHtml + '</div>' +
+                '<div class="search-result-content">' +
+                    '<h3 class="search-result-title">' + Cookie.utils.escapeHtml(result.title) + '</h3>' +
+                    '<p class="search-result-host">' + hostHtml + '</p>' +
+                    descriptionHtml +
+                    '<button type="button" class="btn-import" data-url="' + Cookie.utils.escapeHtml(result.url) + '">Import</button>' +
+                '</div>' +
             '</div>' +
         '</div>';
     }

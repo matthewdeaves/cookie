@@ -195,7 +195,13 @@ export default function RecipeDetail() {
     navigate(`/collections?addRecipe=${recipeId}`)
   }
 
-  const handleRemixCreated = (newRecipeId: number) => {
+  const handleRemixCreated = async (newRecipeId: number) => {
+    // Record history so the remix shows in "Recently Viewed"
+    try {
+      await api.history.record(newRecipeId)
+    } catch (error) {
+      console.error('Failed to record history:', error)
+    }
     navigate(`/recipe/${newRecipeId}`)
   }
 

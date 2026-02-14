@@ -33,6 +33,9 @@ SECRET_KEY = get_secret_key()
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
 
+# Use X-Forwarded-Host header (preserves port when behind nginx proxy)
+USE_X_FORWARDED_HOST = True
+
 # CSRF trusted origins (for reverse proxies)
 csrf_origins = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in csrf_origins.split(",") if o.strip()]

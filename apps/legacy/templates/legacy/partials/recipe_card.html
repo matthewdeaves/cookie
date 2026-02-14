@@ -4,7 +4,7 @@ Expects: recipe (Recipe model), is_favorite (bool), show_favorite_btn (bool)
 {% endcomment %}
 {% load legacy_tags %}
 
-<a href="{% url 'legacy:recipe_detail' recipe.id %}" class="recipe-card" data-recipe-id="{{ recipe.id }}">
+<a href="{% url 'legacy:recipe_detail' recipe.id %}" class="recipe-card" data-recipe-id="{{ recipe.id }}" data-title="{{ recipe.title }}" data-host="{{ recipe.host }}">
     <!-- Image -->
     <div class="recipe-card-image">
         {% if recipe.image %}

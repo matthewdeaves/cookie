@@ -77,8 +77,10 @@ def home(request):
 
     # Get recently viewed for this profile
     history_qs = RecipeViewHistory.objects.filter(profile=profile).select_related("recipe").order_by("-viewed_at")
-    history_count = history_qs.count()
     history = history_qs[:6]
+
+    # Get total recipe count (for "My Recipes" link)
+    recipes_count = Recipe.objects.filter(profile=profile).count()
 
     # Build favorite recipe IDs set for checking
     favorite_recipe_ids = set(f.recipe_id for f in favorites)
@@ -98,7 +100,7 @@ def home(request):
             "favorites": favorites,
             "favorites_count": favorites_count,
             "history": history,
-            "history_count": history_count,
+            "recipes_count": recipes_count,
             "favorite_recipe_ids": favorite_recipe_ids,
             "ai_available": ai_available,
         },
@@ -164,6 +166,47 @@ def recipe_detail(request, recipe_id):
     if not instructions and recipe.instructions_text:
         instructions = [s.strip() for s in recipe.instructions_text.split("\n") if s.strip()]
 
+    # Build linked recipes for navigation
+    linked_recipes = []
+    if recipe.remixed_from_id:
+        # This is a remix - link to original
+        original = recipe.remixed_from
+        if original:
+            linked_recipes.append(
+                {
+                    "id": original.id,
+                    "title": original.title,
+                    "relationship": "original",
+                }
+            )
+            # Also find sibling remixes (other remixes of the same original)
+            siblings = Recipe.objects.filter(
+                remixed_from=original,
+                profile=profile,
+            ).exclude(id=recipe.id)[:5]
+            for sibling in siblings:
+                linked_recipes.append(
+                    {
+                        "id": sibling.id,
+                        "title": sibling.title,
+                        "relationship": "sibling",
+                    }
+                )
+    else:
+        # This is an original - find its remixes
+        remixes = Recipe.objects.filter(
+            remixed_from=recipe,
+            profile=profile,
+        )[:5]
+        for remix in remixes:
+            linked_recipes.append(
+                {
+                    "id": remix.id,
+                    "title": remix.title,
+                    "relationship": "remix",
+                }
+            )
+
     return render(
         request,
         "legacy/recipe_detail.html",
@@ -179,6 +222,7 @@ def recipe_detail(request, recipe_id):
             "ai_available": ai_available,
             "has_ingredient_groups": has_ingredient_groups,
             "instructions": instructions,
+            "linked_recipes": linked_recipes,
         },
     )
 
@@ -218,11 +262,11 @@ def play_mode(request, recipe_id):
 
 @require_profile
 def all_recipes(request):
-    """All Recipes screen - shows all viewed recipes (history)."""
+    """My Recipes screen - shows all recipes owned by this profile."""
     profile = request.profile
 
-    # Get all history for this profile (no limit)
-    history = RecipeViewHistory.objects.filter(profile=profile).select_related("recipe").order_by("-viewed_at")
+    # Get all recipes for this profile (imports + remixes)
+    recipes = Recipe.objects.filter(profile=profile).order_by("-scraped_at")
 
     # Build set of favorite recipe IDs for display
     favorite_recipe_ids = set(RecipeFavorite.objects.filter(profile=profile).values_list("recipe_id", flat=True))
@@ -236,7 +280,7 @@ def all_recipes(request):
                 "name": profile.name,
                 "avatar_color": profile.avatar_color,
             },
-            "history": history,
+            "recipes": recipes,
             "favorite_recipe_ids": favorite_recipe_ids,
         },
     )

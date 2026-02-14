@@ -551,6 +551,9 @@ export const api = {
   },
 
   recipes: {
+    list: (limit: number = 50, offset: number = 0) =>
+      request<Recipe[]>(`/recipes/?limit=${limit}&offset=${offset}`),
+
     get: (id: number) => request<RecipeDetail>(`/recipes/${id}/`),
 
     search: (query: string, sources?: string, page: number = 1) => {

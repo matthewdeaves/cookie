@@ -1,7 +1,7 @@
 {% extends 'legacy/base.html' %}
 {% load static legacy_tags %}
 
-{% block title %}All Recipes - Cookie{% endblock %}
+{% block title %}My Recipes - Cookie{% endblock %}
 
 {% block content %}
 <div class="screen" data-page="all-recipes">
@@ -12,7 +12,7 @@
                 <polyline points="15 18 9 12 15 6"></polyline>
             </svg>
         </a>
-        <span class="header-title">All Recipes</span>
+        <span class="header-title">My Recipes</span>
         <div class="header-right">
             <div class="avatar avatar-md" style="background-color: {{ profile.avatar_color }};">
                 {{ profile.name|slice:":1"|upper }}
@@ -21,17 +21,42 @@
     </header>
 
     <div class="container container-wide p-4">
-        {% if history %}
+        {% if recipes %}
+        <!-- Search box -->
+        <div class="search-input-wrapper mb-4">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+                type="text"
+                id="recipe-filter"
+                class="input search-input"
+                placeholder="Filter recipes..."
+            >
+            <button type="button" id="clear-filter-btn" class="search-clear hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+
         <!-- Recipe count -->
-        <p class="text-muted mb-4">{{ history|length }} recipe{{ history|length|pluralize }}</p>
+        <p id="recipe-count" class="text-muted mb-4" data-total="{{ recipes|length }}">{{ recipes|length }} recipe{{ recipes|length|pluralize }}</p>
 
         <!-- Recipe grid -->
-        <div class="recipe-grid">
-            {% for item in history %}
-            {% with recipe=item.recipe is_favorite=item.recipe.id|in_list:favorite_recipe_ids show_favorite_btn=False %}
+        <div id="recipe-grid" class="recipe-grid">
+            {% for recipe in recipes %}
+            {% with is_favorite=recipe.id|in_list:favorite_recipe_ids show_favorite_btn=False %}
             {% include 'legacy/partials/recipe_card.html' %}
             {% endwith %}
             {% endfor %}
+        </div>
+
+        <!-- No results message -->
+        <div id="no-results" class="empty-state hidden">
+            <p class="empty-state-text">No recipes match your search</p>
         </div>
         {% else %}
         <!-- Empty state -->
@@ -42,11 +67,88 @@
                     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
                 </svg>
             </div>
-            <h3 class="empty-state-title">No recipes viewed yet</h3>
-            <p class="empty-state-text">Start browsing and viewing recipes to see them here</p>
-            <a href="{% url 'legacy:home' %}" class="btn btn-primary">Browse Recipes</a>
+            <h3 class="empty-state-title">No recipes yet</h3>
+            <p class="empty-state-text">Import recipes from the web to see them here</p>
+            <a href="{% url 'legacy:home' %}" class="btn btn-primary">Import Recipes</a>
         </div>
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+
+    var filterInput = document.getElementById('recipe-filter');
+    var clearBtn = document.getElementById('clear-filter-btn');
+    var recipeGrid = document.getElementById('recipe-grid');
+    var recipeCount = document.getElementById('recipe-count');
+    var noResults = document.getElementById('no-results');
+
+    if (!filterInput || !recipeGrid) return;
+
+    var cards = recipeGrid.querySelectorAll('.recipe-card');
+    var totalCount = parseInt(recipeCount.getAttribute('data-total'), 10) || cards.length;
+
+    function filterRecipes() {
+        var query = filterInput.value.toLowerCase().trim();
+        var visibleCount = 0;
+
+        // Show/hide clear button
+        if (clearBtn) {
+            if (query) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+        }
+
+        // Filter cards
+        for (var i = 0; i < cards.length; i++) {
+            var card = cards[i];
+            var title = (card.getAttribute('data-title') || '').toLowerCase();
+            var host = (card.getAttribute('data-host') || '').toLowerCase();
+
+            if (!query || title.indexOf(query) !== -1 || host.indexOf(query) !== -1) {
+                card.style.display = '';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        }
+
+        // Update count text
+        if (recipeCount) {
+            if (query) {
+                recipeCount.textContent = visibleCount + ' of ' + totalCount + ' recipe' + (totalCount !== 1 ? 's' : '');
+            } else {
+                recipeCount.textContent = totalCount + ' recipe' + (totalCount !== 1 ? 's' : '');
+            }
+        }
+
+        // Show/hide no results message
+        if (noResults) {
+            if (visibleCount === 0 && query) {
+                noResults.classList.remove('hidden');
+                recipeGrid.classList.add('hidden');
+            } else {
+                noResults.classList.add('hidden');
+                recipeGrid.classList.remove('hidden');
+            }
+        }
+    }
+
+    filterInput.addEventListener('input', filterRecipes);
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            filterInput.value = '';
+            filterRecipes();
+            filterInput.focus();
+        });
+    }
+})();
+</script>
 {% endblock %}

@@ -351,6 +351,84 @@
     color: var(--foreground);
 }
 
+/* Linked Recipes Section */
+.linked-recipes-section {
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+}
+
+.linked-recipes-content {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.linked-recipes-icon {
+    color: var(--muted-foreground);
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+}
+
+.linked-recipes-label {
+    color: var(--muted-foreground);
+}
+
+.linked-recipes-list {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.linked-recipe-chip {
+    display: -webkit-inline-flex;
+    display: inline-flex;
+    -webkit-align-items: center;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.75rem;
+    background-color: var(--muted);
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--foreground);
+    text-decoration: none;
+    -webkit-transition: background-color 0.2s;
+    transition: background-color 0.2s;
+}
+
+.linked-recipe-chip:hover {
+    background-color: var(--secondary);
+}
+
+.linked-recipe-dot {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+}
+
+.linked-recipe-dot-original {
+    background-color: var(--primary);
+}
+
+.linked-recipe-dot-remix {
+    background-color: var(--accent);
+}
+
+.linked-recipe-dot-sibling {
+    background-color: var(--muted-foreground);
+}
+
+.linked-recipe-type {
+    color: var(--muted-foreground);
+}
+
 /* Tabs Section */
 .tabs-section {
     border-bottom: 1px solid var(--border);
@@ -747,12 +825,31 @@
     margin-bottom: 1.5rem;
 }
 
+.remix-section-header {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.remix-section-header .remix-section-title {
+    margin: 0;
+}
+
 .remix-section-title {
     display: block;
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--foreground);
     margin: 0 0 0.75rem 0;
+}
+
+.remix-selection-count {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
 }
 
 .remix-suggestions {

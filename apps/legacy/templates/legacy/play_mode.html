@@ -37,38 +37,38 @@
 
     <!-- Main content area -->
     <div class="play-main">
-        <!-- Instruction display -->
-        <div class="instruction-area">
-            <div class="instruction-content">
-                <!-- Step number -->
-                <div class="step-number" id="step-number">1</div>
-
-                <!-- Instruction text -->
-                <p class="instruction-text" id="instruction-text">
-                    {{ instructions.0 }}
-                </p>
-            </div>
-        </div>
-
-        <!-- Navigation buttons -->
-        <div class="play-nav">
-            <button type="button" id="prev-btn" class="nav-btn nav-btn-prev" disabled>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Instruction area with side navigation -->
+        <div class="instruction-wrapper">
+            <!-- Previous button (left side) -->
+            <button type="button" id="prev-btn" class="side-nav side-nav-prev" disabled title="Previous step">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m15 18-6-6 6-6"></path>
                 </svg>
-                Previous
             </button>
 
-            <!-- Step indicators (hidden on mobile) -->
-            <div class="step-indicators" id="step-indicators">
-                {% for step in instructions %}
-                <button type="button" class="step-dot{% if forloop.first %} active{% endif %}" data-step="{{ forloop.counter0 }}"></button>
-                {% endfor %}
+            <!-- Instruction display (center, scrollable) -->
+            <div class="instruction-area">
+                <div class="instruction-content">
+                    <!-- Step number -->
+                    <div class="step-number" id="step-number">1</div>
+
+                    <!-- Instruction text -->
+                    <p class="instruction-text" id="instruction-text">
+                        {{ instructions.0 }}
+                    </p>
+
+                    <!-- Step indicators -->
+                    <div class="step-indicators" id="step-indicators">
+                        {% for step in instructions %}
+                        <button type="button" class="step-dot{% if forloop.first %} active{% endif %}" data-step="{{ forloop.counter0 }}"></button>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
 
-            <button type="button" id="next-btn" class="nav-btn nav-btn-next{% if instructions|length <= 1 %} disabled{% endif %}">
-                Next
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Next button (right side) -->
+            <button type="button" id="next-btn" class="side-nav side-nav-next{% if instructions|length <= 1 %} disabled{% endif %}" title="Next step">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m9 18 6-6-6-6"></path>
                 </svg>
             </button>

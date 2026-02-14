@@ -26,7 +26,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('favorites')
   const [favorites, setFavorites] = useState<Favorite[]>([])
   const [history, setHistory] = useState<HistoryItem[]>([])
-  const [historyCount, setHistoryCount] = useState(0)
+  const [recipesCount, setRecipesCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [discoverSuggestions, setDiscoverSuggestions] = useState<DiscoverSuggestion[]>([])
   const [discoverLoading, setDiscoverLoading] = useState(false)
@@ -39,13 +39,14 @@ export default function Home() {
 
   const loadData = async () => {
     try {
-      const [favoritesData, historyData] = await Promise.all([
+      const [favoritesData, historyData, recipesData] = await Promise.all([
         api.favorites.list(),
-        api.history.list(1000),
+        api.history.list(6),
+        api.recipes.list(1000),
       ])
       setFavorites(favoritesData)
-      setHistoryCount(historyData.length)
-      setHistory(historyData.slice(0, 6))
+      setHistory(historyData)
+      setRecipesCount(recipesData.length)
     } catch (error) {
       console.error('Failed to load data:', error)
       toast.error('Failed to load recipes')
@@ -256,7 +257,7 @@ export default function Home() {
                       onClick={() => navigate('/all-recipes')}
                       className="text-sm font-medium text-primary hover:underline"
                     >
-                      View All ({historyCount})
+                      My Recipes ({recipesCount})
                     </button>
                   </div>
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
