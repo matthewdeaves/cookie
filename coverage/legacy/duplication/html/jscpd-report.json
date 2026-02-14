@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-02-14T17:58:08.141Z",
+    "detectionDate": "2026-02-14T18:03:35.996Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -101,14 +101,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/search.js": {
-            "lines": 557,
-            "tokens": 4424,
+            "lines": 559,
+            "tokens": 4409,
             "sources": 1,
             "clones": 5,
             "duplicatedLines": 44,
             "duplicatedTokens": 321,
-            "percentage": 7.9,
-            "percentageTokens": 7.26,
+            "percentage": 7.87,
+            "percentageTokens": 7.28,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -402,8 +402,8 @@
           }
         },
         "total": {
-          "lines": 6107,
-          "tokens": 46220,
+          "lines": 6109,
+          "tokens": 46205,
           "sources": 33,
           "clones": 32,
           "duplicatedLines": 322,
@@ -416,8 +416,8 @@
       }
     },
     "total": {
-      "lines": 6107,
-      "tokens": 46220,
+      "lines": 6109,
+      "tokens": 46205,
       "sources": 33,
       "clones": 32,
       "duplicatedLines": 322,
@@ -667,17 +667,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 544,
-        "end": 554,
+        "start": 546,
+        "end": 556,
         "startLoc": {
-          "line": 544,
+          "line": 546,
           "column": 5,
-          "position": 4331
+          "position": 4316
         },
         "endLoc": {
-          "line": 554,
+          "line": 556,
           "column": 7,
-          "position": 4392
+          "position": 4377
         }
       }
     },
@@ -739,17 +739,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 546,
-        "end": 554,
+        "start": 548,
+        "end": 556,
         "startLoc": {
-          "line": 546,
+          "line": 548,
           "column": 5,
-          "position": 4335
+          "position": 4320
         },
         "endLoc": {
-          "line": 554,
+          "line": 556,
           "column": 7,
-          "position": 4392
+          "position": 4377
         }
       }
     },
@@ -775,17 +775,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 542,
-        "end": 554,
+        "start": 544,
+        "end": 556,
         "startLoc": {
-          "line": 542,
+          "line": 544,
           "column": 66,
-          "position": 4325
+          "position": 4310
         },
         "endLoc": {
-          "line": 554,
+          "line": 556,
           "column": 7,
-          "position": 4392
+          "position": 4377
         }
       }
     },
@@ -920,16 +920,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
         "start": 352,
-        "end": 554,
+        "end": 556,
         "startLoc": {
           "line": 352,
           "column": 13,
           "position": 2655
         },
         "endLoc": {
-          "line": 554,
+          "line": 556,
           "column": 7,
-          "position": 4392
+          "position": 4377
         }
       }
     },
@@ -1244,16 +1244,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
         "start": 222,
-        "end": 554,
+        "end": 556,
         "startLoc": {
           "line": 222,
           "column": 7,
           "position": 1549
         },
         "endLoc": {
-          "line": 554,
+          "line": 556,
           "column": 7,
-          "position": 4392
+          "position": 4377
         }
       }
     },
@@ -1352,16 +1352,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/favorites.js",
         "start": 85,
-        "end": 554,
+        "end": 556,
         "startLoc": {
           "line": 85,
           "column": 6,
           "position": 554
         },
         "endLoc": {
-          "line": 554,
+          "line": 556,
           "column": 7,
-          "position": 4392
+          "position": 4377
         }
       }
     },
