@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-02-14T18:58:31.455Z",
+    "detectionDate": "2026-02-14T19:12:26.935Z",
     "formats": {
       "typescript": {
         "sources": {
@@ -201,8 +201,8 @@
             "newClones": 0
           },
           "src/screens/Search.tsx": {
-            "lines": 159,
-            "tokens": 1052,
+            "lines": 194,
+            "tokens": 1335,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -454,8 +454,8 @@
           }
         },
         "total": {
-          "lines": 2712,
-          "tokens": 19789,
+          "lines": 2747,
+          "tokens": 20072,
           "sources": 28,
           "clones": 0,
           "duplicatedLines": 0,
@@ -553,14 +553,14 @@
             "newClones": 0
           },
           "src/screens/Search.tsx": {
-            "lines": 301,
-            "tokens": 2378,
+            "lines": 324,
+            "tokens": 2564,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 15,
             "duplicatedTokens": 86,
-            "percentage": 4.98,
-            "percentageTokens": 3.62,
+            "percentage": 4.63,
+            "percentageTokens": 3.35,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -818,8 +818,8 @@
           }
         },
         "total": {
-          "lines": 5650,
-          "tokens": 43965,
+          "lines": 5673,
+          "tokens": 44151,
           "sources": 29,
           "clones": 4,
           "duplicatedLines": 50,
@@ -832,14 +832,14 @@
       }
     },
     "total": {
-      "lines": 9671,
-      "tokens": 73368,
+      "lines": 9729,
+      "tokens": 73837,
       "sources": 65,
       "clones": 7,
       "duplicatedLines": 92,
       "duplicatedTokens": 783,
       "percentage": 0.95,
-      "percentageTokens": 1.07,
+      "percentageTokens": 1.06,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -1083,17 +1083,17 @@
       },
       "secondFile": {
         "name": "src/screens/Search.tsx",
-        "start": 253,
-        "end": 267,
+        "start": 276,
+        "end": 290,
         "startLoc": {
-          "line": 253,
+          "line": 276,
           "column": 2,
-          "position": 2047
+          "position": 2233
         },
         "endLoc": {
-          "line": 267,
+          "line": 290,
           "column": 3,
-          "position": 2132
+          "position": 2318
         }
       }
     }
