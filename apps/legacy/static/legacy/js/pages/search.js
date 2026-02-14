@@ -516,7 +516,8 @@ Cookie.pages.search = (function() {
     }
 
     /**
-     * Show loading spinner for image
+     * Show loading spinner for image (only if no image is displayed)
+     * We keep external images visible as fallback - don't replace them with spinners
      */
     function showImageLoadingSpinner(recipeUrl) {
         var card = document.querySelector('[data-url="' + Cookie.utils.escapeSelector(recipeUrl) + '"]');
@@ -524,8 +525,9 @@ Cookie.pages.search = (function() {
             var imgContainer = card.querySelector('.search-result-image');
             if (imgContainer) {
                 var existingImg = imgContainer.querySelector('img');
-                // Show spinner if no img exists, OR if img is using external URL (not cached)
-                if (!existingImg || (existingImg && !existingImg.src.includes('/media/search_images/'))) {
+                // Only show spinner if there's NO image at all (not even external)
+                // If there's an external image, keep it visible as fallback
+                if (!existingImg) {
                     imgContainer.innerHTML = '<div class="image-loading-spinner"></div>';
                 }
             }
@@ -533,12 +535,12 @@ Cookie.pages.search = (function() {
     }
 
     /**
-     * Hide all loading spinners
+     * Hide all loading spinners (called when polling stops)
      */
     function hideAllLoadingSpinners() {
         var spinners = document.querySelectorAll('.image-loading-spinner');
         for (var i = 0; i < spinners.length; i++) {
-            // Replace with "No image" placeholder
+            // Replace spinner with "No image" placeholder
             spinners[i].parentElement.innerHTML = '<div class="search-result-no-image"><span>No image</span></div>';
         }
     }
