@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useAuth } from '../contexts/AuthContext'
@@ -22,7 +22,37 @@ export default function Register() {
   const [selectedColor, setSelectedColor] = useState(PROFILE_COLORS[11]) // Default to indigo
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [touched, setTouched] = useState({
+    username: false,
+    password: false,
+    passwordConfirm: false,
+  })
 
+  // Field-level validation
+  const usernameError = useMemo(() => {
+    if (!touched.username || username.length === 0) return null
+    if (username.length < 3) return 'Username must be at least 3 characters'
+    if (username.length > 30) return 'Username must be 30 characters or less'
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      return 'Username can only contain letters, numbers, and underscores'
+    }
+    return null
+  }, [username, touched.username])
+
+  const passwordError = useMemo(() => {
+    if (!touched.password || password.length === 0) return null
+    if (password.length < 8) return 'Password must be at least 8 characters'
+    return null
+  }, [password, touched.password])
+
+  const confirmError = useMemo(() => {
+    if (!touched.passwordConfirm || passwordConfirm.length === 0) return null
+    // eslint-disable-next-line security/detect-possible-timing-attacks -- Form validation, not security-sensitive
+    if (password !== passwordConfirm) return 'Passwords do not match'
+    return null
+  }, [password, passwordConfirm, touched.passwordConfirm])
+
+  // Combined validation for submit
   const validateForm = (): string | null => {
     if (username.length < 3 || username.length > 30) {
       return 'Username must be 3-30 characters'
@@ -43,6 +73,8 @@ export default function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    // Mark all fields as touched on submit
+    setTouched({ username: true, password: true, passwordConfirm: true })
 
     const validationError = validateForm()
     if (validationError) {
@@ -91,8 +123,12 @@ export default function Register() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                onBlur={() => setTouched((t) => ({ ...t, username: true }))}
                 placeholder="Username (3-30 characters)"
-                className="w-full rounded-lg border border-border bg-input-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className={cn(
+                  'w-full rounded-lg border bg-input-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring',
+                  usernameError ? 'border-destructive' : 'border-border'
+                )}
                 autoComplete="username"
                 minLength={3}
                 maxLength={30}
@@ -100,6 +136,9 @@ export default function Register() {
                 required
                 autoFocus
               />
+              {usernameError && (
+                <p className="mt-1 text-left text-sm text-destructive">{usernameError}</p>
+              )}
             </div>
 
             <div className="mb-4">
@@ -107,12 +146,19 @@ export default function Register() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onBlur={() => setTouched((t) => ({ ...t, password: true }))}
                 placeholder="Password (8+ characters)"
-                className="w-full rounded-lg border border-border bg-input-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className={cn(
+                  'w-full rounded-lg border bg-input-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring',
+                  passwordError ? 'border-destructive' : 'border-border'
+                )}
                 autoComplete="new-password"
                 minLength={8}
                 required
               />
+              {passwordError && (
+                <p className="mt-1 text-left text-sm text-destructive">{passwordError}</p>
+              )}
             </div>
 
             <div className="mb-4">
@@ -120,12 +166,19 @@ export default function Register() {
                 type="password"
                 value={passwordConfirm}
                 onChange={(e) => setPasswordConfirm(e.target.value)}
+                onBlur={() => setTouched((t) => ({ ...t, passwordConfirm: true }))}
                 placeholder="Confirm password"
-                className="w-full rounded-lg border border-border bg-input-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className={cn(
+                  'w-full rounded-lg border bg-input-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring',
+                  confirmError ? 'border-destructive' : 'border-border'
+                )}
                 autoComplete="new-password"
                 minLength={8}
                 required
               />
+              {confirmError && (
+                <p className="mt-1 text-left text-sm text-destructive">{confirmError}</p>
+              )}
             </div>
 
             {/* Color picker */}

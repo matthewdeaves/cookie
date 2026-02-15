@@ -102,13 +102,16 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
     )
   }
 
-  // Public mode: redirect authenticated users to home
-  if (isPublicMode && isAuthenticated) {
-    return <Navigate to="/home" replace />
+  // Public mode: redirect to login (profile selector is for home mode only)
+  if (isPublicMode) {
+    if (isAuthenticated) {
+      return <Navigate to="/home" replace />
+    }
+    return <Navigate to="/login" replace />
   }
 
   // Home mode: redirect users with profile to home
-  if (!isPublicMode && profile) {
+  if (profile) {
     return <Navigate to="/home" replace />
   }
 

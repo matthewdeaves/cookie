@@ -1,16 +1,23 @@
 import { useNavigate } from 'react-router-dom'
-import { Moon, Sun, Home, Heart, FolderOpen, Settings, LogOut } from 'lucide-react'
+import { Moon, Sun, Home, Heart, FolderOpen, Settings, LogOut, Users } from 'lucide-react'
 import { useProfile } from '../contexts/ProfileContext'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function NavHeader() {
   const navigate = useNavigate()
-  const { profile, theme, toggleTheme, logout } = useProfile()
-  const { isAdmin } = useAuth()
+  const { profile, theme, toggleTheme, logout: switchProfile } = useProfile()
+  const { isAdmin, isPublicMode, logout: authLogout } = useAuth()
 
-  const handleLogout = () => {
-    logout()
+  // Home mode: switch profile (go to profile selector)
+  const handleSwitchProfile = () => {
+    switchProfile()
     navigate('/')
+  }
+
+  // Public mode: logout (end authenticated session)
+  const handleLogout = async () => {
+    await authLogout()
+    navigate('/login')
   }
 
   const getInitial = (name: string) => {
@@ -80,24 +87,36 @@ export default function NavHeader() {
           </button>
         )}
 
-        {/* Profile avatar */}
-        <button
-          onClick={handleLogout}
+        {/* Profile avatar - just shows current user */}
+        <div
           className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium text-white"
           style={{ backgroundColor: profile.avatar_color }}
-          aria-label="Switch profile"
+          title={profile.name}
         >
           {getInitial(profile.name)}
-        </button>
+        </div>
 
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          aria-label="Switch profile"
-        >
-          <LogOut className="h-5 w-5" />
-        </button>
+        {/* Home mode: Switch profile button */}
+        {!isPublicMode && (
+          <button
+            onClick={handleSwitchProfile}
+            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label="Switch profile"
+          >
+            <Users className="h-5 w-5" />
+          </button>
+        )}
+
+        {/* Public mode: Logout button */}
+        {isPublicMode && (
+          <button
+            onClick={handleLogout}
+            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label="Logout"
+          >
+            <LogOut className="h-5 w-5" />
+          </button>
+        )}
       </div>
     </header>
   )

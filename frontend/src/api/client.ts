@@ -654,73 +654,72 @@ export const api = {
   },
 
   auth: {
-    login: (username: string, password: string) =>
-      fetch('/legacy/login/', {
+    login: async (username: string, password: string) => {
+      const response = await fetch('/api/profiles/auth/login/', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCSRFToken(),
         },
-        body: new URLSearchParams({
-          username,
-          password,
-          csrfmiddlewaretoken: getCSRFToken(),
-        }),
+        body: JSON.stringify({ username, password }),
         credentials: 'same-origin',
-        redirect: 'manual', // Don't follow redirects automatically
-      }).then(async (response) => {
-        // A redirect (302) means successful login
-        if (response.type === 'opaqueredirect' || response.status === 302 || response.status === 200) {
-          // Get the profile from the session
-          const profiles = await api.profiles.list()
-          // Return the most recently created profile (likely the logged-in user's)
-          // In public mode, there should only be one profile per user
-          return profiles[0] || null
-        }
-        throw new Error('Invalid username or password')
-      }),
+      })
 
-    register: (username: string, password: string, passwordConfirm: string, avatarColor: string) =>
-      fetch('/legacy/register/', {
+      const data = await response.json()
+
+      if (response.ok) {
+        return data.profile
+      }
+
+      // Handle error responses
+      if (response.status === 401) {
+        throw new Error(data.message || 'Invalid username or password')
+      }
+      throw new Error(data.error || 'Login failed')
+    },
+
+    register: async (username: string, password: string, passwordConfirm: string, avatarColor: string) => {
+      const response = await fetch('/api/profiles/auth/register/', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCSRFToken(),
         },
-        body: new URLSearchParams({
+        body: JSON.stringify({
           username,
           password,
           password_confirm: passwordConfirm,
           avatar_color: avatarColor,
-          csrfmiddlewaretoken: getCSRFToken(),
         }),
         credentials: 'same-origin',
-        redirect: 'manual',
-      }).then(async (response) => {
-        if (response.type === 'opaqueredirect' || response.status === 302 || response.status === 200) {
-          const profiles = await api.profiles.list()
-          return profiles[0] || null
-        }
-        // Try to parse error from response
-        const text = await response.text()
-        if (text.includes('Username already taken')) {
-          throw new Error('Username already taken')
-        }
-        if (text.includes('Passwords do not match')) {
-          throw new Error('Passwords do not match')
-        }
-        if (text.includes('Password must be at least')) {
-          throw new Error('Password must be at least 8 characters')
-        }
-        if (text.includes('can only contain')) {
-          throw new Error('Username can only contain letters, numbers, and underscores')
-        }
-        throw new Error('Registration failed')
-      }),
+      })
 
-    logout: () =>
-      fetch('/legacy/logout/', {
-        method: 'GET',
+      const data = await response.json()
+
+      if (response.ok) {
+        return data.profile
+      }
+
+      // Handle validation errors
+      if (response.status === 400) {
+        throw new Error(data.error || 'Registration failed')
+      }
+      if (response.status === 403) {
+        throw new Error(data.message || 'Registration not available')
+      }
+      throw new Error(data.error || 'Registration failed')
+    },
+
+    logout: async () => {
+      await fetch('/api/profiles/auth/logout/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCSRFToken(),
+        },
         credentials: 'same-origin',
-      }).then(() => undefined),
+      })
+    },
   },
 }
 
