@@ -392,11 +392,9 @@ class TestViews:
         assert response.status_code == 200
 
     @pytest.mark.django_db
-    def test_register_home_mode_redirects(self):
+    def test_register_home_mode_redirects(self, monkeypatch):
         """Register view redirects in home mode."""
-        settings = AppSettings.get()
-        settings.deployment_mode = "home"
-        settings.save()
+        monkeypatch.setenv("COOKIE_DEPLOYMENT_MODE", "home")
 
         client = Client()
         response = client.get("/legacy/register/")
