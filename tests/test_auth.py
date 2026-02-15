@@ -719,8 +719,11 @@ class TestSettingsAPI:
     """Tests for Session F - Settings API."""
 
     @pytest.mark.django_db
-    def test_put_auth_settings_updates_deployment_mode(self):
+    def test_put_auth_settings_updates_deployment_mode(self, monkeypatch):
         """PUT /api/system/auth-settings/ updates deployment mode."""
+        # Clear env var so database value takes precedence
+        monkeypatch.delenv("COOKIE_DEPLOYMENT_MODE", raising=False)
+
         client = Client()
 
         # Ensure starting in home mode
@@ -856,8 +859,11 @@ class TestSettingsAPI:
         assert data["env_overrides"]["allow_registration"] is False
 
     @pytest.mark.django_db
-    def test_put_auth_settings_validates_deployment_mode(self):
+    def test_put_auth_settings_validates_deployment_mode(self, monkeypatch):
         """PUT /api/system/auth-settings/ rejects invalid deployment_mode."""
+        # Clear env var so validation happens (env var skips validation)
+        monkeypatch.delenv("COOKIE_DEPLOYMENT_MODE", raising=False)
+
         client = Client()
 
         response = client.put(
@@ -901,8 +907,13 @@ class TestSettingsAPI:
         assert data["error"] == "invalid_instance_name"
 
     @pytest.mark.django_db
-    def test_put_auth_settings_updates_multiple_fields(self):
+    def test_put_auth_settings_updates_multiple_fields(self, monkeypatch):
         """PUT /api/system/auth-settings/ can update multiple fields at once."""
+        # Clear env vars so database values take precedence
+        monkeypatch.delenv("COOKIE_DEPLOYMENT_MODE", raising=False)
+        monkeypatch.delenv("COOKIE_ALLOW_REGISTRATION", raising=False)
+        monkeypatch.delenv("COOKIE_INSTANCE_NAME", raising=False)
+
         client = Client()
 
         settings = AppSettings.get()
@@ -957,7 +968,9 @@ class TestAdminAuthorization:
         """Public mode without COOKIE_ADMIN_USERNAME: no one is admin."""
         from apps.core.utils import is_admin
 
-        # Ensure env var is not set
+        # Clear deployment mode env var so database value takes effect
+        monkeypatch.delenv("COOKIE_DEPLOYMENT_MODE", raising=False)
+        # Ensure admin username env var is not set
         monkeypatch.delenv("COOKIE_ADMIN_USERNAME", raising=False)
 
         settings = AppSettings.get()
@@ -986,6 +999,8 @@ class TestAdminAuthorization:
         """Public mode: user not matching env var is not admin."""
         from apps.core.utils import is_admin
 
+        # Clear deployment mode env var so database value takes effect
+        monkeypatch.delenv("COOKIE_DEPLOYMENT_MODE", raising=False)
         monkeypatch.setenv("COOKIE_ADMIN_USERNAME", "admin_user")
 
         settings = AppSettings.get()

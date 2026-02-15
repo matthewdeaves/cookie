@@ -3,8 +3,9 @@ Tests for recipe user features: collections, favorites, and history.
 """
 
 import json
+import os
 
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 
 from apps.profiles.models import Profile
 from apps.recipes.models import (
@@ -20,6 +21,9 @@ class BaseTestCase(TestCase):
     """Base test case with common setup."""
 
     def setUp(self):
+        # Ensure home mode for tests (docker-compose.override may set public)
+        os.environ["COOKIE_DEPLOYMENT_MODE"] = "home"
+
         self.client = Client()
         self.profile = Profile.objects.create(
             name="Test User",

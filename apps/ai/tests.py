@@ -1,8 +1,12 @@
 """Tests for the AI app."""
 
+import os
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 from django.test import TestCase
+
+# Ensure home mode for tests (docker-compose.override may set public)
+os.environ["COOKIE_DEPLOYMENT_MODE"] = "home"
 
 from apps.core.models import AppSettings
 from .models import AIPrompt

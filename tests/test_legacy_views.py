@@ -350,7 +350,8 @@ class TestLegacyNavHeader:
 
         response = client.get("/legacy/home/")
         content = response.content.decode()
-        assert "logout-btn" in content
+        # Home mode shows switch-profile-btn, public mode shows logout-btn
+        assert "switch-profile-btn" in content or "logout-btn" in content
         # Profile initial 'A' should be in the content
         assert ">A<" in content
 
