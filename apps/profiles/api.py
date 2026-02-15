@@ -1,8 +1,10 @@
 import os
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from django.conf import settings
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from ninja import Router, Schema
 
@@ -10,6 +12,7 @@ from apps.core.models import AppSettings
 from apps.core.utils import is_admin
 
 from .models import Profile
+from .validators import validate_registration, validate_username, validate_password
 
 router = Router(tags=["profiles"])
 
@@ -309,3 +312,131 @@ def select_profile(request, profile_id: int):
 
     request.session["profile_id"] = profile.id
     return profile
+
+
+# ============================================================================
+# Authentication API
+# ============================================================================
+
+
+class RegisterSchema(Schema):
+    username: str
+    password: str
+    password_confirm: str
+    avatar_color: str = "#6366f1"
+
+
+class LoginSchema(Schema):
+    username: str
+    password: str
+
+
+class AuthResponseSchema(Schema):
+    profile: ProfileOut
+    message: str
+
+
+class ValidationErrorSchema(Schema):
+    error: str
+    field: Optional[str] = None
+
+
+@router.post("/auth/register/", response={201: AuthResponseSchema, 400: ValidationErrorSchema, 403: ErrorSchema})
+def register(request, data: RegisterSchema):
+    """Register a new user account.
+
+    Only available in public deployment mode with registration enabled.
+    Creates both a User and associated Profile.
+    """
+    app_settings = AppSettings.get()
+
+    # Check deployment mode
+    if app_settings.get_deployment_mode() != "public":
+        return 403, {"error": "forbidden", "message": "Registration not available in home mode"}
+
+    # Check if registration is enabled
+    if not app_settings.get_allow_registration():
+        return 403, {"error": "forbidden", "message": "Registration is disabled"}
+
+    # Check if already authenticated
+    if request.user.is_authenticated:
+        return 400, {"error": "Already authenticated", "field": None}
+
+    # Validate using shared validators
+    validation = validate_registration(
+        data.username.strip(),
+        data.password,
+        data.password_confirm,
+    )
+    if not validation.is_valid:
+        # Determine which field the error relates to
+        field = None
+        if "username" in validation.error.lower():
+            field = "username"
+        elif "password" in validation.error.lower():
+            field = "password" if "confirm" not in validation.error.lower() else "password_confirm"
+        return 400, {"error": validation.error, "field": field}
+
+    # Create user and profile
+    username = data.username.strip()
+    user = User.objects.create_user(username=username, password=data.password)
+    profile = Profile.objects.create(
+        user=user,
+        name=username,
+        avatar_color=data.avatar_color,
+    )
+
+    # Log in the new user
+    login(request, user)
+    request.session["profile_id"] = profile.id
+
+    return 201, {
+        "profile": profile,
+        "message": f"Welcome, {profile.name}!",
+    }
+
+
+@router.post("/auth/login/", response={200: AuthResponseSchema, 400: ValidationErrorSchema, 401: ErrorSchema})
+def login_user(request, data: LoginSchema):
+    """Log in with username and password.
+
+    Only available in public deployment mode.
+    """
+    app_settings = AppSettings.get()
+
+    # Check deployment mode
+    if app_settings.get_deployment_mode() != "public":
+        return 400, {"error": "Login not required in home mode", "field": None}
+
+    # Check if already authenticated
+    if request.user.is_authenticated:
+        return 400, {"error": "Already authenticated", "field": None}
+
+    # Authenticate user
+    user = authenticate(request, username=data.username.strip(), password=data.password)
+
+    if user is None:
+        # Use same error message for all failures (prevents username enumeration)
+        return 401, {"error": "unauthorized", "message": "Invalid username or password"}
+
+    # Log in the user (regenerates session ID)
+    login(request, user)
+
+    # Set profile in session
+    if hasattr(user, "profile"):
+        request.session["profile_id"] = user.profile.id
+        return {
+            "profile": user.profile,
+            "message": f"Welcome back, {user.profile.name}!",
+        }
+
+    return 401, {"error": "unauthorized", "message": "User has no profile"}
+
+
+@router.post("/auth/logout/", response={200: dict})
+def logout_user(request):
+    """Log out the current user."""
+    logout(request)
+    if "profile_id" in request.session:
+        del request.session["profile_id"]
+    return {"message": "Logged out successfully"}
