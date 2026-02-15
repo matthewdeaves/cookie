@@ -22,14 +22,6 @@ Cookie.pages.home = (function() {
      * Setup event listeners
      */
     function setupEventListeners() {
-        // Logout/switch profile button
-        var logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', function() {
-                window.location.href = '/legacy/';
-            });
-        }
-
         // Search form submission
         var searchForm = document.getElementById('search-form');
         if (searchForm) {

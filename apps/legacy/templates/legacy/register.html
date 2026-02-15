@@ -86,8 +86,9 @@
 
 {% block extra_js %}
 <script>
-// ES5 compatible color picker
+// ES5 compatible registration page
 (function() {
+    // Color picker
     var colors = [
         '#ef4444', '#f97316', '#f59e0b', '#eab308',
         '#84cc16', '#22c55e', '#10b981', '#14b8a6',
@@ -132,6 +133,107 @@
     }
 
     renderColors();
+
+    // Form validation
+    var form = document.getElementById('register-form');
+    var usernameInput = form.querySelector('input[name="username"]');
+    var passwordInput = form.querySelector('input[name="password"]');
+    var confirmInput = form.querySelector('input[name="password_confirm"]');
+    var errorContainer = document.getElementById('client-error');
+
+    function showError(message) {
+        if (!errorContainer) {
+            // Create error container if server didn't render one
+            errorContainer = document.createElement('div');
+            errorContainer.id = 'client-error';
+            errorContainer.className = 'mb-4';
+            errorContainer.style.cssText = 'padding: 0.75rem; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 0.5rem; color: #ef4444;';
+            form.insertBefore(errorContainer, form.firstChild.nextSibling); // After CSRF token
+        }
+        errorContainer.textContent = message;
+        errorContainer.style.display = 'block';
+    }
+
+    function hideError() {
+        if (errorContainer) {
+            errorContainer.style.display = 'none';
+        }
+    }
+
+    function validateUsername(value) {
+        if (value.length < 3) {
+            return 'Username must be at least 3 characters';
+        }
+        if (value.length > 30) {
+            return 'Username must be 30 characters or less';
+        }
+        if (!/^[a-zA-Z0-9_]+$/.test(value)) {
+            return 'Username can only contain letters, numbers, and underscores';
+        }
+        return null;
+    }
+
+    function validatePassword(value) {
+        if (value.length < 8) {
+            return 'Password must be at least 8 characters';
+        }
+        return null;
+    }
+
+    function validateConfirm(password, confirm) {
+        if (password !== confirm) {
+            return 'Passwords do not match';
+        }
+        return null;
+    }
+
+    // Validate on form submit
+    form.addEventListener('submit', function(e) {
+        var username = usernameInput.value.trim();
+        var password = passwordInput.value;
+        var confirm = confirmInput.value;
+
+        var error = validateUsername(username);
+        if (!error) error = validatePassword(password);
+        if (!error) error = validateConfirm(password, confirm);
+
+        if (error) {
+            e.preventDefault();
+            showError(error);
+            return false;
+        }
+
+        hideError();
+        return true;
+    });
+
+    // Real-time validation feedback on blur
+    usernameInput.addEventListener('blur', function() {
+        var error = validateUsername(usernameInput.value.trim());
+        if (error && usernameInput.value.trim().length > 0) {
+            showError(error);
+        } else {
+            hideError();
+        }
+    });
+
+    passwordInput.addEventListener('blur', function() {
+        var error = validatePassword(passwordInput.value);
+        if (error && passwordInput.value.length > 0) {
+            showError(error);
+        } else {
+            hideError();
+        }
+    });
+
+    confirmInput.addEventListener('blur', function() {
+        var error = validateConfirm(passwordInput.value, confirmInput.value);
+        if (error && confirmInput.value.length > 0) {
+            showError(error);
+        } else {
+            hideError();
+        }
+    });
 })();
 </script>
 {% endblock %}

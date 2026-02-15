@@ -12,6 +12,7 @@ from apps.core.decorators import require_admin
 from apps.core.models import AppSettings
 from apps.core.utils import is_admin
 from apps.profiles.models import Profile
+from apps.profiles.validators import validate_registration
 from apps.ai.models import AIPrompt
 
 logger = logging.getLogger(__name__)
@@ -82,7 +83,21 @@ def _is_ai_available() -> bool:
 
 
 def profile_selector(request):
-    """Profile selector screen."""
+    """Profile selector screen.
+
+    In public mode, redirect to login page (no profile selector).
+    In home mode, show profile selector.
+    """
+    settings = AppSettings.get()
+
+    # Public mode: redirect to login
+    if settings.get_deployment_mode() == "public":
+        # If already authenticated, go to home
+        if request.user.is_authenticated:
+            return redirect("legacy:home")
+        return redirect("legacy:login")
+
+    # Home mode: show profile selector
     profiles = list(Profile.objects.all().values("id", "name", "avatar_color", "theme", "unit_preference"))
     return render(
         request,
@@ -99,6 +114,15 @@ def _get_client_ip(request):
     if x_forwarded_for:
         return x_forwarded_for.split(",")[0].strip()
     return request.META.get("REMOTE_ADDR", "unknown")
+
+
+def _get_nav_context(request):
+    """Get common navigation context for templates."""
+    settings = AppSettings.get()
+    return {
+        "is_admin": is_admin(request.user),
+        "is_public_mode": settings.get_deployment_mode() == "public",
+    }
 
 
 def login_view(request):
@@ -170,17 +194,10 @@ def register_view(request):
         password_confirm = request.POST.get("password_confirm", "")
         avatar_color = request.POST.get("avatar_color", "#6366f1")
 
-        # Validation
-        if len(username) < 3 or len(username) > 30:
-            error = "Username must be 3-30 characters"
-        elif not re.match(r"^[a-zA-Z0-9_]+$", username):
-            error = "Username can only contain letters, numbers, and underscores"
-        elif len(password) < 8:
-            error = "Password must be at least 8 characters"
-        elif password != password_confirm:
-            error = "Passwords do not match"
-        elif User.objects.filter(username__iexact=username).exists():
-            error = "Username already taken"
+        # Validation using shared validators
+        validation = validate_registration(username, password, password_confirm)
+        if not validation.is_valid:
+            error = validation.error
         else:
             # Create user and profile
             user = User.objects.create_user(username=username, password=password)
@@ -263,7 +280,7 @@ def home(request):
             "recipes_count": recipes_count,
             "favorite_recipe_ids": favorite_recipe_ids,
             "ai_available": ai_available,
-            "is_admin": is_admin(request.user),
+            **_get_nav_context(request),
         },
     )
 
@@ -288,6 +305,7 @@ def search(request):
             },
             "query": query,
             "is_url": is_url,
+            **_get_nav_context(request),
         },
     )
 
@@ -384,6 +402,7 @@ def recipe_detail(request, recipe_id):
             "has_ingredient_groups": has_ingredient_groups,
             "instructions": instructions,
             "linked_recipes": linked_recipes,
+            **_get_nav_context(request),
         },
     )
 
@@ -417,6 +436,7 @@ def play_mode(request, recipe_id):
             "instructions": instructions,
             "instructions_json": instructions,  # For JavaScript
             "ai_available": ai_available,
+            **_get_nav_context(request),
         },
     )
 
@@ -443,6 +463,7 @@ def all_recipes(request):
             },
             "recipes": recipes,
             "favorite_recipe_ids": favorite_recipe_ids,
+            **_get_nav_context(request),
         },
     )
 
@@ -465,6 +486,7 @@ def favorites(request):
                 "avatar_color": profile.avatar_color,
             },
             "favorites": favorites,
+            **_get_nav_context(request),
         },
     )
 
@@ -489,6 +511,7 @@ def collections(request):
                 "avatar_color": profile.avatar_color,
             },
             "collections": collections,
+            **_get_nav_context(request),
         },
     )
 
@@ -519,6 +542,7 @@ def collection_detail(request, collection_id):
             "collection": collection,
             "items": items,
             "favorite_recipe_ids": favorite_recipe_ids,
+            **_get_nav_context(request),
         },
     )
 
@@ -564,5 +588,6 @@ def settings(request):
             "default_model": app_settings.default_ai_model,
             "prompts": prompts,
             "models": models,
+            **_get_nav_context(request),
         },
     )
