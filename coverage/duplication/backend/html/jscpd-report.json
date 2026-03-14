@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-02-14T19:12:21.298Z",
+    "detectionDate": "2026-03-14T16:35:07.838Z",
     "formats": {
       "python": {
         "sources": {
@@ -53,8 +53,8 @@
             "newClones": 0
           },
           "apps/recipes/services/search.py": {
-            "lines": 558,
-            "tokens": 3555,
+            "lines": 553,
+            "tokens": 3530,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -281,8 +281,8 @@
             "newClones": 0
           },
           "apps/recipes/api.py": {
-            "lines": 398,
-            "tokens": 2481,
+            "lines": 381,
+            "tokens": 2364,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -474,28 +474,28 @@
           }
         },
         "total": {
-          "lines": 7454,
-          "tokens": 46763,
+          "lines": 7432,
+          "tokens": 46621,
           "sources": 39,
           "clones": 7,
           "duplicatedLines": 133,
           "duplicatedTokens": 890,
-          "percentage": 1.78,
-          "percentageTokens": 1.9,
+          "percentage": 1.79,
+          "percentageTokens": 1.91,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7454,
-      "tokens": 46763,
+      "lines": 7432,
+      "tokens": 46621,
       "sources": 39,
       "clones": 7,
       "duplicatedLines": 133,
       "duplicatedTokens": 890,
-      "percentage": 1.78,
-      "percentageTokens": 1.9,
+      "percentage": 1.79,
+      "percentageTokens": 1.91,
       "newDuplicatedLines": 0,
       "newClones": 0
     }

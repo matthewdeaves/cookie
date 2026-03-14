@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-02-14T19:12:21.296Z",
+    "detectionDate": "2026-03-14T16:35:09.423Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -102,13 +102,13 @@
           },
           "apps/legacy/static/legacy/js/pages/search.js": {
             "lines": 566,
-            "tokens": 4461,
+            "tokens": 4486,
             "sources": 1,
             "clones": 5,
             "duplicatedLines": 44,
             "duplicatedTokens": 321,
             "percentage": 7.77,
-            "percentageTokens": 7.2,
+            "percentageTokens": 7.16,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -403,7 +403,7 @@
         },
         "total": {
           "lines": 6100,
-          "tokens": 46137,
+          "tokens": 46162,
           "sources": 33,
           "clones": 32,
           "duplicatedLines": 322,
@@ -417,7 +417,7 @@
     },
     "total": {
       "lines": 6100,
-      "tokens": 46137,
+      "tokens": 46162,
       "sources": 33,
       "clones": 32,
       "duplicatedLines": 322,
@@ -585,12 +585,12 @@
         "startLoc": {
           "line": 447,
           "column": 13,
-          "position": 3589
+          "position": 3614
         },
         "endLoc": {
           "line": 454,
           "column": 3,
-          "position": 3657
+          "position": 3682
         }
       },
       "secondFile": {
@@ -672,12 +672,12 @@
         "startLoc": {
           "line": 553,
           "column": 5,
-          "position": 4368
+          "position": 4393
         },
         "endLoc": {
           "line": 563,
           "column": 7,
-          "position": 4429
+          "position": 4454
         }
       }
     },
@@ -744,12 +744,12 @@
         "startLoc": {
           "line": 555,
           "column": 5,
-          "position": 4372
+          "position": 4397
         },
         "endLoc": {
           "line": 563,
           "column": 7,
-          "position": 4429
+          "position": 4454
         }
       }
     },
@@ -780,12 +780,12 @@
         "startLoc": {
           "line": 551,
           "column": 66,
-          "position": 4362
+          "position": 4387
         },
         "endLoc": {
           "line": 563,
           "column": 7,
-          "position": 4429
+          "position": 4454
         }
       }
     },
@@ -929,7 +929,7 @@
         "endLoc": {
           "line": 563,
           "column": 7,
-          "position": 4429
+          "position": 4454
         }
       }
     },
@@ -1253,7 +1253,7 @@
         "endLoc": {
           "line": 563,
           "column": 7,
-          "position": 4429
+          "position": 4454
         }
       }
     },
@@ -1361,7 +1361,7 @@
         "endLoc": {
           "line": 563,
           "column": 7,
-          "position": 4429
+          "position": 4454
         }
       }
     },
