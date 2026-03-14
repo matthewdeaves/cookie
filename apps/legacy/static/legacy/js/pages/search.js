@@ -543,12 +543,26 @@ Cookie.pages.search = (function() {
 
     /**
      * Hide all loading spinners (called when polling stops)
+     * Falls back to external image URL instead of "No image" when possible
      */
     function hideAllLoadingSpinners() {
         var spinners = document.querySelectorAll('.image-loading-spinner');
         for (var i = 0; i < spinners.length; i++) {
-            // Replace spinner with "No image" placeholder
-            spinners[i].parentElement.innerHTML = '<div class="search-result-no-image"><span>No image</span></div>';
+            var card = spinners[i].closest('.search-result-card');
+            var recipeUrl = card ? card.getAttribute('data-url') : null;
+            var pending = recipeUrl ? imagePollingState.pendingUrls[recipeUrl] : null;
+
+            if (pending && pending.imageUrl) {
+                // Fall back to external image (works on browsers that support WebP)
+                var imgContainer = spinners[i].parentElement;
+                var title = card.querySelector('.search-result-title');
+                var alt = title ? title.textContent : '';
+                imgContainer.innerHTML = '<img src="' + Cookie.utils.escapeHtml(pending.imageUrl) +
+                    '" alt="' + Cookie.utils.escapeHtml(alt) + '" loading="lazy">';
+            } else {
+                // No external URL available
+                spinners[i].parentElement.innerHTML = '<div class="search-result-no-image"><span>No image</span></div>';
+            }
         }
     }
 
