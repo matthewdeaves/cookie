@@ -252,17 +252,17 @@ async def search_recipes(
     image_cache = SearchImageCache()
     cached_urls = await image_cache.get_cached_urls_batch(image_urls)
 
+    # Cache uncached images before responding (ensures cached_image_url is populated)
+    uncached_urls = [url for url in image_urls if url not in cached_urls]
+    if uncached_urls:
+        await image_cache.cache_images(uncached_urls)
+        new_cached = await image_cache.get_cached_urls_batch(uncached_urls)
+        cached_urls.update(new_cached)
+
     # Add cached_image_url to results
     for result in results["results"]:
         external_url = result.get("image_url", "")
         result["cached_image_url"] = cached_urls.get(external_url)
-
-    # Cache uncached images as a background async task (fire-and-forget)
-    uncached_urls = [url for url in image_urls if url not in cached_urls]
-    if uncached_urls:
-        import asyncio
-
-        asyncio.ensure_future(image_cache.cache_images(uncached_urls))
 
     return results
 
