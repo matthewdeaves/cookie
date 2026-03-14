@@ -308,7 +308,7 @@ Cookie.pages.search = (function() {
         }
 
         // Build host line with optional rating count
-        var hostHtml = Cookie.utils.escapeHtml(result.host);
+        var hostHtml = '<a href="' + Cookie.utils.escapeHtml(result.url) + '" target="_blank" rel="noopener noreferrer">' + Cookie.utils.escapeHtml(result.host) + '</a>';
         if (result.rating_count) {
             hostHtml += ' · ' + Cookie.utils.formatNumber(result.rating_count) + ' Ratings';
         }

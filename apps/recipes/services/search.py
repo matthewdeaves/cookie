@@ -15,10 +15,7 @@ from bs4 import BeautifulSoup
 from curl_cffi.requests import AsyncSession
 from django.utils import timezone
 
-from apps.recipes.services.fingerprint import (
-    BROWSER_PROFILES,
-    get_random_delay,
-)
+from apps.recipes.services.fingerprint import BROWSER_PROFILES
 
 logger = logging.getLogger(__name__)
 
@@ -184,8 +181,6 @@ class RecipeSearch:
         Uses randomized delays to avoid bot detection patterns.
         """
         async with semaphore:
-            # Add randomized delay to avoid predictable request patterns
-            await asyncio.sleep(get_random_delay())
             # Build search URL
             search_url = source.search_url_template.replace("{query}", quote_plus(query))
 

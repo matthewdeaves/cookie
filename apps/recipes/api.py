@@ -257,29 +257,12 @@ async def search_recipes(
         external_url = result.get("image_url", "")
         result["cached_image_url"] = cached_urls.get(external_url)
 
-    # Cache uncached images in background thread (fire-and-forget)
+    # Cache uncached images as a background async task (fire-and-forget)
     uncached_urls = [url for url in image_urls if url not in cached_urls]
     if uncached_urls:
-        import threading
         import asyncio
 
-        def cache_in_background():
-            """Run async cache_images in a new event loop (thread-safe)."""
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_until_complete(image_cache.cache_images(uncached_urls))
-            except Exception as e:
-                import logging
-
-                logger = logging.getLogger(__name__)
-                logger.error(f"Background image caching failed: {e}")
-            finally:
-                loop.close()
-
-        # Start background thread (daemon=True so it doesn't block shutdown)
-        thread = threading.Thread(target=cache_in_background, daemon=True)
-        thread.start()
+        asyncio.ensure_future(image_cache.cache_images(uncached_urls))
 
     return results
 
