@@ -176,23 +176,25 @@ apps/recipes/services/image_cache.py
     M 192:4 SearchImageCache._generate_filename - A (3)
     M 252:4 SearchImageCache._is_image_url - A (1)
 apps/recipes/services/search.py
-    M 408:4 RecipeSearch._looks_like_recipe_url - C (15)
-    M 355:4 RecipeSearch._fallback_parse - C (12)
+    M 469:4 RecipeSearch._looks_like_recipe_url - C (15)
+    M 316:4 RecipeSearch._best_url_from_srcset - C (12)
+    M 416:4 RecipeSearch._fallback_parse - C (12)
     M 51:4 RecipeSearch.search - C (11)
     C 35:0 RecipeSearch - B (6)
     M 240:4 RecipeSearch._find_link - B (6)
+    M 295:4 RecipeSearch._extract_image - B (6)
     M 210:4 RecipeSearch._parse_search_results - A (5)
     M 258:4 RecipeSearch._extract_title - A (5)
-    M 295:4 RecipeSearch._extract_image - A (5)
-    M 316:4 RecipeSearch._extract_result_from_element - A (5)
+    M 377:4 RecipeSearch._extract_result_from_element - A (5)
     M 171:4 RecipeSearch._search_source - A (3)
     M 275:4 RecipeSearch._extract_rating - A (3)
     M 157:4 RecipeSearch._apply_ai_ranking - A (2)
-    M 309:4 RecipeSearch._extract_description - A (2)
+    M 355:4 RecipeSearch._parse_srcset - A (2)
+    M 370:4 RecipeSearch._extract_description - A (2)
     C 24:0 SearchResult - A (1)
     M 48:4 RecipeSearch.__init__ - A (1)
-    M 524:4 RecipeSearch._record_failure - A (1)
-    M 537:4 RecipeSearch._record_success - A (1)
+    M 585:4 RecipeSearch._record_failure - A (1)
+    M 598:4 RecipeSearch._record_success - A (1)
 apps/recipes/services/scraper.py
     M 325:4 RecipeScraper._download_image - B (7)
     M 359:4 RecipeScraper._convert_webp_to_jpeg - B (7)
@@ -630,5 +632,5 @@ cookie/settings.py
 cookie/urls.py
     F 29:0 health - A (1)
 
-570 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.624561403508772)
+572 blocks (classes, functions, methods) analyzed.
+Average complexity: A (2.6416083916083917)
