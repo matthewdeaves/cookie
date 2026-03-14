@@ -295,8 +295,15 @@ class RecipeSearch:
     def _extract_image(self, element, base_url: str) -> str:
         """Extract image URL with multiple fallback strategies.
 
-        Tries: src, data-src, data-lazy-src attributes.
+        Tries srcset (for largest image), then src, data-src, data-lazy-src.
+        Handles <picture><source srcset> patterns used by modern sites.
         """
+        # Try to get the best image from srcset first (larger than thumbnail)
+        srcset_url = self._best_url_from_srcset(element, base_url)
+        if srcset_url:
+            return srcset_url
+
+        # Fallback to img src attributes
         img = element.find("img")
         if not img:
             return ""
@@ -305,6 +312,60 @@ class RecipeSearch:
         if image_url:
             return urljoin(base_url, image_url)
         return ""
+
+    def _best_url_from_srcset(self, element, base_url: str) -> str:
+        """Extract the largest non-WebP image URL from srcset attributes.
+
+        Checks <picture><source srcset> and <img srcset>.
+        """
+        srcset_candidates = []
+
+        # Check <picture><source srcset> (prefer non-WebP sources)
+        picture = element.find("picture")
+        if picture:
+            for source in picture.find_all("source"):
+                source_type = (source.get("type") or "").lower()
+                if "webp" in source_type:
+                    continue
+                srcset = source.get("srcset", "")
+                if srcset:
+                    srcset_candidates.append(srcset)
+
+        # Check <img srcset>
+        img = element.find("img")
+        if img:
+            srcset = img.get("srcset", "")
+            if srcset:
+                srcset_candidates.append(srcset)
+
+        # Parse srcset entries and pick the largest
+        best_url = ""
+        best_width = 0
+        for srcset in srcset_candidates:
+            for url, width in self._parse_srcset(srcset):
+                if width > best_width:
+                    best_width = width
+                    best_url = url
+
+        if best_url:
+            return urljoin(base_url, best_url)
+        return ""
+
+    @staticmethod
+    def _parse_srcset(srcset: str) -> list[tuple[str, int]]:
+        """Parse srcset string into (url, width) pairs.
+
+        Handles srcset format: "url1 100w, url2 200w"
+        URLs may contain commas (e.g. resize=93,84) so we split on
+        the width descriptor pattern rather than plain commas.
+        """
+        results = []
+        # Match: URL followed by optional whitespace and a width descriptor (e.g. 300w)
+        for match in re.finditer(r"(https?://\S+?)\s+(\d+)w", srcset):
+            url = match.group(1)
+            width = int(match.group(2))
+            results.append((url, width))
+        return results
 
     def _extract_description(self, element) -> str:
         """Extract description from element."""
