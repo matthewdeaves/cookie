@@ -227,6 +227,10 @@ apps/recipes/migrations/0005_serving_adjustment.py
     C 7:0 Migration - A (1)
 apps/recipes/migrations/0006_serving_adjustment_instructions_times.py
     C 6:0 Migration - A (1)
+apps/recipes/migrations/0011_update_allrecipes_selector.py
+    F 10:0 update_selector - A (1)
+    F 17:0 revert_selector - A (1)
+    C 24:0 Migration - A (1)
 apps/recipes/migrations/0007_recipe_profile.py
     F 7:0 delete_all_recipes - A (1)
     F 13:0 noop - A (1)
@@ -632,5 +636,5 @@ cookie/settings.py
 cookie/urls.py
     F 29:0 health - A (1)
 
-572 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.6416083916083917)
+575 blocks (classes, functions, methods) analyzed.
+Average complexity: A (2.6330434782608694)
