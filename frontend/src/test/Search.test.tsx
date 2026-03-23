@@ -173,7 +173,7 @@ describe('Search', () => {
   it('calls search API with query', async () => {
     renderSearch()
     await waitFor(() => {
-      expect(mockSearch).toHaveBeenCalledWith('pasta', undefined, 1)
+      expect(mockSearch).toHaveBeenCalledWith('pasta', undefined, 1, expect.any(AbortSignal))
     })
   })
 })

@@ -317,10 +317,10 @@ export const api = {
 
     get: (id: number) => request<RecipeDetail>(`/recipes/${id}/`),
 
-    search: (query: string, sources?: string, page: number = 1) => {
+    search: (query: string, sources?: string, page: number = 1, signal?: AbortSignal) => {
       const params = new URLSearchParams({ q: query, page: String(page) })
       if (sources) params.append('sources', sources)
-      return request<SearchResponse>(`/recipes/search/?${params}`)
+      return request<SearchResponse>(`/recipes/search/?${params}`, { signal })
     },
 
     scrape: (url: string) =>

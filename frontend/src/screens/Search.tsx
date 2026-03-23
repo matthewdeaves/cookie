@@ -43,18 +43,22 @@ export default function Search() {
       navigate('/home')
       return
     }
+    const abortController = new AbortController()
     // Reset state when query or source filter changes
     setResults([])
     setPage(1)
     setLoading(true)
-    searchRecipes(1, true)
+    searchRecipes(1, true, abortController.signal)
+    return () => { abortController.abort() }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate and searchRecipes are stable, only re-run when query or filter changes
   }, [query, selectedSource])
 
-  const searchRecipes = async (pageNum: number, reset: boolean = false) => {
+  const searchRecipes = async (pageNum: number, reset: boolean = false, signal?: AbortSignal) => {
     try {
       const sources = selectedSource || undefined
-      const response = await api.recipes.search(query, sources, pageNum)
+      const response = await api.recipes.search(query, sources, pageNum, signal)
+
+      if (signal?.aborted) return
 
       if (reset) {
         setResults(response.results)
@@ -67,11 +71,14 @@ export default function Search() {
       setHasMore(response.has_more)
       setPage(pageNum)
     } catch (error) {
+      if (signal?.aborted || (error instanceof DOMException && error.name === 'AbortError')) return
       console.error('Search failed:', error)
       toast.error('Search failed. Please try again.')
     } finally {
-      setLoading(false)
-      setLoadingMore(false)
+      if (!signal?.aborted) {
+        setLoading(false)
+        setLoadingMore(false)
+      }
     }
   }
 

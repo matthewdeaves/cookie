@@ -296,7 +296,7 @@ describe('Search', () => {
     fireEvent.click(screen.getByText('allrecipes.com (5)'))
 
     await waitFor(() => {
-      expect(api.recipes.search).toHaveBeenCalledWith('pasta', 'allrecipes.com', 1)
+      expect(api.recipes.search).toHaveBeenCalledWith('pasta', 'allrecipes.com', 1, expect.any(AbortSignal))
     })
   })
 
