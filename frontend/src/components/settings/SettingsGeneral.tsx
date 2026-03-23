@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Key, Check, AlertCircle, Loader2, Github, Moon, Sun, Scale } from 'lucide-react'
+import { Key, Check, AlertCircle, Loader2, Github, Moon, Sun } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type AIStatus, type AIModel } from '../../api/client'
 import { useAIStatus } from '../../contexts/AIStatusContext'
@@ -79,7 +79,7 @@ export default function SettingsGeneral({
     }
   }
 
-  const { profile, theme, toggleTheme, updateUnitPreference } = useProfile()
+  const { theme, toggleTheme } = useProfile()
 
   return (
     <div className="space-y-6">
@@ -118,36 +118,7 @@ export default function SettingsGeneral({
           </div>
         </div>
 
-        {/* Unit preference */}
-        <div>
-          <label className="mb-2 block text-sm font-medium text-foreground">Units</label>
-          <div className="flex gap-2">
-            <button
-              onClick={() => updateUnitPreference('metric')}
-              className={cn(
-                'flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
-                profile?.unit_preference === 'metric'
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-background text-foreground hover:bg-muted'
-              )}
-            >
-              <Scale className="h-4 w-4" />
-              Metric
-            </button>
-            <button
-              onClick={() => updateUnitPreference('imperial')}
-              className={cn(
-                'flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
-                profile?.unit_preference === 'imperial'
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-background text-foreground hover:bg-muted'
-              )}
-            >
-              <Scale className="h-4 w-4" />
-              Imperial
-            </button>
-          </div>
-        </div>
+        {/* Unit preference hidden until fully implemented */}
       </div>
 
       {/* OpenRouter API */}
