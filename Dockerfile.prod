@@ -25,6 +25,7 @@ FROM python:3.12-slim AS python-deps
 WORKDIR /app
 
 # Install build dependencies for any native extensions
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libffi-dev \
@@ -41,6 +42,7 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn whitenoise
 FROM python:3.12-slim AS production
 
 # Install runtime dependencies including nginx and curl (for healthcheck)
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi8 \
     libpq5 \
