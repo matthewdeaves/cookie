@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-14T17:31:08.923Z",
+    "detectionDate": "2026-03-23T21:52:15.558Z",
     "formats": {
       "python": {
         "sources": {
@@ -17,8 +17,8 @@
             "newClones": 0
           },
           "cookie/urls.py": {
-            "lines": 35,
-            "tokens": 280,
+            "lines": 41,
+            "tokens": 358,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -29,8 +29,8 @@
             "newClones": 0
           },
           "cookie/settings.py": {
-            "lines": 187,
-            "tokens": 1022,
+            "lines": 183,
+            "tokens": 1001,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -52,9 +52,21 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/recipes/services/search_parsers.py": {
+            "lines": 370,
+            "tokens": 2289,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/recipes/services/search.py": {
-            "lines": 614,
-            "tokens": 3952,
+            "lines": 333,
+            "tokens": 2229,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -65,8 +77,8 @@
             "newClones": 0
           },
           "apps/recipes/services/scraper.py": {
-            "lines": 406,
-            "tokens": 3118,
+            "lines": 413,
+            "tokens": 3170,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -77,8 +89,8 @@
             "newClones": 0
           },
           "apps/recipes/services/image_cache.py": {
-            "lines": 263,
-            "tokens": 1526,
+            "lines": 262,
+            "tokens": 1557,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -89,8 +101,8 @@
             "newClones": 0
           },
           "apps/recipes/services/fingerprint.py": {
-            "lines": 78,
-            "tokens": 279,
+            "lines": 71,
+            "tokens": 241,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -245,8 +257,8 @@
             "newClones": 0
           },
           "apps/recipes/sources_api.py": {
-            "lines": 302,
-            "tokens": 2040,
+            "lines": 304,
+            "tokens": 2081,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -305,8 +317,8 @@
             "newClones": 0
           },
           "apps/profiles/models.py": {
-            "lines": 24,
-            "tokens": 205,
+            "lines": 48,
+            "tokens": 365,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -329,8 +341,8 @@
             "newClones": 0
           },
           "apps/profiles/api.py": {
-            "lines": 253,
-            "tokens": 1784,
+            "lines": 260,
+            "tokens": 1866,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -341,8 +353,8 @@
             "newClones": 0
           },
           "apps/legacy/views.py": {
-            "lines": 400,
-            "tokens": 2474,
+            "lines": 402,
+            "tokens": 2492,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -367,6 +379,30 @@
           "apps/legacy/apps.py": {
             "lines": 9,
             "tokens": 39,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/core/views.py": {
+            "lines": 7,
+            "tokens": 47,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/core/validators.py": {
+            "lines": 55,
+            "tokens": 380,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -412,6 +448,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/core/auth.py": {
+            "lines": 27,
+            "tokens": 173,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/core/apps.py": {
             "lines": 5,
             "tokens": 32,
@@ -425,8 +473,8 @@
             "newClones": 0
           },
           "apps/core/api.py": {
-            "lines": 196,
-            "tokens": 1256,
+            "lines": 197,
+            "tokens": 1282,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -460,42 +508,78 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
-          "apps/ai/api.py": {
-            "lines": 719,
-            "tokens": 4411,
+          "apps/ai/api_scaling.py": {
+            "lines": 116,
+            "tokens": 784,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 98,
-            "duplicatedTokens": 660,
-            "percentage": 13.63,
-            "percentageTokens": 14.96,
+            "clones": 1,
+            "duplicatedLines": 31,
+            "duplicatedTokens": 201,
+            "percentage": 26.72,
+            "percentageTokens": 25.64,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/ai/api_remix.py": {
+            "lines": 137,
+            "tokens": 897,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 49,
+            "duplicatedTokens": 330,
+            "percentage": 35.77,
+            "percentageTokens": 36.79,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/ai/api_discover.py": {
+            "lines": 49,
+            "tokens": 242,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/ai/api.py": {
+            "lines": 458,
+            "tokens": 2812,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 18,
+            "duplicatedTokens": 129,
+            "percentage": 3.93,
+            "percentageTokens": 4.59,
             "newDuplicatedLines": 0,
             "newClones": 0
           }
         },
         "total": {
-          "lines": 7493,
-          "tokens": 47056,
-          "sources": 39,
+          "lines": 7749,
+          "tokens": 48975,
+          "sources": 46,
           "clones": 7,
           "duplicatedLines": 133,
           "duplicatedTokens": 890,
-          "percentage": 1.77,
-          "percentageTokens": 1.89,
+          "percentage": 1.72,
+          "percentageTokens": 1.82,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7493,
-      "tokens": 47056,
-      "sources": 39,
+      "lines": 7749,
+      "tokens": 48975,
+      "sources": 46,
       "clones": 7,
       "duplicatedLines": 133,
       "duplicatedTokens": 890,
-      "percentage": 1.77,
-      "percentageTokens": 1.89,
+      "percentage": 1.72,
+      "percentageTokens": 1.82,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -684,36 +768,36 @@
     {
       "format": "python",
       "lines": 32,
-      "fragment": "from apps.profiles.utils import get_current_profile_or_none\n\n    profile = get_current_profile_or_none(request)\n\n    if not profile:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": \"Profile not found\",\n        }\n\n    # Verify the profile_id in the request matches the session profile\n    if data.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Profile {data.profile_id} not found\",\n        }\n\n    try:\n        recipe = Recipe.objects.get(id=data.recipe_id)\n    except Recipe.DoesNotExist:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    if recipe.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    try",
+      "fragment": "from apps.profiles.utils import get_current_profile_or_none\n\n    profile = get_current_profile_or_none(request)\n\n    if not profile:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": \"Profile not found\",\n        }\n\n    # Verify the profile_id in the request matches the session profile\n    if data.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Profile {data.profile_id} not found\",\n        }\n\n    try:\n        recipe = Recipe.objects.get(id=data.recipe_id)\n    except Recipe.DoesNotExist:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    if recipe.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    remix",
       "tokens": 0,
       "firstFile": {
-        "name": "apps/ai/api.py",
-        "start": 436,
-        "end": 467,
+        "name": "apps/ai/api_remix.py",
+        "start": 88,
+        "end": 119,
         "startLoc": {
-          "line": 436,
+          "line": 88,
           "column": 5,
-          "position": 2764
+          "position": 541
         },
         "endLoc": {
-          "line": 467,
-          "column": 4,
-          "position": 2965
+          "line": 119,
+          "column": 6,
+          "position": 742
         }
       },
       "secondFile": {
-        "name": "apps/ai/api.py",
-        "start": 345,
-        "end": 376,
+        "name": "apps/ai/api_scaling.py",
+        "start": 53,
+        "end": 84,
         "startLoc": {
-          "line": 345,
+          "line": 53,
           "column": 5,
-          "position": 2161
+          "position": 325
         },
         "endLoc": {
-          "line": 376,
-          "column": 6,
-          "position": 2362
+          "line": 84,
+          "column": 4,
+          "position": 526
         }
       }
     },
@@ -724,32 +808,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/api.py",
-        "start": 527,
-        "end": 545,
+        "start": 300,
+        "end": 318,
         "startLoc": {
-          "line": 527,
+          "line": 300,
           "column": 5,
-          "position": 3341
+          "position": 1899
         },
         "endLoc": {
-          "line": 545,
+          "line": 318,
           "column": 46,
-          "position": 3470
+          "position": 2028
         }
       },
       "secondFile": {
-        "name": "apps/ai/api.py",
-        "start": 315,
-        "end": 333,
+        "name": "apps/ai/api_remix.py",
+        "start": 58,
+        "end": 76,
         "startLoc": {
-          "line": 315,
+          "line": 58,
           "column": 5,
-          "position": 1954
+          "position": 334
         },
         "endLoc": {
-          "line": 333,
+          "line": 76,
           "column": 12,
-          "position": 2083
+          "position": 463
         }
       }
     }

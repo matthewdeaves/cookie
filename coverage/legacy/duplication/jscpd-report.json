@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-14T17:31:14.456Z",
+    "detectionDate": "2026-03-23T21:52:15.961Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -65,14 +65,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/settings-general.js": {
-            "lines": 93,
-            "tokens": 708,
+            "lines": 174,
+            "tokens": 1436,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 9,
             "duplicatedTokens": 59,
-            "percentage": 9.68,
-            "percentageTokens": 8.33,
+            "percentage": 5.17,
+            "percentageTokens": 4.11,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -101,26 +101,26 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/search.js": {
-            "lines": 580,
-            "tokens": 4672,
+            "lines": 622,
+            "tokens": 4990,
             "sources": 1,
             "clones": 5,
             "duplicatedLines": 43,
             "duplicatedTokens": 318,
-            "percentage": 7.41,
-            "percentageTokens": 6.81,
+            "percentage": 6.91,
+            "percentageTokens": 6.37,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/profile-selector.js": {
-            "lines": 236,
-            "tokens": 1646,
+            "lines": 252,
+            "tokens": 1749,
             "sources": 1,
             "clones": 4,
             "duplicatedLines": 29,
             "duplicatedTokens": 232,
-            "percentage": 12.29,
-            "percentageTokens": 14.09,
+            "percentage": 11.51,
+            "percentageTokens": 13.26,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -128,23 +128,23 @@
             "lines": 609,
             "tokens": 4389,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 131,
-            "duplicatedTokens": 1017,
-            "percentage": 21.51,
-            "percentageTokens": 23.17,
+            "clones": 3,
+            "duplicatedLines": 126,
+            "duplicatedTokens": 969,
+            "percentage": 20.69,
+            "percentageTokens": 22.08,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/home.js": {
-            "lines": 367,
-            "tokens": 2761,
+            "lines": 359,
+            "tokens": 2699,
             "sources": 1,
             "clones": 10,
             "duplicatedLines": 83,
             "duplicatedTokens": 639,
-            "percentage": 22.62,
-            "percentageTokens": 23.14,
+            "percentage": 23.12,
+            "percentageTokens": 23.68,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -317,14 +317,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/timer.js": {
-            "lines": 396,
-            "tokens": 2659,
+            "lines": 395,
+            "tokens": 2650,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 26,
             "duplicatedTokens": 220,
-            "percentage": 6.57,
-            "percentageTokens": 8.27,
+            "percentage": 6.58,
+            "percentageTokens": 8.3,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -341,8 +341,8 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/state.js": {
-            "lines": 97,
-            "tokens": 473,
+            "lines": 133,
+            "tokens": 744,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -365,26 +365,26 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/app.js": {
-            "lines": 34,
-            "tokens": 210,
+            "lines": 136,
+            "tokens": 1062,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 106,
+            "percentage": 7.35,
+            "percentageTokens": 9.98,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/ajax.js": {
+            "lines": 125,
+            "tokens": 873,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
             "duplicatedTokens": 0,
             "percentage": 0,
             "percentageTokens": 0,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
-          "apps/legacy/static/legacy/js/ajax.js": {
-            "lines": 103,
-            "tokens": 685,
-            "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 5,
-            "duplicatedTokens": 48,
-            "percentage": 4.85,
-            "percentageTokens": 7.01,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -402,28 +402,28 @@
           }
         },
         "total": {
-          "lines": 6114,
-          "tokens": 46348,
+          "lines": 6404,
+          "tokens": 48737,
           "sources": 33,
           "clones": 32,
           "duplicatedLines": 321,
-          "duplicatedTokens": 2683,
-          "percentage": 5.25,
-          "percentageTokens": 5.79,
+          "duplicatedTokens": 2688,
+          "percentage": 5.01,
+          "percentageTokens": 5.52,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 6114,
-      "tokens": 46348,
+      "lines": 6404,
+      "tokens": 48737,
       "sources": 33,
       "clones": 32,
       "duplicatedLines": 321,
-      "duplicatedTokens": 2683,
-      "percentage": 5.25,
-      "percentageTokens": 5.79,
+      "duplicatedTokens": 2688,
+      "percentage": 5.01,
+      "percentageTokens": 5.52,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -544,17 +544,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 50,
-        "end": 59,
+        "start": 70,
+        "end": 79,
         "startLoc": {
-          "line": 50,
+          "line": 70,
           "column": 25,
-          "position": 379
+          "position": 551
         },
         "endLoc": {
-          "line": 59,
+          "line": 79,
           "column": 2,
-          "position": 438
+          "position": 610
         }
       },
       "secondFile": {
@@ -580,17 +580,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 447,
-        "end": 454,
+        "start": 485,
+        "end": 492,
         "startLoc": {
-          "line": 447,
+          "line": 485,
           "column": 13,
-          "position": 3614
+          "position": 3912
         },
         "endLoc": {
-          "line": 454,
+          "line": 492,
           "column": 3,
-          "position": 3682
+          "position": 3980
         }
       },
       "secondFile": {
@@ -616,32 +616,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
-        "start": 138,
-        "end": 142,
+        "start": 154,
+        "end": 158,
         "startLoc": {
-          "line": 138,
+          "line": 154,
           "column": 9,
-          "position": 942
+          "position": 1045
         },
         "endLoc": {
-          "line": 142,
+          "line": 158,
           "column": 3,
-          "position": 995
+          "position": 1098
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
-        "start": 59,
-        "end": 63,
+        "start": 67,
+        "end": 71,
         "startLoc": {
-          "line": 59,
+          "line": 67,
           "column": 12,
-          "position": 402
+          "position": 459
         },
         "endLoc": {
-          "line": 63,
+          "line": 71,
           "column": 27,
-          "position": 455
+          "position": 512
         }
       }
     },
@@ -652,32 +652,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
-        "start": 223,
-        "end": 233,
+        "start": 239,
+        "end": 249,
         "startLoc": {
-          "line": 223,
+          "line": 239,
           "column": 5,
-          "position": 1553
+          "position": 1656
         },
         "endLoc": {
-          "line": 233,
+          "line": 249,
           "column": 16,
-          "position": 1614
+          "position": 1717
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 567,
-        "end": 577,
+        "start": 609,
+        "end": 619,
         "startLoc": {
-          "line": 567,
+          "line": 609,
           "column": 5,
-          "position": 4579
+          "position": 4897
         },
         "endLoc": {
-          "line": 577,
+          "line": 619,
           "column": 7,
-          "position": 4640
+          "position": 4958
         }
       }
     },
@@ -739,17 +739,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 569,
-        "end": 577,
+        "start": 611,
+        "end": 619,
         "startLoc": {
-          "line": 569,
+          "line": 611,
           "column": 5,
-          "position": 4583
+          "position": 4901
         },
         "endLoc": {
-          "line": 577,
+          "line": 619,
           "column": 7,
-          "position": 4640
+          "position": 4958
         }
       }
     },
@@ -760,32 +760,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 353,
-        "end": 364,
+        "start": 345,
+        "end": 356,
         "startLoc": {
-          "line": 353,
+          "line": 345,
           "column": 9,
-          "position": 2665
+          "position": 2603
         },
         "endLoc": {
-          "line": 364,
+          "line": 356,
           "column": 5,
-          "position": 2729
+          "position": 2667
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 566,
-        "end": 577,
+        "start": 608,
+        "end": 619,
         "startLoc": {
-          "line": 566,
+          "line": 608,
           "column": 9,
-          "position": 4576
+          "position": 4894
         },
         "endLoc": {
-          "line": 577,
+          "line": 619,
           "column": 7,
-          "position": 4640
+          "position": 4958
         }
       }
     },
@@ -811,17 +811,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 275,
-        "end": 281,
+        "start": 267,
+        "end": 273,
         "startLoc": {
-          "line": 275,
+          "line": 267,
           "column": 5,
-          "position": 2083
+          "position": 2021
         },
         "endLoc": {
-          "line": 281,
+          "line": 273,
           "column": 4,
-          "position": 2137
+          "position": 2075
         }
       }
     },
@@ -847,17 +847,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 308,
-        "end": 320,
+        "start": 300,
+        "end": 312,
         "startLoc": {
-          "line": 308,
+          "line": 300,
           "column": 2,
-          "position": 2345
+          "position": 2283
         },
         "endLoc": {
-          "line": 320,
+          "line": 312,
           "column": 4,
-          "position": 2421
+          "position": 2359
         }
       }
     },
@@ -883,17 +883,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 329,
-        "end": 333,
+        "start": 321,
+        "end": 325,
         "startLoc": {
-          "line": 329,
+          "line": 321,
           "column": 13,
-          "position": 2489
+          "position": 2427
         },
         "endLoc": {
-          "line": 333,
+          "line": 325,
           "column": 11,
-          "position": 2537
+          "position": 2475
         }
       }
     },
@@ -919,17 +919,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 352,
-        "end": 577,
+        "start": 344,
+        "end": 619,
         "startLoc": {
-          "line": 352,
+          "line": 344,
           "column": 13,
-          "position": 2655
+          "position": 2593
         },
         "endLoc": {
-          "line": 577,
+          "line": 619,
           "column": 7,
-          "position": 4640
+          "position": 4958
         }
       }
     },
@@ -1171,17 +1171,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 296,
-        "end": 302,
+        "start": 288,
+        "end": 294,
         "startLoc": {
-          "line": 296,
+          "line": 288,
           "column": 2,
-          "position": 2242
+          "position": 2180
         },
         "endLoc": {
-          "line": 302,
+          "line": 294,
           "column": 35,
-          "position": 2291
+          "position": 2229
         }
       }
     },
@@ -1207,17 +1207,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 315,
-        "end": 321,
+        "start": 307,
+        "end": 313,
         "startLoc": {
-          "line": 315,
+          "line": 307,
           "column": 2,
-          "position": 2379
+          "position": 2317
         },
         "endLoc": {
-          "line": 321,
+          "line": 313,
           "column": 36,
-          "position": 2432
+          "position": 2370
         }
       }
     },
@@ -1243,17 +1243,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
-        "start": 222,
-        "end": 577,
+        "start": 238,
+        "end": 619,
         "startLoc": {
-          "line": 222,
+          "line": 238,
           "column": 7,
-          "position": 1549
+          "position": 1652
         },
         "endLoc": {
-          "line": 577,
+          "line": 619,
           "column": 7,
-          "position": 4640
+          "position": 4958
         }
       }
     },
@@ -1279,17 +1279,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 275,
-        "end": 281,
+        "start": 267,
+        "end": 273,
         "startLoc": {
-          "line": 275,
+          "line": 267,
           "column": 20,
-          "position": 2086
+          "position": 2024
         },
         "endLoc": {
-          "line": 281,
+          "line": 273,
           "column": 4,
-          "position": 2137
+          "position": 2075
         }
       }
     },
@@ -1352,16 +1352,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/favorites.js",
         "start": 85,
-        "end": 577,
+        "end": 619,
         "startLoc": {
           "line": 85,
           "column": 6,
           "position": 554
         },
         "endLoc": {
-          "line": 577,
+          "line": 619,
           "column": 7,
-          "position": 4640
+          "position": 4958
         }
       }
     },
@@ -1387,17 +1387,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 101,
-        "end": 108,
+        "start": 93,
+        "end": 100,
         "startLoc": {
-          "line": 101,
+          "line": 93,
           "column": 18,
-          "position": 724
+          "position": 662
         },
         "endLoc": {
-          "line": 108,
+          "line": 100,
           "column": 15,
-          "position": 798
+          "position": 736
         }
       }
     },
@@ -1423,17 +1423,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 108,
-        "end": 118,
+        "start": 100,
+        "end": 110,
         "startLoc": {
-          "line": 108,
+          "line": 100,
           "column": 15,
-          "position": 799
+          "position": 737
         },
         "endLoc": {
-          "line": 118,
+          "line": 110,
           "column": 90,
-          "position": 892
+          "position": 830
         }
       }
     },
@@ -1495,17 +1495,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/timer.js",
-        "start": 363,
-        "end": 383,
+        "start": 362,
+        "end": 382,
         "startLoc": {
-          "line": 363,
+          "line": 362,
           "column": 15,
-          "position": 2350
+          "position": 2341
         },
         "endLoc": {
-          "line": 383,
+          "line": 382,
           "column": 14,
-          "position": 2568
+          "position": 2559
         }
       }
     },
@@ -1548,36 +1548,36 @@
     {
       "format": "javascript",
       "lines": 6,
-      "fragment": ", true);\n        xhr.setRequestHeader('Content-Type', 'application/json');\n\n        xhr.onreadystatechange = function() {\n            if (xhr.readyState === 4) {\n                if",
+      "fragment": ";\n                    var span = document.createElement('span');\n                    span.textContent = title || 'No image';\n                    placeholder.appendChild(span);\n                    img.style.display = 'none';\n                    img",
       "tokens": 0,
       "firstFile": {
-        "name": "apps/legacy/static/legacy/js/ajax.js",
-        "start": 22,
-        "end": 27,
+        "name": "apps/legacy/static/legacy/js/app.js",
+        "start": 79,
+        "end": 84,
         "startLoc": {
-          "line": 22,
-          "column": 8,
-          "position": 123
+          "line": 79,
+          "column": 19,
+          "position": 622
         },
         "endLoc": {
-          "line": 27,
-          "column": 3,
-          "position": 171
+          "line": 84,
+          "column": 4,
+          "position": 675
         }
       },
       "secondFile": {
-        "name": "apps/legacy/static/legacy/js/pages/play.js",
-        "start": 367,
-        "end": 372,
+        "name": "apps/legacy/static/legacy/js/app.js",
+        "start": 53,
+        "end": 58,
         "startLoc": {
-          "line": 367,
-          "column": 21,
-          "position": 2682
+          "line": 53,
+          "column": 23,
+          "position": 362
         },
         "endLoc": {
-          "line": 372,
-          "column": 4,
-          "position": 2730
+          "line": 58,
+          "column": 7,
+          "position": 415
         }
       }
     }

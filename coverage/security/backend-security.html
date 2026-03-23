@@ -46,7 +46,7 @@
       <div class="stat-label">Bandit MEDIUM</div>
     </div>
     <div class="stat">
-      <div class="stat-value" style="color:#97ca00">0</div>
+      <div class="stat-value" style="color:#97ca00">6</div>
       <div class="stat-label">Bandit LOW</div>
     </div>
     <div class="stat">
@@ -56,9 +56,41 @@
   </div>
 
   <h2>Bandit SAST Issues</h2>
-<p style="color:#4c1;margin:1rem 0;">&check; No Bandit issues found</p>
+<table>
+  <thead><tr><th>Severity</th><th>Issue</th><th>File</th><th>Line</th></tr></thead>
+  <tbody><tr>
+    <td class="severity-low">LOW</td>
+    <td>Try, Except, Pass detected.</td>
+    <td><code>apps/core/api.py</code></td>
+    <td>171</td>
+  </tr><tr>
+    <td class="severity-low">LOW</td>
+    <td>Try, Except, Pass detected.</td>
+    <td><code>apps/core/api.py</code></td>
+    <td>176</td>
+  </tr><tr>
+    <td class="severity-low">LOW</td>
+    <td>Standard pseudo-random generators are not suitable for security/cryptographic purposes.</td>
+    <td><code>apps/recipes/services/fingerprint.py</code></td>
+    <td>46</td>
+  </tr><tr>
+    <td class="severity-low">LOW</td>
+    <td>Standard pseudo-random generators are not suitable for security/cryptographic purposes.</td>
+    <td><code>apps/recipes/services/fingerprint.py</code></td>
+    <td>56</td>
+  </tr><tr>
+    <td class="severity-low">LOW</td>
+    <td>Try, Except, Pass detected.</td>
+    <td><code>apps/recipes/services/image_cache.py</code></td>
+    <td>116</td>
+  </tr><tr>
+    <td class="severity-low">LOW</td>
+    <td>Try, Except, Pass detected.</td>
+    <td><code>apps/recipes/services/scraper.py</code></td>
+    <td>288</td>
+  </tr></tbody></table>
   <p style="color:#666;font-size:0.85rem;margin-top:2rem;">
-    Generated: 2026-03-14T17:31:16.532935<br>
+    Generated: 2026-03-23T21:52:41.759363<br>
     Tools: pip-audit (dependency vulnerabilities), Bandit (SAST code analysis)
   </p>
 <div style="position:fixed;top:10px;right:10px;z-index:9999;"><a href="/cookie/coverage/" style="background:#0066cc;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;box-shadow:0 2px 4px rgba(0,0,0,0.2);">&#8592; Back to Dashboard</a></div></body>
