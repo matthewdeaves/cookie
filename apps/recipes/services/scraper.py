@@ -275,6 +275,7 @@ class RecipeScraper:
                 return result if result is not None else default
             return default
         except Exception:
+            logger.debug("Failed to get %s from scraper", attr, exc_info=True)
             return default
 
     def _safe_get_ingredient_groups(self, scraper) -> list:
@@ -286,7 +287,7 @@ class RecipeScraper:
                     {"purpose": getattr(g, "purpose", ""), "ingredients": getattr(g, "ingredients", [])} for g in groups
                 ]
         except Exception:
-            pass
+            logger.warning("Failed to get ingredient groups from scraper", exc_info=True)
         return []
 
     def _parse_time(self, value) -> int | None:

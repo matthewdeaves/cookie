@@ -1,7 +1,10 @@
 """System API for administrative operations like database reset."""
 
+import logging
 import os
 import shutil
+
+logger = logging.getLogger(__name__)
 
 from django.conf import settings
 from django.core.cache import cache
@@ -169,12 +172,12 @@ def reset_database(request, data: ResetConfirmSchema):
         try:
             call_command("seed_search_sources", verbosity=0)
         except Exception:
-            pass  # Command may not exist yet
+            logger.debug("seed_search_sources command not available, skipping")
 
         try:
             call_command("seed_ai_prompts", verbosity=0)
         except Exception:
-            pass  # Command may not exist yet
+            logger.debug("seed_ai_prompts command not available, skipping")
 
         return {
             "success": True,

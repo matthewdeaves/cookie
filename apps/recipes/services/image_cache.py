@@ -114,7 +114,7 @@ class SearchImageCache:
                     cached.status = CachedSearchImage.STATUS_FAILED
                     await sync_to_async(cached.save)(update_fields=["status"])
                 except Exception:
-                    pass
+                    logger.warning("Failed to mark cached image as failed for %s", url, exc_info=True)
 
     async def _fetch_image(self, url: str) -> bytes | None:
         """
