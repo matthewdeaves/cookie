@@ -120,7 +120,7 @@ jobs:
           EOF
 
       - name: Upload legacy lint artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: legacy-lint
           path: legacy-reports/
@@ -199,7 +199,7 @@ jobs:
           EOF
 
       - name: Upload backend lint artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: backend-lint
           path: backend-lint/
@@ -250,7 +250,7 @@ jobs:
         run: npm run test:coverage
 
       - name: Upload frontend coverage artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: frontend-coverage
           path: frontend/coverage/
@@ -305,7 +305,7 @@ jobs:
           SECURE_SSL_REDIRECT: "false"
 
       - name: Upload backend coverage artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: backend-coverage
           path: |
@@ -512,7 +512,7 @@ jobs:
           EOF
 
       - name: Upload complexity artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: backend-complexity
           path: complexity/
@@ -556,7 +556,7 @@ jobs:
           node ../.github/scripts/generate-frontend-complexity-report.js
 
       - name: Upload complexity artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: frontend-complexity
           path: frontend/complexity/
@@ -617,7 +617,7 @@ jobs:
           EOF
 
       - name: Upload duplication artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: frontend-duplication
           path: frontend/duplication/
@@ -669,7 +669,7 @@ jobs:
           EOF
 
       - name: Upload legacy duplication artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: legacy-duplication
           path: legacy-duplication/
@@ -722,7 +722,7 @@ jobs:
           EOF
 
       - name: Upload backend duplication artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: backend-duplication
           path: backend-duplication/
@@ -785,7 +785,7 @@ jobs:
           EOF
 
       - name: Upload security artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: frontend-security
           path: frontend/security/
@@ -858,7 +858,7 @@ jobs:
         run: python3 .github/scripts/generate-backend-security-report.py
 
       - name: Upload security artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: backend-security
           path: security/
@@ -912,7 +912,7 @@ jobs:
 
       - name: Upload secrets scan artifact
         if: always()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: secrets-detection
           path: security/
@@ -1018,7 +1018,7 @@ jobs:
           EOF
 
       - name: Upload bundle artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: frontend-bundle
           path: frontend/bundle/
@@ -1094,7 +1094,7 @@ jobs:
 
       - name: Upload Trivy results
         if: always()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: trivy-scan
           path: trivy-results.json
@@ -1164,7 +1164,7 @@ jobs:
 
       - name: Upload Semgrep results
         if: always()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: semgrep-results
           path: semgrep-results/
@@ -1254,7 +1254,7 @@ jobs:
 
       - name: Upload Gitleaks results
         if: always()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: gitleaks-results
           path: results.sarif
