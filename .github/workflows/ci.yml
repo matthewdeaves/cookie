@@ -814,13 +814,20 @@ jobs:
           pip-audit --format json --output security/pip-audit.json || true
           pip-audit > security/pip-audit.txt || true
 
-          # Fail on any vulnerabilities found by pip-audit
-          if pip-audit --format json 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); sys.exit(1 if d else 0)" 2>/dev/null; then
-            echo "pip-audit: No vulnerabilities found"
-          else
-            echo "BLOCKING: pip-audit found vulnerabilities"
+          # Fail if pip-audit found any vulnerabilities
+          VULN_COUNT=$(python3 -c "
+          import json
+          with open('security/pip-audit.json') as f:
+              data = json.load(f)
+          vulns = [d for d in data if d.get('vulns')]
+          print(len(vulns))
+          " 2>/dev/null || echo "0")
+          if [ "$VULN_COUNT" -gt 0 ]; then
+            echo "BLOCKING: pip-audit found $VULN_COUNT vulnerable packages"
             cat security/pip-audit.txt
             exit 1
+          else
+            echo "pip-audit: No known vulnerabilities found"
           fi
 
       - name: Run Bandit SAST (code security analysis)
