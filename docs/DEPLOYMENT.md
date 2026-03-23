@@ -19,17 +19,24 @@ This guide covers deploying Cookie to production environments using the official
 ## Quick Start
 
 ```bash
-# Pull and run with persistent data
-docker run -d \
-  --name cookie \
-  -p 80:80 \
-  -v cookie-data:/app/data \
-  ghcr.io/matthewdeaves/cookie:latest
+# Create .env with a Postgres password
+echo "POSTGRES_PASSWORD=changeme" > .env
+
+# Download production compose file
+curl -O https://raw.githubusercontent.com/matthewdeaves/cookie/master/docker-compose.prod.yml
+
+# Start
+docker compose -f docker-compose.prod.yml --env-file .env up -d
 ```
 
 The app will be available at `http://localhost`.
 
-For network access from other devices, use your machine's IP address (e.g., `http://192.168.1.100`).
+For network access from other devices, set `ALLOWED_HOSTS` in your `.env`:
+
+```bash
+POSTGRES_PASSWORD=changeme
+ALLOWED_HOSTS=192.168.1.100,localhost
+```
 
 ---
 
@@ -37,7 +44,7 @@ For network access from other devices, use your machine's IP address (e.g., `htt
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│                       Production Container                           │
+│                        Web Container                                  │
 │                                                                      │
 │  ┌─────────────────────────────────────────────────────────────────┐ │
 │  │                         nginx (port 80)                         │ │
@@ -51,18 +58,24 @@ For network access from other devices, use your machine's IP address (e.g., `htt
 │  └─────────────────────────────────────────────────────────────────┘ │
 │                              │                                       │
 │                              ▼                                       │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐       │
-│  │   Gunicorn  │───▶│   Django    │───▶│  SQLite + WAL Mode  │       │
-│  │  (2 workers │    │  (Python    │    │  (/app/data/db)     │       │
-│  │  4 threads) │    │   3.12)     │    └─────────────────────┘       │
+│  ┌─────────────┐    ┌─────────────┐                                  │
+│  │   Gunicorn  │───▶│   Django    │                                  │
+│  │  (2 workers │    │  (Python    │                                  │
+│  │  4 threads) │    │   3.12)     │                                  │
 │  └─────────────┘    └─────────────┘                                  │
 │                                                                      │
 └──────────────────────────────────────────────────────────────────────┘
-         │
-         ▼ Port 80
-      Internet / LAN
-
-Optional: Add reverse proxy (Caddy, Traefik) for SSL/TLS
+         │                              │
+         ▼ Port 80                      ▼
+      Internet / LAN          ┌──────────────────┐
+                              │   PostgreSQL     │
+                              │  (db container)  │
+                              └──────────────────┘
+                                        │
+                                        ▼ (optional)
+                              ┌──────────────────┐
+                              │   OpenRouter AI  │
+                              └──────────────────┘
 ```
 
 ### Technology Stack
@@ -72,22 +85,11 @@ Optional: Add reverse proxy (Caddy, Traefik) for SSL/TLS
 | **Web Server** | nginx | Routing, static files, browser detection |
 | **Runtime** | Python 3.12-slim | Minimal base image |
 | **Framework** | Django 5.x | Web framework |
-| **API** | Django Ninja | Fast async API endpoints |
-| **WSGI Server** | Gunicorn 23.x | Production-grade Python server |
-| **Database** | SQLite + WAL | Embedded database with concurrent reads |
-| **Frontend** | React + TypeScript | Single-page application |
+| **API** | Django Ninja | Fast API endpoints |
+| **WSGI Server** | Gunicorn | Production-grade Python server |
+| **Database** | PostgreSQL | Relational database |
+| **Frontend** | React 19 + TypeScript | Single-page application |
 | **Legacy Frontend** | ES5 JavaScript | iOS 9+ compatibility |
-
-### Why nginx in the Container?
-
-The production container includes nginx for:
-
-- **Static file serving** with proper cache headers (1-year for hashed assets)
-- **Browser detection** to automatically redirect legacy browsers (iOS <11, IE, Edge Legacy) to `/legacy/`
-- **Dev/prod parity** - both environments use nginx for routing
-- **Efficient proxying** to gunicorn for Django requests
-
-This single-container approach simplifies deployment while maintaining production-grade performance.
 
 ---
 
@@ -102,14 +104,14 @@ This single-container approach simplifies deployment while maintaining productio
 | **Architectures** | `linux/amd64`, `linux/arm64` |
 | **Base Image** | `python:3.12-slim` |
 | **Exposed Port** | `80` (nginx) |
-| **Image Size** | ~420MB |
 | **Processes** | nginx (foreground) + gunicorn (background) |
 
 ### Tags
 
 | Tag | Description |
 |-----|-------------|
-| `latest` | Latest stable release from main/master branch |
+| `latest` | Latest stable release from master branch |
+| `<version>` | Semantic version (e.g., `1.0.0`) |
 | `<sha>` | Specific commit (e.g., `abc1234`) |
 
 ### Multi-Stage Build
@@ -122,11 +124,10 @@ The Dockerfile uses a 3-stage build for minimal image size:
 
 ### Security Features
 
-- ✅ Non-root user (`app`, UID 1000)
-- ✅ No build tools in final image
-- ✅ No test files or dev dependencies
-- ✅ Read-only filesystem compatible
-- ✅ Health check endpoint for orchestrators
+- Non-root user (`app`, UID 1000)
+- No build tools in final image
+- No test files or dev dependencies
+- Health check endpoint for orchestrators
 
 ---
 
@@ -136,87 +137,42 @@ The Dockerfile uses a 3-stage build for minimal image size:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `POSTGRES_PASSWORD` | (required) | Password for the PostgreSQL database |
+| `DATABASE_URL` | (set by compose) | PostgreSQL connection string |
 | `DEBUG` | `false` | Enable debug mode (never in production) |
-| `SECRET_KEY` | Auto-generated | Django secret key (persisted to `/app/data/.secret_key`) |
+| `SECRET_KEY` | Auto-generated | Django secret key |
 | `ALLOWED_HOSTS` | `*` | Comma-separated list of allowed hostnames |
 | `CSRF_TRUSTED_ORIGINS` | (empty) | Full URLs for CSRF protection (e.g., `https://cookie.example.com`) |
-| `DATABASE_PATH` | `/app/data/db.sqlite3` | Path to SQLite database |
-| `DATA_DIR` | `/app/data` | Base directory for persistent data |
 | `GUNICORN_WORKERS` | `2` | Number of Gunicorn worker processes |
 | `GUNICORN_THREADS` | `4` | Threads per worker |
 
 AI features (OpenRouter API key) are configured through the Settings UI, not environment variables.
 
-### Volume Mounts
+### Docker Volumes
 
-| Container Path | Purpose | Required |
-|----------------|---------|----------|
-| `/app/data` | Database, media uploads, secret key | **Yes** |
-
-**Important**: Always mount `/app/data` as a volume for data persistence.
+| Volume | Purpose |
+|--------|---------|
+| `cookie-postgres-data` | PostgreSQL database |
+| `cookie-media` | Uploaded/cached recipe images |
 
 ---
 
 ## Deployment Options
 
-### Option 1: Docker Run (Simplest)
+### Option 1: Docker Compose (Recommended)
+
+Use the provided `docker-compose.prod.yml`:
 
 ```bash
-# Run container on port 80
-docker run -d \
-  --name cookie \
-  --restart unless-stopped \
-  -p 80:80 \
-  -v cookie-data:/app/data \
-  ghcr.io/matthewdeaves/cookie:latest
-```
+# Create .env
+cat > .env << EOF
+POSTGRES_PASSWORD=your-secure-password
+ALLOWED_HOSTS=cookie.example.com,localhost
+CSRF_TRUSTED_ORIGINS=https://cookie.example.com
+EOF
 
-For custom domain with SSL (via reverse proxy):
-
-```bash
-docker run -d \
-  --name cookie \
-  --restart unless-stopped \
-  -p 8080:80 \
-  -v cookie-data:/app/data \
-  -e ALLOWED_HOSTS=cookie.example.com \
-  -e CSRF_TRUSTED_ORIGINS=https://cookie.example.com \
-  ghcr.io/matthewdeaves/cookie:latest
-```
-
-### Option 2: Docker Compose (Recommended)
-
-Create `docker-compose.prod.yml`:
-
-```yaml
-services:
-  cookie:
-    image: ghcr.io/matthewdeaves/cookie:latest
-    container_name: cookie
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    volumes:
-      - cookie-data:/app/data
-    environment:
-      - ALLOWED_HOSTS=*
-      # Optional: AI features
-      # - OPENROUTER_API_KEY=sk-or-...
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/api/system/health/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-volumes:
-  cookie-data:
-```
-
-Run with:
-
-```bash
-docker compose -f docker-compose.prod.yml up -d
+# Start
+docker compose -f docker-compose.prod.yml --env-file .env up -d
 ```
 
 Or use the helper script:
@@ -227,18 +183,33 @@ bin/prod logs    # View logs
 bin/prod update  # Pull latest and restart
 ```
 
-### Option 3: Docker Compose with Caddy (SSL)
+### Option 2: Docker Compose with Caddy (SSL)
 
 ```yaml
 services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    volumes:
+      - cookie-postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: cookie
+      POSTGRES_USER: cookie
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    expose:
+      - "5432"
+
   cookie:
     image: ghcr.io/matthewdeaves/cookie:latest
     restart: unless-stopped
     volumes:
-      - cookie-data:/app/data
+      - cookie-media:/app/data/media
     environment:
+      - DATABASE_URL=postgres://cookie:${POSTGRES_PASSWORD}@db:5432/cookie
       - ALLOWED_HOSTS=cookie.example.com
       - CSRF_TRUSTED_ORIGINS=https://cookie.example.com
+    depends_on:
+      - db
     expose:
       - "80"
 
@@ -254,7 +225,8 @@ services:
       - caddy-config:/config
 
 volumes:
-  cookie-data:
+  cookie-postgres-data:
+  cookie-media:
   caddy-data:
   caddy-config:
 ```
@@ -266,70 +238,6 @@ cookie.example.com {
     reverse_proxy cookie:80
 }
 ```
-
-### Option 4: Kubernetes / Helm
-
-Basic Kubernetes deployment:
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: cookie
-spec:
-  replicas: 1  # SQLite doesn't support multiple replicas
-  selector:
-    matchLabels:
-      app: cookie
-  template:
-    metadata:
-      labels:
-        app: cookie
-    spec:
-      containers:
-      - name: cookie
-        image: ghcr.io/matthewdeaves/cookie:latest
-        ports:
-        - containerPort: 80
-        env:
-        - name: ALLOWED_HOSTS
-          value: "cookie.example.com"
-        - name: CSRF_TRUSTED_ORIGINS
-          value: "https://cookie.example.com"
-        volumeMounts:
-        - name: data
-          mountPath: /app/data
-        livenessProbe:
-          httpGet:
-            path: /api/system/health/
-            port: 80
-          initialDelaySeconds: 15
-          periodSeconds: 30
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-      volumes:
-      - name: data
-        persistentVolumeClaim:
-          claimName: cookie-data
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: cookie
-spec:
-  selector:
-    app: cookie
-  ports:
-  - port: 80
-    targetPort: 80
-```
-
-**Note**: SQLite with WAL mode works well for single-replica deployments. For multi-replica, you'd need PostgreSQL.
 
 ---
 
@@ -402,56 +310,38 @@ services:
 
 ### Backup
 
-The `/app/data` directory contains all persistent data:
+Two volumes need backing up:
 
 ```bash
-# Stop container (recommended for consistency)
-docker stop cookie
+# Backup PostgreSQL database
+docker compose -f docker-compose.prod.yml exec db \
+  pg_dump -U cookie cookie > cookie-db-$(date +%Y%m%d).sql
 
-# Backup data volume
+# Backup media files
 docker run --rm \
-  -v cookie-data:/data \
+  -v cookie-media:/data:ro \
   -v $(pwd):/backup \
-  alpine tar czf /backup/cookie-backup-$(date +%Y%m%d).tar.gz -C /data .
-
-# Restart container
-docker start cookie
+  alpine tar czf /backup/cookie-media-$(date +%Y%m%d).tar.gz -C /data .
 ```
-
-**What's backed up:**
-- `db.sqlite3` - All recipes, profiles, collections, favorites
-- `media/` - Cached recipe images
-- `.secret_key` - Django secret key
 
 ### Restore
 
 ```bash
-# Stop container
-docker stop cookie
+# Stop the web container
+docker compose -f docker-compose.prod.yml stop web
 
-# Restore from backup
+# Restore database
+cat cookie-db-20240115.sql | docker compose -f docker-compose.prod.yml exec -T db \
+  psql -U cookie cookie
+
+# Restore media
 docker run --rm \
-  -v cookie-data:/data \
+  -v cookie-media:/data \
   -v $(pwd):/backup \
-  alpine sh -c "rm -rf /data/* && tar xzf /backup/cookie-backup-20240115.tar.gz -C /data"
+  alpine sh -c "rm -rf /data/* && tar xzf /backup/cookie-media-20240115.tar.gz -C /data"
 
-# Start container
-docker start cookie
-```
-
-### Automated Backups (Cron)
-
-```bash
-# /etc/cron.daily/cookie-backup
-#!/bin/bash
-BACKUP_DIR=/var/backups/cookie
-mkdir -p $BACKUP_DIR
-docker run --rm \
-  -v cookie-data:/data:ro \
-  -v $BACKUP_DIR:/backup \
-  alpine tar czf /backup/cookie-$(date +%Y%m%d).tar.gz -C /data .
-# Keep last 7 days
-find $BACKUP_DIR -name "cookie-*.tar.gz" -mtime +7 -delete
+# Restart
+docker compose -f docker-compose.prod.yml start web
 ```
 
 ---
@@ -468,7 +358,7 @@ curl http://localhost/api/system/health/
 ### Docker Health Status
 
 ```bash
-docker inspect --format='{{.State.Health.Status}}' cookie
+docker inspect --format='{{.State.Health.Status}}' cookie-prod
 # healthy
 ```
 
@@ -476,20 +366,11 @@ docker inspect --format='{{.State.Health.Status}}' cookie
 
 ```bash
 # Follow logs
-docker logs -f cookie
+docker compose -f docker-compose.prod.yml logs -f
 
 # Last 100 lines
-docker logs --tail 100 cookie
+docker compose -f docker-compose.prod.yml logs --tail 100 web
 ```
-
-### Metrics to Monitor
-
-| Metric | Warning | Critical |
-|--------|---------|----------|
-| Container memory | >400MB | >500MB |
-| Database size | >500MB | >1GB |
-| Response time (p95) | >500ms | >2000ms |
-| Error rate (5xx) | >1% | >5% |
 
 ---
 
@@ -499,46 +380,34 @@ docker logs --tail 100 cookie
 
 ```bash
 # Check logs
-docker logs cookie
+docker compose -f docker-compose.prod.yml logs web
 
 # Common issues:
-# 1. Port 80 already in use - change -p 80:80 to -p 8080:80
-# 2. Volume permissions - ensure /app/data is writable
+# 1. Port 80 already in use - change ports in compose file
+# 2. Database not ready - check db container health
+# 3. Missing POSTGRES_PASSWORD in .env
 ```
 
 ### Permission Denied on Volume
 
 ```bash
 # Fix volume permissions (container runs as UID 1000)
-docker run --rm -v cookie-data:/data alpine chown -R 1000:1000 /data
-```
-
-### Database Locked Errors
-
-SQLite is configured with WAL mode for concurrent reads, but if you see lock errors:
-
-```bash
-# Check for stuck transactions
-docker exec cookie python manage.py dbshell
-sqlite> .timeout 30000
-sqlite> PRAGMA busy_timeout;
+docker run --rm -v cookie-media:/data alpine chown -R 1000:1000 /data
 ```
 
 ### Static Files Not Loading
 
 ```bash
 # Re-run collectstatic
-docker exec cookie python manage.py collectstatic --noinput
+docker compose -f docker-compose.prod.yml exec web python manage.py collectstatic --noinput
 ```
 
 ### Reset to Fresh State
 
 ```bash
 # WARNING: This deletes all data
-docker stop cookie
-docker volume rm cookie-data
-docker volume create cookie-data
-docker start cookie
+docker compose -f docker-compose.prod.yml down -v
+docker compose -f docker-compose.prod.yml --env-file .env up -d
 ```
 
 ---
@@ -554,25 +423,8 @@ bin/prod update  # Pulls latest and restarts
 Or manually:
 
 ```bash
-# Pull latest image
-docker pull ghcr.io/matthewdeaves/cookie:latest
-
-# Recreate container
-docker stop cookie
-docker rm cookie
-docker run -d \
-  --name cookie \
-  --restart unless-stopped \
-  -p 80:80 \
-  -v cookie-data:/app/data \
-  ghcr.io/matthewdeaves/cookie:latest
-```
-
-Or with Docker Compose:
-
-```bash
 docker compose -f docker-compose.prod.yml pull
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml --env-file .env up -d
 ```
 
 ---
@@ -581,18 +433,16 @@ docker compose -f docker-compose.prod.yml up -d
 
 Before exposing to the internet:
 
+- [ ] Set a strong `POSTGRES_PASSWORD`
 - [ ] Set `ALLOWED_HOSTS` to your actual domain(s)
 - [ ] Set `CSRF_TRUSTED_ORIGINS` to your full URL(s)
 - [ ] Use HTTPS (via reverse proxy)
 - [ ] Keep Docker and the host OS updated
 - [ ] Set up automated backups
 - [ ] Monitor logs for unusual activity
-- [ ] Consider rate limiting at the reverse proxy level
-- [ ] Consider a security audit / penetration test before public launch
 
 ---
 
 ## Support
 
-- **GitHub Issues**: [github.com/ghcr.io/matthewdeaves/cookie/issues](https://github.com/ghcr.io/matthewdeaves/cookie/issues)
-- **Documentation**: [github.com/ghcr.io/matthewdeaves/cookie/docs](https://github.com/ghcr.io/matthewdeaves/cookie/docs)
+- **GitHub Issues**: [github.com/matthewdeaves/cookie/issues](https://github.com/matthewdeaves/cookie/issues)

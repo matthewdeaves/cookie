@@ -20,16 +20,20 @@ This document describes the system architecture, data models, and API structure.
                     │  └─────────────────────────────────────────────────────────────────┘ │
                     │                              │                                       │
                     │                              ▼                                       │
-                    │  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐       │
-                    │  │   Gunicorn  │───▶│   Django    │───▶│  SQLite + WAL Mode  │       │
-                    │  │  (2 workers │    │  (Python    │    │  (/app/data/db)     │       │
-                    │  │  4 threads) │    │   3.12)     │    └─────────────────────┘       │
+                    │  ┌─────────────┐    ┌─────────────┐                                  │
+                    │  │   Gunicorn  │───▶│   Django    │                                  │
+                    │  │  (2 workers │    │  (Python    │                                  │
+                    │  │  4 threads) │    │   3.12)     │                                  │
                     │  └─────────────┘    └─────────────┘                                  │
                     │                                                                      │
                     └──────────────────────────────────────────────────────────────────────┘
                              │
                              ▼ Port 80
                           Internet / LAN
+
+                    ┌──────────────────┐
+                    │   PostgreSQL     │  (db container)
+                    └──────────────────┘
                              │
                              ▼ (optional)
                     ┌──────────────────┐
@@ -328,7 +332,7 @@ React Screen
     │   nginx (/api/*) ──► gunicorn ──► Django Ninja
     │                                       │
     │                                       ▼
-    │                               SQLite + WAL
+    │                               PostgreSQL
     │                                       │
     │       ◄───────────────────────────────┘
     │       JSON response
