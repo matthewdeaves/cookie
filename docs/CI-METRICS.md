@@ -93,6 +93,21 @@ Ratings are configured in `.github/scripts/rating-config.json`. Here's why each 
 | C | ≤ 500KB | Large, consider code splitting |
 | D | > 500KB | Very large, investigate |
 
+### Maintainability Index (Higher is Better)
+| Rating | Threshold | Rationale |
+|--------|-----------|-----------|
+| A | ≥ 80 | Highly maintainable |
+| B | ≥ 60 | Acceptable maintainability |
+| C | ≥ 40 | Needs improvement |
+| D | < 40 | Difficult to maintain |
+
+### Security (Vulnerability Counts)
+| Severity | Threshold | Effect |
+|----------|-----------|--------|
+| Critical | Any (> 0) | Instant D rating |
+| High | Any (> 0) | Instant D rating |
+| Moderate | ≤ 3 | Threshold for C rating |
+
 ## Adding a New Metric
 
 ### Step 1: Add Collection to CI Workflow

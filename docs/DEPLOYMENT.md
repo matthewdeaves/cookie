@@ -142,7 +142,7 @@ The Dockerfile uses a 3-stage build for minimal image size:
 | `DEBUG` | `false` | Enable debug mode (never in production) |
 | `SECRET_KEY` | Auto-generated | Django secret key |
 | `ALLOWED_HOSTS` | `*` | Comma-separated list of allowed hostnames |
-| `CSRF_TRUSTED_ORIGINS` | (empty) | Full URLs for CSRF protection (e.g., `https://cookie.example.com`) |
+| `CSRF_TRUSTED_ORIGINS` | `http://localhost,http://127.0.0.1` | Full URLs for CSRF protection (e.g., `https://cookie.example.com`) |
 | `GUNICORN_WORKERS` | `2` | Number of Gunicorn worker processes |
 | `GUNICORN_THREADS` | `4` | Threads per worker |
 

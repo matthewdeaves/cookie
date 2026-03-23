@@ -196,19 +196,13 @@ If something goes wrong with a PostgreSQL migration, restore from backup:
 | Memory usage | Low | Higher (configurable) |
 | Setup complexity | None | Requires server |
 
-### When to Use PostgreSQL
+### Why PostgreSQL?
 
-- Multiple concurrent users writing data
-- Need for replication/high availability
-- Complex queries or full-text search
+- Concurrent write support for multiple users
+- Replication and high availability options
+- Full-text search and complex query support
 - Larger datasets (>10GB)
-
-### When SQLite is Fine
-
-- Single user or family use
-- Primarily read-heavy workloads
-- Simple deployment requirements
-- Small to medium recipe collections
+- Required by Cookie since the SQLite fallback was removed
 
 ## Troubleshooting
 
