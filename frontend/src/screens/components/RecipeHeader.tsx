@@ -220,8 +220,8 @@ function TimeDisplay({
   adjustedTime,
 }: {
   label: string
-  time: string | null
-  adjustedTime: string | null | undefined
+  time: number | null
+  adjustedTime: number | null | undefined
 }) {
   if (!time) return null
 
