@@ -7,19 +7,16 @@ argument-hint: "[modern|legacy|both] [--fix] [--screenshots-only]"
 
 # Automated QA Audit & Fix
 
-You are a QA automation agent. Systematically test EVERY page and feature of Cookie using Playwright MCP, check all logs, fix issues, and document work via speckit.
+You are a QA engineer running a systematic audit of Cookie's two frontends using Playwright MCP. Read [reference.md](reference.md) before starting — it has the full feature inventory and test cases.
 
-**Read [reference.md](reference.md) before starting** — it contains the exhaustive feature inventory and test cases.
-
-## Arguments
-
+<arguments>
 - `$ARGUMENTS` defaults to `both --fix` if empty
 - `modern` / `legacy` / `both` — which frontend(s) to test
 - `--fix` — fix issues found (default); omit to audit-only
 - `--screenshots-only` — just capture screenshots, no testing
+</arguments>
 
-## Environment
-
+<environment>
 | Service | URL | Notes |
 |---------|-----|-------|
 | Modern frontend | http://localhost:3000 | React SPA |
@@ -27,57 +24,62 @@ You are a QA automation agent. Systematically test EVERY page and feature of Coo
 | Backend logs | `docker compose logs web --tail=200` | Django/Gunicorn |
 | Frontend logs | `docker compose logs frontend --tail=200` | Vite dev server |
 
-ALL backend/frontend commands via `docker compose exec`. NO host Python/Node.
+Run all backend/frontend commands via `docker compose exec` — there is no Python or Node on the host machine.
+</environment>
+
+<context_management>
+This is a long task that will use significant context. Work through all 8 phases — your context window will be automatically compacted if needed, so do not stop early due to token budget concerns.
+
+If you notice context is running low during Phases 6-8, save your progress: commit any pending fixes and output the remaining speckit commands the user should run manually. This is better than silently dropping phases.
+</context_management>
 
 ---
 
-## CRITICAL: Phase Enforcement Protocol
+## How Phases Work
 
-This skill has 8 phases. You MUST complete ALL of them. The #1 failure mode is rushing through early phases and skipping later ones.
-
-**Before starting each phase**, create a task for it using TaskCreate. **After completing each phase**, mark the task done and output a phase completion summary to the user with this format:
+This audit has 8 phases executed in order. Create a task (TaskCreate) for each phase when you begin it. Mark it done when complete. Between phases, output a short summary:
 
 ```
-## ✓ Phase N Complete: {Phase Name}
-- Key findings: {bullet list}
+## Phase N Complete: {Name}
+- Findings: {bullet list}
 - Issues found: {count}
 - Next: Phase {N+1}
 ```
 
-**DO NOT start Phase N+1 until you have output the Phase N completion summary.**
+Each phase has exit criteria — satisfy them before moving on.
 
-If you find yourself wanting to combine phases or skip ahead — STOP. Each phase exists for a reason. The user expects all 8.
+<example>
+## Phase 1 Complete: Pre-Flight Checks
+- All 3 containers running (web, frontend, db)
+- Health endpoint: 200 OK
+- AI status: unavailable (no OPENROUTER_API_KEY)
+- Backend logs: clean, no errors
+- Frontend logs: clean, Vite ready
+- Issues found: 0
+- Next: Phase 2
+</example>
 
 ---
 
 ## Phase 1: Pre-Flight Checks
 
-**Task name:** "Phase 1: Pre-Flight Checks"
+Run all 5 checks before opening a browser:
 
-Before any browser testing, run ALL 5 checks:
+1. `docker compose ps` — confirm web, frontend, db are all Up
+2. `docker compose logs web --tail=50` — scan for startup errors
+3. `docker compose logs frontend --tail=50` — scan for build errors
+4. `curl -s http://localhost:8000/api/system/health/` — confirm 200
+5. `curl -s http://localhost:8000/api/ai/status` — note AI availability (determines which UI elements should be visible later)
 
-1. **Verify containers are running**: `docker compose ps` — all 3 containers (web, frontend, db) must be Up
-2. **Check backend logs for startup errors**: `docker compose logs web --tail=50`
-3. **Check frontend logs for build errors**: `docker compose logs frontend --tail=50`
-4. **Hit health endpoint**: `curl -s http://localhost:8000/api/system/health/`
-5. **Check AI status**: `curl -s http://localhost:8000/api/ai/status` — note whether AI features should be visible
-
-**Phase 1 exit criteria:** All 5 checks run, results reported. If any check fails, report and stop.
-
-Initialize a tracking variable for issues found:
-```
-ISSUES = []  # Will be populated throughout phases 2-4
-```
+**Exit criteria:** All 5 checks run and reported. Stop if any critical check fails.
 
 ---
 
 ## Phase 2: Systematic Page Audit
 
-**Task name:** "Phase 2: Systematic Page Audit ({frontend_scope})"
+Visit every page on the targeted frontend(s). The goal is to capture the baseline state — screenshots, console errors, network errors — before doing any deep interaction testing.
 
-Visit EVERY page listed in [reference.md](reference.md) on the targeted frontend(s). Track progress with a checklist — do not move on until every page is visited.
-
-### Page visit order (modern):
+<page_visit_order frontend="modern">
 1. `/` (ProfileSelector) — select a profile here
 2. `/home` (Home)
 3. `/search?q=chicken` (Search with results)
@@ -88,62 +90,61 @@ Visit EVERY page listed in [reference.md](reference.md) on the targeted frontend
 8. `/collection/:id` (CollectionDetail) — use a real ID from collections page
 9. `/recipe/:id` (RecipeDetail) — use a real ID from all-recipes
 10. `/recipe/:id/play` (PlayMode) — same recipe
-11. `/settings` (Settings — visit ALL 6 tabs)
+11. `/settings` (Settings — visit all 6 tabs)
+</page_visit_order>
 
-### Page visit order (legacy):
-Same 11 pages but at `/legacy/` prefix. Select a profile on `/legacy/` first.
+<page_visit_order frontend="legacy">
+Same 11 pages at `/legacy/` prefix. Select a profile on `/legacy/` first.
+</page_visit_order>
 
-### Per-Page Checklist (do ALL of these for EACH page)
+For each page:
+1. `browser_navigate` to the URL
+2. `browser_wait_for` until loading finishes
+3. `browser_take_screenshot` → `./screenshots/{frontend}-{page}.png`
+4. `browser_snapshot` — check DOM structure
+5. `browser_console_messages` — record errors/warnings
+6. `browser_network_requests` — flag 4xx/5xx responses
+7. Review the screenshot for visual problems (layout, spacing, typography, color)
 
-1. **Navigate** to the page via `browser_navigate`
-2. **Wait** for content: `browser_wait_for` until loading spinners/skeletons disappear
-3. **Screenshot**: `browser_take_screenshot` — save to `./screenshots/{frontend}-{page}.png`
-4. **Accessibility snapshot**: `browser_snapshot` — inspect DOM structure
-5. **Console errors**: `browser_console_messages` — capture ALL errors and warnings → add to ISSUES
-6. **Network errors**: `browser_network_requests` — flag any 4xx/5xx → add to ISSUES
-7. **Visual review**: Check layout, spacing, typography, color → add problems to ISSUES
+After visiting each page, reflect briefly: are there console errors or network failures? Add them to your issue tracking. Then proceed to the next page.
 
-**Phase 2 exit criteria:** Every page visited on every targeted frontend. Screenshots taken for all. Console and network checked for all. Report: "{X} pages visited, {Y} issues found so far."
+Select a profile first — click a profile name on `/` (modern) or `/legacy/` (legacy) before visiting authenticated pages. Create one if none exist.
 
-### Login First
-
-Click a profile name on `/` (modern) or `/legacy/` (legacy) before visiting authenticated pages. If no profiles exist, create one first.
-
-### Playwright Tips
-
+<playwright_tips>
 - `browser_click` timeout? Use `browser_evaluate` with `(el) => { el.click(); return 'clicked'; }` as workaround
-- `browser_take_screenshot` hangs on "waiting for fonts"? Close browser and reopen, or use `browser_run_code`
-- SPA navigation without losing session: `browser_evaluate` with `() => { window.history.pushState({}, '', '/path'); window.dispatchEvent(new PopStateEvent('popstate')); }`
-- Always `browser_wait_for` after navigation
+- `browser_take_screenshot` hangs? Close browser and reopen, or use `browser_run_code`
+- SPA navigation: `browser_evaluate` with `() => { window.history.pushState({}, '', '/path'); window.dispatchEvent(new PopStateEvent('popstate')); }`
+- Use `browser_wait_for` after every navigation
+</playwright_tips>
+
+**Exit criteria:** Every page visited on every targeted frontend. Screenshots saved for all. Console and network checked for all. Report total pages visited and issues found.
 
 ---
 
 ## Phase 3: Feature-Deep Testing
 
-**Task name:** "Phase 3: Feature-Deep Testing ({frontend_scope})"
-
-Go beyond page rendering — test actual functionality. Work through EACH subsection below. After completing each subsection, note what was tested and issues found.
+Now test actual functionality beyond just page rendering. Work through each subsection below. After each subsection, note what worked and what failed — this creates a clear trail and prevents skipping.
 
 ### 3a. Search & Import
 - Search "chicken" — verify results grid with images, titles, sources
 - Toggle source filter pills — verify results change
-- Click Load More / pagination — verify more results appear
+- Click Load More — verify more results appear
 - Search "xyznonexistent" — verify empty state, no errors
 - Import a recipe from results — verify toast + redirect to detail
 - (If URL import exists) Paste a recipe URL — verify direct import
 
-**After 3a:** Report what worked, what failed.
+Report 3a results before continuing.
 
 ### 3b. Recipe Detail
-- Check ALL tabs: Ingredients, Instructions, Nutrition, Tips
-- Check serving adjuster visibility (only if AI enabled AND recipe has servings)
-- Toggle favorite (add/remove) — verify icon changes
-- Test "Add to Collection" — verify it works
+- Check all tabs: Ingredients, Instructions, Nutrition, Tips
+- Check serving adjuster visibility (only visible if AI enabled AND recipe has servings)
+- Toggle favorite (add/remove)
+- Test "Add to Collection"
 - Check remix button visibility (only if AI enabled)
 - Enter Play Mode from detail page
 - Check linked recipes section (original, remixes, siblings)
 
-**After 3b:** Report what worked, what failed.
+Report 3b results before continuing.
 
 ### 3c. Play Mode
 - Navigate steps (Previous/Next) — verify step counter accuracy
@@ -152,15 +153,15 @@ Go beyond page rendering — test actual functionality. Work through EACH subsec
 - Check timer labels (AI-named vs generic)
 - Verify close/exit returns to recipe detail
 
-**After 3c:** Report what worked, what failed.
+Report 3c results before continuing.
 
 ### 3d. Profile Management
 - Create new profile (name + avatar color)
 - Switch between profiles — verify data isolation
 - Update profile settings (theme, unit preference)
-- Check profile deletion flow (preview, DON'T actually delete)
+- Check profile deletion flow (preview only — do not actually delete)
 
-**After 3d:** Report what worked, what failed.
+Report 3d results before continuing.
 
 ### 3e. Collections & Favorites
 - Create a collection, add a recipe, view collection detail
@@ -168,31 +169,24 @@ Go beyond page rendering — test actual functionality. Work through EACH subsec
 - Check favorites page — verify add/remove works
 - Check empty states
 
-**After 3e:** Report what worked, what failed.
+Report 3e results before continuing.
 
-### 3f. Settings (ALL 6 tabs)
+### 3f. Settings (all 6 tabs)
 - **General**: Theme toggle (light/dark), unit preference
 - **AI Prompts**: List all prompts, edit one (if AI enabled); verify hidden if AI off
 - **Sources**: Toggle source, test source, bulk toggle
 - **Selectors**: View selectors, edit one
 - **Users**: Profile list with stats
-- **Danger Zone**: Reset preview (DON'T actually reset), profile deletion preview
+- **Danger Zone**: Reset preview (do not actually reset), profile deletion preview
 
-**After 3f:** Report what worked, what failed.
+Report 3f results before continuing.
 
 ### 3g. AI Features
-If AI is available (from Phase 1 check), test:
-1. Recipe remix (create variation)
-2. Serving adjustment (scale up/down)
-3. Tips generation (generate + display)
-4. Discover favorites/seasonal/new
-5. Search ranking (AI-ranked results)
-6. Timer naming (descriptive labels)
-7. Remix suggestions (contextual prompts)
+If AI is available (from Phase 1), test: remix, serving adjustment, tips generation, discover (favorites/seasonal/new), search ranking, timer naming, remix suggestions.
 
-If AI is NOT available: verify ALL AI UI elements are HIDDEN (not disabled) on every page visited.
+If AI is unavailable: verify that all AI UI elements are hidden (not disabled/grayed out) on every page — this is a design requirement, not just nice-to-have. Cookie hides AI features rather than showing them in a disabled state.
 
-**After 3g:** Report what worked, what failed.
+Report 3g results before continuing.
 
 ### 3h. Dark Mode
 - Toggle dark mode in settings
@@ -200,46 +194,36 @@ If AI is NOT available: verify ALL AI UI elements are HIDDEN (not disabled) on e
 - Check for unstyled elements or contrast issues
 - Toggle back to light mode and verify
 
-**After 3h:** Report what worked, what failed.
+Report 3h results before continuing.
 
 ### 3i. View History
-- View a recipe, then check home page for "Recently Viewed"
+- View a recipe, then check home for "Recently Viewed"
 - Verify ordering (most recent first)
 
-**After 3i:** Report what worked, what failed.
+Report 3i results.
 
-**Phase 3 exit criteria:** All 9 subsections (3a-3i) tested and reported. Add all issues to ISSUES list.
+**Exit criteria:** All 9 subsections (3a-3i) tested and reported with results.
 
 ---
 
 ## Phase 4: Log & Error Audit
 
-**Task name:** "Phase 4: Log & Error Audit"
+Dedicated log review phase. Run these commands fresh — even if you glanced at logs earlier, this phase is about a comprehensive sweep after all browser testing has generated traffic.
 
-This is a SEPARATE phase from browser testing. Run these commands NOW even if you checked logs during earlier phases:
+1. `docker compose logs web --tail=500` — look for tracebacks, 500 errors, deprecation warnings, database errors, missing env vars
+2. `docker compose logs frontend --tail=200` — look for build warnings, TypeScript errors, HMR failures
+3. Aggregate all unique browser console errors collected during Phases 2-3
+4. Aggregate all failed network requests collected during Phases 2-3
 
-1. **Backend logs**: `docker compose logs web --tail=500` — look for:
-   - Unhandled exceptions / tracebacks
-   - 500 errors
-   - Deprecation warnings
-   - Database errors
-   - Missing environment variables
-2. **Frontend logs**: `docker compose logs frontend --tail=200` — look for:
-   - Build warnings
-   - TypeScript errors
-   - HMR failures
-3. **Aggregate browser console errors**: List ALL unique console errors collected across all pages
-4. **Aggregate network failures**: List ALL failed requests collected across all pages
+Reflect on the log output: are there patterns? Recurring errors? Issues that explain browser-side problems you saw earlier?
 
-**Phase 4 exit criteria:** All 4 log sources reviewed. New issues added to ISSUES list.
+**Exit criteria:** All 4 log sources reviewed. New issues added to tracking.
 
 ---
 
 ## Phase 5: Issue Documentation
 
-**Task name:** "Phase 5: Issue Documentation"
-
-Compile ALL findings from phases 2-4 into a structured table. Output this table to the user.
+Compile all findings from Phases 2-4 into a structured table and output it to the user.
 
 | Column | Values |
 |--------|--------|
@@ -250,19 +234,25 @@ Compile ALL findings from phases 2-4 into a structured table. Output this table 
 | Page | Which page(s) affected |
 | Description | What's wrong |
 | Screenshot | Reference to screenshot file |
-| Fix Status | Unfixed (to be updated in Phase 6) |
+| Fix Status | Unfixed (updated in Phase 6) |
 
-**Phase 5 exit criteria:** Complete issue table output with ALL issues from phases 2-4. No issue left undocumented.
+<example>
+| ID | Severity | Frontend | Category | Page | Description | Screenshot | Fix Status |
+|----|----------|----------|----------|------|-------------|------------|------------|
+| QA-001 | High | Both | Bug | Search | Source filter pills don't update result count | modern-search.png | Unfixed |
+| QA-002 | Medium | Legacy | UI-UX | PlayMode | Timer panel overlaps step text on narrow screens | legacy-play.png | Unfixed |
+| QA-003 | Low | Modern | Accessibility | Settings | Theme toggle missing aria-label | modern-settings.png | Unfixed |
+</example>
+
+**Exit criteria:** Complete issue table output with every issue from Phases 2-4. No finding left undocumented.
 
 ---
 
 ## Phase 6: Fix Issues (if --fix)
 
-**Task name:** "Phase 6: Fix Issues"
+If `--fix` was not specified, skip to Phase 7 and mark all issues as "Audit-only."
 
-If `--fix` was NOT specified, skip to Phase 7 and mark all issues as "Audit-only — not fixed."
-
-Otherwise, fix issues in this priority order:
+Fix in priority order:
 1. Critical bugs (broken functionality, crashes)
 2. Console errors and network failures
 3. Accessibility issues
@@ -270,97 +260,94 @@ Otherwise, fix issues in this priority order:
 5. Layout/spacing problems
 6. Design polish
 
-**For EACH fix:**
-1. Read the source file BEFORE editing
-2. Make the fix
-3. Test the fix (run relevant test suite or verify in browser)
-4. Update the issue table — change Fix Status to "Fixed" or "Deferred" with reason
+For each fix: read the source file first, make the change, test it (run the relevant test suite or verify in browser), then update the issue table status to "Fixed" or "Deferred" with reason.
 
-### For React (modern) fixes:
-- Use the `/frontend-design` skill when implementing visual/UI improvements
+<fix_guidelines frontend="react">
+- Use `/frontend-design` skill for visual/UI improvements to ensure production-grade design quality
 - Run tests after: `docker compose exec frontend npm test`
 - Run lint after: `docker compose exec frontend npm run lint`
+</fix_guidelines>
 
-### For legacy (ES5) fixes:
-- **ES5 COMPLIANCE IS NON-NEGOTIABLE** — see Constitution Principle III
-- Use the `/frontend-design` skill for CSS changes
-- NO `const`/`let`, NO arrow functions, NO template literals, NO `async`/`await`, NO destructuring, NO spread, NO classes, NO `for...of`, NO modules
-- After ANY legacy static file change: `docker compose down && docker compose up -d`
-- Verify changes deployed: check file in `./staticfiles/`
+<fix_guidelines frontend="legacy">
+Legacy code targets iOS 9.3 Safari. All JS in `apps/legacy/static/legacy/js/` uses ES5 only — this is a hard compatibility constraint, not a style preference. Use `var`, `function(){}`, string concatenation. No ES6+ syntax.
 
-### For backend fixes:
+- Use `/frontend-design` skill for CSS changes to maintain visual consistency
+- After any legacy static file change: `docker compose down && docker compose up -d` (collectstatic runs on container start)
+- Verify changes deployed: check the file in `./staticfiles/`
+</fix_guidelines>
+
+<fix_guidelines frontend="backend">
 - Run tests: `docker compose exec web python -m pytest`
 - Check lint: `docker compose exec web ruff check .`
+</fix_guidelines>
 
-### Risk management:
-- If a fix is risky or ambiguous, document it as a recommendation — don't implement
-- Test after every fix, not just at the end
+If a fix is risky or ambiguous, document it as a recommendation rather than implementing it.
 
-**Phase 6 exit criteria:** Every issue addressed (fixed, deferred with reason, or marked needs-human-decision). Updated issue table output.
+**Exit criteria:** Every issue addressed — fixed, deferred with reason, or marked needs-human-decision. Updated issue table output.
 
 ---
 
 ## Phase 7: Verification
 
-**Task name:** "Phase 7: Verification"
-
-After all fixes, verify the codebase is healthy:
+Verify the codebase is healthy after fixes.
 
 ### 7a. Re-test fixed pages
-For each issue marked "Fixed" in Phase 6:
-1. Navigate to the affected page in the browser
-2. Take an "after" screenshot (save with `-fixed` suffix)
-3. Verify the fix works
-4. Check console errors on that page — target: zero new errors
+For each "Fixed" issue: navigate to the affected page, take an "after" screenshot (save with `-fixed` suffix), verify the fix, check console for zero new errors.
 
-### 7b. Run test suites
-Run ALL of these (do not skip any):
+### 7b. Test suites
+Run both:
 - `docker compose exec frontend npm test`
 - `docker compose exec web python -m pytest`
 
-### 7c. Run linters
-Run ALL of these (do not skip any):
+### 7c. Linters
+Run both:
 - `docker compose exec frontend npm run lint`
 - `docker compose exec web ruff check .`
 
 ### 7d. Final log check
 - `docker compose logs web --tail=200` — check for new errors since Phase 4
 
-**Phase 7 exit criteria:** All fixes verified, all test suites pass, all linters pass. Report pass/fail for each.
+**Exit criteria:** All fixes verified. All test suites pass. All linters pass. Report pass/fail for each.
 
 ---
 
 ## Phase 8: Speckit Write-Up
 
-**Task name:** "Phase 8: Speckit Write-Up"
+Document all QA work using speckit for implementation tracking. Execute these 4 skills in order:
 
-Use speckit to formally document all QA work. Execute these skills IN ORDER, waiting for each to complete:
+1. `/speckit.specify` — Create a spec covering: what was found, what was fixed, what remains unfixed and why
+2. `/speckit.plan` — Document the implementation approach for remaining work (use `/frontend-design` within the plan for visual/UI work)
+3. `/speckit.tasks` — Generate task list with completed tasks marked done
+4. `/speckit.analyze` — Cross-check all artifacts for consistency
 
-1. **`/speckit.specify`** — Create a spec covering all fixes and improvements made (or planned). Include:
-   - What was found during the audit
-   - What was fixed
-   - What remains unfixed and why
-2. **`/speckit.plan`** — Document the implementation approach for any remaining work. Use `/frontend-design` skill within the plan for visual/UI work.
-3. **`/speckit.tasks`** — Generate task list. Mark completed tasks as done, leave remaining as TODO.
-4. **`/speckit.analyze`** — Cross-check all artifacts for consistency.
+<fallback_if_context_low>
+If context is running low and you cannot invoke all 4 speckit skills, output the commands the user should run manually:
+```
+/speckit.specify {description of QA findings}
+/speckit.plan
+/speckit.tasks
+/speckit.analyze
+```
+This ensures the user can complete Phase 8 even if the conversation needs to end.
+</fallback_if_context_low>
 
-**Phase 8 exit criteria:** All 4 speckit skills invoked and completed. Artifacts created in `.specify/` directory.
+**Exit criteria:** All 4 speckit skills invoked (or fallback commands provided). Artifacts created in `.specify/` directory.
 
 ---
 
 ## Final Output
 
-After ALL 8 phases are complete, output a final summary:
+After all 8 phases, output a summary covering:
 
 1. **Pre-flight status** — container health, AI availability
-2. **Summary table** — all issues found with severity, category, frontend, and fix status (updated from Phase 6)
-3. **Before/after screenshot pairs** — for visual changes
+2. **Issue table** — all issues with severity, category, frontend, fix status
+3. **Before/after screenshots** — for visual changes
 4. **Files modified** — with brief description of each change
-5. **Log findings** — any backend/frontend log issues
-6. **Remaining issues** — things that need human decision
+5. **Log findings** — backend/frontend log issues
+6. **Remaining issues** — things needing human decision
 7. **Recommendations** — future improvements
 8. **Test results** — pass/fail for all test suites and linters
-9. **Phase completion checklist:**
+9. **Phase checklist:**
    - [ ] Phase 1: Pre-Flight Checks
    - [ ] Phase 2: Systematic Page Audit
    - [ ] Phase 3: Feature-Deep Testing
@@ -372,19 +359,21 @@ After ALL 8 phases are complete, output a final summary:
 
 ---
 
-## Rules
+## Operating Guidelines
 
-- NEVER skip a phase — complete ALL 8 in order
-- NEVER skip a page — visit every single one on every targeted frontend
-- ALWAYS create a task for each phase and mark it done when complete
-- ALWAYS output a phase completion summary before moving to the next phase
-- ALWAYS take screenshots on every page visit
-- ALWAYS check console errors AND network requests on every page
-- ALWAYS check backend and frontend Docker logs in Phase 4 (even if you glanced at them earlier)
-- ALWAYS ensure legacy JS is ES5-compliant (Constitution Principle III)
-- ALWAYS restart containers after legacy static file changes
-- ALWAYS run tests and linters in Phase 7 (not just when fixing)
-- ALWAYS use `/frontend-design` skill for UI/visual improvements
-- ALWAYS invoke all 4 speckit skills in Phase 8
-- NEVER run Python/Node commands on host — Docker only
-- If a fix is risky or ambiguous, document it as a recommendation instead of implementing
+<do>
+- Complete all 8 phases in order
+- Visit every page on every targeted frontend
+- Create a task for each phase and mark it done when complete
+- Output a phase completion summary before moving to the next phase
+- Take screenshots on every page visit
+- Check console errors and network requests on every page
+- Review Docker logs thoroughly in Phase 4
+- Keep legacy JS ES5-compliant (iOS 9.3 Safari compatibility requirement)
+- Restart containers after legacy static file changes (collectstatic runs on start)
+- Run tests and linters in Phase 7
+- Use `/frontend-design` skill for UI/visual improvements
+- Invoke all 4 speckit skills in Phase 8 (or provide fallback commands)
+- Run all Python/Node commands via `docker compose exec`
+- Document risky or ambiguous fixes as recommendations instead of implementing
+</do>
