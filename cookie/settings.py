@@ -58,6 +58,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.core.middleware.DeviceDetectionMiddleware",
 ]
 
@@ -136,6 +137,14 @@ CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = False  # SPA reads CSRF cookie via JavaScript
 
 CSRF_FAILURE_VIEW = "apps.core.views.csrf_failure"
+
+# Production security hardening (inactive in development)
+if not DEBUG:
+    SECURE_HSTS_SECONDS = 3600  # 1 hour; increase after confirming no issues
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = False
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Rate limiting (django-ratelimit)
 RATELIMIT_IP_META_KEY = os.environ.get("RATELIMIT_IP_META_KEY", "HTTP_X_FORWARDED_FOR")
