@@ -302,6 +302,7 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: cookie.settings
           DATABASE_URL: postgres://cookie:cookie_test@localhost:5432/cookie_test  # pragma: allowlist secret
+          SECURE_SSL_REDIRECT: "false"
 
       - name: Upload backend coverage artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
@@ -1061,6 +1062,7 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: cookie.settings
           DATABASE_URL: postgres://cookie:cookie_test@localhost:5432/cookie_test  # pragma: allowlist secret
+          SECURE_SSL_REDIRECT: "false"
 
   trivy-scan:
     name: Docker Image Scan (Trivy)
@@ -1234,6 +1236,7 @@ jobs:
           DATABASE_URL: postgres://cookie:cookie_test@localhost:5432/cookie_test  # pragma: allowlist secret
           DEBUG: "false"
           SECRET_KEY: ci-test-secret-key-not-for-production  # pragma: allowlist secret
+          SECURE_SSL_REDIRECT: "false"
 
   gitleaks:
     name: Secret Scanning (Gitleaks)

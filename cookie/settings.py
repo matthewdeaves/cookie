@@ -143,7 +143,7 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 3600  # 1 hour; increase after confirming no issues
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = False
-    SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true").lower() == "true"
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Rate limiting (django-ratelimit)
