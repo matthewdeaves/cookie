@@ -1,17 +1,17 @@
 {
   "errors": [],
-  "generated_at": "2026-03-23T21:52:41Z",
+  "generated_at": "2026-03-23T23:05:58Z",
   "metrics": {
     "_totals": {
-      "CONFIDENCE.HIGH": 6,
+      "CONFIDENCE.HIGH": 2,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
       "CONFIDENCE.UNDEFINED": 0,
       "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 6,
+      "SEVERITY.LOW": 2,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 5621,
+      "loc": 5624,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -276,15 +276,15 @@
       "skipped_tests": 0
     },
     "apps/core/api.py": {
-      "CONFIDENCE.HIGH": 2,
+      "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
       "CONFIDENCE.UNDEFINED": 0,
       "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 2,
+      "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 150,
+      "loc": 152,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -640,12 +640,12 @@
       "skipped_tests": 0
     },
     "apps/recipes/services/image_cache.py": {
-      "CONFIDENCE.HIGH": 1,
+      "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
       "CONFIDENCE.UNDEFINED": 0,
       "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 1,
+      "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
       "loc": 185,
@@ -653,15 +653,15 @@
       "skipped_tests": 0
     },
     "apps/recipes/services/scraper.py": {
-      "CONFIDENCE.HIGH": 1,
+      "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
       "CONFIDENCE.UNDEFINED": 0,
       "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 1,
+      "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 307,
+      "loc": 308,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -720,48 +720,6 @@
   },
   "results": [
     {
-      "code": "170             call_command(\"seed_search_sources\", verbosity=0)\n171         except Exception:\n172             pass  # Command may not exist yet\n173 \n",
-      "col_offset": 8,
-      "end_col_offset": 16,
-      "filename": "apps/core/api.py",
-      "issue_confidence": "HIGH",
-      "issue_cwe": {
-        "id": 703,
-        "link": "https://cwe.mitre.org/data/definitions/703.html"
-      },
-      "issue_severity": "LOW",
-      "issue_text": "Try, Except, Pass detected.",
-      "line_number": 171,
-      "line_range": [
-        171,
-        172
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html",
-      "test_id": "B110",
-      "test_name": "try_except_pass"
-    },
-    {
-      "code": "175             call_command(\"seed_ai_prompts\", verbosity=0)\n176         except Exception:\n177             pass  # Command may not exist yet\n178 \n",
-      "col_offset": 8,
-      "end_col_offset": 16,
-      "filename": "apps/core/api.py",
-      "issue_confidence": "HIGH",
-      "issue_cwe": {
-        "id": 703,
-        "link": "https://cwe.mitre.org/data/definitions/703.html"
-      },
-      "issue_severity": "LOW",
-      "issue_text": "Try, Except, Pass detected.",
-      "line_number": 176,
-      "line_range": [
-        176,
-        177
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html",
-      "test_id": "B110",
-      "test_name": "try_except_pass"
-    },
-    {
       "code": "45     weights = [45, 30, 15, 10]  # Chrome latest, Safari latest, Chrome 136, Safari 184\n46     return random.choices(BROWSER_PROFILES, weights=weights)[0]\n47 \n",
       "col_offset": 11,
       "end_col_offset": 60,
@@ -800,48 +758,6 @@
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
       "test_id": "B311",
       "test_name": "blacklist"
-    },
-    {
-      "code": "115                     await sync_to_async(cached.save)(update_fields=[\"status\"])\n116                 except Exception:\n117                     pass\n118 \n",
-      "col_offset": 16,
-      "end_col_offset": 24,
-      "filename": "apps/recipes/services/image_cache.py",
-      "issue_confidence": "HIGH",
-      "issue_cwe": {
-        "id": 703,
-        "link": "https://cwe.mitre.org/data/definitions/703.html"
-      },
-      "issue_severity": "LOW",
-      "issue_text": "Try, Except, Pass detected.",
-      "line_number": 116,
-      "line_range": [
-        116,
-        117
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html",
-      "test_id": "B110",
-      "test_name": "try_except_pass"
-    },
-    {
-      "code": "287                 ]\n288         except Exception:\n289             pass\n290         return []\n",
-      "col_offset": 8,
-      "end_col_offset": 16,
-      "filename": "apps/recipes/services/scraper.py",
-      "issue_confidence": "HIGH",
-      "issue_cwe": {
-        "id": 703,
-        "link": "https://cwe.mitre.org/data/definitions/703.html"
-      },
-      "issue_severity": "LOW",
-      "issue_text": "Try, Except, Pass detected.",
-      "line_number": 288,
-      "line_range": [
-        288,
-        289
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html",
-      "test_id": "B110",
-      "test_name": "try_except_pass"
     }
   ]
 }
