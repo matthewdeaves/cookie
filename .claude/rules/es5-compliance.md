@@ -97,9 +97,34 @@ grep "unique string from your change" ./staticfiles/legacy/js/pages/detail.js
 docker compose logs web | grep "Collecting static"
 ```
 
+## CSS Compatibility (iOS 9 Safari)
+
+Legacy CSS in `apps/legacy/static/legacy/css/` MUST avoid features unsupported by iOS 9 Safari:
+
+| CSS Feature | Status | Alternative |
+|-------------|--------|-------------|
+| CSS Grid | ❌ Forbidden | Use flexbox with `-webkit-` prefixes or floats |
+| CSS custom properties (`var(--x)`) | ❌ Forbidden | Use literal values |
+| `gap` on flexbox | ❌ Forbidden | Use margins |
+| `position: sticky` | ❌ Forbidden | Use `position: fixed` or JS-based sticky |
+| `object-fit` | ⚠️ Needs fallback | Use background-image with `background-size: cover` |
+| Viewport units in `calc()` | ❌ Forbidden | Use percentage or fixed values |
+| `:focus-visible` | ❌ Forbidden | Use `:focus` |
+| `backdrop-filter` | ❌ Forbidden | Use solid backgrounds |
+
+**Safe CSS**: Flexbox (with `-webkit-flex`), `position: absolute/relative/fixed`, floats, `border-radius`, `box-shadow`, `opacity`, CSS transitions, `transform` (with `-webkit-` prefix), media queries.
+
+**Images**: WebP is NOT supported on iOS 9. All `<img>` elements MUST use JPEG or PNG. If WebP is served dynamically, a JPEG/PNG fallback MUST exist.
+
+**Touch targets**: Minimum 44x44px per Apple Human Interface Guidelines.
+
+## Design Quality
+
+When modifying visual/UI elements on the legacy frontend, use the `/frontend-design` skill to ensure production-grade design quality. The legacy frontend is not a second-class citizen — it MUST maintain visual coherence with the modern React frontend.
+
 ## Testing on iOS 9
 
-See `/qa-session` skill for complete manual testing checklist.
+Use `/qa-auto` for comprehensive automated QA on both frontends.
 
 **Quick smoke test:**
 1. Deploy to staging/production
@@ -114,4 +139,4 @@ Settings → Safari → Clear History and Website Data
 
 - ES5 Specification: https://262.ecma-international.org/5.1/
 - iOS 9 Safari compatibility: https://caniuse.com/?compare=ios_saf+9.3&compareCats=all
-- Inside Macintosh: Not applicable (this is web, not Classic Mac!)
+- Cookie Constitution Principle III: `.specify/memory/constitution.md`

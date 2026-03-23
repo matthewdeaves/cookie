@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name='AppSettings',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('openrouter_api_key', models.CharField(blank=True, max_length=500)),
+                ('_openrouter_api_key', models.CharField(blank=True, db_column='openrouter_api_key', max_length=500)),
                 ('default_ai_model', models.CharField(default='anthropic/claude-3.5-haiku', max_length=100)),
             ],
             options={

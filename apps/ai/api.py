@@ -5,21 +5,19 @@ AI settings and prompts API endpoints.
 from functools import wraps
 from typing import Callable, List, Optional
 
+from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema
 
 from apps.core.models import AppSettings
-from apps.profiles.models import Profile
 from apps.recipes.models import Recipe
 
 from .models import AIPrompt
 from .services.openrouter import OpenRouterService, AIUnavailableError, AIResponseError
-from .services.remix import get_remix_suggestions, create_remix
-from .services.scaling import scale_recipe, calculate_nutrition
 from .services.tips import generate_tips, clear_tips
-from .services.discover import get_discover_suggestions
 from .services.timer import generate_timer_name
 from .services.selector import repair_selector, get_sources_needing_attention
 from .services.validator import ValidationError
+from apps.core.auth import SessionAuth
 
 router = Router(tags=["ai"])
 
@@ -159,9 +157,12 @@ def get_ai_status(request):
     return status
 
 
-@router.post("/test-api-key", response={200: TestApiKeyOut, 400: ErrorOut})
+@router.post("/test-api-key", response={200: TestApiKeyOut, 400: ErrorOut, 429: dict})
+@ratelimit(key="ip", rate="5/h", method="POST", block=False)
 def test_api_key(request, data: TestApiKeyIn):
     """Test if an API key is valid."""
+    if getattr(request, "limited", False):
+        return 429, {"detail": "Rate limit exceeded. Try again later."}
     if not data.api_key:
         return 400, {
             "error": "validation_error",
@@ -175,9 +176,12 @@ def test_api_key(request, data: TestApiKeyIn):
     }
 
 
-@router.post("/save-api-key", response={200: SaveApiKeyOut, 400: ErrorOut})
+@router.post("/save-api-key", response={200: SaveApiKeyOut, 400: ErrorOut, 429: dict})
+@ratelimit(key="ip", rate="3/h", method="POST", block=False)
 def save_api_key(request, data: SaveApiKeyIn):
     """Save the OpenRouter API key."""
+    if getattr(request, "limited", False):
+        return 429, {"detail": "Rate limit exceeded. Try again later."}
     settings = AppSettings.get()
     settings.openrouter_api_key = data.api_key
     settings.save()
@@ -267,237 +271,6 @@ def list_models(request):
     except AIResponseError:
         # API error - return empty list
         return []
-
-
-# Remix Schemas
-
-
-class RemixSuggestionsIn(Schema):
-    recipe_id: int
-
-
-class RemixSuggestionsOut(Schema):
-    suggestions: List[str]
-
-
-class CreateRemixIn(Schema):
-    recipe_id: int
-    modification: str
-    profile_id: int
-
-
-class RemixOut(Schema):
-    id: int
-    title: str
-    description: str
-    ingredients: List[str]
-    instructions: List[str]
-    host: str
-    site_name: str
-    is_remix: bool
-    prep_time: Optional[int] = None
-    cook_time: Optional[int] = None
-    total_time: Optional[int] = None
-    yields: str = ""
-    servings: Optional[int] = None
-
-
-# Remix Endpoints
-
-
-@router.post("/remix-suggestions", response={200: RemixSuggestionsOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
-@handle_ai_errors
-def remix_suggestions(request, data: RemixSuggestionsIn):
-    """Get 6 AI-generated remix suggestions for a recipe.
-
-    Only works for recipes owned by the requesting profile.
-    """
-    from apps.profiles.utils import get_current_profile_or_none
-
-    profile = get_current_profile_or_none(request)
-
-    try:
-        recipe = Recipe.objects.get(id=data.recipe_id)
-    except Recipe.DoesNotExist:
-        return 404, {
-            "error": "not_found",
-            "message": f"Recipe {data.recipe_id} not found",
-        }
-
-    if not profile or recipe.profile_id != profile.id:
-        return 404, {
-            "error": "not_found",
-            "message": f"Recipe {data.recipe_id} not found",
-        }
-
-    suggestions = get_remix_suggestions(data.recipe_id)
-    return {"suggestions": suggestions}
-
-
-@router.post("/remix", response={200: RemixOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
-@handle_ai_errors
-def create_remix_endpoint(request, data: CreateRemixIn):
-    """Create a remixed recipe using AI.
-
-    Only works for recipes owned by the requesting profile.
-    The remix will be owned by the same profile.
-    """
-    from apps.profiles.utils import get_current_profile_or_none
-
-    profile = get_current_profile_or_none(request)
-
-    if not profile:
-        return 404, {
-            "error": "not_found",
-            "message": "Profile not found",
-        }
-
-    # Verify the profile_id in the request matches the session profile
-    if data.profile_id != profile.id:
-        return 404, {
-            "error": "not_found",
-            "message": f"Profile {data.profile_id} not found",
-        }
-
-    try:
-        recipe = Recipe.objects.get(id=data.recipe_id)
-    except Recipe.DoesNotExist:
-        return 404, {
-            "error": "not_found",
-            "message": f"Recipe {data.recipe_id} not found",
-        }
-
-    if recipe.profile_id != profile.id:
-        return 404, {
-            "error": "not_found",
-            "message": f"Recipe {data.recipe_id} not found",
-        }
-
-    remix = create_remix(
-        recipe_id=data.recipe_id,
-        modification=data.modification,
-        profile=profile,
-    )
-    return {
-        "id": remix.id,
-        "title": remix.title,
-        "description": remix.description,
-        "ingredients": remix.ingredients,
-        "instructions": remix.instructions,
-        "host": remix.host,
-        "site_name": remix.site_name,
-        "is_remix": remix.is_remix,
-        "prep_time": remix.prep_time,
-        "cook_time": remix.cook_time,
-        "total_time": remix.total_time,
-        "yields": remix.yields,
-        "servings": remix.servings,
-    }
-
-
-# Scaling Schemas
-
-
-class ScaleIn(Schema):
-    recipe_id: int
-    target_servings: int
-    unit_system: str = "metric"
-    profile_id: int
-
-
-class NutritionOut(Schema):
-    per_serving: dict
-    total: dict
-
-
-class ScaleOut(Schema):
-    target_servings: int
-    original_servings: int
-    ingredients: List[str]
-    instructions: List[str] = []  # QA-031
-    notes: List[str]
-    prep_time_adjusted: Optional[int] = None  # QA-032
-    cook_time_adjusted: Optional[int] = None  # QA-032
-    total_time_adjusted: Optional[int] = None  # QA-032
-    nutrition: Optional[NutritionOut] = None
-    cached: bool
-
-
-# Scaling Endpoints
-
-
-@router.post("/scale", response={200: ScaleOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
-@handle_ai_errors
-def scale_recipe_endpoint(request, data: ScaleIn):
-    """Scale a recipe to a different number of servings.
-
-    Only works for recipes owned by the requesting profile.
-    """
-    from apps.profiles.utils import get_current_profile_or_none
-
-    profile = get_current_profile_or_none(request)
-
-    if not profile:
-        return 404, {
-            "error": "not_found",
-            "message": "Profile not found",
-        }
-
-    # Verify the profile_id in the request matches the session profile
-    if data.profile_id != profile.id:
-        return 404, {
-            "error": "not_found",
-            "message": f"Profile {data.profile_id} not found",
-        }
-
-    try:
-        recipe = Recipe.objects.get(id=data.recipe_id)
-    except Recipe.DoesNotExist:
-        return 404, {
-            "error": "not_found",
-            "message": f"Recipe {data.recipe_id} not found",
-        }
-
-    if recipe.profile_id != profile.id:
-        return 404, {
-            "error": "not_found",
-            "message": f"Recipe {data.recipe_id} not found",
-        }
-
-    try:
-        result = scale_recipe(
-            recipe_id=data.recipe_id,
-            target_servings=data.target_servings,
-            profile=profile,
-            unit_system=data.unit_system,
-        )
-    except ValueError as e:
-        return 400, {
-            "error": "validation_error",
-            "message": str(e),
-        }
-
-    # Calculate nutrition if available
-    nutrition = None
-    if recipe.nutrition:
-        nutrition = calculate_nutrition(
-            recipe=recipe,
-            original_servings=recipe.servings,
-            target_servings=data.target_servings,
-        )
-
-    return {
-        "target_servings": result["target_servings"],
-        "original_servings": result["original_servings"],
-        "ingredients": result["ingredients"],
-        "instructions": result.get("instructions", []),  # QA-031
-        "notes": result["notes"],
-        "prep_time_adjusted": result.get("prep_time_adjusted"),  # QA-032
-        "cook_time_adjusted": result.get("cook_time_adjusted"),  # QA-032
-        "total_time_adjusted": result.get("total_time_adjusted"),  # QA-032
-        "nutrition": nutrition,
-        "cached": result["cached"],
-    }
 
 
 # Tips Schemas
@@ -591,44 +364,6 @@ def timer_name_endpoint(request, data: TimerNameIn):
     return result
 
 
-# Discover Schemas
-
-
-class DiscoverSuggestionOut(Schema):
-    type: str
-    title: str
-    description: str
-    search_query: str
-
-
-class DiscoverOut(Schema):
-    suggestions: List[DiscoverSuggestionOut]
-    refreshed_at: str
-
-
-# Discover Endpoints
-
-
-@router.get("/discover/{profile_id}/", response={200: DiscoverOut, 404: ErrorOut, 503: ErrorOut})
-@handle_ai_errors
-def discover_endpoint(request, profile_id: int):
-    """Get AI discovery suggestions for a profile.
-
-    Returns cached suggestions if still valid (within 24 hours),
-    otherwise generates new suggestions via AI.
-
-    For new users (no favorites), only seasonal suggestions are returned.
-    """
-    try:
-        result = get_discover_suggestions(profile_id)
-        return result
-    except Profile.DoesNotExist:
-        return 404, {
-            "error": "not_found",
-            "message": f"Profile {profile_id} not found",
-        }
-
-
 # Selector Repair Schemas
 
 
@@ -659,7 +394,11 @@ class SourceNeedingAttentionOut(Schema):
 # Selector Repair Endpoints
 
 
-@router.post("/repair-selector", response={200: SelectorRepairOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+@router.post(
+    "/repair-selector",
+    response={200: SelectorRepairOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut},
+    auth=SessionAuth(),
+)
 @handle_ai_errors
 def repair_selector_endpoint(request, data: SelectorRepairIn):
     """Attempt to repair a broken CSS selector using AI.

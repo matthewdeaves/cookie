@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Download frontend coverage
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: frontend-coverage
           path: coverage/frontend
@@ -29,7 +29,7 @@ jobs:
         # Critical artifact - must succeed for accurate dashboard
 
       - name: Download backend coverage
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: backend-coverage
           path: coverage/backend
@@ -38,7 +38,7 @@ jobs:
         # Critical artifact - must succeed for accurate dashboard
 
       - name: Download backend complexity
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: backend-complexity
           path: complexity/backend
@@ -47,7 +47,7 @@ jobs:
         continue-on-error: true
 
       - name: Download frontend complexity
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: frontend-complexity
           path: complexity/frontend
@@ -56,7 +56,7 @@ jobs:
         continue-on-error: true
 
       - name: Download frontend duplication
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: frontend-duplication
           path: duplication/frontend
@@ -65,7 +65,7 @@ jobs:
         continue-on-error: true
 
       - name: Download frontend security
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: frontend-security
           path: security/frontend
@@ -74,7 +74,7 @@ jobs:
         continue-on-error: true
 
       - name: Download backend security
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: backend-security
           path: security/backend
@@ -83,7 +83,7 @@ jobs:
         continue-on-error: true
 
       - name: Download frontend bundle
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: frontend-bundle
           path: bundle/frontend
@@ -92,7 +92,7 @@ jobs:
         # Critical artifact - must succeed for accurate dashboard
 
       - name: Download legacy lint
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: legacy-lint
           path: legacy/lint
@@ -101,7 +101,7 @@ jobs:
         continue-on-error: true
 
       - name: Download legacy duplication
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: legacy-duplication
           path: legacy/duplication
@@ -110,7 +110,7 @@ jobs:
         continue-on-error: true
 
       - name: Download backend duplication
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: backend-duplication
           path: duplication/backend
@@ -119,7 +119,7 @@ jobs:
         continue-on-error: true
 
       - name: Download secrets scan
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: secrets-detection
           path: security/secrets
@@ -128,7 +128,7 @@ jobs:
         continue-on-error: true
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: '3.12'
 
@@ -732,7 +732,7 @@ jobs:
           touch site/.nojekyll
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./site

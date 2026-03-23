@@ -277,7 +277,8 @@ Cookie.Timer = (function() {
     }
 
     /**
-     * Request notification permission and initialize audio
+     * Request notification permission
+     * Note: AudioContext is initialized lazily via unlockAudio() on user gesture
      */
     function requestPermission() {
         if ('Notification' in window && Notification.permission === 'default') {
@@ -287,8 +288,6 @@ Cookie.Timer = (function() {
                 // Not supported
             }
         }
-        // Initialize audio context (called from user interaction context)
-        initAudio();
     }
 
     /**

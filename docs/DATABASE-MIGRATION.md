@@ -4,10 +4,7 @@ This guide covers migrating Cookie from SQLite to PostgreSQL.
 
 ## Overview
 
-Cookie supports both SQLite (default) and PostgreSQL. The database backend is selected via the `DATABASE_URL` environment variable:
-
-- **No `DATABASE_URL`**: Uses SQLite (default, backward compatible)
-- **`DATABASE_URL` set**: Uses PostgreSQL (or any Django-supported database)
+Cookie requires PostgreSQL. The database connection is configured via the `DATABASE_URL` environment variable. The application will refuse to start without it.
 
 ## Prerequisites
 
@@ -19,7 +16,7 @@ Before migrating:
    ```
 
 2. **Have PostgreSQL available**
-   - Docker: Use `docker-compose.postgres.yml`
+   - Docker: Use `docker-compose.prod.yml`
    - Managed: AWS RDS, DigitalOcean, etc.
    - Local: Install PostgreSQL 14+
 
@@ -60,17 +57,17 @@ docker compose up -d db
 docker compose exec db psql -U cookie -d cookie -c "SELECT 1"
 ```
 
-**Option B: Production (docker-compose.postgres.yml)**
+**Option B: Production (docker-compose.prod.yml)**
 
 ```bash
 # Create .env file with password
 echo "POSTGRES_PASSWORD=your_secure_password_here" > .env
 
 # Start PostgreSQL
-docker compose -f docker-compose.postgres.yml up -d db
+docker compose -f docker-compose.prod.yml --env-file .env up -d db
 
 # Verify it's running
-docker compose -f docker-compose.postgres.yml exec db \
+docker compose -f docker-compose.prod.yml exec db \
     psql -U cookie -d cookie -c "SELECT 1"
 ```
 
@@ -83,7 +80,7 @@ Create the database schema:
 docker compose exec web python manage.py migrate
 
 # Production
-docker compose -f docker-compose.postgres.yml exec web \
+docker compose -f docker-compose.prod.yml exec web \
     python manage.py migrate
 ```
 
@@ -153,7 +150,7 @@ For high-traffic deployments, consider PgBouncer:
 
 <!-- pragma: allowlist secret -->
 ```yaml
-# docker-compose.postgres.yml addition
+# docker-compose.prod.yml addition
 pgbouncer:
   image: edoburu/pgbouncer
   environment:
@@ -166,25 +163,23 @@ pgbouncer:
 
 ## Rollback Procedure
 
-If something goes wrong, revert to SQLite:
+If something goes wrong with a PostgreSQL migration, restore from backup:
 
 1. **Stop services**
    ```bash
    docker compose down
    ```
 
-2. **Remove DATABASE_URL**
+2. **Restore database from backup**
    ```bash
-   # Edit your .env or docker-compose.yml
-   # Remove or comment out DATABASE_URL
+   docker compose up -d db
+   docker compose exec db psql -U postgres -c "DROP DATABASE cookie;"
+   docker compose exec db psql -U postgres -c "CREATE DATABASE cookie OWNER cookie;"
+   # Restore from pg_dump backup
+   docker compose exec -T db psql -U cookie -d cookie < backup.sql
    ```
 
-3. **Restore SQLite backup**
-   ```bash
-   cp /path/to/db.sqlite3.backup /path/to/db.sqlite3
-   ```
-
-4. **Restart with SQLite**
+3. **Restart services**
    ```bash
    docker compose up -d
    ```

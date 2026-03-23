@@ -25,8 +25,14 @@ media/*
 *.swp
 *.swo
 
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+
 # Docker
 .docker/
+docker-compose.override.yml
 
 # Testing
 .pytest_cache/
@@ -48,3 +54,10 @@ frontend/coverage/
 
 # Root node_modules (from CI tooling tests)
 node_modules/
+
+# Local/generated artifacts
+.mcp.json
+data/
+screenshots/
+.specify/
+specs/

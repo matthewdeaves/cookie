@@ -9,6 +9,19 @@ Cookie.ajax = (function() {
     var API_BASE = '/api';
 
     /**
+     * Read CSRF token from cookie
+     * @returns {string} CSRF token value or empty string
+     */
+    function getCsrfToken() {
+        var value = '; ' + document.cookie;
+        var parts = value.split('; csrftoken=');
+        if (parts.length === 2) {
+            return parts.pop().split(';').shift() || '';
+        }
+        return '';
+    }
+
+    /**
      * Make an XHR request
      * @param {string} method - HTTP method
      * @param {string} url - Request URL
@@ -21,6 +34,15 @@ Cookie.ajax = (function() {
 
         xhr.open(method, fullUrl, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
+
+        // Add CSRF token for state-changing requests
+        var upperMethod = method.toUpperCase();
+        if (upperMethod === 'POST' || upperMethod === 'PUT' || upperMethod === 'DELETE' || upperMethod === 'PATCH') {
+            var csrfToken = getCsrfToken();
+            if (csrfToken) {
+                xhr.setRequestHeader('X-CSRFToken', csrfToken);
+            }
+        }
 
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {

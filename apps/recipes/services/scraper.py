@@ -18,6 +18,7 @@ from django.utils import timezone
 from curl_cffi.requests import AsyncSession
 from recipe_scrapers import scrape_html
 
+from apps.core.validators import validate_url
 from apps.recipes.services.fingerprint import BROWSER_PROFILES
 
 logger = logging.getLogger(__name__)
@@ -73,6 +74,12 @@ class RecipeScraper:
         """
         # Import here to avoid circular imports
         from apps.recipes.models import Recipe
+
+        # Validate URL for SSRF protection
+        try:
+            validate_url(url)
+        except ValueError as e:
+            raise FetchError(str(e))
 
         # Fetch HTML
         html = await self._fetch_html(url)
@@ -402,6 +409,6 @@ class RecipeScraper:
         for iOS 9 compatibility.
         """
         # Create hash from URLs for uniqueness
-        url_hash = hashlib.md5(f"{recipe_url}{image_url}".encode()).hexdigest()[:12]
+        url_hash = hashlib.md5(f"{recipe_url}{image_url}".encode(), usedforsecurity=False).hexdigest()[:12]
 
         return f"recipe_{url_hash}.jpg"

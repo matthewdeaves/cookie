@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Key, Check, AlertCircle, Loader2, Github } from 'lucide-react'
+import { Key, Check, AlertCircle, Loader2, Github, Moon, Sun } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type AIStatus, type AIModel } from '../../api/client'
 import { useAIStatus } from '../../contexts/AIStatusContext'
+import { useProfile } from '../../contexts/ProfileContext'
 import { cn } from '../../lib/utils'
 
 interface SettingsGeneralProps {
@@ -78,8 +79,48 @@ export default function SettingsGeneral({
     }
   }
 
+  const { theme, toggleTheme } = useProfile()
+
   return (
     <div className="space-y-6">
+      {/* Preferences */}
+      <div className="rounded-lg border border-border bg-card p-4">
+        <h2 className="mb-4 text-lg font-medium text-foreground">Preferences</h2>
+
+        {/* Theme toggle */}
+        <div className="mb-4">
+          <label className="mb-2 block text-sm font-medium text-foreground">Theme</label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => theme !== 'light' && toggleTheme()}
+              className={cn(
+                'flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
+                theme === 'light'
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border bg-background text-foreground hover:bg-muted'
+              )}
+            >
+              <Sun className="h-4 w-4" />
+              Light
+            </button>
+            <button
+              onClick={() => theme !== 'dark' && toggleTheme()}
+              className={cn(
+                'flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
+                theme === 'dark'
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border bg-background text-foreground hover:bg-muted'
+              )}
+            >
+              <Moon className="h-4 w-4" />
+              Dark
+            </button>
+          </div>
+        </div>
+
+        {/* Unit preference hidden until fully implemented */}
+      </div>
+
       {/* OpenRouter API */}
       <div className="rounded-lg border border-border bg-card p-4">
         <h2 className="mb-4 text-lg font-medium text-foreground">OpenRouter API</h2>

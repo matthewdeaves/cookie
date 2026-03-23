@@ -13,7 +13,7 @@ router = Router(tags=["profiles"])
 
 class ProfileIn(Schema):
     name: str
-    avatar_color: str
+    avatar_color: str = ""
     theme: str = "light"
     unit_preference: str = "metric"
 
@@ -119,7 +119,10 @@ def list_profiles(request):
 @router.post("/", response={201: ProfileOut})
 def create_profile(request, payload: ProfileIn):
     """Create a new profile."""
-    profile = Profile.objects.create(**payload.dict())
+    data = payload.dict()
+    if not data.get("avatar_color"):
+        data["avatar_color"] = Profile.next_avatar_color()
+    profile = Profile.objects.create(**data)
     return 201, profile
 
 
@@ -246,9 +249,13 @@ def delete_profile(request, profile_id: int):
     return 204, None
 
 
-@router.post("/{profile_id}/select/", response={200: ProfileOut})
+@router.post("/{profile_id}/select/", response={200: ProfileOut, 404: dict})
 def select_profile(request, profile_id: int):
     """Set a profile as the current profile (stored in session)."""
-    profile = Profile.objects.get(id=profile_id)
+    try:
+        profile = Profile.objects.get(id=profile_id)
+    except Profile.DoesNotExist:
+        request.session.pop("profile_id", None)
+        return 404, {"detail": "Profile not found"}
     request.session["profile_id"] = profile.id
     return profile
