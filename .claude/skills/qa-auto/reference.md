@@ -1,6 +1,6 @@
 # QA Reference: Complete Feature Inventory & Test Cases
 
-This is the exhaustive test matrix for the Cookie app. Every item here MUST be tested during a full QA audit.
+This is the exhaustive test matrix for the Cookie app. Every item here is tested during a full QA audit, walking through the app as a real user would from a fresh database.
 
 ## Page Inventory
 
@@ -36,176 +36,225 @@ This is the exhaustive test matrix for the Cookie app. Every item here MUST be t
 | `/legacy/recipe/:id/play/` | play_mode.html | Play mode, timers, step navigation |
 | `/legacy/settings/` | settings.html | All settings tabs |
 
+## Interactive Element Inventory
+
+Every button, modal, popup, toggle, dropdown, and form that exists in the app. Each one is tested during Phase 3 user journey testing.
+
+### Buttons & Actions
+
+| Element | Location | What it does | What to verify |
+|---------|----------|-------------|----------------|
+| Create Profile button | ProfileSelector | Opens create form | Form appears, accepts input |
+| Profile card | ProfileSelector | Selects profile | Redirects to home, session set |
+| Search input + submit | Nav header | Searches recipes | Results page loads with results |
+| Import button | Search results | Imports a recipe | Toast notification, redirect to detail |
+| Load More button | Search results | Loads next page | More results append, no duplicates |
+| Source filter pills | Search results | Toggle sources | Results filter/unfilter |
+| Favorite toggle | Recipe detail, recipe cards | Add/remove favorite | Icon state changes, favorites list updates |
+| Add to Collection button | Recipe detail | Opens collection picker | Modal/dropdown with collections |
+| Play Mode button | Recipe detail | Enters cooking mode | Full-screen play mode activates |
+| Next/Previous buttons | Play mode | Navigate steps | Step counter updates, content changes |
+| Timer +5/+10/+15 buttons | Play mode | Creates countdown timer | Timer appears in panel, counts down |
+| Exit/Close button | Play mode | Exits cooking mode | Returns to recipe detail |
+| Theme toggle | Settings > General | Switch light/dark | Theme applies immediately |
+| Unit preference | Settings > General | Switch metric/imperial | Preference saves |
+| Source toggle switches | Settings > Sources | Enable/disable sources | Source state saves |
+| Test Source button | Settings > Sources | Tests a source | Returns success/failure |
+| Bulk toggle | Settings > Sources | All on/all off | All sources change |
+| Reset preview button | Settings > Danger | Shows data counts | Count summary appears |
+| Delete profile button | Settings > Danger | Deletes profile | Confirmation dialog |
+
+### Modals & Popups
+
+| Modal | Trigger | Contents | What to verify |
+|-------|---------|----------|----------------|
+| Create Profile form | Create Profile button | Name input, color picker | Form submits, profile created |
+| Add to Collection picker | Add to Collection button | Collection list, create option | Can select existing or create new |
+| Create Collection form | Create Collection button or from picker | Name input | Validates name, creates collection |
+| Remix modal (AI only) | Remix button | Suggestion pills, text input | Pills populate, submission works |
+| Edit Prompt modal (AI only) | Click prompt in Settings | Prompt text editor, model selector | Edits save |
+| Edit Selector modal | Click selector in Settings | Selector text editor | Edits save |
+| Delete confirmation | Delete buttons | Warning text, confirm action | Requires explicit confirmation |
+| Toast notifications | Various actions (import, favorite, etc.) | Success/error message | Appears and auto-dismisses |
+
+### AI-Dependent UI Elements
+
+These elements are only rendered when the OpenRouter API key is configured. When AI is unavailable, all of these are hidden — not disabled, not grayed out, completely absent from the DOM.
+
+| Element | Page | AI Required |
+|---------|------|-------------|
+| Serving adjuster (+/- buttons) | Recipe detail | Yes + recipe has servings |
+| Tips tab | Recipe detail | Yes |
+| Remix button | Recipe detail | Yes |
+| Remix modal with suggestions | Recipe detail (modal) | Yes |
+| Discover tab content | Home | Yes |
+| AI prompt settings tab | Settings | Yes |
+| Generate Tips button | Recipe detail > Tips | Yes |
+| Timer AI label | Play mode timer panel | Yes (falls back to generic) |
+
 ## Feature Test Matrix
 
 ### 1. Profile Management
 
-| Test Case | Steps | Expected Result | Frontend |
-|-----------|-------|-----------------|----------|
-| Create profile | Click create, enter name | Profile appears in list with auto-assigned avatar color | Both |
-| Select profile | Click profile card | Redirected to home, session set | Both |
-| Switch profile | Go to `/` or `/legacy/`, click different profile | Data changes to new profile's data | Both |
-| Update theme | Settings > General > toggle dark/light | Theme applies immediately across all pages | Both |
-| Update units | Settings > General > toggle metric/imperial | Unit preference saved | Both |
-| Delete profile | Settings > Danger > delete profile | Confirmation shown with data preview, profile removed | Both |
-| Data isolation | Switch profiles, check favorites/collections | Each profile sees only its own data | Both |
+| Test Case | Steps | Expected Result |
+|-----------|-------|-----------------|
+| Create profile | Click create, enter name, submit | Profile appears in list with avatar color |
+| Select profile | Click profile card | Redirected to home, session set |
+| Switch profile | Go to `/`, click different profile | Data changes to new profile's data |
+| Update theme | Settings > General > toggle dark/light | Theme applies immediately |
+| Update units | Settings > General > toggle metric/imperial | Unit preference saved |
+| Delete profile | Settings > Danger > delete profile | Confirmation shown, profile removed |
+| Data isolation | Switch profiles, check favorites/collections | Each profile sees only its own data |
 
 ### 2. Recipe Search
 
-| Test Case | Steps | Expected Result | Frontend |
-|-----------|-------|-----------------|----------|
-| Basic search | Search "chicken" | Results grid with images, titles, sources | Both |
-| Empty search | Search "xyznonexistent" | Empty state message, no errors | Both |
-| Source filter pills | Click source pills to toggle | Results filter by selected sources | Both |
-| Load More | Scroll/click Load More | Additional results append | Both |
-| Result count | Check displayed count | Matches actual number of results | Both |
-| URL import | Paste a recipe URL in search | Detects URL, offers direct import | Both |
-| Image display | Check result images | Images load (cached locally), WebP fallback works | Both |
-| Multiple queries | Search "pasta", "cake", "soup" | Each returns relevant results | Both |
+| Test Case | Steps | Expected Result |
+|-----------|-------|-----------------|
+| Basic search | Search "chicken" | Results grid with images, titles, sources |
+| Empty search | Search "xyznonexistent" | Empty state message, no errors |
+| Source filter pills | Click source pills to toggle | Results filter by selected sources |
+| Load More | Click Load More | Additional results append |
+| Result count | Check displayed count | Matches actual number of results |
+| URL import | Paste a recipe URL in search | Detects URL, offers direct import |
+| Image display | Check result images | Images load, fallback for missing |
+| Multiple queries | Search "pasta", "cake", "soup" | Each returns relevant results |
 
 ### 3. Recipe Import & Detail
 
-| Test Case | Steps | Expected Result | Frontend |
-|-----------|-------|-----------------|----------|
-| Import from search | Click import button on result | Toast notification, redirect to detail page | Both |
-| Recipe image | View detail page | Image loads, placeholder if missing | Both |
-| Ingredients tab | Click Ingredients tab | Ingredient list displays correctly | Both |
-| Instructions tab | Click Instructions tab | Numbered steps display | Both |
-| Nutrition tab | Click Nutrition tab | Nutrition data or "not available" | Both |
-| Tips tab (AI on) | Click Tips tab | Tips load or generate button shown | Both |
-| Tips tab (AI off) | Click Tips tab | Tab hidden entirely | Both |
-| Recipe metadata | Check title, author, time, servings | All present and formatted | Both |
-| Source link | Check source URL | Links to original recipe | Both |
+| Test Case | Steps | Expected Result |
+|-----------|-------|-----------------|
+| Import from search | Click import button on result | Toast, redirect to detail page |
+| Recipe image | View detail page | Image loads, placeholder if missing |
+| Ingredients tab | Click Ingredients tab | Ingredient list displays |
+| Instructions tab | Click Instructions tab | Numbered steps display |
+| Nutrition tab | Click Nutrition tab | Data or "not available" |
+| Tips tab (AI on) | Click Tips tab | Tips load or generate button |
+| Tips tab (AI off) | Check Tips tab | Tab hidden entirely |
+| Recipe metadata | Check title, author, time, servings | All present and formatted |
+| Source link | Check source URL | Links to original recipe |
 
 ### 4. Serving Adjustment (AI Feature)
 
-| Test Case | Steps | Expected Result | Frontend |
-|-----------|-------|-----------------|----------|
-| Adjuster visible (AI on + servings) | View recipe with servings field | +/- buttons shown | Both |
-| Adjuster hidden (AI off) | Disable AI / remove key | No serving controls rendered | Both |
-| Adjuster hidden (no servings) | View recipe without servings | No serving controls rendered | Both |
-| Scale up | Click + to increase servings | Ingredients scale intelligently via AI | Both |
-| Scale down | Click - to decrease servings | Ingredients scale intelligently via AI | Both |
-| Unit preference | Toggle metric/imperial | Scaling uses correct units | Both |
-| Cached result | Scale same recipe again | Returns cached (faster) | Both |
+| Test Case | Steps | Expected Result |
+|-----------|-------|-----------------|
+| Adjuster visible (AI on + servings) | View recipe with servings field | +/- buttons shown |
+| Adjuster hidden (AI off) | View recipe without AI | No serving controls rendered |
+| Adjuster hidden (no servings) | View recipe without servings | No serving controls rendered |
+| Scale up | Click + | Ingredients scale via AI |
+| Scale down | Click - | Ingredients scale via AI |
 
 ### 5. Favorites
 
-| Test Case | Steps | Expected Result | Frontend |
-|-----------|-------|-----------------|----------|
-| Add favorite | Click heart/star on recipe | Icon fills, recipe appears in favorites | Both |
-| Remove favorite | Click filled heart/star | Icon unfills, recipe removed from favorites | Both |
-| Favorites page | Navigate to favorites | Shows all favorited recipes | Both |
-| Empty favorites | Remove all favorites | Empty state message | Both |
-| Duplicate prevention | Favorite same recipe twice | No duplicate, no error | Both |
+| Test Case | Steps | Expected Result |
+|-----------|-------|-----------------|
+| Add favorite | Click heart/star on recipe | Icon fills, appears in favorites |
+| Remove favorite | Click filled heart/star | Icon unfills, removed from favorites |
+| Favorites page | Navigate to favorites | Shows all favorited recipes |
+| Empty favorites | Remove all favorites | Empty state message |
 
 ### 6. Collections
 
-| Test Case | Steps | Expected Result | Frontend |
-|-----------|-------|-----------------|----------|
-| Create collection | Click create, enter name | Collection appears in list | Both |
-| Add recipe | Use "Add to Collection" on recipe | Recipe added, confirmation shown | Both |
-| View collection | Click collection | Shows recipes in collection | Both |
-| Remove recipe | Remove recipe from collection | Recipe gone from collection | Both |
-| Delete collection | Delete entire collection | Collection removed, recipes NOT deleted | Both |
-| Duplicate name | Create collection with existing name | Error shown | Both |
-| Edit collection | Update name/description | Changes saved | Both |
+| Test Case | Steps | Expected Result |
+|-----------|-------|-----------------|
+| Create collection | Click create, enter name | Collection appears in list |
+| Add recipe | Use "Add to Collection" on recipe | Recipe added, confirmation shown |
+| View collection | Click collection | Shows recipes in collection |
+| Remove recipe | Remove recipe from collection | Recipe gone from collection |
+| Delete collection | Delete entire collection | Collection removed, recipes NOT deleted |
+| Duplicate name | Create collection with existing name | Error shown |
 
 ### 7. Play Mode
 
-| Test Case | Steps | Expected Result | Frontend |
-|-----------|-------|-----------------|----------|
-| Enter play mode | Click Play on recipe detail | Full-screen cooking mode | Both |
-| Step navigation | Click Next/Previous | Steps advance/retreat correctly | Both |
-| Step counter | Check counter display | Shows "Step X of Y" accurately | Both |
-| Add timer | Click timer button (+5/+10/+15 min) | Timer starts in timer panel | Both |
-| Multiple timers | Add several timers | All run simultaneously | Both |
-| Timer completion | Wait for timer to finish | Audio alert + notification | Both |
-| Timer label (AI on) | Add timer with AI enabled | Descriptive label (e.g. "Saut onions") | Both |
-| Timer label (AI off) | Add timer without AI | Generic label (e.g. "Timer 1") | Both |
-| Wake lock | Enter play mode, wait | Screen does not dim | Both |
-| Exit play mode | Click close/exit | Return to recipe detail | Both |
+| Test Case | Steps | Expected Result |
+|-----------|-------|-----------------|
+| Enter play mode | Click Play on recipe detail | Full-screen cooking mode |
+| Step navigation | Click Next/Previous | Steps advance/retreat correctly |
+| Step counter | Check counter display | Shows "Step X of Y" accurately |
+| Add timer | Click timer button (+5/+10/+15 min) | Timer starts in timer panel |
+| Multiple timers | Add several timers | All run simultaneously |
+| Timer label (AI on) | Add timer with AI enabled | Descriptive label |
+| Timer label (AI off) | Add timer without AI | Generic label ("Timer 1") |
+| Exit play mode | Click close/exit | Return to recipe detail |
 
 ### 8. Settings Tabs
 
-| Test Case | Steps | Expected Result | Frontend |
-|-----------|-------|-----------------|----------|
-| General tab | Click General | Theme toggle, unit preference visible | Both |
-| Prompts tab (AI on) | Click Prompts | All 10 AI prompts listed and editable | Both |
-| Prompts tab (AI off) | Click Prompts | Tab hidden or appropriate empty state | Both |
-| Sources tab | Click Sources | All search sources with toggle switches | Both |
-| Source test | Test a single source | Returns success/failure status | Both |
-| Bulk toggle | Toggle all sources on/off | All sources change state | Both |
-| Selectors tab | Click Selectors | CSS selectors for each source | Both |
-| Users tab | Click Users | All profiles with stats (favorites, collections, etc.) | Both |
-| Danger tab | Click Danger Zone | Reset preview, deletion controls | Both |
-| Reset preview | Click reset preview | Shows data counts, requires "RESET" confirmation | Both |
+| Test Case | Steps | Expected Result |
+|-----------|-------|-----------------|
+| General tab | Click General | Theme toggle, unit preference visible |
+| Prompts tab (AI on) | Click Prompts | All 10 AI prompts listed and editable |
+| Prompts tab (AI off) | Click Prompts | Tab hidden or empty state |
+| Sources tab | Click Sources | All sources with toggle switches |
+| Source test | Test a single source | Returns success/failure status |
+| Bulk toggle | Toggle all sources on/off | All sources change state |
+| Selectors tab | Click Selectors | CSS selectors for each source |
+| Users tab | Click Users | All profiles with stats |
+| Danger tab | Click Danger Zone | Reset preview, deletion controls |
 
-### 9. AI Feature Visibility
+### 9. Dark Mode
 
-| State | Expected UI |
-|-------|-------------|
-| API key configured + valid | All 10 AI features visible and functional |
-| API key missing | ALL AI UI hidden: no serving adjuster, no tips tab, no remix button, no discover tab, no remix suggestions |
-| API key invalid | Same as missing — all hidden |
-| API call fails (runtime) | Feature-specific graceful failure, no crash |
+| Test Case | Steps | Expected Result |
+|-----------|-------|-----------------|
+| Toggle on | Settings > General > Dark | Dark theme applies |
+| All pages dark | Visit every page | Consistent dark styling |
+| No unstyled elements | Inspect carefully | No white boxes, unreadable text |
+| Toggle off | Settings > General > Light | Light theme restores |
+| Persistence | Refresh page after toggle | Theme preference persists |
 
-### 10. Dark Mode
+### 10. View History
 
-| Test Case | Steps | Expected Result | Frontend |
-|-----------|-------|-----------------|----------|
-| Toggle on | Settings > General > Dark | Dark theme applies | Both |
-| All pages dark | Visit every page | Consistent dark styling | Both |
-| No unstyled elements | Inspect carefully | No white boxes, unreadable text, missing borders | Both |
-| Toggle off | Settings > General > Light | Light theme restores | Both |
-| Persistence | Refresh page after toggle | Theme preference persists | Both |
+| Test Case | Steps | Expected Result |
+|-----------|-------|-----------------|
+| Record view | Open a recipe detail | Appears in "Recently Viewed" on home |
+| Recent order | View multiple recipes | Most recent first |
+| Limit | View many recipes | Shows max 6 (or configured limit) |
 
-### 11. View History
-
-| Test Case | Steps | Expected Result | Frontend |
-|-----------|-------|-----------------|----------|
-| Record view | Open a recipe detail | Appears in "Recently Viewed" on home | Both |
-| Recent order | View multiple recipes | Most recent first | Both |
-| Clear history | Clear history action | Recently Viewed section empty | Both |
-| Limit | View many recipes | Shows max 6 (or configured limit) | Both |
-
-### 12. Cross-Frontend Consistency
+### 11. Cross-Frontend Consistency
 
 | Check | What to Compare |
 |-------|-----------------|
-| Data parity | Same profile shows same recipes, favorites, collections on both frontends |
-| Feature parity | All core features work on both (AI features, search, play mode, settings) |
-| Visual consistency | Similar layout, colors, spacing (not pixel-perfect but coherent) |
+| Data parity | Same profile shows same data on both frontends |
+| Feature parity | All core features work on both |
+| Visual consistency | Similar layout, colors, spacing |
 | Navigation | Same pages accessible on both |
-| Error states | Empty states, loading states, error messages consistent |
+| Error states | Empty states, loading states consistent |
 
-### 13. Remix Features (AI)
+### 12. Remix Features (AI)
 
-| Test Case | Steps | Expected Result | Frontend |
-|-----------|-------|-----------------|----------|
-| Remix button visible (AI on) | View recipe detail | Remix button shown | Both |
-| Remix button hidden (AI off) | View recipe detail without AI | No remix button | Both |
-| Open remix modal | Click remix | Modal with suggestions and text input | Both |
-| Remix suggestions | Check modal | 6 contextual suggestions displayed | Both |
-| Create remix | Enter modification, submit | New recipe created with "(Remix)" suffix | Both |
-| View original | On remix detail page | Link to original recipe | Both |
-| View siblings | On remix detail page | Links to other remixes of same original | Both |
+| Test Case | Steps | Expected Result |
+|-----------|-------|-----------------|
+| Remix button visible (AI on) | View recipe detail | Remix button shown |
+| Remix button hidden (AI off) | View recipe detail | No remix button |
+| Open remix modal | Click remix | Modal with suggestions and text input |
+| Remix suggestions | Check modal | 6 contextual suggestions displayed |
+| Create remix | Enter modification, submit | New recipe with "(Remix)" suffix |
 
-### 14. Discovery (AI)
+### 13. Discovery (AI)
 
-| Test Case | Steps | Expected Result | Frontend |
-|-----------|-------|-----------------|----------|
-| Discover tab (AI on) | Home > Discover tab | Suggestions displayed | Both |
-| Discover favorites | With favorites saved | Suggestions based on preferences | Both |
-| Discover seasonal | Any time | Date-appropriate suggestions | Both |
-| Discover new | With history | "Outside comfort zone" suggestions | Both |
-| New user | No favorites/history | Only seasonal shown | Both |
-| Refresh | Click refresh/re-discover | New suggestions generated | Both |
-| Search from suggestion | Click a suggestion | Executes search with suggested query | Both |
+| Test Case | Steps | Expected Result |
+|-----------|-------|-----------------|
+| Discover tab (AI on) | Home > Discover tab | Suggestions displayed |
+| New user | No favorites/history | Only seasonal shown |
+| Refresh | Click refresh | New suggestions generated |
+| Search from suggestion | Click a suggestion | Executes search |
+
+## UI/UX Improvement Tracking
+
+During testing, note any UI/UX improvements that would enhance the user experience — even if they are not bugs. These go into the issue table with category "UI-UX" and are included in the speckit write-up. Examples:
+
+- Empty states that lack helpful messaging or illustrations
+- Buttons that are hard to find or poorly labeled
+- Confusing navigation flows
+- Missing loading indicators
+- Inconsistent spacing, alignment, or typography between pages
+- Touch targets smaller than 44x44px on the legacy frontend
+- Missing keyboard navigation or focus indicators
+- Pages that feel cluttered or lack visual hierarchy
+
+These are not bugs — they are improvement opportunities. Track them separately from functional bugs but include them in the speckit spec so they can be prioritized and implemented.
 
 ## API Endpoints to Verify
 
-During testing, monitor network requests for these endpoints. All should return appropriate status codes.
+Monitor network requests during testing. All should return appropriate status codes.
 
 ### Health & Status
 - `GET /api/system/health/` — 200
@@ -234,17 +283,28 @@ During testing, monitor network requests for these endpoints. All should return 
 - `GET /api/ai/discover/{profile_id}/` — 200
 - `GET /api/ai/prompts` — 200
 
+## Per-Interaction Checklist
+
+After every significant interaction (button click, form submit, modal open/close, navigation), run this quick check:
+
+1. **Console**: `browser_console_messages` — any new errors?
+2. **Network**: `browser_network_requests` — any failed requests?
+3. **Visual**: Does the result look correct? Any layout shifts, missing elements, broken styles?
+4. **Screenshot**: Take one if something looks wrong or if it's a key state
+
+This catches issues at the moment they occur rather than discovering them later in log review.
+
 ## Legacy-Specific Checks
 
-These are iOS 9.3 Safari specific concerns to verify:
+These are iOS 9.3 Safari specific concerns:
 
 1. **No ES6 syntax errors** in Safari console — the #1 cause of legacy breakage
 2. **Polyfills loaded first** — `polyfills.js` before all other scripts in base.html
 3. **Touch events** — all interactive elements respond to touch (no hover-only interactions)
 4. **Viewport** — proper mobile viewport meta tag
-5. **CSS compatibility** — no CSS Grid (use flexbox or floats), no CSS variables, no `calc()` with complex expressions
+5. **CSS compatibility** — no CSS Grid, no CSS variables, no `calc()` with complex expressions
 6. **Image formats** — WebP not supported on iOS 9; JPEG/PNG fallback required
 7. **AJAX** — XMLHttpRequest (not fetch API) used for network requests
-8. **Animations** — CSS transitions preferred over JS animations; no `requestAnimationFrame` chaining
+8. **Animations** — CSS transitions preferred over JS animations
 9. **Memory** — iPad 2 has 512MB RAM; avoid large DOM trees, excessive event listeners
 10. **Audio** — Must unlock audio context on first user interaction (iOS requirement)

@@ -1,5 +1,52 @@
 /* Cookie Legacy - Settings Page Styles */
 
+/* Preference toggle buttons */
+.pref-btn-group {
+    display: -webkit-flex;
+    display: flex;
+}
+
+.pref-btn-group > * + * {
+    margin-left: 0.5rem;
+}
+
+.pref-toggle {
+    display: -webkit-inline-flex;
+    display: inline-flex;
+    -webkit-align-items: center;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #d1cbc5;
+    background: transparent;
+    color: #6b6560;
+    cursor: pointer;
+    font-size: 0.875rem;
+    -webkit-transition: background-color 0.15s ease, color 0.15s ease;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.pref-toggle .btn-icon {
+    margin-right: 0.5rem;
+}
+
+.pref-toggle.active {
+    background-color: #6b8e5f;
+    color: #fff;
+    border-color: #6b8e5f;
+}
+
+.dark .pref-toggle {
+    border-color: #4a443e;
+    color: #a89f96;
+}
+
+.dark .pref-toggle.active {
+    background-color: #6b8e5f;
+    color: #fff;
+    border-color: #6b8e5f;
+}
+
 /* Settings section title */
 .settings-section-title {
     font-size: 1.125rem;

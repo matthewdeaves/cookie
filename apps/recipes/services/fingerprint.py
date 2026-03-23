@@ -15,26 +15,19 @@ import random
 
 # Primary browser profiles to impersonate
 # These are the most common browsers that recipe sites expect
+# Using auto-latest aliases where available so profiles stay current
 # Order matters: Chrome first as most compatible, then Safari, then Firefox
 BROWSER_PROFILES = [
-    "chrome136",  # Latest Chrome (most compatible with majority of sites)
-    "safari184",  # Latest Safari desktop
-    "firefox133",  # Latest Firefox
-    "chrome131",  # Fallback Chrome version
+    "chrome",  # Auto-latest Chrome (most compatible with majority of sites)
+    "safari",  # Auto-latest Safari desktop
+    "chrome136",  # Specific Chrome version as fallback
+    "safari184",  # Specific Safari version as fallback
 ]
-
-# Convenience aliases that auto-update to latest versions
-# Use these if you want curl_cffi to always use the newest fingerprint
-BROWSER_ALIASES = {
-    "chrome": "chrome",  # Auto-resolves to latest Chrome
-    "safari": "safari",  # Auto-resolves to latest Safari
-    "firefox": "firefox133",  # No alias for Firefox in curl_cffi
-}
 
 # Mobile profiles for sites that serve different content to mobile
 MOBILE_PROFILES = [
-    "safari184_ios",  # Latest iOS Safari
-    "chrome131_android",  # Android Chrome
+    "safari_ios",  # Auto-latest iOS Safari
+    "chrome_android",  # Auto-latest Android Chrome
 ]
 
 # Request timing configuration (in seconds)
@@ -49,7 +42,7 @@ def get_random_profile() -> str:
 
     Returns a weighted random choice favoring Chrome (most compatible).
     """
-    weights = [50, 25, 15, 10]  # Chrome 136, Safari 184, Firefox 133, Chrome 131
+    weights = [45, 30, 15, 10]  # Chrome latest, Safari latest, Chrome 136, Safari 184
     return random.choices(BROWSER_PROFILES, weights=weights)[0]
 
 

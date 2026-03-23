@@ -391,6 +391,8 @@ def settings(request):
                 "id": profile.id,
                 "name": profile.name,
                 "avatar_color": profile.avatar_color,
+                "theme": profile.theme,
+                "unit_preference": profile.unit_preference,
             },
             "current_profile_id": profile.id,
             "ai_available": ai_available,

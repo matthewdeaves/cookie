@@ -77,13 +77,13 @@ class TestSearchImageCacheHelpers:
         # Should be different for different URLs
         assert filename1 != filename2
 
-    def test_generate_filename_preserves_extension(self, image_cache):
-        """Test filename preserves original extension."""
+    def test_generate_filename_always_jpg(self, image_cache):
+        """Test filename always uses .jpg since all images are converted to JPEG."""
         assert image_cache._generate_filename("https://example.com/img.jpg").endswith(".jpg")
-        assert image_cache._generate_filename("https://example.com/img.jpeg").endswith(".jpeg")
-        assert image_cache._generate_filename("https://example.com/img.png").endswith(".png")
-        assert image_cache._generate_filename("https://example.com/img.gif").endswith(".gif")
-        assert image_cache._generate_filename("https://example.com/img.webp").endswith(".webp")
+        assert image_cache._generate_filename("https://example.com/img.jpeg").endswith(".jpg")
+        assert image_cache._generate_filename("https://example.com/img.png").endswith(".jpg")
+        assert image_cache._generate_filename("https://example.com/img.gif").endswith(".jpg")
+        assert image_cache._generate_filename("https://example.com/img.webp").endswith(".jpg")
 
     def test_generate_filename_default_extension(self, image_cache):
         """Test filename defaults to .jpg for unknown extensions."""
@@ -97,32 +97,24 @@ class TestSearchImageCacheHelpers:
         filename2 = image_cache._generate_filename(url)
         assert filename1 == filename2
 
-    def test_is_image_url_accepts_valid_extensions(self, image_cache):
-        """Test URL validation accepts image extensions."""
-        assert image_cache._is_image_url("https://example.com/image.jpg") is True
-        assert image_cache._is_image_url("https://example.com/image.jpeg") is True
-        assert image_cache._is_image_url("https://example.com/image.png") is True
-        assert image_cache._is_image_url("https://example.com/image.gif") is True
-        assert image_cache._is_image_url("https://example.com/image.webp") is True
+    def test_looks_like_image_detects_jpeg(self, image_cache, sample_jpeg_bytes):
+        """Test magic byte detection for JPEG."""
+        assert SearchImageCache._looks_like_image(sample_jpeg_bytes) is True
 
-    def test_is_image_url_case_insensitive(self, image_cache):
-        """Test URL validation is case-insensitive."""
-        assert image_cache._is_image_url("https://example.com/IMAGE.JPG") is True
-        assert image_cache._is_image_url("https://example.com/Image.PNG") is True
-        assert image_cache._is_image_url("https://example.com/photo.WEBP") is True
+    def test_looks_like_image_detects_png(self, image_cache, sample_png_bytes):
+        """Test magic byte detection for PNG."""
+        assert SearchImageCache._looks_like_image(sample_png_bytes) is True
 
-    def test_is_image_url_rejects_non_images(self, image_cache):
-        """Test URL validation rejects non-image extensions."""
-        assert image_cache._is_image_url("https://example.com/page.html") is False
-        assert image_cache._is_image_url("https://example.com/data.json") is False
-        assert image_cache._is_image_url("https://example.com/script.js") is False
-        assert image_cache._is_image_url("https://example.com/noextension") is False
+    def test_looks_like_image_detects_gif(self, image_cache):
+        """Test magic byte detection for GIF."""
+        assert SearchImageCache._looks_like_image(b"GIF89a\x01\x00") is True
 
-    def test_is_image_url_handles_query_strings(self, image_cache):
-        """Test URL validation handles query strings correctly."""
-        # Extension before query string should be detected
-        assert image_cache._is_image_url("https://example.com/image.jpg?width=100") is True
-        assert image_cache._is_image_url("https://example.com/image.png?v=2") is True
+    def test_looks_like_image_rejects_non_images(self, image_cache):
+        """Test magic byte detection rejects non-image data."""
+        assert SearchImageCache._looks_like_image(b"<html>") is False
+        assert SearchImageCache._looks_like_image(b"not an image") is False
+        assert SearchImageCache._looks_like_image(b"") is False
+        assert SearchImageCache._looks_like_image(b"\x00\x01") is False
 
 
 class TestImageConversion:
@@ -286,11 +278,6 @@ class TestImageCaching:
 
         result = await image_cache._fetch_image("https://example.com/image.jpg")
 
-        assert result is None
-
-    async def test_fetch_image_non_image_url_returns_none(self, image_cache):
-        """Test fetch returns None for non-image URLs."""
-        result = await image_cache._fetch_image("https://example.com/page.html")
         assert result is None
 
     @patch("apps.recipes.services.image_cache.AsyncSession")
@@ -681,9 +668,7 @@ class TestConcurrencyLimits:
         # Try to cache 10 images (more than MAX_CONCURRENT)
         urls = [f"https://example.com/img{i}.jpg" for i in range(10)]
 
-        # Patch _is_image_url to always return True
-        with patch.object(image_cache, "_is_image_url", return_value=True):
-            await image_cache.cache_images(urls)
+        await image_cache.cache_images(urls)
 
         # Max concurrent should not exceed limit
         assert max_active <= image_cache.MAX_CONCURRENT
