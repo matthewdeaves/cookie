@@ -802,10 +802,11 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
-      - name: Install dependencies
+      - name: Install dependencies and security tools
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install pip-audit bandit
 
       - name: Run pip-audit (dependency vulnerabilities)
         run: |
