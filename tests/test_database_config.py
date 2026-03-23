@@ -1,15 +1,17 @@
 """
-Tests for database configuration (FE-005: PostgreSQL support).
+Tests for database configuration (006: Enforce PostgreSQL Everywhere).
 
 These tests verify that the database configuration correctly handles:
 - DATABASE_URL environment variable (PostgreSQL)
-- SQLite fallback when DATABASE_URL is not set
+- Raises ImproperlyConfigured when DATABASE_URL is not set
 - Connection pooling settings
 
 Note: Tests avoid reloading Django settings to prevent state corruption.
 """
 
+import importlib
 import os
+
 import pytest
 
 
@@ -75,6 +77,25 @@ class TestDatabaseConfiguration:
         # SSL options are passed through
         assert "sslmode" in db_config.get("OPTIONS", {}) or db_config.get("NAME") == "dbname"
 
+    def test_missing_database_url_raises_improperly_configured(self):
+        """Test that missing DATABASE_URL raises ImproperlyConfigured."""
+        from unittest.mock import patch
+
+        from django.core.exceptions import ImproperlyConfigured
+
+        import cookie.settings
+
+        # Temporarily remove DATABASE_URL from environment and reload settings
+        with patch.dict(os.environ, {}, clear=True):
+            # Ensure DATABASE_URL is definitely not set
+            assert os.environ.get("DATABASE_URL") is None
+
+            with pytest.raises(ImproperlyConfigured, match="DATABASE_URL"):
+                importlib.reload(cookie.settings)
+
+        # Reload settings with the real environment to restore state
+        importlib.reload(cookie.settings)
+
 
 @pytest.mark.django_db
 class TestDatabaseConnection:
@@ -112,22 +133,16 @@ class TestDatabaseConnection:
         assert Profile.objects.filter(id=profile.id).count() == 0
 
     def test_database_vendor_matches_config(self):
-        """Test database vendor matches expected based on configuration."""
+        """Test database vendor is always PostgreSQL."""
         from django.db import connection
 
-        vendor = connection.vendor
-
-        if os.environ.get("DATABASE_URL"):
-            # If DATABASE_URL is set, should be PostgreSQL
-            assert vendor == "postgresql"
-        else:
-            # Otherwise should be SQLite
-            assert vendor == "sqlite"
+        assert connection.vendor == "postgresql"
 
     def test_migrations_are_applied(self):
         """Test that all migrations have been applied."""
-        from django.core.management import call_command
         from io import StringIO
+
+        from django.core.management import call_command
 
         out = StringIO()
         call_command("showmigrations", "--plan", stdout=out)
@@ -140,20 +155,12 @@ class TestDatabaseConnection:
 
 @pytest.mark.django_db
 class TestPostgresSpecificFeatures:
-    """Tests for PostgreSQL-specific behavior (skipped if using SQLite)."""
-
-    @pytest.fixture(autouse=True)
-    def skip_if_sqlite(self):
-        """Skip these tests if not using PostgreSQL."""
-        from django.db import connection
-
-        if connection.vendor != "postgresql":
-            pytest.skip("PostgreSQL-specific test")
+    """Tests for PostgreSQL-specific behavior."""
 
     def test_jsonfield_native_support(self, db):
         """Test JSONField works with native PostgreSQL JSON support."""
-        from apps.recipes.models import Recipe
         from apps.profiles.models import Profile
+        from apps.recipes.models import Recipe
 
         profile = Profile.objects.create(name="Test User")
         recipe = Recipe.objects.create(

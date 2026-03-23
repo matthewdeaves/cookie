@@ -6,55 +6,50 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from apps.recipes.services.search import RecipeSearch, SearchResult
+from apps.recipes.services.search_parsers import (
+    extract_result_from_element,
+    looks_like_recipe_url,
+)
 
 
 class TestSearchHelpers:
     """Tests for search helper methods."""
 
-    def setup_method(self):
-        self.search = RecipeSearch()
-
     def test_looks_like_recipe_url_recipe_path(self):
         """Test URL with /recipe/ in path is detected."""
         assert (
-            self.search._looks_like_recipe_url(
-                "https://allrecipes.com/recipe/12345/chocolate-chip-cookies/", "allrecipes.com"
-            )
+            looks_like_recipe_url("https://allrecipes.com/recipe/12345/chocolate-chip-cookies/", "allrecipes.com")
             is True
         )
 
     def test_looks_like_recipe_url_recipes_path(self):
         """Test URL with /recipes/ in path is detected."""
-        assert self.search._looks_like_recipe_url("https://food52.com/recipes/12345-cookies", "food52.com") is True
+        assert looks_like_recipe_url("https://food52.com/recipes/12345-cookies", "food52.com") is True
 
     def test_looks_like_recipe_url_numeric_id(self):
         """Test URL with numeric ID in path is detected."""
-        assert self.search._looks_like_recipe_url("https://example.com/12345/yummy-cookies", "example.com") is True
+        assert looks_like_recipe_url("https://example.com/12345/yummy-cookies", "example.com") is True
 
     def test_looks_like_recipe_url_wrong_host(self):
         """Test URL from wrong host is rejected."""
-        assert self.search._looks_like_recipe_url("https://different-site.com/recipe/123", "allrecipes.com") is False
+        assert looks_like_recipe_url("https://different-site.com/recipe/123", "allrecipes.com") is False
 
     def test_looks_like_recipe_url_search_page(self):
         """Test search page URLs are rejected."""
-        assert self.search._looks_like_recipe_url("https://allrecipes.com/search?q=cookies", "allrecipes.com") is False
+        assert looks_like_recipe_url("https://allrecipes.com/search?q=cookies", "allrecipes.com") is False
 
     def test_looks_like_recipe_url_category_page(self):
         """Test category page URLs are rejected."""
-        assert (
-            self.search._looks_like_recipe_url("https://allrecipes.com/category/desserts/", "allrecipes.com") is False
-        )
+        assert looks_like_recipe_url("https://allrecipes.com/category/desserts/", "allrecipes.com") is False
 
     def test_looks_like_recipe_url_author_page(self):
         """Test author page URLs are rejected."""
-        assert self.search._looks_like_recipe_url("https://allrecipes.com/author/chef-john/", "allrecipes.com") is False
+        assert looks_like_recipe_url("https://allrecipes.com/author/chef-john/", "allrecipes.com") is False
 
     def test_looks_like_recipe_url_long_path(self):
         """Test that long paths with multiple segments are accepted."""
         assert (
-            self.search._looks_like_recipe_url(
-                "https://example.com/food/desserts/chocolate-chip-cookies-recipe", "example.com"
-            )
+            looks_like_recipe_url("https://example.com/food/desserts/chocolate-chip-cookies-recipe", "example.com")
             is True
         )
 
@@ -174,7 +169,7 @@ class TestParseSearchResults:
         html = '<div class="card"><span>No link here</span></div>'
         soup = BeautifulSoup(html, "html.parser")
         element = soup.find("div")
-        result = self.search._extract_result_from_element(
+        result = extract_result_from_element(
             element,
             "example.com",
             "https://example.com/search",
@@ -194,7 +189,7 @@ class TestParseSearchResults:
         """
         soup = BeautifulSoup(html, "html.parser")
         element = soup.find("div")
-        result = self.search._extract_result_from_element(
+        result = extract_result_from_element(
             element,
             "example.com",
             "https://example.com/search",
@@ -216,7 +211,7 @@ class TestParseSearchResults:
         """
         soup = BeautifulSoup(html, "html.parser")
         element = soup.find("div")
-        result = self.search._extract_result_from_element(
+        result = extract_result_from_element(
             element,
             "example.com",
             "https://example.com/search",
@@ -238,7 +233,7 @@ class TestParseSearchResults:
         """
         soup = BeautifulSoup(html, "html.parser")
         element = soup.find("div")
-        result = self.search._extract_result_from_element(
+        result = extract_result_from_element(
             element,
             "example.com",
             "https://example.com/search",
@@ -260,7 +255,7 @@ class TestParseSearchResults:
         """
         soup = BeautifulSoup(html, "html.parser")
         element = soup.find("div")
-        result = self.search._extract_result_from_element(
+        result = extract_result_from_element(
             element,
             "example.com",
             "https://example.com/search",

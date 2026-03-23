@@ -293,7 +293,12 @@ class AIAPITests(TestCase):
 
     def test_test_api_key_empty(self):
         """Test API key validation with empty key."""
-        response = self.client.post("/api/ai/test-api-key", data={"api_key": ""}, content_type="application/json")
+        response = self.client.post(
+            "/api/ai/test-api-key",
+            data={"api_key": ""},
+            content_type="application/json",
+            HTTP_X_FORWARDED_FOR="127.0.0.1",
+        )
         assert response.status_code == 400
 
     @patch.object(OpenRouterService, "test_connection")
@@ -305,7 +310,10 @@ class AIAPITests(TestCase):
         OpenRouterService._key_validation_cache[hash("old-key")] = (True, 0)
 
         response = self.client.post(
-            "/api/ai/save-api-key", data={"api_key": "new-key-123"}, content_type="application/json"
+            "/api/ai/save-api-key",
+            data={"api_key": "new-key-123"},
+            content_type="application/json",
+            HTTP_X_FORWARDED_FOR="127.0.0.1",
         )
         assert response.status_code == 200
 
@@ -852,7 +860,13 @@ class SelectorRepairAPITests(TestCase):
     """Tests for the selector repair API endpoints."""
 
     def setUp(self):
+        from apps.profiles.models import Profile
         from apps.recipes.models import SearchSource
+
+        self.profile = Profile.objects.create(name="Test Profile")
+        session = self.client.session
+        session["profile_id"] = self.profile.id
+        session.save()
 
         self.source = SearchSource.objects.create(
             host="test.example.com",
@@ -1064,7 +1078,7 @@ class AIFeatureFallbackTests(TestCase):
         assert data["action"] == "configure_key"
         assert "message" in data
 
-    @patch("apps.ai.api.get_remix_suggestions")
+    @patch("apps.ai.api_remix.get_remix_suggestions")
     def test_remix_suggestions_returns_503_when_ai_unavailable(self, mock_suggestions):
         """Test remix suggestions endpoint returns 503 when AI is unavailable."""
         mock_suggestions.side_effect = AIUnavailableError("No API key")
@@ -1077,7 +1091,7 @@ class AIFeatureFallbackTests(TestCase):
         data = response.json()
         assert data["error"] == "ai_unavailable"
 
-    @patch("apps.ai.api.scale_recipe")
+    @patch("apps.ai.api_scaling.scale_recipe")
     def test_scale_returns_503_when_ai_unavailable(self, mock_scale):
         """Test scale endpoint returns 503 when AI is unavailable."""
         mock_scale.side_effect = AIUnavailableError("No API key")
@@ -1096,7 +1110,7 @@ class AIFeatureFallbackTests(TestCase):
         data = response.json()
         assert data["error"] == "ai_unavailable"
 
-    @patch("apps.ai.api.get_discover_suggestions")
+    @patch("apps.ai.api_discover.get_discover_suggestions")
     def test_discover_returns_503_when_ai_unavailable(self, mock_discover):
         """Test discover endpoint returns 503 when AI is unavailable."""
         mock_discover.side_effect = AIUnavailableError("No API key")
@@ -1194,7 +1208,7 @@ class AIResponseErrorTests(TestCase):
         data = response.json()
         assert data["error"] == "ai_error"
 
-    @patch("apps.ai.api.create_remix")
+    @patch("apps.ai.api_remix.create_remix")
     def test_remix_returns_400_on_ai_error(self, mock_remix):
         """Test remix endpoint returns 400 on AI response error."""
         mock_remix.side_effect = AIResponseError("AI returned invalid data")

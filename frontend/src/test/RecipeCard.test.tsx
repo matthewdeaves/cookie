@@ -44,14 +44,18 @@ describe('RecipeCard', () => {
     expect(img).toHaveAttribute('src', 'https://example.com/main-image.jpg')
   })
 
-  it('shows "No image" text when no image is available', () => {
+  it('shows recipe title as placeholder when no image is available', () => {
     const recipeNoImage: Recipe = {
       ...mockRecipe,
       image_url: '',
       image: null,
     }
     render(<RecipeCard recipe={recipeNoImage} />)
-    expect(screen.getByText('No image')).toBeInTheDocument()
+    // No <img> element should be rendered
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    // Title appears in the placeholder and in the card content
+    const titles = screen.getAllByText('Chocolate Chip Cookies')
+    expect(titles.length).toBe(2)
   })
 
   it('formats time correctly for minutes under 60', () => {

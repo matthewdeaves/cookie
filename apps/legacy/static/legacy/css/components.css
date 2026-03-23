@@ -39,8 +39,8 @@
 }
 
 .btn-primary {
-    background-color: var(--primary);
-    color: var(--primary-foreground);
+    background-color: #6b8e5f;
+    color: #ffffff;
 }
 
 .btn-primary:hover {
@@ -53,22 +53,22 @@
 }
 
 .btn-secondary {
-    background-color: var(--secondary);
-    color: var(--secondary-foreground);
-    border: 1px solid var(--border);
+    background-color: #f4ede6;
+    color: #2d2520;
+    border: 1px solid #e8e1d8;
 }
 
 .btn-secondary:hover {
-    background-color: var(--muted);
+    background-color: #e8e1d8;
 }
 
 .btn-ghost {
     background-color: transparent;
-    color: var(--foreground);
+    color: #2d2520;
 }
 
 .btn-ghost:hover {
-    background-color: var(--secondary);
+    background-color: #f4ede6;
 }
 
 /* Form Inputs */
@@ -77,9 +77,9 @@
     padding: 0.75rem 1rem;
     font-size: 1rem;
     line-height: 1.5;
-    color: var(--foreground);
-    background-color: var(--input-background);
-    border: 1px solid var(--border);
+    color: #2d2520;
+    background-color: #ffffff;
+    border: 1px solid #e8e1d8;
     border-radius: 0.5rem;
     -webkit-transition: border-color 0.15s ease, box-shadow 0.15s ease;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -88,12 +88,12 @@
 
 .input:focus {
     outline: none;
-    border-color: var(--ring);
+    border-color: #6b8e5f;
     box-shadow: 0 0 0 2px rgba(107, 142, 95, 0.2);
 }
 
 .input::placeholder {
-    color: var(--muted-foreground);
+    color: #6b6560;
 }
 
 /* Search Input */
@@ -115,7 +115,7 @@
     transform: translateY(-50%);
     width: 1.25rem;
     height: 1.25rem;
-    color: var(--muted-foreground);
+    color: #6b6560;
     pointer-events: none;
 }
 
@@ -135,20 +135,20 @@
     justify-content: center;
     background: transparent;
     border: none;
-    color: var(--muted-foreground);
+    color: #6b6560;
     cursor: pointer;
     border-radius: 50%;
 }
 
 .search-clear:hover {
-    background-color: var(--secondary);
+    background-color: #f4ede6;
 }
 
 /* Cards */
 .card {
-    background-color: var(--card);
+    background-color: #ffffff;
     border-radius: 0.75rem;
-    border: 1px solid var(--border);
+    border: 1px solid #e8e1d8;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     padding: 1.5rem;
 }
@@ -203,7 +203,6 @@
     flex-direction: column;
     -webkit-align-items: center;
     align-items: center;
-    gap: 0.5rem;
     -webkit-transition: transform 0.15s ease;
     transition: transform 0.15s ease;
     min-height: auto;
@@ -217,7 +216,7 @@
 
 .profile-btn-name {
     font-size: 0.875rem;
-    color: var(--foreground);
+    color: #2d2520;
 }
 
 /* Add profile button */
@@ -225,7 +224,7 @@
     width: 5rem;
     height: 5rem;
     border-radius: 50%;
-    border: 2px dashed var(--muted-foreground);
+    border: 2px dashed #6b6560;
     background: transparent;
     cursor: pointer;
     display: -webkit-flex;
@@ -243,17 +242,17 @@
 
 .add-profile-btn:hover {
     opacity: 1;
-    border-color: var(--primary);
+    border-color: #6b8e5f;
 }
 
 .add-profile-btn svg {
     width: 2rem;
     height: 2rem;
-    color: var(--muted-foreground);
+    color: #6b6560;
 }
 
 .add-profile-btn:hover svg {
-    color: var(--primary);
+    color: #6b8e5f;
 }
 
 /* Chips/Badges */
@@ -266,9 +265,9 @@
     font-size: 0.875rem;
     font-weight: 500;
     border-radius: 9999px;
-    background-color: var(--secondary);
-    color: var(--secondary-foreground);
-    border: 1px solid var(--border);
+    background-color: #f4ede6;
+    color: #2d2520;
+    border: 1px solid #e8e1d8;
     cursor: pointer;
     -webkit-transition: background-color 0.15s ease;
     transition: background-color 0.15s ease;
@@ -276,13 +275,13 @@
 }
 
 .chip:hover {
-    background-color: var(--muted);
+    background-color: #e8e1d8;
 }
 
 .chip.active {
-    background-color: var(--primary);
-    color: var(--primary-foreground);
-    border-color: var(--primary);
+    background-color: #6b8e5f;
+    color: #ffffff;
+    border-color: #6b8e5f;
 }
 
 /* Color picker swatch */
@@ -304,14 +303,14 @@
 }
 
 .color-swatch.selected {
-    box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ring);
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #6b8e5f;
 }
 
 /* Tab toggle (Favorites/Discover) */
 .tab-toggle {
     display: -webkit-flex;
     display: flex;
-    background-color: var(--secondary);
+    background-color: #f4ede6;
     border-radius: 0.5rem;
     padding: 0.25rem;
 }
@@ -325,15 +324,15 @@
     background: transparent;
     border: none;
     border-radius: 0.375rem;
-    color: var(--muted-foreground);
+    color: #6b6560;
     cursor: pointer;
     -webkit-transition: background-color 0.15s ease, color 0.15s ease;
     transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .tab-toggle-btn.active {
-    background-color: var(--card);
-    color: var(--foreground);
+    background-color: #ffffff;
+    color: #2d2520;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
@@ -354,8 +353,8 @@
     flex-direction: column;
     text-align: left;
     padding: 1rem;
-    background-color: var(--card);
-    border: 1px solid var(--border);
+    background-color: #ffffff;
+    border: 1px solid #e8e1d8;
     border-radius: 0.75rem;
     cursor: pointer;
     -webkit-transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -382,7 +381,7 @@
 }
 
 .discover-card:hover {
-    border-color: var(--primary);
+    border-color: #6b8e5f;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -391,12 +390,11 @@
     display: flex;
     -webkit-align-items: center;
     align-items: center;
-    gap: 0.5rem;
     margin-bottom: 0.5rem;
 }
 
 .discover-card-icon {
-    color: var(--primary);
+    color: #6b8e5f;
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
 }
@@ -406,25 +404,25 @@
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--muted-foreground);
+    color: #6b6560;
 }
 
 .discover-card-title {
     font-size: 1rem;
     font-weight: 500;
-    color: var(--foreground);
+    color: #2d2520;
     margin: 0 0 0.25rem 0;
     -webkit-transition: color 0.15s ease;
     transition: color 0.15s ease;
 }
 
 .discover-card:hover .discover-card-title {
-    color: var(--primary);
+    color: #6b8e5f;
 }
 
 .discover-card-description {
     font-size: 0.875rem;
-    color: var(--muted-foreground);
+    color: #6b6560;
     margin: 0;
     line-height: 1.5;
 }
@@ -434,10 +432,9 @@
     display: flex;
     -webkit-align-items: center;
     align-items: center;
-    gap: 0.25rem;
     margin-top: 0.75rem;
     font-size: 0.75rem;
-    color: var(--primary);
+    color: #6b8e5f;
 }
 
 /* Section header with button */
@@ -446,20 +443,19 @@
     display: inline-flex;
     -webkit-align-items: center;
     align-items: center;
-    gap: 0.375rem;
     padding: 0;
     background: none;
     border: none;
     font-size: 0.875rem;
     font-weight: 500;
-    color: var(--muted-foreground);
+    color: #6b6560;
     cursor: pointer;
     -webkit-transition: color 0.15s ease;
     transition: color 0.15s ease;
 }
 
 .section-link-btn:hover {
-    color: var(--foreground);
+    color: #2d2520;
 }
 
 .section-link-btn .refresh-icon {
@@ -520,12 +516,12 @@
 }
 
 .toast-success {
-    background-color: var(--primary);
+    background-color: #6b8e5f;
     color: white;
 }
 
 .toast-error {
-    background-color: var(--destructive);
+    background-color: #c94545;
     color: white;
 }
 
@@ -557,7 +553,7 @@
 .recipe-card {
     position: relative;
     display: block;
-    background-color: var(--card);
+    background-color: #ffffff;
     border-radius: 0.5rem;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -574,7 +570,7 @@
 .recipe-card-image {
     position: relative;
     padding-top: 75%; /* 4:3 aspect ratio */
-    background-color: var(--muted);
+    background-color: #e8e1d8;
     overflow: hidden;
 }
 
@@ -606,7 +602,7 @@
     align-items: center;
     -webkit-justify-content: center;
     justify-content: center;
-    color: var(--muted-foreground);
+    color: #6b6560;
     font-size: 0.875rem;
 }
 
@@ -626,7 +622,7 @@
     border: none;
     border-radius: 50%;
     cursor: pointer;
-    color: var(--muted-foreground);
+    color: #6b6560;
     -webkit-transition: background-color 0.15s ease, color 0.15s ease;
     transition: background-color 0.15s ease, color 0.15s ease;
     min-height: auto;
@@ -634,12 +630,12 @@
 }
 
 .recipe-card-favorite:hover {
-    background-color: var(--background);
-    color: var(--accent);
+    background-color: #faf9f7;
+    color: #a84f5f;
 }
 
 .recipe-card-favorite.active {
-    color: var(--accent);
+    color: #a84f5f;
 }
 
 .recipe-card-badge {
@@ -661,7 +657,7 @@
 .recipe-card-title {
     font-size: 0.875rem;
     font-weight: 500;
-    color: var(--card-foreground);
+    color: #2d2520;
     margin: 0 0 0.25rem 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -675,9 +671,8 @@
     display: flex;
     -webkit-align-items: center;
     align-items: center;
-    gap: 0.5rem;
     font-size: 0.75rem;
-    color: var(--muted-foreground);
+    color: #6b6560;
 }
 
 /* Override gap for older browsers */
@@ -698,7 +693,6 @@
     display: inline-flex;
     -webkit-align-items: center;
     align-items: center;
-    gap: 0.25rem;
     white-space: nowrap;
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
@@ -711,7 +705,7 @@
 }
 
 .recipe-card-rating svg {
-    color: var(--star);
+    color: #d97850;
 }
 
 /* Empty State */
@@ -725,7 +719,7 @@
     -webkit-justify-content: center;
     justify-content: center;
     padding: 3rem 1rem;
-    border: 2px dashed var(--border);
+    border: 2px dashed #e8e1d8;
     border-radius: 0.75rem;
     text-align: center;
 }
@@ -739,26 +733,26 @@
     justify-content: center;
     width: 4rem;
     height: 4rem;
-    background-color: var(--muted);
+    background-color: #e8e1d8;
     border-radius: 50%;
     margin-bottom: 1rem;
-    color: var(--muted-foreground);
+    color: #6b6560;
 }
 
 .empty-state-icon.sparkle {
-    color: var(--primary);
+    color: #6b8e5f;
 }
 
 .empty-state-title {
     font-size: 1.125rem;
     font-weight: 500;
-    color: var(--foreground);
+    color: #2d2520;
     margin: 0 0 0.5rem 0;
 }
 
 .empty-state-text {
     font-size: 0.875rem;
-    color: var(--muted-foreground);
+    color: #6b6560;
     margin: 0 0 1rem 0;
 }
 
@@ -773,15 +767,14 @@
     -webkit-justify-content: center;
     justify-content: center;
     padding: 3rem;
-    color: var(--muted-foreground);
-    gap: 1rem;
+    color: #6b6560;
 }
 
 .spinner {
     width: 2rem;
     height: 2rem;
-    border: 3px solid var(--muted);
-    border-top-color: var(--primary);
+    border: 3px solid #e8e1d8;
+    border-top-color: #6b8e5f;
     border-radius: 50%;
     -webkit-animation: spin 0.8s linear infinite;
     animation: spin 0.8s linear infinite;
@@ -808,13 +801,13 @@
 .search-title {
     font-size: 1.25rem;
     font-weight: 500;
-    color: var(--foreground);
+    color: #2d2520;
     margin: 0 0 0.25rem 0;
 }
 
 .search-count {
     font-size: 0.875rem;
-    color: var(--muted-foreground);
+    color: #6b6560;
     margin: 0;
 }
 
@@ -855,7 +848,7 @@
 }
 
 .search-result-card > div:first-child {
-    background-color: var(--card);
+    background-color: #ffffff;
     border-radius: 0.5rem;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -869,7 +862,7 @@
 .search-result-image {
     position: relative;
     padding-top: 75%; /* 4:3 aspect ratio */
-    background-color: var(--muted);
+    background-color: #e8e1d8;
     overflow: hidden;
 }
 
@@ -894,7 +887,7 @@
     align-items: center;
     -webkit-justify-content: center;
     justify-content: center;
-    color: var(--muted-foreground);
+    color: #6b6560;
     font-size: 0.875rem;
 }
 
@@ -911,15 +904,15 @@
     align-items: center;
     -webkit-justify-content: center;
     justify-content: center;
-    background: var(--muted);
+    background: #e8e1d8;
 }
 
 .image-loading-spinner::after {
     content: '';
     width: 30px;
     height: 30px;
-    border: 3px solid var(--border);
-    border-top-color: var(--primary);
+    border: 3px solid #e8e1d8;
+    border-top-color: #6b8e5f;
     border-radius: 50%;
     -webkit-animation: spin 0.8s linear infinite;
     animation: spin 0.8s linear infinite;
@@ -938,7 +931,7 @@
 .search-result-title {
     font-size: 0.875rem;
     font-weight: 500;
-    color: var(--card-foreground);
+    color: #2d2520;
     margin: 0 0 0.25rem 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -949,13 +942,13 @@
 
 .search-result-host {
     font-size: 0.75rem;
-    color: var(--muted-foreground);
+    color: #6b6560;
     margin: 0 0 0.5rem 0;
 }
 
 .search-result-description {
     font-size: 0.75rem;
-    color: var(--muted-foreground);
+    color: #6b6560;
     margin: 0 0 0.75rem 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -973,7 +966,7 @@
     font-weight: 500;
     text-align: center;
     background-color: rgba(107, 142, 95, 0.1);
-    color: var(--primary);
+    color: #6b8e5f;
     border: none;
     border-radius: 0.375rem;
     cursor: pointer;
@@ -996,10 +989,9 @@
     display: flex;
     -webkit-align-items: flex-start;
     align-items: flex-start;
-    gap: 1rem;
     padding: 1.5rem;
-    background-color: var(--card);
-    border: 1px solid var(--border);
+    background-color: #ffffff;
+    border: 1px solid #e8e1d8;
     border-radius: 0.75rem;
     margin-bottom: 1.5rem;
 }
@@ -1015,7 +1007,7 @@
     height: 3rem;
     background-color: rgba(107, 142, 95, 0.1);
     border-radius: 50%;
-    color: var(--primary);
+    color: #6b8e5f;
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
 }
@@ -1029,13 +1021,13 @@
 .url-import-title {
     font-size: 1rem;
     font-weight: 500;
-    color: var(--card-foreground);
+    color: #2d2520;
     margin: 0 0 0.25rem 0;
 }
 
 .url-import-url {
     font-size: 0.875rem;
-    color: var(--muted-foreground);
+    color: #6b6560;
     margin: 0 0 1rem 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1054,6 +1046,6 @@
 .end-of-results {
     text-align: center;
     padding: 2rem 0;
-    color: var(--muted-foreground);
+    color: #6b6560;
     font-size: 0.875rem;
 }

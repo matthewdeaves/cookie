@@ -44,6 +44,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m15 18-6-6 6-6"></path>
                 </svg>
+                <span class="side-nav-label">Previous</span>
             </button>
 
             <!-- Instruction display (center, scrollable) -->
@@ -68,6 +69,7 @@
 
             <!-- Next button (right side) -->
             <button type="button" id="next-btn" class="side-nav side-nav-next{% if instructions|length <= 1 %} disabled{% endif %}" title="Next step">
+                <span class="side-nav-label">Next</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m9 18 6-6-6-6"></path>
                 </svg>

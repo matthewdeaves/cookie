@@ -21,6 +21,7 @@ from apps.recipes.models import (
     CachedSearchImage,
 )
 from apps.ai.models import AIDiscoverySuggestion, AIPrompt
+from apps.core.auth import SessionAuth
 
 router = Router(tags=["system"])
 
@@ -77,7 +78,7 @@ class ResetSuccessSchema(Schema):
     actions_performed: list[str]
 
 
-@router.get("/reset-preview/", response=ResetPreviewSchema)
+@router.get("/reset-preview/", response=ResetPreviewSchema, auth=SessionAuth())
 def get_reset_preview(request):
     """Get summary of data that will be deleted on reset."""
     return {
@@ -106,7 +107,7 @@ def get_reset_preview(request):
     }
 
 
-@router.post("/reset/", response={200: ResetSuccessSchema, 400: ErrorSchema})
+@router.post("/reset/", response={200: ResetSuccessSchema, 400: ErrorSchema}, auth=SessionAuth())
 def reset_database(request, data: ResetConfirmSchema):
     """
     Completely reset the database to factory state.

@@ -1,10 +1,13 @@
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Moon, Sun, Home, Heart, FolderOpen, Settings, LogOut } from 'lucide-react'
+import { Moon, Sun, Home, Heart, BookOpen, FolderOpen, Settings, LogOut, Users } from 'lucide-react'
 import { useProfile } from '../contexts/ProfileContext'
 
 export default function NavHeader() {
   const navigate = useNavigate()
   const { profile, theme, toggleTheme, logout } = useProfile()
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const handleLogout = () => {
     logout()
@@ -14,6 +17,18 @@ export default function NavHeader() {
   const getInitial = (name: string) => {
     return name.charAt(0).toUpperCase()
   }
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!dropdownOpen) return
+    const handleClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [dropdownOpen])
 
   if (!profile) return null
 
@@ -34,6 +49,15 @@ export default function NavHeader() {
           aria-label="Home"
         >
           <Home className="h-5 w-5" />
+        </button>
+
+        {/* All Recipes */}
+        <button
+          onClick={() => navigate('/all-recipes')}
+          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
+          aria-label="All recipes"
+        >
+          <BookOpen className="h-5 w-5" />
         </button>
 
         {/* Favorites */}
@@ -76,24 +100,36 @@ export default function NavHeader() {
           <Settings className="h-5 w-5" />
         </button>
 
-        {/* Profile avatar */}
-        <button
-          onClick={handleLogout}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium text-white"
-          style={{ backgroundColor: profile.avatar_color }}
-          aria-label="Switch profile"
-        >
-          {getInitial(profile.name)}
-        </button>
+        {/* Profile avatar with dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium text-white"
+            style={{ backgroundColor: profile.avatar_color }}
+            aria-label={profile.name}
+          >
+            {getInitial(profile.name)}
+          </button>
 
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          aria-label="Switch profile"
-        >
-          <LogOut className="h-5 w-5" />
-        </button>
+          {dropdownOpen && (
+            <div className="absolute right-0 top-full z-50 mt-1 w-44 rounded-lg border border-border bg-card py-1 shadow-lg">
+              <button
+                onClick={() => { setDropdownOpen(false); handleLogout() }}
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-card-foreground hover:bg-muted"
+              >
+                <Users className="h-4 w-4" />
+                Switch profile
+              </button>
+              <button
+                onClick={() => { setDropdownOpen(false); handleLogout() }}
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-card-foreground hover:bg-muted"
+              >
+                <LogOut className="h-4 w-4" />
+                Log out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   )

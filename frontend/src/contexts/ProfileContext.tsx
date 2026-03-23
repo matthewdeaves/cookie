@@ -2,6 +2,25 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 import { toast } from 'sonner'
 import { api, type Profile, type RecipeDetail } from '../api/client'
 
+const PROFILE_STORAGE_KEY = 'cookie_selected_profile_id'
+
+function saveProfileId(id: number) {
+  localStorage.setItem(PROFILE_STORAGE_KEY, String(id))
+  document.cookie = `selected_profile_id=${id};path=/;SameSite=Lax`
+}
+
+function clearProfileId() {
+  localStorage.removeItem(PROFILE_STORAGE_KEY)
+  document.cookie = 'selected_profile_id=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT'
+}
+
+function getStoredProfileId(): number | null {
+  const stored = localStorage.getItem(PROFILE_STORAGE_KEY)
+  if (!stored) return null
+  const id = parseInt(stored, 10)
+  return isNaN(id) ? null : id
+}
+
 interface ProfileContextType {
   profile: Profile | null
   theme: 'light' | 'dark'
@@ -10,6 +29,7 @@ interface ProfileContextType {
   selectProfile: (profile: Profile) => Promise<void>
   logout: () => void
   toggleTheme: () => Promise<void>
+  updateUnitPreference: (unit: 'metric' | 'imperial') => Promise<void>
   toggleFavorite: (recipe: RecipeDetail) => Promise<void>
   isFavorite: (recipeId: number) => boolean
 }
@@ -44,21 +64,28 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
     }
   }, [theme])
 
-  // Check for existing session on mount
+  // Check for existing session on mount - restore from localStorage
   useEffect(() => {
-    const checkSession = async () => {
+    const restoreSession = async () => {
       try {
-        // Try to get the current profile from session
-        // Check if there's a profile with an active session (cookie-based)
-        // For now, we don't persist sessions across reloads, so just set loading false
-        await api.profiles.list()
-        setLoading(false)
+        const storedId = getStoredProfileId()
+        if (storedId) {
+          try {
+            const restored = await api.profiles.select(storedId)
+            setProfile(restored)
+            setTheme(restored.theme as 'light' | 'dark')
+          } catch {
+            // Profile no longer exists - clear stored data
+            clearProfileId()
+          }
+        }
       } catch (error) {
-        console.error('Failed to check session:', error)
+        console.error('Failed to restore session:', error)
+      } finally {
         setLoading(false)
       }
     }
-    checkSession()
+    restoreSession()
   }, [])
 
   // Load favorites when profile changes
@@ -81,6 +108,7 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
       await api.profiles.select(selectedProfile.id)
       setProfile(selectedProfile)
       setTheme(selectedProfile.theme as 'light' | 'dark')
+      saveProfileId(selectedProfile.id)
     } catch (error) {
       console.error('Failed to select profile:', error)
       throw error
@@ -90,6 +118,7 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
   const logout = useCallback(() => {
     setProfile(null)
     setFavoriteRecipeIds(new Set())
+    clearProfileId()
   }, [])
 
   const toggleTheme = useCallback(async () => {
@@ -109,6 +138,24 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
       setTheme(theme) // Revert on error
     }
   }, [profile, theme])
+
+  const updateUnitPreference = useCallback(async (unit: 'metric' | 'imperial') => {
+    if (!profile) return
+
+    const previousUnit = profile.unit_preference
+    setProfile({ ...profile, unit_preference: unit })
+
+    try {
+      const updated = await api.profiles.update(profile.id, {
+        ...profile,
+        unit_preference: unit,
+      })
+      setProfile(updated)
+    } catch (error) {
+      console.error('Failed to update unit preference:', error)
+      setProfile({ ...profile, unit_preference: previousUnit }) // Revert on error
+    }
+  }, [profile])
 
   const toggleFavorite = useCallback(async (recipe: RecipeDetail) => {
     const isFav = favoriteRecipeIds.has(recipe.id)
@@ -146,6 +193,7 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
         selectProfile,
         logout,
         toggleTheme,
+        updateUnitPreference,
         toggleFavorite,
         isFavorite,
       }}

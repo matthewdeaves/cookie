@@ -12,6 +12,7 @@ openrouter>=0.1
 whitenoise>=6.0
 cryptography>=42.0
 jsonschema>=4.0
+django-ratelimit>=4.1
 
 # Testing (needed for CI, optional for container)
 pytest>=8.0

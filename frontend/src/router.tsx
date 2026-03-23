@@ -1,17 +1,27 @@
+import { lazy, Suspense } from 'react'
 import { createBrowserRouter, Outlet, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AIStatusProvider } from './contexts/AIStatusContext'
 import { ProfileProvider, useProfile } from './contexts/ProfileContext'
-import ProfileSelector from './screens/ProfileSelector'
-import Home from './screens/Home'
-import Search from './screens/Search'
-import RecipeDetail from './screens/RecipeDetail'
-import PlayMode from './screens/PlayMode'
-import Favorites from './screens/Favorites'
-import AllRecipes from './screens/AllRecipes'
-import Collections from './screens/Collections'
-import CollectionDetail from './screens/CollectionDetail'
-import Settings from './screens/Settings'
+
+const ProfileSelector = lazy(() => import('./screens/ProfileSelector'))
+const Home = lazy(() => import('./screens/Home'))
+const Search = lazy(() => import('./screens/Search'))
+const RecipeDetail = lazy(() => import('./screens/RecipeDetail'))
+const PlayMode = lazy(() => import('./screens/PlayMode'))
+const Favorites = lazy(() => import('./screens/Favorites'))
+const AllRecipes = lazy(() => import('./screens/AllRecipes'))
+const Collections = lazy(() => import('./screens/Collections'))
+const CollectionDetail = lazy(() => import('./screens/CollectionDetail'))
+const Settings = lazy(() => import('./screens/Settings'))
+
+function LoadingFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="text-muted-foreground">Loading...</div>
+    </div>
+  )
+}
 
 // eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function AppLayout() {
@@ -19,7 +29,9 @@ function AppLayout() {
     <AIStatusProvider>
       <ProfileProvider>
         <Toaster position="top-center" richColors />
-        <Outlet />
+        <Suspense fallback={<LoadingFallback />}>
+          <Outlet />
+        </Suspense>
       </ProfileProvider>
     </AIStatusProvider>
   )
@@ -31,11 +43,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const location = useLocation()
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    )
+    return <LoadingFallback />
   }
 
   if (!profile) {
@@ -50,11 +58,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   const { profile, loading } = useProfile()
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    )
+    return <LoadingFallback />
   }
 
   if (profile) {

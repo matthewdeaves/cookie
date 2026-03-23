@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Link as LinkIcon, Loader2, Search as SearchIcon } from 'lucide-react'
 import { toast } from 'sonner'
@@ -13,7 +13,7 @@ export default function Search() {
 
   const [searchInput, setSearchInput] = useState(query)
   const [results, setResults] = useState<SearchResult[]>([])
-  const [total, setTotal] = useState(0)
+  const [, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
   const [sites, setSites] = useState<Record<string, number>>({})
@@ -129,7 +129,7 @@ export default function Search() {
           {/* Result count */}
           {!isUrl && !loading && (
             <p className="mb-4 text-sm text-muted-foreground">
-              {total} {total === 1 ? 'result' : 'results'} found
+              {allSourcesCount} {allSourcesCount === 1 ? 'result' : 'results'} found
             </p>
           )}
 
@@ -271,20 +271,27 @@ function SearchResultCard({
 }: SearchResultCardProps) {
   // Prefer cached image, fallback to external
   const imageUrl = result.cached_image_url || result.image_url
+  const [imgError, setImgError] = useState(false)
+
+  const handleImgError = useCallback(() => {
+    setImgError(true)
+  }, [])
 
   return (
     <div className="group overflow-hidden rounded-lg bg-card shadow-sm transition-all hover:shadow-md">
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-        {imageUrl ? (
+        {imageUrl && !imgError ? (
           <img
             src={imageUrl}
             alt={result.title}
+            loading="lazy"
+            onError={handleImgError}
             className="h-full w-full object-cover transition-transform group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-            No image
+          <div className="flex h-full w-full items-center justify-center bg-muted px-3 text-center text-sm font-medium text-muted-foreground">
+            {result.title}
           </div>
         )}
       </div>

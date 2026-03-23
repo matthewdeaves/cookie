@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -14,7 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Environment-based Configuration
 # ===========================================
 
-DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 
 def get_secret_key():
@@ -31,7 +32,7 @@ def get_secret_key():
 
 SECRET_KEY = get_secret_key()
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 # Use X-Forwarded-Host header (preserves port when behind nginx proxy)
 USE_X_FORWARDED_HOST = True
@@ -55,6 +56,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.common.CommonMiddleware",
     "apps.core.middleware.DeviceDetectionMiddleware",
 ]
@@ -78,39 +80,23 @@ TEMPLATES = [
 WSGI_APPLICATION = "cookie.wsgi.application"
 
 # Database configuration
-# Priority: DATABASE_URL > DATABASE_PATH > default SQLite
+# PostgreSQL is required — no SQLite fallback
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
-if DATABASE_URL:
-    DATABASES = {
-        "default": dj_database_url.parse(
-            DATABASE_URL,
-            conn_max_age=60,
-            conn_health_checks=True,
-        )
-    }
-else:
-    # SQLite fallback (existing behavior)
-    DATABASE_PATH = os.environ.get("DATABASE_PATH", str(BASE_DIR / "db.sqlite3"))
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": DATABASE_PATH,
-            "OPTIONS": {
-                # Increase lock wait timeout from default 5s to 20s
-                "timeout": 20,
-                # Acquire write lock at transaction START (not mid-transaction)
-                # This prevents "database is locked" errors during concurrent writes
-                # by allowing failed lock acquisitions to be retried
-                "transaction_mode": "IMMEDIATE",
-                # PRAGMA settings applied on each new connection:
-                # - journal_mode=WAL: Allow concurrent reads during writes
-                # - synchronous=NORMAL: Safe for WAL mode, better performance
-                # - busy_timeout=5000: Wait up to 5s for locks at SQLite level
-                "init_command": ("PRAGMA journal_mode=WAL;PRAGMA synchronous=NORMAL;PRAGMA busy_timeout=5000;"),
-            },
-        }
-    }
+if not DATABASE_URL:
+    raise ImproperlyConfigured(
+        "DATABASE_URL environment variable is required. "
+        "Set it to a PostgreSQL connection string, "
+        "e.g. postgres://user:pass@host:5432/dbname"  # pragma: allowlist secret
+    )
+
+DATABASES = {
+    "default": dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=60,
+        conn_health_checks=True,
+    )
+}
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
@@ -143,6 +129,16 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Session settings
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_AGE = 43200  # 12 hours
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = False  # SPA reads CSRF cookie via JavaScript
+
+CSRF_FAILURE_VIEW = "apps.core.views.csrf_failure"
+
+# Rate limiting (django-ratelimit)
+RATELIMIT_IP_META_KEY = os.environ.get("RATELIMIT_IP_META_KEY", "HTTP_X_FORWARDED_FOR")
 
 # Logging configuration
 LOGGING = {

@@ -1,0 +1,334 @@
+export interface AIStatus {
+  available: boolean
+  configured: boolean
+  valid: boolean
+  default_model: string
+  error: string | null
+  error_code: string | null
+}
+
+export interface AIErrorResponse {
+  error: string
+  message: string
+  action?: string  // User action to resolve the error (e.g., 'configure_key', 'update_key', 'retry')
+}
+
+export interface AIModel {
+  id: string
+  name: string
+}
+
+export interface AIPrompt {
+  prompt_type: string
+  name: string
+  description: string
+  system_prompt: string
+  user_prompt_template: string
+  model: string
+  is_active: boolean
+}
+
+export interface AIPromptUpdate {
+  system_prompt?: string
+  user_prompt_template?: string
+  model?: string
+  is_active?: boolean
+}
+
+export interface RemixSuggestionsResponse {
+  suggestions: string[]
+}
+
+export interface RemixResponse {
+  id: number
+  title: string
+  description: string
+  ingredients: string[]
+  instructions: { text: string }[]
+  host: string
+  site_name: string
+  is_remix: boolean
+  prep_time: number | null
+  cook_time: number | null
+  total_time: number | null
+  yields: string
+  servings: number | null
+}
+
+export interface NutritionValues {
+  per_serving: Record<string, string | number>
+  total: Record<string, string | number>
+}
+
+export interface ScaleResponse {
+  target_servings: number
+  original_servings: number
+  ingredients: string[]
+  instructions: string[]  // QA-031
+  notes: string[]
+  prep_time_adjusted: number | null  // QA-032
+  cook_time_adjusted: number | null  // QA-032
+  total_time_adjusted: number | null  // QA-032
+  nutrition: NutritionValues | null
+  cached: boolean
+}
+
+export interface TipsResponse {
+  tips: string[]
+  cached: boolean
+}
+
+export interface DiscoverSuggestion {
+  type: string
+  title: string
+  description: string
+  search_query: string
+}
+
+export interface DiscoverResponse {
+  suggestions: DiscoverSuggestion[]
+  refreshed_at: string
+}
+
+export interface TimerNameResponse {
+  label: string
+}
+
+export interface TestApiKeyResponse {
+  success: boolean
+  message: string
+}
+
+export interface SaveApiKeyResponse {
+  success: boolean
+  message: string
+}
+
+export interface Profile {
+  id: number
+  name: string
+  avatar_color: string
+  theme: string
+  unit_preference: string
+}
+
+export interface ProfileStats {
+  favorites: number
+  collections: number
+  collection_items: number
+  remixes: number
+  view_history: number
+  scaling_cache: number
+  discover_cache: number
+}
+
+export interface ProfileWithStats {
+  id: number
+  name: string
+  avatar_color: string
+  theme: string
+  unit_preference: string
+  created_at: string
+  stats: ProfileStats
+}
+
+export interface DeletionData {
+  remixes: number
+  remix_images: number
+  favorites: number
+  collections: number
+  collection_items: number
+  view_history: number
+  scaling_cache: number
+  discover_cache: number
+}
+
+export interface ProfileSummary {
+  id: number
+  name: string
+  avatar_color: string
+  created_at: string
+}
+
+export interface DeletionPreview {
+  profile: ProfileSummary
+  data_to_delete: DeletionData
+  warnings: string[]
+}
+
+export interface ProfileInput {
+  name: string
+  avatar_color: string
+  theme?: string
+  unit_preference?: string
+}
+
+export interface Recipe {
+  id: number
+  title: string
+  host: string
+  image_url: string
+  image: string | null
+  total_time: number | null
+  rating: number | null
+  is_remix: boolean
+  scraped_at: string
+}
+
+export interface IngredientGroup {
+  purpose: string
+  ingredients: string[]
+}
+
+export interface LinkedRecipe {
+  id: number
+  title: string
+  relationship: 'original' | 'remix' | 'sibling'
+}
+
+export interface RecipeDetail extends Recipe {
+  source_url: string | null
+  canonical_url: string
+  site_name: string
+  author: string
+  description: string
+  ingredients: string[]
+  ingredient_groups: IngredientGroup[]
+  instructions: string[]
+  instructions_text: string
+  prep_time: number | null
+  cook_time: number | null
+  yields: string
+  servings: number | null
+  category: string
+  cuisine: string
+  cooking_method: string
+  keywords: string[]
+  dietary_restrictions: string[]
+  equipment: string[]
+  nutrition: Record<string, string>
+  rating_count: number | null
+  language: string
+  links: string[]
+  ai_tips: string[]
+  remix_profile_id: number | null
+  remixed_from_id: number | null
+  linked_recipes: LinkedRecipe[]
+  updated_at: string
+}
+
+export interface Favorite {
+  recipe: Recipe
+  created_at: string
+}
+
+export interface HistoryItem {
+  recipe: Recipe
+  viewed_at: string
+}
+
+export interface Collection {
+  id: number
+  name: string
+  description: string
+  recipe_count: number
+  created_at: string
+  updated_at: string
+}
+
+export interface CollectionItem {
+  recipe: Recipe
+  order: number
+  added_at: string
+}
+
+export interface CollectionDetail {
+  id: number
+  name: string
+  description: string
+  recipes: CollectionItem[]
+  created_at: string
+  updated_at: string
+}
+
+export interface CollectionInput {
+  name: string
+  description?: string
+}
+
+export interface SearchResult {
+  url: string
+  title: string
+  host: string
+  image_url: string
+  cached_image_url: string | null
+  description: string
+  rating_count: number | null
+}
+
+export interface SearchResponse {
+  results: SearchResult[]
+  total: number
+  page: number
+  has_more: boolean
+  sites: Record<string, number>
+}
+
+export interface Source {
+  id: number
+  host: string
+  name: string
+  is_enabled: boolean
+  search_url_template: string
+  result_selector: string
+  logo_url: string
+  last_validated_at: string | null
+  consecutive_failures: number
+  needs_attention: boolean
+}
+
+export interface SourceTestResult {
+  success: boolean
+  message: string
+  results_count: number
+  sample_results: string[]
+}
+
+export interface TestAllSourcesResult {
+  tested: number
+  passed: number
+  failed: number
+  details: {
+    id: number
+    name: string
+    host: string
+    success: boolean
+    results_count?: number
+    error?: string
+  }[]
+}
+
+export interface ResetDataCounts {
+  profiles: number
+  recipes: number
+  recipe_images: number
+  favorites: number
+  collections: number
+  collection_items: number
+  view_history: number
+  ai_suggestions: number
+  serving_adjustments: number
+  cached_search_images: number
+}
+
+export interface ResetPreview {
+  data_counts: ResetDataCounts
+  preserved: string[]
+  warnings: string[]
+}
+
+export interface ResetResult {
+  success: boolean
+  message: string
+  actions_performed: string[]
+}

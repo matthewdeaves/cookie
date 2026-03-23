@@ -11,17 +11,18 @@ Cookie.pages.profileSelector = (function() {
     var PROFILE_COLORS = [
         '#d97850',
         '#8fae6f',
-        '#c9956b',
         '#6b9dad',
-        '#d16b6b',
         '#9d80b8',
+        '#d16b6b',
         '#e6a05f',
         '#6bb8a5',
         '#c77a9e',
-        '#7d9e6f'
+        '#7d9e6f',
+        '#5b8abf'
     ];
 
     var selectedColor = PROFILE_COLORS[0];
+    var autoRestoring = false;
     var profileGrid = null;
     var createForm = null;
     var nameInput = null;
@@ -38,6 +39,13 @@ Cookie.pages.profileSelector = (function() {
 
         setupColorPicker();
         setupEventListeners();
+
+        // Auto-select persisted profile if available
+        var persistedId = Cookie.state.getPersistedProfileId();
+        if (persistedId) {
+            autoRestoring = true;
+            selectProfile(persistedId);
+        }
     }
 
     /**
@@ -113,9 +121,17 @@ Cookie.pages.profileSelector = (function() {
     function selectProfile(profileId) {
         Cookie.ajax.post('/profiles/' + profileId + '/select/', null, function(err, response) {
             if (err) {
-                Cookie.toast.error('Failed to select profile');
+                // If profile no longer exists, clear stored data silently
+                Cookie.state.clearProfile();
+                // Only show error if user explicitly clicked (not auto-restore)
+                if (!autoRestoring) {
+                    Cookie.toast.error('Failed to select profile');
+                }
+                autoRestoring = false;
                 return;
             }
+
+            autoRestoring = false;
 
             // Store profile in state
             Cookie.state.setProfile(response);

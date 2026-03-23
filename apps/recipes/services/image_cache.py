@@ -17,6 +17,7 @@ from curl_cffi.requests import AsyncSession
 from django.core.files.base import ContentFile
 from PIL import Image
 
+from apps.core.validators import validate_url
 from apps.recipes.services.fingerprint import BROWSER_PROFILES
 
 logger = logging.getLogger(__name__)
@@ -129,6 +130,13 @@ class SearchImageCache:
             Image bytes or None if fetch fails
         """
         if not self._is_image_url(url):
+            return None
+
+        # Validate URL for SSRF protection
+        try:
+            validate_url(url)
+        except ValueError:
+            logger.warning(f"Blocked image URL (SSRF): {url}")
             return None
 
         # Try each browser profile until one succeeds

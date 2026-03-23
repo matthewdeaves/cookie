@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Sparkles, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
@@ -34,8 +34,13 @@ export default function Home() {
   const [discoverError, setDiscoverError] = useState(false)
   const [, setDiscoverRefreshedAt] = useState<string | null>(null)
 
+  const mountedRef = useRef(true)
+
   useEffect(() => {
     loadData()
+    return () => {
+      mountedRef.current = false
+    }
   }, [])
 
   const loadData = async () => {
@@ -62,13 +67,24 @@ export default function Home() {
     setDiscoverError(false)
     try {
       const result = await api.ai.discover(profile.id)
+      if (!mountedRef.current) return
       setDiscoverSuggestions(result.suggestions)
       setDiscoverRefreshedAt(result.refreshed_at)
     } catch (error) {
-      console.error('Failed to load discover suggestions:', error)
-      setDiscoverError(true)
+      if (!mountedRef.current) return
+      const isAbort =
+        error instanceof Error &&
+        (error.name === 'AbortError' || error.message.includes('abort'))
+      if (isAbort) {
+        console.debug('Discover fetch aborted:', error)
+      } else {
+        console.error('Failed to load discover suggestions:', error)
+        setDiscoverError(true)
+      }
     } finally {
-      setDiscoverLoading(false)
+      if (mountedRef.current) {
+        setDiscoverLoading(false)
+      }
     }
   }
 

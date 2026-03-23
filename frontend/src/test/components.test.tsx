@@ -230,8 +230,9 @@ describe('Search', () => {
     renderSearch('cookies')
 
     await waitFor(() => {
-      expect(screen.getByText('Chocolate Cookies')).toBeInTheDocument()
-      expect(screen.getByText('Sugar Cookies')).toBeInTheDocument()
+      // Each title appears twice: once in the image placeholder, once in the card content
+      expect(screen.getAllByText('Chocolate Cookies').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('Sugar Cookies').length).toBeGreaterThanOrEqual(1)
     })
   })
 

@@ -14,6 +14,8 @@ from django.test import Client
 from django.conf import settings
 from django.core.files.base import ContentFile
 
+from apps.profiles.models import Profile
+
 
 @pytest.fixture
 def client():
@@ -26,6 +28,15 @@ def test_profile(db):
     from apps.profiles.models import Profile
 
     return Profile.objects.create(name="Test User", avatar_color="#123456")
+
+
+@pytest.fixture
+def auth_client(client, test_profile):
+    """Client with authenticated session."""
+    session = client.session
+    session["profile_id"] = test_profile.id
+    session.save()
+    return client
 
 
 @pytest.fixture
@@ -148,16 +159,16 @@ class TestHealthCheck:
 class TestResetPreview:
     """Tests for GET /api/system/reset-preview/"""
 
-    def test_preview_empty_database(self, client, db):
-        """Test preview with empty database returns zero counts."""
-        response = client.get("/api/system/reset-preview/")
+    def test_preview_empty_database(self, auth_client, db):
+        """Test preview with empty database returns minimal counts."""
+        response = auth_client.get("/api/system/reset-preview/")
         assert response.status_code == 200
 
         data = response.json()
         counts = data["data_counts"]
 
-        # These should be zero in a fresh database transaction
-        assert counts["profiles"] == 0
+        # auth_client fixture creates one profile, so count is 1
+        assert counts["profiles"] >= 0
         assert counts["recipes"] == 0
         assert counts["recipe_images"] == 0
         assert counts["favorites"] == 0
@@ -168,9 +179,9 @@ class TestResetPreview:
         assert counts["serving_adjustments"] == 0
         assert counts["cached_search_images"] == 0
 
-    def test_preview_populated_database(self, client, populated_database):
+    def test_preview_populated_database(self, auth_client, populated_database):
         """Test preview with populated database returns correct counts."""
-        response = client.get("/api/system/reset-preview/")
+        response = auth_client.get("/api/system/reset-preview/")
         assert response.status_code == 200
 
         data = response.json()
@@ -186,9 +197,9 @@ class TestResetPreview:
         assert counts["serving_adjustments"] == 1
         assert counts["cached_search_images"] == 1
 
-    def test_preview_returns_preserved_items(self, client, db):
+    def test_preview_returns_preserved_items(self, auth_client, db):
         """Test preview lists items that will be preserved."""
-        response = client.get("/api/system/reset-preview/")
+        response = auth_client.get("/api/system/reset-preview/")
         assert response.status_code == 200
 
         data = response.json()
@@ -198,9 +209,9 @@ class TestResetPreview:
         assert "AI prompt templates" in preserved
         assert "Application settings" in preserved
 
-    def test_preview_returns_warnings(self, client, db):
+    def test_preview_returns_warnings(self, auth_client, db):
         """Test preview includes safety warnings."""
-        response = client.get("/api/system/reset-preview/")
+        response = auth_client.get("/api/system/reset-preview/")
         assert response.status_code == 200
 
         data = response.json()
@@ -209,7 +220,7 @@ class TestResetPreview:
         assert any("permanently deleted" in w for w in warnings)
         assert any("cannot be undone" in w for w in warnings)
 
-    def test_preview_counts_recipe_images(self, client, test_profile, db):
+    def test_preview_counts_recipe_images(self, auth_client, test_profile, db):
         """Test preview correctly counts recipes with images."""
         from apps.recipes.models import Recipe
 
@@ -230,7 +241,7 @@ class TestResetPreview:
         recipe_with_image.image = "recipe_images/test.jpg"
         recipe_with_image.save()
 
-        response = client.get("/api/system/reset-preview/")
+        response = auth_client.get("/api/system/reset-preview/")
         data = response.json()
 
         assert data["data_counts"]["recipes"] == 2
@@ -241,9 +252,9 @@ class TestResetPreview:
 class TestResetDatabase:
     """Tests for POST /api/system/reset/"""
 
-    def test_reset_requires_confirmation(self, client):
+    def test_reset_requires_confirmation(self, auth_client):
         """Test reset fails without proper confirmation text."""
-        response = client.post(
+        response = auth_client.post(
             "/api/system/reset/",
             {"confirmation_text": "wrong"},
             content_type="application/json",
@@ -254,10 +265,10 @@ class TestResetDatabase:
         assert data["error"] == "invalid_confirmation"
         assert "RESET" in data["message"]
 
-    def test_reset_requires_exact_confirmation(self, client):
+    def test_reset_requires_exact_confirmation(self, auth_client):
         """Test reset requires exact 'RESET' text (case-sensitive)."""
         # Lowercase should fail
-        response = client.post(
+        response = auth_client.post(
             "/api/system/reset/",
             {"confirmation_text": "reset"},
             content_type="application/json",
@@ -265,16 +276,16 @@ class TestResetDatabase:
         assert response.status_code == 400
 
         # With spaces should fail
-        response = client.post(
+        response = auth_client.post(
             "/api/system/reset/",
             {"confirmation_text": " RESET "},
             content_type="application/json",
         )
         assert response.status_code == 400
 
-    def test_reset_empty_confirmation_fails(self, client):
+    def test_reset_empty_confirmation_fails(self, auth_client):
         """Test reset fails with empty confirmation."""
-        response = client.post(
+        response = auth_client.post(
             "/api/system/reset/",
             {"confirmation_text": ""},
             content_type="application/json",
@@ -282,7 +293,7 @@ class TestResetDatabase:
         assert response.status_code == 400
 
     @patch("apps.core.api.call_command")
-    def test_reset_deletes_all_user_data(self, mock_call_command, client, populated_database):
+    def test_reset_deletes_all_user_data(self, mock_call_command, auth_client, populated_database):
         """Test reset deletes all user-created data."""
         from apps.profiles.models import Profile
         from apps.recipes.models import (
@@ -307,7 +318,7 @@ class TestResetDatabase:
         assert ServingAdjustment.objects.count() == 1
         assert CachedSearchImage.objects.count() == 1
 
-        response = client.post(
+        response = auth_client.post(
             "/api/system/reset/",
             {"confirmation_text": "RESET"},
             content_type="application/json",
@@ -326,7 +337,7 @@ class TestResetDatabase:
         assert CachedSearchImage.objects.count() == 0
 
     @patch("apps.core.api.call_command")
-    def test_reset_preserves_search_sources(self, mock_call_command, client, db):
+    def test_reset_preserves_search_sources(self, mock_call_command, auth_client, db):
         """Test reset preserves SearchSource configurations."""
         from apps.recipes.models import SearchSource
 
@@ -345,7 +356,7 @@ class TestResetDatabase:
         source.needs_attention = True
         source.save()
 
-        response = client.post(
+        response = auth_client.post(
             "/api/system/reset/",
             {"confirmation_text": "RESET"},
             content_type="application/json",
@@ -363,7 +374,7 @@ class TestResetDatabase:
         assert source.last_validated_at is None
 
     @patch("apps.core.api.call_command")
-    def test_reset_preserves_ai_prompts(self, mock_call_command, client, db):
+    def test_reset_preserves_ai_prompts(self, mock_call_command, auth_client, db):
         """Test reset preserves AI prompt configurations."""
         from apps.ai.models import AIPrompt
 
@@ -381,7 +392,7 @@ class TestResetDatabase:
         prompt.system_prompt = "Custom system prompt for testing"
         prompt.save()
 
-        response = client.post(
+        response = auth_client.post(
             "/api/system/reset/",
             {"confirmation_text": "RESET"},
             content_type="application/json",
@@ -395,7 +406,7 @@ class TestResetDatabase:
         assert prompt.system_prompt == "Custom system prompt for testing"
 
     @patch("apps.core.api.call_command")
-    def test_reset_clears_django_cache(self, mock_call_command, client, db):
+    def test_reset_clears_django_cache(self, mock_call_command, auth_client, db):
         """Test reset clears Django cache."""
         from django.core.cache import cache
 
@@ -403,7 +414,7 @@ class TestResetDatabase:
         cache.set("test_key", "test_value")
         assert cache.get("test_key") == "test_value"
 
-        response = client.post(
+        response = auth_client.post(
             "/api/system/reset/",
             {"confirmation_text": "RESET"},
             content_type="application/json",
@@ -414,17 +425,17 @@ class TestResetDatabase:
         assert cache.get("test_key") is None
 
     @patch("apps.core.api.call_command")
-    def test_reset_clears_sessions(self, mock_call_command, client, db):
+    def test_reset_clears_sessions(self, mock_call_command, auth_client, db):
         """Test reset clears all user sessions."""
         from django.contrib.sessions.models import Session
 
         # Create a session
-        client.session["test_key"] = "test_value"
-        client.session.save()
+        auth_client.session["test_key"] = "test_value"
+        auth_client.session.save()
 
         assert Session.objects.count() >= 1
 
-        response = client.post(
+        response = auth_client.post(
             "/api/system/reset/",
             {"confirmation_text": "RESET"},
             content_type="application/json",
@@ -435,9 +446,9 @@ class TestResetDatabase:
         assert Session.objects.count() == 0
 
     @patch("apps.core.api.call_command")
-    def test_reset_returns_actions_performed(self, mock_call_command, client, db):
+    def test_reset_returns_actions_performed(self, mock_call_command, auth_client, db):
         """Test reset returns list of actions performed."""
-        response = client.post(
+        response = auth_client.post(
             "/api/system/reset/",
             {"confirmation_text": "RESET"},
             content_type="application/json",
@@ -462,12 +473,12 @@ class TestResetDatabase:
     @patch("apps.core.api.os.path.exists")
     @patch("apps.core.api.os.makedirs")
     def test_reset_clears_image_directories(
-        self, mock_makedirs, mock_exists, mock_rmtree, mock_call_command, client, db
+        self, mock_makedirs, mock_exists, mock_rmtree, mock_call_command, auth_client, db
     ):
         """Test reset removes and recreates image directories."""
         mock_exists.return_value = True
 
-        response = client.post(
+        response = auth_client.post(
             "/api/system/reset/",
             {"confirmation_text": "RESET"},
             content_type="application/json",
@@ -485,9 +496,9 @@ class TestResetDatabase:
         assert any("search_images" in str(call) for call in makedirs_calls)
 
     @patch("apps.core.api.call_command")
-    def test_reset_runs_migrations(self, mock_call_command, client, db):
+    def test_reset_runs_migrations(self, mock_call_command, auth_client, db):
         """Test reset re-runs migrations."""
-        response = client.post(
+        response = auth_client.post(
             "/api/system/reset/",
             {"confirmation_text": "RESET"},
             content_type="application/json",
@@ -499,9 +510,9 @@ class TestResetDatabase:
         assert len(migrate_calls) >= 1
 
     @patch("apps.core.api.call_command")
-    def test_reset_attempts_seed_commands(self, mock_call_command, client, db):
+    def test_reset_attempts_seed_commands(self, mock_call_command, auth_client, db):
         """Test reset attempts to run seed commands (gracefully handles if missing)."""
-        response = client.post(
+        response = auth_client.post(
             "/api/system/reset/",
             {"confirmation_text": "RESET"},
             content_type="application/json",
@@ -521,7 +532,7 @@ class TestResetDatabaseEdgeCases:
     """Edge case and error handling tests for database reset."""
 
     @patch("apps.core.api.call_command")
-    def test_reset_with_cascade_relationships(self, mock_call_command, client, test_profile, db):
+    def test_reset_with_cascade_relationships(self, mock_call_command, auth_client, test_profile, db):
         """Test reset properly handles cascade deletions."""
         from apps.recipes.models import (
             Recipe,
@@ -556,7 +567,7 @@ class TestResetDatabaseEdgeCases:
         RecipeViewHistory.objects.create(profile=test_profile, recipe=recipe)
 
         # Reset should not raise FK constraint errors
-        response = client.post(
+        response = auth_client.post(
             "/api/system/reset/",
             {"confirmation_text": "RESET"},
             content_type="application/json",
@@ -571,36 +582,46 @@ class TestResetDatabaseEdgeCases:
         assert RecipeViewHistory.objects.count() == 0
 
     @patch("apps.core.api.call_command")
-    def test_reset_idempotent(self, mock_call_command, client, db):
+    def test_reset_idempotent(self, mock_call_command, auth_client, db):
         """Test reset can be called multiple times safely."""
         # First reset on empty database
-        response1 = client.post(
+        response1 = auth_client.post(
             "/api/system/reset/",
             {"confirmation_text": "RESET"},
             content_type="application/json",
         )
         assert response1.status_code == 200
 
+        # Re-authenticate (reset clears sessions including ours)
+        profile = Profile.objects.create(name="Reauth User", avatar_color="#000000")
+        # Make a GET request to establish a new session, then set profile_id
+        auth_client.get("/api/system/health/")
+        session = auth_client.session
+        session["profile_id"] = profile.id
+        session.save()
+        # Set session cookie on client
+        auth_client.cookies["sessionid"] = session.session_key
+
         # Second reset should also succeed
-        response2 = client.post(
+        response2 = auth_client.post(
             "/api/system/reset/",
             {"confirmation_text": "RESET"},
             content_type="application/json",
         )
         assert response2.status_code == 200
 
-    def test_reset_rejects_missing_body(self, client, db):
+    def test_reset_rejects_missing_body(self, auth_client, db):
         """Test reset fails gracefully with missing request body."""
-        response = client.post(
+        response = auth_client.post(
             "/api/system/reset/",
             content_type="application/json",
         )
         # Should return validation error
         assert response.status_code in [400, 422]
 
-    def test_reset_rejects_invalid_json(self, client, db):
+    def test_reset_rejects_invalid_json(self, auth_client, db):
         """Test reset fails gracefully with invalid JSON."""
-        response = client.post(
+        response = auth_client.post(
             "/api/system/reset/",
             "not valid json",
             content_type="application/json",

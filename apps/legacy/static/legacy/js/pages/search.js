@@ -275,6 +275,9 @@ Cookie.pages.search = (function() {
             elements.resultsGrid.innerHTML += html;
         }
 
+        // Attach error handlers to newly rendered images
+        attachImageErrorHandlers(elements.resultsGrid);
+
         // Update pagination
         if (state.hasMore) {
             Cookie.utils.showElement(elements.pagination);
@@ -329,16 +332,24 @@ Cookie.pages.search = (function() {
 
     /**
      * Update search count display
+     * Uses the sum of per-site counts (accurate total) instead of API total (paginated)
      */
     function updateSearchCount() {
         if (!elements.searchCount) return;
 
-        if (state.total === 0) {
+        var total = 0;
+        for (var key in state.sites) {
+            if (state.sites.hasOwnProperty(key)) {
+                total += state.sites[key];
+            }
+        }
+
+        if (total === 0) {
             elements.searchCount.textContent = '';
-        } else if (state.total === 1) {
+        } else if (total === 1) {
             elements.searchCount.textContent = '1 result found';
         } else {
-            elements.searchCount.textContent = state.total + ' results found';
+            elements.searchCount.textContent = total + ' results found';
         }
     }
 
@@ -374,6 +385,33 @@ Cookie.pages.search = (function() {
                 window.location.href = '/legacy/recipe/' + response.id + '/';
             }, 1000);
         });
+    }
+
+    /**
+     * Attach onerror handlers to search result images
+     * Hides broken image and shows recipe title as placeholder
+     */
+    function attachImageErrorHandlers(container) {
+        var images = container.querySelectorAll('.search-result-image img');
+        for (var i = 0; i < images.length; i++) {
+            (function(img) {
+                img.onerror = function() {
+                    var card = img.closest('.search-result-card');
+                    var title = '';
+                    if (card) {
+                        var titleEl = card.querySelector('.search-result-title');
+                        if (titleEl) {
+                            title = titleEl.textContent;
+                        }
+                    }
+                    var parent = img.parentElement;
+                    if (parent) {
+                        parent.innerHTML = '<div class="search-result-no-image"><span>' +
+                            Cookie.utils.escapeHtml(title || 'No image') + '</span></div>';
+                    }
+                };
+            })(images[i]);
+        }
     }
 
     // Use shared utilities from Cookie.utils:
@@ -480,6 +518,8 @@ Cookie.pages.search = (function() {
                         // Replace loading spinner with actual image
                         imgContainer.innerHTML = '<img src="' + Cookie.utils.escapeHtml(result.cached_image_url) +
                                                 '" alt="' + Cookie.utils.escapeHtml(result.title) + '" loading="lazy">';
+                        // Attach error handler to new image
+                        attachImageErrorHandlers(imgContainer);
                     }
                 }
 
@@ -559,6 +599,8 @@ Cookie.pages.search = (function() {
                 var alt = title ? title.textContent : '';
                 imgContainer.innerHTML = '<img src="' + Cookie.utils.escapeHtml(pending.imageUrl) +
                     '" alt="' + Cookie.utils.escapeHtml(alt) + '" loading="lazy">';
+                // Attach error handler to fallback image
+                attachImageErrorHandlers(imgContainer);
             } else {
                 // No external URL available
                 spinners[i].parentElement.innerHTML = '<div class="search-result-no-image"><span>No image</span></div>';
