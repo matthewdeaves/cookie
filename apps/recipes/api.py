@@ -241,7 +241,11 @@ async def search_recipes(
         source_list = [s.strip() for s in sources.split(",") if s.strip()]
 
     # Check global search cache (shared across all profiles)
-    cache_key = f"search:{q.lower().strip()}"
+    import hashlib
+
+    normalized_query = q.lower().strip()
+    query_hash = hashlib.sha256(normalized_query.encode()).hexdigest()[:16]
+    cache_key = f"search_{query_hash}"
     cached_all = await sync_to_async(cache.get)(cache_key)
 
     if cached_all is not None:

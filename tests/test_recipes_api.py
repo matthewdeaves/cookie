@@ -5,12 +5,21 @@ Tests for recipe API endpoints.
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from django.core.cache import cache
 from django.test import Client
 
 
 @pytest.fixture
 def client():
     return Client()
+
+
+@pytest.fixture(autouse=True)
+def _clear_search_cache():
+    """Clear search cache between tests to prevent interference."""
+    cache.clear()
+    yield
+    cache.clear()
 
 
 @pytest.fixture
@@ -277,13 +286,18 @@ class TestScrapeRecipe:
         from apps.profiles.models import Profile
         from datetime import datetime
         from unittest.mock import AsyncMock
+        from django.contrib.sessions.backends.db import SessionStore
 
         # Create profile synchronously using sync_to_async
         @sync_to_async
         def create_profile():
-            return Profile.objects.create(name="Test User", avatar_color="#123456")
+            p = Profile.objects.create(name="Test User", avatar_color="#123456")
+            s = SessionStore()
+            s["profile_id"] = p.id
+            s.create()
+            return p, s.session_key
 
-        test_profile = await create_profile()
+        test_profile, session_key = await create_profile()
 
         # Mock the async profile lookup to return our test profile
         mock_get_profile.return_value = test_profile
@@ -334,8 +348,10 @@ class TestScrapeRecipe:
         mock_scraper_class.return_value = mock_scraper
 
         from django.test import AsyncClient
+        from django.conf import settings
 
         async_client = AsyncClient()
+        async_client.cookies[settings.SESSION_COOKIE_NAME] = session_key
 
         response = await async_client.post(
             "/api/recipes/scrape/",
@@ -355,12 +371,17 @@ class TestScrapeRecipe:
         from asgiref.sync import sync_to_async
         from apps.recipes.services.scraper import FetchError
         from apps.profiles.models import Profile
+        from django.contrib.sessions.backends.db import SessionStore
 
         @sync_to_async
         def create_profile():
-            return Profile.objects.create(name="Test User", avatar_color="#123456")
+            p = Profile.objects.create(name="Test User", avatar_color="#123456")
+            s = SessionStore()
+            s["profile_id"] = p.id
+            s.create()
+            return p, s.session_key
 
-        test_profile = await create_profile()
+        test_profile, session_key = await create_profile()
 
         # Mock the async profile lookup
         mock_get_profile.return_value = test_profile
@@ -370,8 +391,10 @@ class TestScrapeRecipe:
         mock_scraper_class.return_value = mock_scraper
 
         from django.test import AsyncClient
+        from django.conf import settings
 
         async_client = AsyncClient()
+        async_client.cookies[settings.SESSION_COOKIE_NAME] = session_key
 
         response = await async_client.post(
             "/api/recipes/scrape/",
@@ -390,12 +413,17 @@ class TestScrapeRecipe:
         from asgiref.sync import sync_to_async
         from apps.recipes.services.scraper import ParseError
         from apps.profiles.models import Profile
+        from django.contrib.sessions.backends.db import SessionStore
 
         @sync_to_async
         def create_profile():
-            return Profile.objects.create(name="Test User", avatar_color="#123456")
+            p = Profile.objects.create(name="Test User", avatar_color="#123456")
+            s = SessionStore()
+            s["profile_id"] = p.id
+            s.create()
+            return p, s.session_key
 
-        test_profile = await create_profile()
+        test_profile, session_key = await create_profile()
 
         # Mock the async profile lookup
         mock_get_profile.return_value = test_profile
@@ -405,8 +433,10 @@ class TestScrapeRecipe:
         mock_scraper_class.return_value = mock_scraper
 
         from django.test import AsyncClient
+        from django.conf import settings
 
         async_client = AsyncClient()
+        async_client.cookies[settings.SESSION_COOKIE_NAME] = session_key
 
         response = await async_client.post(
             "/api/recipes/scrape/",
@@ -418,8 +448,8 @@ class TestScrapeRecipe:
         data = response.json()
         assert "no title" in data["detail"]
 
-    async def test_scrape_recipe_requires_profile(self):
-        """Test scraping requires a profile."""
+    async def test_scrape_recipe_requires_auth(self):
+        """Test scraping requires authentication (returns 401 without session)."""
         from django.test import AsyncClient
 
         async_client = AsyncClient()
@@ -429,9 +459,7 @@ class TestScrapeRecipe:
             content_type="application/json",
         )
 
-        assert response.status_code == 403
-        data = response.json()
-        assert "Profile required" in data["detail"]
+        assert response.status_code == 401
 
 
 @pytest.mark.django_db
@@ -474,15 +502,38 @@ class TestSearchRecipesAPI:
 
     @patch("apps.recipes.api.RecipeSearch")
     async def test_search_recipes_with_source_filter(self, mock_search_class):
-        """Test recipe search with source filter."""
+        """Test recipe search with source filter returns filtered results from cache."""
         mock_search = MagicMock()
+        # Cache miss: search is called with per_page=10000 (no source filter)
         mock_search.search = AsyncMock(
             return_value={
-                "results": [],
-                "total": 0,
+                "results": [
+                    {
+                        "url": "https://a.com/1",
+                        "title": "A Recipe",
+                        "host": "allrecipes.com",
+                        "image_url": "",
+                        "description": "",
+                    },
+                    {
+                        "url": "https://b.com/1",
+                        "title": "B Recipe",
+                        "host": "bbcgoodfood.com",
+                        "image_url": "",
+                        "description": "",
+                    },
+                    {
+                        "url": "https://c.com/1",
+                        "title": "C Recipe",
+                        "host": "other.com",
+                        "image_url": "",
+                        "description": "",
+                    },
+                ],
+                "total": 3,
                 "page": 1,
                 "has_more": False,
-                "sites": {},
+                "sites": {"allrecipes.com": 1, "bbcgoodfood.com": 1, "other.com": 1},
             }
         )
         mock_search_class.return_value = mock_search
@@ -493,22 +544,46 @@ class TestSearchRecipesAPI:
         response = await async_client.get("/api/recipes/search/?q=cookies&sources=allrecipes.com,bbcgoodfood.com")
 
         assert response.status_code == 200
-
-        # Verify search was called with correct sources
-        call_args = mock_search.search.call_args
-        assert call_args.kwargs["sources"] == ["allrecipes.com", "bbcgoodfood.com"]
+        data = response.json()
+        # Source filter applied on cached results — only 2 of 3 results returned
+        assert data["total"] == 2
+        hosts = {r["host"] for r in data["results"]}
+        assert hosts == {"allrecipes.com", "bbcgoodfood.com"}
 
     @patch("apps.recipes.api.RecipeSearch")
     async def test_search_recipes_pagination(self, mock_search_class):
-        """Test recipe search pagination."""
+        """Test recipe search pagination works on cached results."""
         mock_search = MagicMock()
+        # Return 3 results — with per_page=2, page 2 should have 1 result
         mock_search.search = AsyncMock(
             return_value={
-                "results": [],
-                "total": 50,
-                "page": 2,
-                "has_more": True,
-                "sites": {},
+                "results": [
+                    {
+                        "url": "https://a.com/1",
+                        "title": "Recipe 1",
+                        "host": "a.com",
+                        "image_url": "",
+                        "description": "",
+                    },
+                    {
+                        "url": "https://a.com/2",
+                        "title": "Recipe 2",
+                        "host": "a.com",
+                        "image_url": "",
+                        "description": "",
+                    },
+                    {
+                        "url": "https://a.com/3",
+                        "title": "Recipe 3",
+                        "host": "a.com",
+                        "image_url": "",
+                        "description": "",
+                    },
+                ],
+                "total": 3,
+                "page": 1,
+                "has_more": False,
+                "sites": {"a.com": 3},
             }
         )
         mock_search_class.return_value = mock_search
@@ -516,14 +591,14 @@ class TestSearchRecipesAPI:
         from django.test import AsyncClient
 
         async_client = AsyncClient()
-        response = await async_client.get("/api/recipes/search/?q=cookies&page=2&per_page=10")
+        response = await async_client.get("/api/recipes/search/?q=cookies&page=2&per_page=2")
 
         assert response.status_code == 200
-
-        # Verify search was called with correct pagination
-        call_args = mock_search.search.call_args
-        assert call_args.kwargs["page"] == 2
-        assert call_args.kwargs["per_page"] == 10
+        data = response.json()
+        # Page 2 with per_page=2: should get 1 result (3 total, items 0-1 on page 1, item 2 on page 2)
+        assert len(data["results"]) == 1
+        assert data["page"] == 2
+        assert data["has_more"] is False
 
     @patch("apps.recipes.api.RecipeSearch")
     async def test_search_missing_query(self, mock_search_class):

@@ -15,13 +15,19 @@ import pytest
 from django.core.cache import cache
 from django.test import Client
 
+from apps.profiles.models import Profile
 
 FORWARDED_FOR_HEADER = {"HTTP_X_FORWARDED_FOR": "203.0.113.1"}
 
 
 @pytest.fixture
 def client():
-    return Client()
+    c = Client()
+    profile = Profile.objects.create(name="Rate Limit Test")
+    session = c.session
+    session["profile_id"] = profile.id
+    session.save()
+    return c
 
 
 @pytest.fixture(autouse=True)
