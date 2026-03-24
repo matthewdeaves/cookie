@@ -21,6 +21,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-24
 - PostgreSQL (via dj-database-url), Django database cache (`django_cache` table) (010-fix-qa-audit-issues)
 - Python 3.12 + Django 5.0, Django Ninja 1.0+, BeautifulSoup4, curl_cffi (012-filter-search-results)
 - PostgreSQL (no schema changes) (012-filter-search-results)
+- Python 3.12 (backend settings only) + Django 5.0 (built-in email framework), Mailpit (external Docker service) (012-mailpit-email-config)
+- No database changes. Mailpit uses its own volume for captured emails. (012-mailpit-email-config)
 
 - Python 3.12, TypeScript 5.9, ES5 (legacy) + Django 5.0, Django Ninja, React 19, Vite 7, Vitest 4, pytest, Gunicorn, WhiteNoise, curl_cffi (001-production-readiness)
 
@@ -72,13 +74,18 @@ docker compose exec web python manage.py cookie_admin cleanup-unverified --dry-r
 | `SITE_URL` | `http://localhost:3000` | Base URL for verification email links |
 | `EMAIL_BACKEND` | `django.core.mail.backends.console.EmailBackend` | Django email backend |
 | `DEFAULT_FROM_EMAIL` | `noreply@cookie.local` | Sender address for verification emails |
+| `EMAIL_HOST` | `localhost` | SMTP server hostname (e.g., `email-smtp.eu-west-2.amazonaws.com` for AWS SES) |
+| `EMAIL_PORT` | `25` | SMTP server port (e.g., `587` for TLS, `1025` for Mailpit) |
+| `EMAIL_HOST_USER` | `""` | SMTP authentication username (e.g., AWS SES SMTP credentials) |
+| `EMAIL_HOST_PASSWORD` | `""` | SMTP authentication password |
+| `EMAIL_USE_TLS` | `False` | Enable TLS for SMTP connection (`True` for production) |
 | `LOG_FORMAT` | `text` | `text` (dev) or `json` (production) |
 | `LOG_LEVEL` | `INFO` | Root log level |
 
 ## Recent Changes
+- 012-mailpit-email-config: Added Python 3.12 (backend settings only) + Django 5.0 (built-in email framework), Mailpit (external Docker service)
 - 012-filter-search-results: Added Python 3.12 + Django 5.0, Django Ninja 1.0+, BeautifulSoup4, curl_cffi
 - 011-dual-mode-auth: Added dual-mode authentication (home/public), admin CLI, email verification, privacy policy, structured JSON logging, request correlation IDs
-- 010-fix-qa-audit-issues: Added Python 3.12 + Django 5.0, Django Ninja 1.0+, curl_cffi (web scraping)
 
 
 <!-- MANUAL ADDITIONS START -->

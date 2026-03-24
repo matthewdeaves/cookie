@@ -1,0 +1,10 @@
+# Gitleaks configuration
+# https://github.com/gitleaks/gitleaks
+
+[allowlist]
+# detect-secrets baseline files contain SHA-1 hashes of known secrets,
+# not actual secrets. Gitleaks flags these as generic-api-key false positives.
+paths = [
+  '''.secrets.baseline''',
+  '''frontend/.secrets.baseline''',
+]
