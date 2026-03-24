@@ -3,25 +3,14 @@ name: Claude Code Review
 on:
   pull_request:
     types: [opened, synchronize, ready_for_review, reopened]
-    # Optional: Only run on specific file changes
-    # paths:
-    #   - "src/**/*.ts"
-    #   - "src/**/*.tsx"
-    #   - "src/**/*.js"
-    #   - "src/**/*.jsx"
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
-
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: read
+      pull-requests: write
       issues: read
       id-token: write
 
@@ -29,7 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Run Claude Code Review
         id: claude-review
@@ -40,78 +29,78 @@ jobs:
           plugins: 'code-review@claude-code-plugins'
           allowed_bots: 'dependabot'
           prompt: |
-            You are reviewing Cookie - a self-hosted recipe manager with dual frontends.
+            You are reviewing Cookie, a self-hosted recipe manager with dual frontends.
 
-            CRITICAL: Read claude.md in the repository root for complete project rules.
+            Read CLAUDE.md and .claude/rules/ in the repository root for complete project rules.
+            Read .specify/memory/constitution.md for the project constitution (non-negotiable principles).
 
-            ## Tech Stack
+            ## Architecture
 
-            **Backend:**
-            - Django 5.x with Django Ninja (REST API)
-            - Python with Gunicorn (2 workers, 2 threads for background tasks)
-            - Docker-only environment (NO commands run on host)
-            - recipe-scrapers + curl_cffi for web scraping
-            - OpenRouter for AI features (10 total)
-            - Pillow for image processing
+            Cookie has three layers:
+            - **Backend**: Django 5.x + Django Ninja REST API, Python 3.12, Gunicorn, PostgreSQL
+            - **Modern frontend** (frontend/): React 19, TypeScript, Vite, Tailwind CSS 4
+            - **Legacy frontend** (apps/legacy/): ES5 vanilla JS + Django templates for iOS 9 iPads
 
-            **Modern Frontend (frontend/):**
-            - React 19 + TypeScript
-            - Vite build system
-            - Tailwind CSS 4.x
-            - Radix UI components
-            - Motion animations
-            - Vitest for testing
+            All commands run inside Docker containers. The host has no Python or Node.
 
-            **Legacy Frontend (apps/legacy/):**
-            - ES5 JavaScript ONLY (for iOS 9 on old iPads)
-            - No const/let, arrow functions, async/await, template literals
-            - Django templates + static JS
-            - Light theme only (no dark mode)
-            - Requires container restart after changes
+            ## What to Check
 
-            ## Review Focus
+            ### 1. Security (highest priority)
 
-            1. **Docker Environment Compliance:**
-               - NEVER suggest running Python/Django commands on host
-               - All backend: `docker compose exec web python ...`
-               - All frontend: `docker compose exec frontend npm ...`
+            All state-changing API endpoints (POST/PUT/DELETE) MUST have `auth=SessionAuth()`.
+            SessionAuth (apps/core/auth.py) extends APIKeyCookie which enforces CSRF.
+            Only profile creation (POST /api/profiles/) and profile selection
+            (POST /api/profiles/{id}/select/) are intentionally public.
 
-            2. **Legacy Frontend ES5 Compliance:**
-               - Check for ES6+ syntax (const/let, arrows, template literals, async/await)
-               - Flag any modern JS that won't work on iOS 9 Safari
-               - Verify container restart instructions after static file changes
+            Check for:
+            - Missing auth on new state-changing endpoints
+            - SQL injection (string interpolation in ORM queries)
+            - XSS (dangerouslySetInnerHTML in React, |safe in Django templates)
+            - SSRF (user-supplied URLs fetched server-side without validation)
+            - Secrets committed to code (API keys, passwords)
 
-            3. **AI Feature Integration:**
-               - Verify AI-dependent features hide when API key missing
-               - Check serving adjustment is AI-only (no frontend fallback)
-               - Ensure 10 AI features align with claude.md list
+            ### 2. Legacy ES5 compliance (critical for apps/legacy/)
 
-            4. **Code Quality Limits (NEVER raise these):**
-               - Max function complexity: 15
-               - Max lines per function: 100
-               - Max file size: 500 lines
-               - If exceeded, REFACTOR - don't raise limits
+            All JS in apps/legacy/static/legacy/js/ MUST be ES5 only. No transpilation.
+            Forbidden: const, let, arrow functions, template literals, async/await,
+            destructuring, spread, classes, default params, for...of, import/export.
+            Use var, function(){}, string concatenation, .then() chains.
 
-            5. **Security & Performance:**
-               - Django injection risks (SQL, XSS, template)
-               - React XSS risks (dangerouslySetInnerHTML, dynamic imports)
-               - Image caching background threads working correctly
-               - curl_cffi usage for scraping (not requests)
+            CSS in apps/legacy/ MUST NOT use: CSS Grid, CSS custom properties (var(--x)),
+            flexbox gap, position:sticky, or any feature requiring iOS 10+.
+            Images MUST be JPEG/PNG (no WebP on iOS 9).
 
-            6. **Architecture Decisions (from claude.md):**
-               - Single environment (dev=prod)
-               - 15 curated search sources (not all 563)
-               - Remixes create new Recipe records (is_remix=True)
-               - Serving adjustment not persisted (AI on-the-fly)
-               - Images stored locally in media/ directory
-               - Play mode is stateless
+            ### 3. Code quality (non-negotiable limits)
 
-            7. **Testing:**
-               - Backend: pytest only (no unittest)
-               - Frontend: Vitest with React Testing Library
-               - Django test client for API integration tests
+            - Max function length: 100 lines (prefer 50)
+            - Max cyclomatic complexity: 15
+            - Max file size: 500 lines
+            If exceeded: recommend refactoring. NEVER suggest raising limits.
 
-            Provide specific line references and suggest concrete improvements.
-            Flag any violations of claude.md rules.
-          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
-          # or https://code.claude.com/docs/en/cli-reference for available options
+            ### 4. AI feature behavior
+
+            All 10 AI features MUST be hidden (not disabled) when OpenRouter API key
+            is not configured. No "AI unavailable" messages, no disabled buttons.
+            Backend returns 400 when AI unavailable. Frontend omits AI UI elements entirely.
+
+            ### 5. Architecture consistency
+
+            - Search results are cached globally for 5 days (cache key: search_{sha256_hash})
+            - Remixes create new Recipe records with is_remix=True
+            - Serving adjustment is AI-only, not persisted
+            - Docker-only: never suggest host commands for Python/Node
+            - PostgreSQL only (no SQLite), DATABASE_URL required
+
+            ### 6. Testing
+
+            - Backend: pytest against PostgreSQL (mock external APIs)
+            - Frontend: Vitest + React Testing Library
+            - Legacy: ESLint ES5 in CI
+            - Tests requiring auth must set up session: create Profile, set session["profile_id"]
+
+            ## Review Style
+
+            - Be concise. Cite specific file:line references.
+            - Focus on bugs, security issues, and rule violations.
+            - Skip style nitpicks unless they violate the quality gates above.
+            - If the PR looks good, say so briefly. Don't manufacture issues.
