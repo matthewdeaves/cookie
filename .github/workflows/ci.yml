@@ -822,8 +822,16 @@ jobs:
       - name: Run pip-audit (dependency vulnerabilities)
         run: |
           mkdir -p security
-          pip-audit --format json --output security/pip-audit.json || true
-          pip-audit > security/pip-audit.txt || true
+
+          # Temporarily ignored CVEs (remove when upstream fixes ship):
+          #   CVE-2026-4539: ReDoS in pygments AdlLexer (CVSS 4.8, local only)
+          #     - Transitive dev dep (pytest/rich), not used in production
+          #     - No fix available as of 2026-03-24
+          #     - Dependabot monitors weekly for pygments updates
+          PIP_AUDIT_IGNORE="--ignore-vuln CVE-2026-4539"
+
+          pip-audit $PIP_AUDIT_IGNORE --format json --output security/pip-audit.json || true
+          pip-audit $PIP_AUDIT_IGNORE > security/pip-audit.txt || true
 
           # Fail if pip-audit found any vulnerabilities
           VULN_COUNT=$(python3 -c "

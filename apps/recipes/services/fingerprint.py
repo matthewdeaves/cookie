@@ -43,7 +43,7 @@ def get_random_profile() -> str:
     Returns a weighted random choice favoring Chrome (most compatible).
     """
     weights = [45, 30, 15, 10]  # Chrome latest, Safari latest, Chrome 136, Safari 184
-    return random.choices(BROWSER_PROFILES, weights=weights)[0]
+    return random.choices(BROWSER_PROFILES, weights=weights)[0]  # nosec B311 - not cryptographic, used for browser fingerprint rotation
 
 
 def get_random_delay() -> float:
@@ -53,7 +53,7 @@ def get_random_delay() -> float:
     Returns a random float between MIN_DELAY and MAX_DELAY.
     Uses slight randomization to avoid predictable patterns.
     """
-    return random.uniform(MIN_DELAY, MAX_DELAY)
+    return random.uniform(MIN_DELAY, MAX_DELAY)  # nosec B311 - not cryptographic, used for request delay jitter
 
 
 def get_fallback_profiles(exclude: str = None) -> list[str]:
