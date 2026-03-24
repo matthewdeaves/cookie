@@ -12,14 +12,14 @@ def get_current_profile(request):
 
     Raises Http404 if no profile is selected.
     """
-    profile_id = request.session.get('profile_id')
+    profile_id = request.session.get("profile_id")
     if not profile_id:
-        raise Http404('No profile selected')
+        raise Http404("No profile selected")
 
     try:
         return Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
-        raise Http404('Profile not found')
+        raise Http404("Profile not found")
 
 
 def get_current_profile_or_none(request):
@@ -29,7 +29,7 @@ def get_current_profile_or_none(request):
     Use this for endpoints that work with or without a profile,
     but need to apply profile-based filtering when one is present.
     """
-    profile_id = request.session.get('profile_id')
+    profile_id = request.session.get("profile_id")
     if not profile_id:
         return None
 
@@ -45,9 +45,10 @@ async def aget_current_profile_or_none(request):
 
     Use this in async views/endpoints.
     """
+
     @sync_to_async
     def _get_profile():
-        profile_id = request.session.get('profile_id')
+        profile_id = request.session.get("profile_id")
         if not profile_id:
             return None
         try:

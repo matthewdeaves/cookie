@@ -206,6 +206,56 @@ describe('API Client', () => {
     })
   })
 
+  describe('recipes.list', () => {
+    const mockRecipe = {
+      id: 1,
+      title: 'My Recipe',
+      host: 'example.com',
+      image_url: 'https://example.com/img.jpg',
+      image: null,
+      total_time: 30,
+      rating: 4.5,
+      is_remix: false,
+      scraped_at: '2024-01-01T00:00:00Z',
+    }
+
+    it('lists all recipes', async () => {
+      const recipes = [mockRecipe]
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(recipes),
+      })
+
+      const result = await api.recipes.list()
+
+      expect(mockFetch).toHaveBeenCalledWith('/api/recipes/?limit=50&offset=0', expect.any(Object))
+      expect(result).toHaveLength(1)
+      expect(result[0].title).toBe('My Recipe')
+    })
+
+    it('lists recipes with custom limit', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve([]),
+      })
+
+      await api.recipes.list(100)
+
+      expect(mockFetch).toHaveBeenCalledWith('/api/recipes/?limit=100&offset=0', expect.any(Object))
+    })
+
+    it('lists recipes with offset', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve([]),
+      })
+
+      await api.recipes.list(50, 10)
+
+      expect(mockFetch).toHaveBeenCalledWith('/api/recipes/?limit=50&offset=10', expect.any(Object))
+    })
+  })
+
   describe('collections', () => {
     const mockRecipe = {
       id: 1,

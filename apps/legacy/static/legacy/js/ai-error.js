@@ -7,6 +7,22 @@ var Cookie = Cookie || {};
 Cookie.aiError = (function() {
     'use strict';
 
+    // Status code to action/message lookup table
+    var STATUS_HANDLERS = {
+        503: { action: 'configure_key', message: 'AI features are not available. Please configure your API key in Settings.' },
+        401: { action: 'update_key', message: 'Your API key appears to be invalid. Please update it in Settings.' },
+        429: { action: 'retry', message: 'Too many requests. Please wait a moment and try again.' },
+        402: { action: 'add_credits', message: 'Your OpenRouter account may need credits. Please check your account.' }
+    };
+
+    /**
+     * Get default action/message for a status code
+     */
+    function getStatusHandler(status, errorCode) {
+        if (errorCode === 'ai_unavailable') return STATUS_HANDLERS[503];
+        return STATUS_HANDLERS[status] || null;
+    }
+
     /**
      * Handle AI-related errors with actionable guidance
      * @param {Error} err - Error object from ajax callback
@@ -14,43 +30,19 @@ Cookie.aiError = (function() {
      * @returns {Object} - { message: string, action: string|null }
      */
     function handleError(err, defaultMessage) {
-        var result = {
-            message: defaultMessage || 'An error occurred',
-            action: null
-        };
+        var result = { message: defaultMessage || 'An error occurred', action: null };
+        if (!err) return result;
 
-        if (!err) {
-            return result;
-        }
-
-        // Get error data from parsed response
         var data = err.data || {};
-        var status = err.status;
+        if (data.message) result.message = data.message;
+        if (data.action) result.action = data.action;
 
-        // Use server-provided message if available
-        if (data.message) {
-            result.message = data.message;
-        }
-
-        // Use server-provided action if available
-        if (data.action) {
-            result.action = data.action;
-        }
-
-        // Provide default actions based on status/error codes
+        // Apply status-based defaults if no action from server
         if (!result.action) {
-            if (status === 503 || data.error === 'ai_unavailable') {
-                result.action = 'configure_key';
-                result.message = result.message || 'AI features are not available. Please configure your API key in Settings.';
-            } else if (status === 401) {
-                result.action = 'update_key';
-                result.message = result.message || 'Your API key appears to be invalid. Please update it in Settings.';
-            } else if (status === 429) {
-                result.action = 'retry';
-                result.message = result.message || 'Too many requests. Please wait a moment and try again.';
-            } else if (status === 402) {
-                result.action = 'add_credits';
-                result.message = result.message || 'Your OpenRouter account may need credits. Please check your account.';
+            var handler = getStatusHandler(err.status, data.error);
+            if (handler) {
+                result.action = handler.action;
+                result.message = result.message || handler.message;
             }
         }
 

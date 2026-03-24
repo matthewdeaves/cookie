@@ -22,14 +22,6 @@ Cookie.pages.home = (function() {
      * Setup event listeners
      */
     function setupEventListeners() {
-        // Logout/switch profile button
-        var logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', function() {
-                window.location.href = '/legacy/';
-            });
-        }
-
         // Search form submission
         var searchForm = document.getElementById('search-form');
         if (searchForm) {
@@ -231,14 +223,14 @@ Cookie.pages.home = (function() {
                 '</svg>' +
                 '<span class="discover-card-type">' + typeLabel + '</span>' +
             '</div>' +
-            '<h3 class="discover-card-title">' + escapeHtml(suggestion.title) + '</h3>' +
-            '<p class="discover-card-description">' + escapeHtml(suggestion.description) + '</p>' +
+            '<h3 class="discover-card-title">' + Cookie.utils.escapeHtml(suggestion.title) + '</h3>' +
+            '<p class="discover-card-description">' + Cookie.utils.escapeHtml(suggestion.description) + '</p>' +
             '<div class="discover-card-search">' +
                 '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
                     '<circle cx="11" cy="11" r="8"></circle>' +
                     '<line x1="21" y1="21" x2="16.65" y2="16.65"></line>' +
                 '</svg>' +
-                '<span>Search: ' + escapeHtml(suggestion.search_query) + '</span>' +
+                '<span>Search: ' + Cookie.utils.escapeHtml(suggestion.search_query) + '</span>' +
             '</div>';
 
         card.addEventListener('click', function() {
@@ -267,15 +259,7 @@ Cookie.pages.home = (function() {
         }
     }
 
-    /**
-     * Escape HTML to prevent XSS
-     */
-    function escapeHtml(str) {
-        if (!str) return '';
-        var div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
+    // Use shared utility: Cookie.utils.escapeHtml
 
     /**
      * Handle favorite button click

@@ -1,18 +1,19 @@
-import { useState, useEffect } from 'react'
-import { ArrowLeft, Link as LinkIcon, Loader2 } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link as LinkIcon, Loader2, Search as SearchIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type SearchResult } from '../api/client'
 import { cn } from '../lib/utils'
+import NavHeader from '../components/NavHeader'
 
-interface SearchProps {
-  query: string
-  onBack: () => void
-  onImport: (url: string) => void
-}
+export default function Search() {
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const query = searchParams.get('q') || ''
 
-export default function Search({ query, onBack, onImport }: SearchProps) {
+  const [searchInput, setSearchInput] = useState(query)
   const [results, setResults] = useState<SearchResult[]>([])
-  const [total, setTotal] = useState(0)
+  const [, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
   const [sites, setSites] = useState<Record<string, number>>({})
@@ -24,18 +25,40 @@ export default function Search({ query, onBack, onImport }: SearchProps) {
   // Detect if query is a URL
   const isUrl = /^https?:\/\//i.test(query.trim())
 
+  // Update search input when query changes
   useEffect(() => {
+    setSearchInput(query)
+  }, [query])
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const trimmed = searchInput.trim()
+    if (trimmed && trimmed !== query) {
+      navigate(`/search?q=${encodeURIComponent(trimmed)}`)
+    }
+  }
+
+  useEffect(() => {
+    if (!query) {
+      navigate('/home')
+      return
+    }
+    const abortController = new AbortController()
     // Reset state when query or source filter changes
     setResults([])
     setPage(1)
     setLoading(true)
-    searchRecipes(1, true)
+    searchRecipes(1, true, abortController.signal)
+    return () => { abortController.abort() }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate and searchRecipes are stable, only re-run when query or filter changes
   }, [query, selectedSource])
 
-  const searchRecipes = async (pageNum: number, reset: boolean = false) => {
+  const searchRecipes = async (pageNum: number, reset: boolean = false, signal?: AbortSignal) => {
     try {
       const sources = selectedSource || undefined
-      const response = await api.recipes.search(query, sources, pageNum)
+      const response = await api.recipes.search(query, sources, pageNum, signal)
+
+      if (signal?.aborted) return
 
       if (reset) {
         setResults(response.results)
@@ -48,11 +71,14 @@ export default function Search({ query, onBack, onImport }: SearchProps) {
       setHasMore(response.has_more)
       setPage(pageNum)
     } catch (error) {
+      if (signal?.aborted || (error instanceof DOMException && error.name === 'AbortError')) return
       console.error('Search failed:', error)
       toast.error('Search failed. Please try again.')
     } finally {
-      setLoading(false)
-      setLoadingMore(false)
+      if (!signal?.aborted) {
+        setLoading(false)
+        setLoadingMore(false)
+      }
     }
   }
 
@@ -65,19 +91,19 @@ export default function Search({ query, onBack, onImport }: SearchProps) {
     setSelectedSource(source)
   }
 
-  const handleImportUrl = async () => {
-    setImporting(query)
-    try {
-      await onImport(query)
-    } finally {
-      setImporting(null)
-    }
-  }
-
-  const handleImportResult = async (url: string) => {
+  const handleImport = async (url: string) => {
     setImporting(url)
     try {
-      await onImport(url)
+      const recipe = await api.recipes.scrape(url)
+      toast.success(`Imported: ${recipe.title}`)
+      // Record in history
+      await api.history.record(recipe.id)
+      // Navigate to recipe detail
+      navigate(`/recipe/${recipe.id}`)
+    } catch (error) {
+      console.error('Failed to import recipe:', error)
+      const message = error instanceof Error ? error.message : 'Failed to import recipe'
+      toast.error(message)
     } finally {
       setImporting(null)
     }
@@ -89,30 +115,30 @@ export default function Search({ query, onBack, onImport }: SearchProps) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Header with breadcrumb */}
-      <header className="border-b border-border px-4 py-3">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          <span>Back to Home</span>
-        </button>
-      </header>
+      <NavHeader />
 
       <main className="flex-1 px-4 py-6">
         <div className="mx-auto max-w-4xl">
-          {/* Query info */}
-          <div className="mb-6">
-            <h1 className="mb-1 text-xl font-medium text-foreground">
-              {isUrl ? 'Import Recipe' : `Search: "${query}"`}
-            </h1>
-            {!isUrl && !loading && (
-              <p className="text-sm text-muted-foreground">
-                {total} {total === 1 ? 'result' : 'results'} found
-              </p>
-            )}
-          </div>
+          {/* Search bar */}
+          <form onSubmit={handleSearchSubmit} className="mb-6">
+            <div className="relative">
+              <SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search recipes or paste a URL..."
+                className="w-full rounded-xl border border-border bg-input-background py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+          </form>
+
+          {/* Result count */}
+          {!isUrl && !loading && (
+            <p className="mb-4 text-sm text-muted-foreground">
+              {allSourcesCount} {allSourcesCount === 1 ? 'result' : 'results'} found
+            </p>
+          )}
 
           {/* URL Import Card */}
           {isUrl && (
@@ -129,7 +155,7 @@ export default function Search({ query, onBack, onImport }: SearchProps) {
                     {query}
                   </p>
                   <button
-                    onClick={handleImportUrl}
+                    onClick={() => handleImport(query)}
                     disabled={!!importing}
                     className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
                   >
@@ -193,7 +219,7 @@ export default function Search({ query, onBack, onImport }: SearchProps) {
                   <SearchResultCard
                     key={`${result.url}-${index}`}
                     result={result}
-                    onImport={handleImportResult}
+                    onImport={handleImport}
                     importing={importing === result.url}
                   />
                 ))}
@@ -252,20 +278,27 @@ function SearchResultCard({
 }: SearchResultCardProps) {
   // Prefer cached image, fallback to external
   const imageUrl = result.cached_image_url || result.image_url
+  const [imgError, setImgError] = useState(false)
+
+  const handleImgError = useCallback(() => {
+    setImgError(true)
+  }, [])
 
   return (
     <div className="group overflow-hidden rounded-lg bg-card shadow-sm transition-all hover:shadow-md">
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-        {imageUrl ? (
+        {imageUrl && !imgError ? (
           <img
             src={imageUrl}
             alt={result.title}
+            loading="lazy"
+            onError={handleImgError}
             className="h-full w-full object-cover transition-transform group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-            No image
+          <div className="flex h-full w-full items-center justify-center bg-muted px-3 text-center text-sm font-medium text-muted-foreground">
+            {result.title}
           </div>
         )}
       </div>
@@ -276,7 +309,7 @@ function SearchResultCard({
           {result.title}
         </h3>
         <p className="mb-2 text-xs text-muted-foreground">
-          {result.host}
+          <a href={result.url} target="_blank" rel="noopener noreferrer" className="hover:underline">{result.host}</a>
           {result.rating_count && (
             <span> · {result.rating_count.toLocaleString()} Ratings</span>
           )}

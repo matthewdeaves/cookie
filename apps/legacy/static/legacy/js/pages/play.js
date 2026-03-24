@@ -35,6 +35,11 @@ Cookie.pages.play = (function() {
         // Cache DOM elements
         cacheElements();
 
+        // Add class for recipes with many steps (hide dots, show simpler progress)
+        if (totalSteps > 12 && elements.stepIndicators) {
+            elements.stepIndicators.classList.add('many-steps');
+        }
+
         // Setup event listeners
         setupEventListeners();
 
@@ -54,6 +59,8 @@ Cookie.pages.play = (function() {
      */
     function cacheElements() {
         elements = {
+            playMode: document.querySelector('.play-mode'),
+            instructionArea: document.querySelector('.instruction-area'),
             progressBar: document.getElementById('progress-bar'),
             currentStep: document.getElementById('current-step'),
             totalSteps: document.getElementById('total-steps'),
@@ -86,6 +93,10 @@ Cookie.pages.play = (function() {
         };
         document.addEventListener('touchstart', initMediaHandler, false);
         document.addEventListener('click', initMediaHandler, false);
+
+        // Handle orientation changes - iOS Safari needs viewport recalculation
+        window.addEventListener('orientationchange', handleOrientationChange, false);
+        window.addEventListener('resize', handleOrientationChange, false);
 
         // Exit button - use location.replace() to avoid Play Mode in history
         var exitBtn = document.getElementById('exit-btn');
@@ -143,6 +154,25 @@ Cookie.pages.play = (function() {
             var exitBtn = document.getElementById('exit-btn');
             var recipeUrl = exitBtn ? exitBtn.getAttribute('href') : '/legacy/home/';
             window.location.href = recipeUrl;
+        }
+    }
+
+    /**
+     * Handle orientation change
+     * iOS Safari doesn't always recalculate viewport height properly
+     */
+    function handleOrientationChange() {
+        // Force layout recalculation by triggering a reflow
+        if (elements.playMode) {
+            // Small delay to let iOS finish orientation animation
+            setTimeout(function() {
+                // Force reflow by reading offsetHeight
+                void elements.playMode.offsetHeight;
+                // Scroll instruction area to ensure content is visible
+                if (elements.instructionArea) {
+                    elements.instructionArea.scrollTop = 0;
+                }
+            }, 150);
         }
     }
 
@@ -483,7 +513,7 @@ Cookie.pages.play = (function() {
 
         widget.innerHTML = [
             '<div class="timer-info">',
-            '  <span class="timer-label">' + escapeHtml(timer.label) + '</span>',
+            '  <span class="timer-label">' + Cookie.utils.escapeHtml(timer.label) + '</span>',
             '  <span class="timer-time">' + timer.formatTime() + '</span>',
             '</div>',
             '<div class="timer-progress">',
@@ -563,14 +593,7 @@ Cookie.pages.play = (function() {
         }
     }
 
-    /**
-     * Escape HTML to prevent XSS
-     */
-    function escapeHtml(text) {
-        var div = document.createElement('div');
-        div.appendChild(document.createTextNode(text));
-        return div.innerHTML;
-    }
+    // Use shared utility: Cookie.utils.escapeHtml
 
     return {
         init: init

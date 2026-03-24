@@ -1,0 +1,6 @@
+export { default as SettingsGeneral } from './SettingsGeneral'
+export { default as SettingsPrompts } from './SettingsPrompts'
+export { default as SettingsSources } from './SettingsSources'
+export { default as SettingsSelectors } from './SettingsSelectors'
+export { default as SettingsUsers } from './SettingsUsers'
+export { default as SettingsDanger } from './SettingsDanger'

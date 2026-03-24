@@ -1,0 +1,27 @@
+#!/bin/bash
+# Clean up root-owned artifacts created by Docker containers.
+# Run with: sudo bin/clean-docker-artifacts
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$SCRIPT_DIR"
+
+echo "Cleaning root-owned Docker artifacts in $SCRIPT_DIR..."
+
+# Coverage artifacts (created by pytest inside container)
+rm -rf htmlcov/ .coverage coverage.json
+
+# Cache directories (created by tools inside container)
+rm -rf .pytest_cache/ .ruff_cache/
+
+# Gunicorn socket
+rm -f gunicorn.ctl
+
+# Data directory (container-created media/cache)
+rm -rf data/
+
+# Staticfiles (collectstatic output)
+rm -rf staticfiles/
+
+echo "Done. Gitignored artifacts cleaned."

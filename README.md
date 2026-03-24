@@ -15,15 +15,17 @@ A self-hosted recipe manager for searching, importing, organising, and cooking t
 
 ## Quick Start (Production)
 
-Run the production container with a single command:
+Create a `.env` file with a Postgres password, then start:
 
 ```bash
-docker run -d -p 80:80 -v cookie-data:/app/data mndeaves/cookie:latest
+echo "POSTGRES_PASSWORD=changeme" > .env
+curl -O https://raw.githubusercontent.com/matthewdeaves/cookie/master/docker-compose.prod.yml
+docker compose -f docker-compose.prod.yml --env-file .env up -d
 ```
 
 Open http://localhost and start importing recipes.
 
-**That's it.** Data persists in the `cookie-data` volume.
+**That's it.** Data persists in Docker volumes (`cookie-postgres-data`, `cookie-media`).
 
 See [Deployment Guide](docs/DEPLOYMENT.md) for configuration options, updates, and network access.
 
@@ -107,8 +109,7 @@ See [WORKFLOW.md](WORKFLOW.md) for development commands and testing with Claude 
                                          │
                                          ▼
                               ┌──────────────────┐
-                              │  SQLite + WAL    │
-                              │  /app/data/      │
+                              │   PostgreSQL     │
                               └──────────────────┘
                                          │
                                          ▼ (optional)
@@ -117,9 +118,8 @@ See [WORKFLOW.md](WORKFLOW.md) for development commands and testing with Claude 
                               └──────────────────┘
 ```
 
-- Single container: nginx (port 80) + gunicorn (internal)
+- Production: nginx + gunicorn (web container) + PostgreSQL (db container)
 - Automatic legacy browser detection and redirect
-- Dev/prod parity: both use nginx for routing
 
 ## Tech Stack
 
@@ -127,11 +127,11 @@ See [WORKFLOW.md](WORKFLOW.md) for development commands and testing with Claude 
 |-------|------------|
 | Web Server | nginx (routing, static files, browser detection) |
 | Backend | Django 5, django-ninja, gunicorn |
-| Frontend | React 18, TypeScript, Vite, Tailwind |
+| Frontend | React 19, TypeScript, Vite, Tailwind |
 | Legacy | ES5 JavaScript (iOS 9 compatibility) |
-| Database | SQLite + WAL mode |
+| Database | PostgreSQL |
 | AI | OpenRouter (Claude, GPT-4, Gemini) |
-| Deployment | Docker (amd64, arm64), single container |
+| Deployment | Docker Compose (amd64, arm64) |
 
 ## Compatibility
 
@@ -145,6 +145,7 @@ See [WORKFLOW.md](WORKFLOW.md) for development commands and testing with Claude 
 
 | Variable | Required | Description |
 |----------|----------|-------------|
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
 | `DEBUG` | No | Set to `false` in production (default) |
 | `ALLOWED_HOSTS` | No | Comma-separated hostnames (default: `*`) |
 | `CSRF_TRUSTED_ORIGINS` | No | Full URLs for CSRF protection |
@@ -154,23 +155,14 @@ AI features are configured through the Settings UI, not environment variables.
 
 ### Data Persistence
 
-```bash
-# Docker volume (recommended)
-docker run -v cookie-data:/app/data mndeaves/cookie:latest
-
-# Or bind mount
-docker run -v /path/to/data:/app/data mndeaves/cookie:latest
-```
-
-Data stored in `/app/data`:
-- `db.sqlite3` - SQLite database
-- `media/` - Uploaded images
-- `.secret_key` - Auto-generated Django secret key
+Data is stored in two Docker volumes:
+- `cookie-postgres-data` - PostgreSQL database
+- `cookie-media` - Uploaded images
 
 ## Data Privacy
 
 - Fully self-hosted - all data stays on your server (apart from when using OpenRouter)
-- SQLite database stored locally
+- PostgreSQL database stored locally
 - No telemetry or external tracking
 - AI requests go to OpenRouter only if configured
 
@@ -212,7 +204,7 @@ bin/dev npm test        # Run frontend tests
 ```bash
 bin/prod up             # Start production container (port 80)
 bin/prod down           # Stop production container
-bin/prod pull           # Pull latest image from Docker Hub
+bin/prod pull           # Pull latest image from GHCR
 bin/prod update         # Pull and restart
 bin/prod logs -f        # Follow logs
 bin/prod health         # Check container health
@@ -228,13 +220,15 @@ bin/prod build          # Build production image locally
 
 ## Code Quality
 
-15-job CI pipeline (path filters skip docs/markdown):
+22-job CI pipeline (path filters skip docs/markdown):
 
 **Frontend (7 jobs):** lint (ESLint), typecheck (TypeScript), test (Vitest), complexity, duplication, security (npm audit), bundle analysis
 
-**Backend (5 jobs):** lint (ruff), test (pytest), complexity (radon), duplication (jscpd), security (pip-audit)
+**Backend (5 jobs):** lint (ruff), test (pytest), complexity (radon), duplication (jscpd), security (pip-audit + Bandit SAST)
 
 **Legacy (2 jobs):** lint (ESLint ES5), duplication (jscpd)
+
+**Security & Infrastructure (7 jobs):** secrets detection, Trivy container scan, Semgrep SAST, Hadolint Dockerfile lint, Gitleaks, Django deploy check, migration check
 
 **Final (1 job):** ci-success aggregator
 

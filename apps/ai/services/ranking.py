@@ -27,7 +27,7 @@ def _filter_valid(results: list[dict]) -> list[dict]:
     Results without titles will fail to import, so they should
     never be shown to users.
     """
-    return [r for r in results if r.get('title')]
+    return [r for r in results if r.get("title")]
 
 
 def _sort_by_image(results: list[dict]) -> list[dict]:
@@ -37,7 +37,7 @@ def _sort_by_image(results: list[dict]) -> list[dict]:
     is unavailable or fails. Also filters out invalid results.
     """
     valid_results = _filter_valid(results)
-    return sorted(valid_results, key=lambda r: (0 if r.get('image_url') else 1))
+    return sorted(valid_results, key=lambda r: (0 if r.get("image_url") else 1))
 
 
 def rank_results(query: str, results: list[dict]) -> list[dict]:
@@ -69,13 +69,13 @@ def rank_results(query: str, results: list[dict]) -> list[dict]:
 
     # Check if ranking is available
     if not is_ranking_available():
-        logger.debug('AI ranking skipped: No API key configured, using image-first sorting')
+        logger.debug("AI ranking skipped: No API key configured, using image-first sorting")
         return _sort_by_image(results)
 
     try:
-        prompt = AIPrompt.get_prompt('search_ranking')
+        prompt = AIPrompt.get_prompt("search_ranking")
     except AIPrompt.DoesNotExist:
-        logger.warning('search_ranking prompt not found, using image-first sorting')
+        logger.warning("search_ranking prompt not found, using image-first sorting")
         return _sort_by_image(results)
 
     # Format results for the AI
@@ -83,10 +83,10 @@ def rank_results(query: str, results: list[dict]) -> list[dict]:
     results_to_rank = results[:40]
     remaining = results[40:] if len(results) > 40 else []
 
-    results_text = '\n'.join(
+    results_text = "\n".join(
         f'{i}. "{r.get("title", "Unknown")}" from {r.get("host", "unknown")} '
-        f'- {r.get("description", "No description")[:100]}'
-        f'{" [has image]" if r.get("image_url") else ""}'
+        f"- {r.get('description', 'No description')[:100]}"
+        f"{' [has image]' if r.get('image_url') else ''}"
         for i, r in enumerate(results_to_rank)
     )
 
@@ -107,7 +107,7 @@ def rank_results(query: str, results: list[dict]) -> list[dict]:
 
         # Validate response - expects array of integers (indices)
         validator = AIResponseValidator()
-        ranking = validator.validate('search_ranking', response)
+        ranking = validator.validate("search_ranking", response)
 
         # Apply ranking
         ranked_results = _apply_ranking(results_to_rank, ranking)
@@ -116,7 +116,7 @@ def rank_results(query: str, results: list[dict]) -> list[dict]:
         if remaining:
             remaining_sorted = sorted(
                 remaining,
-                key=lambda r: (0 if r.get('image_url') else 1),
+                key=lambda r: (0 if r.get("image_url") else 1),
             )
             ranked_results.extend(remaining_sorted)
 
@@ -127,7 +127,7 @@ def rank_results(query: str, results: list[dict]) -> list[dict]:
         logger.warning(f'AI ranking failed for query "{query}": {e}, using image-first sorting')
         return _sort_by_image(results)
     except Exception as e:
-        logger.error(f'Unexpected error in AI ranking: {e}, using image-first sorting')
+        logger.error(f"Unexpected error in AI ranking: {e}, using image-first sorting")
         return _sort_by_image(results)
 
 

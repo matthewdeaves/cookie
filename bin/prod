@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 COMPOSE_FILE="docker-compose.prod.yml"
 CONTAINER_NAME="cookie-prod"
-IMAGE_NAME="mndeaves/cookie:latest"
+IMAGE_NAME="ghcr.io/matthewdeaves/cookie:latest"
 
 usage() {
     echo "Usage: bin/prod <command> [args]"
@@ -70,7 +70,7 @@ case "${1:-}" in
         echo -e "${GREEN}Production restarted.${NC}"
         ;;
     pull)
-        echo -e "${GREEN}Pulling latest image from Docker Hub...${NC}"
+        echo -e "${GREEN}Pulling latest image from GHCR...${NC}"
         docker pull "$IMAGE_NAME"
         echo -e "${GREEN}Image updated. Run 'bin/prod restart' to apply.${NC}"
         ;;

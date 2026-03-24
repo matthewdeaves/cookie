@@ -1,16 +1,14 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Heart } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Heart } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type Recipe, type Favorite } from '../api/client'
+import NavHeader from '../components/NavHeader'
 import RecipeCard from '../components/RecipeCard'
 import { RecipeGridSkeleton } from '../components/Skeletons'
 
-interface FavoritesProps {
-  onBack: () => void
-  onRecipeClick: (recipeId: number) => void
-}
-
-export default function Favorites({ onBack, onRecipeClick }: FavoritesProps) {
+export default function Favorites() {
+  const navigate = useNavigate()
   const [favorites, setFavorites] = useState<Favorite[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -41,21 +39,22 @@ export default function Favorites({ onBack, onRecipeClick }: FavoritesProps) {
     }
   }
 
+  const handleRecipeClick = async (recipeId: number) => {
+    try {
+      await api.history.record(recipeId)
+    } catch (error) {
+      console.error('Failed to record history:', error)
+    }
+    navigate(`/recipe/${recipeId}`)
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="flex items-center gap-4 border-b border-border px-4 py-3">
-        <button
-          onClick={onBack}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <h1 className="text-xl font-medium text-foreground">Favorites</h1>
-      </header>
+      <NavHeader />
 
       {/* Content */}
       <main className="px-4 py-6">
+        <h2 className="mb-4 text-lg font-medium text-foreground">Favorites</h2>
         <div className="mx-auto max-w-4xl">
           {loading ? (
             <RecipeGridSkeleton count={8} />
@@ -67,7 +66,7 @@ export default function Favorites({ onBack, onRecipeClick }: FavoritesProps) {
                   recipe={favorite.recipe}
                   isFavorite
                   onFavoriteToggle={handleRemoveFavorite}
-                  onClick={() => onRecipeClick(favorite.recipe.id)}
+                  onClick={() => handleRecipeClick(favorite.recipe.id)}
                 />
               ))}
             </div>
@@ -84,7 +83,7 @@ export default function Favorites({ onBack, onRecipeClick }: FavoritesProps) {
                 Browse recipes to add some!
               </p>
               <button
-                onClick={onBack}
+                onClick={() => navigate('/home')}
                 className="rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 Discover Recipes

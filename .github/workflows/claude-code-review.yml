@@ -1,0 +1,106 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+jobs:
+  claude-review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude Code Review
+        id: claude-review
+        uses: anthropics/claude-code-action@6062f3709600659be5e47fcddf2cf76993c235c2 # v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
+          plugins: 'code-review@claude-code-plugins'
+          allowed_bots: 'dependabot'
+          prompt: |
+            You are reviewing Cookie, a self-hosted recipe manager with dual frontends.
+
+            Read CLAUDE.md and .claude/rules/ in the repository root for complete project rules.
+            Read .specify/memory/constitution.md for the project constitution (non-negotiable principles).
+
+            ## Architecture
+
+            Cookie has three layers:
+            - **Backend**: Django 5.x + Django Ninja REST API, Python 3.12, Gunicorn, PostgreSQL
+            - **Modern frontend** (frontend/): React 19, TypeScript, Vite, Tailwind CSS 4
+            - **Legacy frontend** (apps/legacy/): ES5 vanilla JS + Django templates for iOS 9 iPads
+
+            All commands run inside Docker containers. The host has no Python or Node.
+
+            ## What to Check
+
+            ### 1. Security (highest priority)
+
+            All state-changing API endpoints (POST/PUT/DELETE) MUST have `auth=SessionAuth()`.
+            SessionAuth (apps/core/auth.py) extends APIKeyCookie which enforces CSRF.
+            Only profile creation (POST /api/profiles/) and profile selection
+            (POST /api/profiles/{id}/select/) are intentionally public.
+
+            Check for:
+            - Missing auth on new state-changing endpoints
+            - SQL injection (string interpolation in ORM queries)
+            - XSS (dangerouslySetInnerHTML in React, |safe in Django templates)
+            - SSRF (user-supplied URLs fetched server-side without validation)
+            - Secrets committed to code (API keys, passwords)
+
+            ### 2. Legacy ES5 compliance (critical for apps/legacy/)
+
+            All JS in apps/legacy/static/legacy/js/ MUST be ES5 only. No transpilation.
+            Forbidden: const, let, arrow functions, template literals, async/await,
+            destructuring, spread, classes, default params, for...of, import/export.
+            Use var, function(){}, string concatenation, .then() chains.
+
+            CSS in apps/legacy/ MUST NOT use: CSS Grid, CSS custom properties (var(--x)),
+            flexbox gap, position:sticky, or any feature requiring iOS 10+.
+            Images MUST be JPEG/PNG (no WebP on iOS 9).
+
+            ### 3. Code quality (non-negotiable limits)
+
+            - Max function length: 100 lines (prefer 50)
+            - Max cyclomatic complexity: 15
+            - Max file size: 500 lines
+            If exceeded: recommend refactoring. NEVER suggest raising limits.
+
+            ### 4. AI feature behavior
+
+            All 10 AI features MUST be hidden (not disabled) when OpenRouter API key
+            is not configured. No "AI unavailable" messages, no disabled buttons.
+            Backend returns 400 when AI unavailable. Frontend omits AI UI elements entirely.
+
+            ### 5. Architecture consistency
+
+            - Search results are cached globally for 5 days (cache key: search_{sha256_hash})
+            - Remixes create new Recipe records with is_remix=True
+            - Serving adjustment is AI-only, not persisted
+            - Docker-only: never suggest host commands for Python/Node
+            - PostgreSQL only (no SQLite), DATABASE_URL required
+
+            ### 6. Testing
+
+            - Backend: pytest against PostgreSQL (mock external APIs)
+            - Frontend: Vitest + React Testing Library
+            - Legacy: ESLint ES5 in CI
+            - Tests requiring auth must set up session: create Profile, set session["profile_id"]
+
+            ## Review Style
+
+            - Be concise. Cite specific file:line references.
+            - Focus on bugs, security issues, and rule violations.
+            - Skip style nitpicks unless they violate the quality gates above.
+            - If the PR looks good, say so briefly. Don't manufacture issues.

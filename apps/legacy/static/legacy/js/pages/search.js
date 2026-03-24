@@ -71,7 +71,7 @@ Cookie.pages.search = (function() {
         if (!state.isUrl && state.query) {
             searchRecipes(1, true);
         } else if (state.isUrl) {
-            hideElement(elements.loading);
+            Cookie.utils.hideElement(elements.loading);
         }
     }
 
@@ -79,14 +79,6 @@ Cookie.pages.search = (function() {
      * Setup event listeners
      */
     function setupEventListeners() {
-        // Back button
-        var backBtn = document.getElementById('back-btn');
-        if (backBtn) {
-            backBtn.addEventListener('click', function() {
-                window.location.href = '/legacy/home/';
-            });
-        }
-
         // Load more button
         if (elements.loadMoreBtn) {
             elements.loadMoreBtn.addEventListener('click', function() {
@@ -132,11 +124,11 @@ Cookie.pages.search = (function() {
         if (reset) {
             state.results = [];
             state.sites = {};
-            showElement(elements.loading);
-            hideElement(elements.resultsGrid);
-            hideElement(elements.emptyState);
-            hideElement(elements.pagination);
-            hideElement(elements.endOfResults);
+            Cookie.utils.showElement(elements.loading);
+            Cookie.utils.hideElement(elements.resultsGrid);
+            Cookie.utils.hideElement(elements.emptyState);
+            Cookie.utils.hideElement(elements.pagination);
+            Cookie.utils.hideElement(elements.endOfResults);
         } else {
             // Show loading state on button
             if (elements.loadMoreBtn) {
@@ -156,7 +148,7 @@ Cookie.pages.search = (function() {
             state.loading = false;
 
             if (error) {
-                hideElement(elements.loading);
+                Cookie.utils.hideElement(elements.loading);
                 Cookie.toast.error('Search failed. Please try again.');
                 return;
             }
@@ -225,8 +217,8 @@ Cookie.pages.search = (function() {
             var site = sortedSites[i];
             var count = sites[site];
             var isActive = state.selectedSource === site ? ' active' : '';
-            html += '<button type="button" class="chip' + isActive + '" data-source="' + escapeHtml(site) + '">';
-            html += escapeHtml(site) + ' (' + count + ')';
+            html += '<button type="button" class="chip' + isActive + '" data-source="' + Cookie.utils.escapeHtml(site) + '">';
+            html += Cookie.utils.escapeHtml(site) + ' (' + count + ')';
             html += '</button>';
         }
 
@@ -254,18 +246,18 @@ Cookie.pages.search = (function() {
      * Render search results
      */
     function renderResults(reset, previousCount) {
-        hideElement(elements.loading);
+        Cookie.utils.hideElement(elements.loading);
 
         if (state.results.length === 0) {
-            hideElement(elements.resultsGrid);
-            showElement(elements.emptyState);
-            hideElement(elements.pagination);
-            hideElement(elements.endOfResults);
+            Cookie.utils.hideElement(elements.resultsGrid);
+            Cookie.utils.showElement(elements.emptyState);
+            Cookie.utils.hideElement(elements.pagination);
+            Cookie.utils.hideElement(elements.endOfResults);
             return;
         }
 
-        hideElement(elements.emptyState);
-        showElement(elements.resultsGrid);
+        Cookie.utils.hideElement(elements.emptyState);
+        Cookie.utils.showElement(elements.resultsGrid);
 
         // Render cards
         var html = '';
@@ -277,23 +269,26 @@ Cookie.pages.search = (function() {
             elements.resultsGrid.innerHTML = html;
         } else {
             // Only render NEW results (from previousCount onwards)
-            for (var i = previousCount; i < state.results.length; i++) {
-                html += renderSearchResultCard(state.results[i]);
+            for (var j = previousCount; j < state.results.length; j++) {
+                html += renderSearchResultCard(state.results[j]);
             }
             elements.resultsGrid.innerHTML += html;
         }
 
+        // Attach error handlers to newly rendered images
+        attachImageErrorHandlers(elements.resultsGrid);
+
         // Update pagination
         if (state.hasMore) {
-            showElement(elements.pagination);
-            hideElement(elements.endOfResults);
+            Cookie.utils.showElement(elements.pagination);
+            Cookie.utils.hideElement(elements.endOfResults);
             if (elements.loadMoreBtn) {
                 elements.loadMoreBtn.textContent = 'Load More';
                 elements.loadMoreBtn.disabled = false;
             }
         } else {
-            hideElement(elements.pagination);
-            showElement(elements.endOfResults);
+            Cookie.utils.hideElement(elements.pagination);
+            Cookie.utils.showElement(elements.endOfResults);
         }
     }
 
@@ -305,45 +300,56 @@ Cookie.pages.search = (function() {
         // Prefer cached image, fallback to external URL
         var imageUrl = result.cached_image_url || result.image_url;
         if (imageUrl) {
-            imageHtml = '<img src="' + escapeHtml(imageUrl) + '" alt="' + escapeHtml(result.title) + '" loading="lazy">';
+            imageHtml = '<img src="' + Cookie.utils.escapeHtml(imageUrl) + '" alt="' + Cookie.utils.escapeHtml(result.title) + '" loading="lazy">';
         } else {
             imageHtml = '<div class="search-result-no-image"><span>No image</span></div>';
         }
 
         var descriptionHtml = '';
         if (result.description) {
-            descriptionHtml = '<p class="search-result-description">' + escapeHtml(truncate(result.description, 100)) + '</p>';
+            descriptionHtml = '<p class="search-result-description">' + Cookie.utils.escapeHtml(Cookie.utils.truncate(result.description, 100)) + '</p>';
         }
 
         // Build host line with optional rating count
-        var hostHtml = escapeHtml(result.host);
+        var hostHtml = '<a href="' + Cookie.utils.escapeHtml(result.url) + '" target="_blank" rel="noopener noreferrer">' + Cookie.utils.escapeHtml(result.host) + '</a>';
         if (result.rating_count) {
-            hostHtml += ' · ' + formatNumber(result.rating_count) + ' Ratings';
+            hostHtml += ' · ' + Cookie.utils.formatNumber(result.rating_count) + ' Ratings';
         }
 
-        return '<div class="search-result-card" data-url="' + escapeHtml(result.url) + '">' +
-            '<div class="search-result-image">' + imageHtml + '</div>' +
-            '<div class="search-result-content">' +
-                '<h3 class="search-result-title">' + escapeHtml(result.title) + '</h3>' +
-                '<p class="search-result-host">' + hostHtml + '</p>' +
-                descriptionHtml +
-                '<button type="button" class="btn-import" data-url="' + escapeHtml(result.url) + '">Import</button>' +
+        // Inner div wrapper required for CSS card styling (flex column layout)
+        return '<div class="search-result-card" data-url="' + Cookie.utils.escapeHtml(result.url) + '">' +
+            '<div>' +
+                '<div class="search-result-image">' + imageHtml + '</div>' +
+                '<div class="search-result-content">' +
+                    '<h3 class="search-result-title">' + Cookie.utils.escapeHtml(result.title) + '</h3>' +
+                    '<p class="search-result-host">' + hostHtml + '</p>' +
+                    descriptionHtml +
+                    '<button type="button" class="btn-import" data-url="' + Cookie.utils.escapeHtml(result.url) + '">Import</button>' +
+                '</div>' +
             '</div>' +
         '</div>';
     }
 
     /**
      * Update search count display
+     * Uses the sum of per-site counts (accurate total) instead of API total (paginated)
      */
     function updateSearchCount() {
         if (!elements.searchCount) return;
 
-        if (state.total === 0) {
+        var total = 0;
+        for (var key in state.sites) {
+            if (state.sites.hasOwnProperty(key)) {
+                total += state.sites[key];
+            }
+        }
+
+        if (total === 0) {
             elements.searchCount.textContent = '';
-        } else if (state.total === 1) {
+        } else if (total === 1) {
             elements.searchCount.textContent = '1 result found';
         } else {
-            elements.searchCount.textContent = state.total + ' results found';
+            elements.searchCount.textContent = total + ' results found';
         }
     }
 
@@ -382,60 +388,39 @@ Cookie.pages.search = (function() {
     }
 
     /**
-     * Helper: Escape HTML
+     * Attach onerror handlers to search result images
+     * Hides broken image and shows recipe title as placeholder
      */
-    function escapeHtml(str) {
-        if (!str) return '';
-        var div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
-    /**
-     * Helper: Truncate string
-     */
-    function truncate(str, length) {
-        if (!str) return '';
-        if (str.length <= length) return str;
-        return str.substring(0, length) + '...';
-    }
-
-    /**
-     * Helper: Format number with commas (ES5 compatible)
-     */
-    function formatNumber(num) {
-        if (!num) return '';
-        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    }
-
-    /**
-     * Helper: Show element
-     */
-    function showElement(el) {
-        if (el) {
-            el.classList.remove('hidden');
+    function attachImageErrorHandlers(container) {
+        var images = container.querySelectorAll('.search-result-image img');
+        for (var i = 0; i < images.length; i++) {
+            (function(img) {
+                img.onerror = function() {
+                    var card = img.closest('.search-result-card');
+                    var title = '';
+                    if (card) {
+                        var titleEl = card.querySelector('.search-result-title');
+                        if (titleEl) {
+                            title = titleEl.textContent;
+                        }
+                    }
+                    var parent = img.parentElement;
+                    if (parent) {
+                        parent.innerHTML = '<div class="search-result-no-image"><span>' +
+                            Cookie.utils.escapeHtml(title || 'No image') + '</span></div>';
+                    }
+                };
+            })(images[i]);
         }
     }
 
-    /**
-     * Helper: Hide element
-     */
-    function hideElement(el) {
-        if (el) {
-            el.classList.add('hidden');
-        }
-    }
-
-    /**
-     * Helper: Escape CSS selector
-     * Escapes special characters for use in CSS attribute selectors
-     */
-    function escapeSelector(str) {
-        if (!str) return '';
-        // Escape all special CSS characters: !"#$%&'()*+,./:;<=>?@[\]^`{|}~
-        // Keep alphanumeric, hyphen, and underscore unescaped
-        return str.replace(/([!"#$%&'()*+,.\/:;<=>?@\[\\\]^`{|}~])/g, '\\$1');
-    }
+    // Use shared utilities from Cookie.utils:
+    // - Cookie.utils.escapeHtml
+    // - Cookie.utils.truncate
+    // - Cookie.utils.formatNumber
+    // - Cookie.utils.showElement
+    // - Cookie.utils.hideElement
+    // - Cookie.utils.escapeSelector
 
     /**
      * Start image polling for progressive loading
@@ -451,7 +436,8 @@ Cookie.pages.search = (function() {
                 };
 
                 // Show loading spinner on image placeholder
-                showImageLoadingSpinner(result.url);
+                // Pass image URL to detect WebP (iOS 9 can't display)
+                showImageLoadingSpinner(result.url, result.image_url);
             }
         }
 
@@ -481,7 +467,7 @@ Cookie.pages.search = (function() {
      */
     function pollForCachedImages() {
         var MAX_POLL_DURATION = 20000; // 20 seconds
-        var POLL_INTERVAL = 4000; // 4 seconds
+        var POLL_INTERVAL = 2000; // 2 seconds (faster for WebP conversion)
 
         imagePollingState.pollInterval = setInterval(function() {
             var elapsed = Date.now() - imagePollingState.pollStartTime;
@@ -525,13 +511,15 @@ Cookie.pages.search = (function() {
 
             // Check if this result has a pending image that's now cached
             if (result.cached_image_url) {
-                var card = document.querySelector('[data-url="' + escapeSelector(result.url) + '"]');
+                var card = document.querySelector('[data-url="' + Cookie.utils.escapeSelector(result.url) + '"]');
                 if (card) {
                     var imgContainer = card.querySelector('.search-result-image');
                     if (imgContainer) {
                         // Replace loading spinner with actual image
-                        imgContainer.innerHTML = '<img src="' + escapeHtml(result.cached_image_url) +
-                                                '" alt="' + escapeHtml(result.title) + '" loading="lazy">';
+                        imgContainer.innerHTML = '<img src="' + Cookie.utils.escapeHtml(result.cached_image_url) +
+                                                '" alt="' + Cookie.utils.escapeHtml(result.title) + '" loading="lazy">';
+                        // Attach error handler to new image
+                        attachImageErrorHandlers(imgContainer);
                     }
                 }
 
@@ -561,16 +549,32 @@ Cookie.pages.search = (function() {
     }
 
     /**
-     * Show loading spinner for image
+     * Check if image URL is WebP format (not supported on iOS 9)
      */
-    function showImageLoadingSpinner(recipeUrl) {
-        var card = document.querySelector('[data-url="' + escapeSelector(recipeUrl) + '"]');
+    function isWebPUrl(url) {
+        if (!url) return false;
+        var lowerUrl = url.toLowerCase();
+        // Check for .webp extension or format=webp in URL
+        return lowerUrl.indexOf('.webp') !== -1 ||
+               lowerUrl.indexOf('format=webp') !== -1 ||
+               lowerUrl.indexOf('format(webp)') !== -1;
+    }
+
+    /**
+     * Show loading spinner for image
+     * For WebP images: show spinner (iOS 9 can't display WebP)
+     * For other formats: keep external image as fallback
+     */
+    function showImageLoadingSpinner(recipeUrl, imageUrl) {
+        var card = document.querySelector('[data-url="' + Cookie.utils.escapeSelector(recipeUrl) + '"]');
         if (card) {
             var imgContainer = card.querySelector('.search-result-image');
             if (imgContainer) {
                 var existingImg = imgContainer.querySelector('img');
-                // Show spinner if no img exists, OR if img is using external URL (not cached)
-                if (!existingImg || (existingImg && !existingImg.src.includes('/media/search_images/'))) {
+                // Show spinner if:
+                // 1. No image exists, OR
+                // 2. Image is WebP (iOS 9 can't display it anyway)
+                if (!existingImg || isWebPUrl(imageUrl)) {
                     imgContainer.innerHTML = '<div class="image-loading-spinner"></div>';
                 }
             }
@@ -578,13 +582,29 @@ Cookie.pages.search = (function() {
     }
 
     /**
-     * Hide all loading spinners
+     * Hide all loading spinners (called when polling stops)
+     * Falls back to external image URL instead of "No image" when possible
      */
     function hideAllLoadingSpinners() {
         var spinners = document.querySelectorAll('.image-loading-spinner');
         for (var i = 0; i < spinners.length; i++) {
-            // Replace with "No image" placeholder
-            spinners[i].parentElement.innerHTML = '<div class="search-result-no-image"><span>No image</span></div>';
+            var card = spinners[i].closest('.search-result-card');
+            var recipeUrl = card ? card.getAttribute('data-url') : null;
+            var pending = recipeUrl ? imagePollingState.pendingUrls[recipeUrl] : null;
+
+            if (pending && pending.imageUrl) {
+                // Fall back to external image (works on browsers that support WebP)
+                var imgContainer = spinners[i].parentElement;
+                var title = card.querySelector('.search-result-title');
+                var alt = title ? title.textContent : '';
+                imgContainer.innerHTML = '<img src="' + Cookie.utils.escapeHtml(pending.imageUrl) +
+                    '" alt="' + Cookie.utils.escapeHtml(alt) + '" loading="lazy">';
+                // Attach error handler to fallback image
+                attachImageErrorHandlers(imgContainer);
+            } else {
+                // No external URL available
+                spinners[i].parentElement.innerHTML = '<div class="search-result-no-image"><span>No image</span></div>';
+            }
         }
     }
 

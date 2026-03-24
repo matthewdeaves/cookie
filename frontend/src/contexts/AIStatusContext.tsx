@@ -23,6 +23,7 @@ const defaultStatus: AIStatusContextType = {
 
 const AIStatusContext = createContext<AIStatusContextType>(defaultStatus)
 
+// eslint-disable-next-line react-refresh/only-export-components -- Hook is tightly coupled to provider
 export function useAIStatus() {
   return useContext(AIStatusContext)
 }

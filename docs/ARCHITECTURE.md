@@ -20,16 +20,20 @@ This document describes the system architecture, data models, and API structure.
                     │  └─────────────────────────────────────────────────────────────────┘ │
                     │                              │                                       │
                     │                              ▼                                       │
-                    │  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐       │
-                    │  │   Gunicorn  │───▶│   Django    │───▶│  SQLite + WAL Mode  │       │
-                    │  │  (2 workers │    │  (Python    │    │  (/app/data/db)     │       │
-                    │  │  4 threads) │    │   3.12)     │    └─────────────────────┘       │
+                    │  ┌─────────────┐    ┌─────────────┐                                  │
+                    │  │   Gunicorn  │───▶│   Django    │                                  │
+                    │  │  (2 workers │    │  (Python    │                                  │
+                    │  │  4 threads) │    │   3.12)     │                                  │
                     │  └─────────────┘    └─────────────┘                                  │
                     │                                                                      │
                     └──────────────────────────────────────────────────────────────────────┘
                              │
                              ▼ Port 80
                           Internet / LAN
+
+                    ┌──────────────────┐
+                    │   PostgreSQL     │  (db container)
+                    └──────────────────┘
                              │
                              ▼ (optional)
                     ┌──────────────────┐
@@ -225,6 +229,7 @@ All API endpoints use Django Ninja and are prefixed with `/api/`.
 | POST | `/` | Create profile |
 | GET | `/{id}/` | Get profile |
 | PUT | `/{id}/` | Update profile |
+| GET | `/{id}/deletion-preview/` | Preview what deleting this profile would remove |
 | DELETE | `/{id}/` | Delete profile and all data |
 | POST | `/{id}/select/` | Set current profile |
 
@@ -234,6 +239,7 @@ All API endpoints use Django Ninja and are prefixed with `/api/`.
 | GET | `/` | List saved recipes (paginated) |
 | POST | `/scrape/` | Import recipe from URL |
 | GET | `/search/` | Search across sites |
+| GET | `/cache/health/` | Cache statistics |
 | GET | `/{id}/` | Get recipe |
 | DELETE | `/{id}/` | Delete recipe |
 
@@ -266,9 +272,13 @@ All API endpoints use Django Ninja and are prefixed with `/api/`.
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/` | List all sources |
-| POST | `/{id}/toggle/` | Toggle source |
-| POST | `/bulk-toggle/` | Enable/disable all |
-| POST | `/{id}/test/` | Test source |
+| GET | `/enabled-count/` | Count of enabled sources |
+| GET | `/{id}/` | Get single source |
+| POST | `/{id}/toggle/` | Toggle source enabled/disabled |
+| POST | `/bulk-toggle/` | Enable/disable all sources |
+| PUT | `/{id}/selector/` | Update CSS selector for a source |
+| POST | `/{id}/test/` | Test source scraping |
+| POST | `/test-all/` | Test all sources |
 
 ### AI (`/api/ai/`)
 | Method | Endpoint | Description |
@@ -277,13 +287,16 @@ All API endpoints use Django Ninja and are prefixed with `/api/`.
 | POST | `/test-api-key` | Validate API key |
 | POST | `/save-api-key` | Store API key |
 | GET | `/models` | List available models |
-| GET | `/prompts` | List prompts |
+| GET | `/prompts` | List all prompts |
+| GET | `/prompts/{type}` | Get specific prompt |
 | PUT | `/prompts/{type}` | Update prompt |
 | POST | `/remix-suggestions` | Get remix ideas |
 | POST | `/remix` | Create remixed recipe |
 | POST | `/scale` | Scale servings |
 | POST | `/tips` | Generate cooking tips |
 | POST | `/timer-name` | Name a timer |
+| POST | `/repair-selector` | Fix broken CSS selector with AI |
+| GET | `/sources-needing-attention` | List sources with broken selectors |
 | GET | `/discover/{profile_id}/` | Discovery suggestions |
 
 ## Frontend Architecture
@@ -291,13 +304,14 @@ All API endpoints use Django Ninja and are prefixed with `/api/`.
 ```
 React SPA (TypeScript)
 ├── Screens (pages)
-│   ├── Home - Dashboard with recent recipes
+│   ├── Home - Dashboard with recent recipes and discover
 │   ├── Search - Multi-site recipe search
 │   ├── RecipeDetail - Recipe view with actions
 │   ├── PlayMode - Step-by-step cooking mode
 │   ├── AllRecipes - Browse all saved recipes
 │   ├── Favorites - Favorite recipes
 │   ├── Collections - Manage collections
+│   ├── CollectionDetail - View collection recipes
 │   ├── Settings - Configuration and AI setup
 │   └── ProfileSelector - Profile selection
 ├── Components
@@ -306,9 +320,11 @@ React SPA (TypeScript)
 │   ├── RemixModal - AI remix interface
 │   └── Skeletons - Loading placeholders
 ├── Contexts
+│   ├── ProfileContext - User profile, favorites, theme
 │   └── AIStatusContext - AI availability state
 ├── Hooks
 │   ├── useTimers - Timer management
+│   ├── useRecipeDetail - Recipe page logic
 │   └── useWakeLock - Screen wake lock
 └── API Client
     └── Centralized backend communication
@@ -328,7 +344,7 @@ React Screen
     │   nginx (/api/*) ──► gunicorn ──► Django Ninja
     │                                       │
     │                                       ▼
-    │                               SQLite + WAL
+    │                               PostgreSQL
     │                                       │
     │       ◄───────────────────────────────┘
     │       JSON response

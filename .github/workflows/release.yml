@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0  # Fetch all history for changelog
 
@@ -63,14 +63,14 @@ jobs:
             echo ""
             echo "### Docker"
             echo "\`\`\`bash"
-            echo "docker pull mndeaves/cookie:${CURRENT_TAG#v}"
+            echo "docker pull ghcr.io/matthewdeaves/cookie:${CURRENT_TAG#v}"
             echo "# or"
-            echo "docker pull mndeaves/cookie:latest"
+            echo "docker pull ghcr.io/matthewdeaves/cookie:latest"
             echo "\`\`\`"
             echo ""
 
             if [ -n "$PREV_TAG" ]; then
-              echo "**Full Changelog**: https://github.com/mndeaves/cookie/compare/$PREV_TAG...$CURRENT_TAG"
+              echo "**Full Changelog**: https://github.com/matthewdeaves/cookie/compare/$PREV_TAG...$CURRENT_TAG"
             fi
           } > changelog.md
 
@@ -89,7 +89,7 @@ jobs:
           fi
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2
         with:
           name: ${{ github.ref_name }}
           body_path: changelog.md

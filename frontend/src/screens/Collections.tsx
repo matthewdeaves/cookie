@@ -1,21 +1,17 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, FolderPlus, Plus, X } from 'lucide-react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { FolderPlus, Plus, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type Collection } from '../api/client'
 import { cn } from '../lib/utils'
+import NavHeader from '../components/NavHeader'
 import { CollectionGridSkeleton } from '../components/Skeletons'
 
-interface CollectionsProps {
-  onBack: () => void
-  onCollectionClick: (collectionId: number) => void
-  pendingRecipeId?: number | null
-}
+export default function Collections() {
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const pendingRecipeId = searchParams.get('addRecipe') ? Number(searchParams.get('addRecipe')) : null
 
-export default function Collections({
-  onBack,
-  onCollectionClick,
-  pendingRecipeId,
-}: CollectionsProps) {
   const [collections, setCollections] = useState<Collection[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -60,7 +56,7 @@ export default function Collections({
         } catch (error) {
           console.error('Failed to add recipe to collection:', error)
         }
-        onCollectionClick(collection.id)
+        navigate(`/collection/${collection.id}`)
       }
     } catch (error) {
       console.error('Failed to create collection:', error)
@@ -86,34 +82,28 @@ export default function Collections({
         }
       }
     }
-    onCollectionClick(collectionId)
+    navigate(`/collection/${collectionId}`)
   }
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="flex items-center justify-between border-b border-border px-4 py-3">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onBack}
-            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <h1 className="text-xl font-medium text-foreground">Collections</h1>
-        </div>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" />
-          New Collection
-        </button>
-      </header>
+      <NavHeader />
 
       {/* Content */}
       <main className="px-4 py-6">
         <div className="mx-auto max-w-4xl">
+          {/* Page header with title and create button */}
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-medium text-foreground">Collections</h2>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              <Plus className="h-4 w-4" />
+              New
+            </button>
+          </div>
+
           {/* Create form */}
           {showCreateForm && (
             <form

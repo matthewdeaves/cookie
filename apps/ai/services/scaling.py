@@ -25,14 +25,14 @@ def _parse_time(time_str: str | None) -> int | None:
     time_str = time_str.lower().strip()
 
     # Try to extract numbers
-    numbers = re.findall(r'\d+', time_str)
+    numbers = re.findall(r"\d+", time_str)
     if not numbers:
         return None
 
     minutes = int(numbers[0])
 
     # Convert hours to minutes if needed
-    if 'hour' in time_str:
+    if "hour" in time_str:
         minutes *= 60
         if len(numbers) > 1:
             minutes += int(numbers[1])
@@ -43,21 +43,21 @@ def _parse_time(time_str: str | None) -> int | None:
 def _format_time(minutes: int | None) -> str:
     """Format minutes as a readable time string for the prompt."""
     if not minutes:
-        return 'Not specified'
+        return "Not specified"
     if minutes >= 60:
         hours = minutes // 60
         mins = minutes % 60
         if mins:
-            return f'{hours} hour{"s" if hours > 1 else ""} {mins} minutes'
-        return f'{hours} hour{"s" if hours > 1 else ""}'
-    return f'{minutes} minutes'
+            return f"{hours} hour{'s' if hours > 1 else ''} {mins} minutes"
+        return f"{hours} hour{'s' if hours > 1 else ''}"
+    return f"{minutes} minutes"
 
 
 def scale_recipe(
     recipe_id: int,
     target_servings: int,
     profile: Profile,
-    unit_system: str = 'metric',
+    unit_system: str = "metric",
 ) -> dict:
     """Scale a recipe to a different number of servings.
 
@@ -80,10 +80,10 @@ def scale_recipe(
     recipe = Recipe.objects.get(id=recipe_id)
 
     if not recipe.servings:
-        raise ValueError('Recipe does not have serving information')
+        raise ValueError("Recipe does not have serving information")
 
     if target_servings < 1:
-        raise ValueError('Target servings must be at least 1')
+        raise ValueError("Target servings must be at least 1")
 
     # Check for cached adjustment
     try:
@@ -93,34 +93,34 @@ def scale_recipe(
             target_servings=target_servings,
             unit_system=unit_system,
         )
-        logger.info(f'Returning cached adjustment for recipe {recipe_id}')
+        logger.info(f"Returning cached adjustment for recipe {recipe_id}")
         return {
-            'target_servings': target_servings,
-            'original_servings': recipe.servings,
-            'ingredients': cached.ingredients,
-            'instructions': cached.instructions,  # QA-031
-            'notes': cached.notes,
-            'prep_time_adjusted': cached.prep_time_adjusted,  # QA-032
-            'cook_time_adjusted': cached.cook_time_adjusted,  # QA-032
-            'total_time_adjusted': cached.total_time_adjusted,  # QA-032
-            'cached': True,
+            "target_servings": target_servings,
+            "original_servings": recipe.servings,
+            "ingredients": cached.ingredients,
+            "instructions": cached.instructions,  # QA-031
+            "notes": cached.notes,
+            "prep_time_adjusted": cached.prep_time_adjusted,  # QA-032
+            "cook_time_adjusted": cached.cook_time_adjusted,  # QA-032
+            "total_time_adjusted": cached.total_time_adjusted,  # QA-032
+            "cached": True,
         }
     except ServingAdjustment.DoesNotExist:
         pass
 
     # Get the serving_adjustment prompt
-    prompt = AIPrompt.get_prompt('serving_adjustment')
+    prompt = AIPrompt.get_prompt("serving_adjustment")
 
     # Format ingredients as a string
-    ingredients_str = '\n'.join(f'- {ing}' for ing in recipe.ingredients)
+    ingredients_str = "\n".join(f"- {ing}" for ing in recipe.ingredients)
 
     # Format instructions as a string (QA-031)
     instructions = recipe.instructions or []
     if not instructions and recipe.instructions_text:
-        instructions = [s.strip() for s in recipe.instructions_text.split('\n') if s.strip()]
-    instructions_str = '\n'.join(f'{i+1}. {step}' for i, step in enumerate(instructions))
+        instructions = [s.strip() for s in recipe.instructions_text.split("\n") if s.strip()]
+    instructions_str = "\n".join(f"{i + 1}. {step}" for i, step in enumerate(instructions))
     if not instructions_str:
-        instructions_str = 'No instructions available'
+        instructions_str = "No instructions available"
 
     # Format the user prompt with new fields (QA-031 + QA-032)
     user_prompt = prompt.format_user_prompt(
@@ -145,17 +145,17 @@ def scale_recipe(
 
     # Validate response
     validator = AIResponseValidator()
-    validated = validator.validate('serving_adjustment', response)
+    validated = validator.validate("serving_adjustment", response)
 
     # Tidy ingredient quantities (convert decimals to fractions) - QA-029
-    ingredients = tidy_quantities(validated['ingredients'])
-    scaled_instructions = validated.get('instructions', [])  # QA-031
-    notes = validated.get('notes', [])
+    ingredients = tidy_quantities(validated["ingredients"])
+    scaled_instructions = validated.get("instructions", [])  # QA-031
+    notes = validated.get("notes", [])
 
     # Parse time adjustments (QA-032)
-    prep_time_adjusted = _parse_time(validated.get('prep_time'))
-    cook_time_adjusted = _parse_time(validated.get('cook_time'))
-    total_time_adjusted = _parse_time(validated.get('total_time'))
+    prep_time_adjusted = _parse_time(validated.get("prep_time"))
+    cook_time_adjusted = _parse_time(validated.get("cook_time"))
+    total_time_adjusted = _parse_time(validated.get("total_time"))
 
     # Cache the result
     ServingAdjustment.objects.create(
@@ -171,18 +171,18 @@ def scale_recipe(
         total_time_adjusted=total_time_adjusted,  # QA-032
     )
 
-    logger.info(f'Created serving adjustment for recipe {recipe_id} to {target_servings} servings')
+    logger.info(f"Created serving adjustment for recipe {recipe_id} to {target_servings} servings")
 
     return {
-        'target_servings': target_servings,
-        'original_servings': recipe.servings,
-        'ingredients': ingredients,
-        'instructions': scaled_instructions,  # QA-031
-        'notes': notes,
-        'prep_time_adjusted': prep_time_adjusted,  # QA-032
-        'cook_time_adjusted': cook_time_adjusted,  # QA-032
-        'total_time_adjusted': total_time_adjusted,  # QA-032
-        'cached': False,
+        "target_servings": target_servings,
+        "original_servings": recipe.servings,
+        "ingredients": ingredients,
+        "instructions": scaled_instructions,  # QA-031
+        "notes": notes,
+        "prep_time_adjusted": prep_time_adjusted,  # QA-032
+        "cook_time_adjusted": cook_time_adjusted,  # QA-032
+        "total_time_adjusted": total_time_adjusted,  # QA-032
+        "cached": False,
     }
 
 
@@ -205,8 +205,8 @@ def calculate_nutrition(
     """
     if not recipe.nutrition:
         return {
-            'per_serving': {},
-            'total': {},
+            "per_serving": {},
+            "total": {},
         }
 
     # Nutrition is per-serving, so per_serving stays the same
@@ -218,16 +218,17 @@ def calculate_nutrition(
         if isinstance(value, str):
             # Try to extract numeric value and unit
             import re
-            match = re.match(r'([\d.]+)\s*(.+)', value)
+
+            match = re.match(r"([\d.]+)\s*(.+)", value)
             if match:
                 num = float(match.group(1))
                 unit = match.group(2)
                 total_num = num * target_servings
                 # Format nicely
                 if total_num == int(total_num):
-                    total[key] = f'{int(total_num)} {unit}'
+                    total[key] = f"{int(total_num)} {unit}"
                 else:
-                    total[key] = f'{total_num:.1f} {unit}'
+                    total[key] = f"{total_num:.1f} {unit}"
             else:
                 total[key] = value
         elif isinstance(value, (int, float)):
@@ -236,6 +237,6 @@ def calculate_nutrition(
             total[key] = value
 
     return {
-        'per_serving': per_serving,
-        'total': total,
+        "per_serving": per_serving,
+        "total": total,
     }

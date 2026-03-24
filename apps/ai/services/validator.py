@@ -1,6 +1,8 @@
-"""AI response schema validation."""
+"""AI response schema validation using jsonschema library."""
 
 from typing import Any
+
+import jsonschema
 
 
 class ValidationError(Exception):
@@ -13,125 +15,125 @@ class ValidationError(Exception):
 
 # Schema definitions for each prompt type
 RESPONSE_SCHEMAS = {
-    'recipe_remix': {
-        'type': 'object',
-        'required': ['title', 'ingredients', 'instructions', 'description'],
-        'properties': {
-            'title': {'type': 'string'},
-            'description': {'type': 'string'},
-            'ingredients': {'type': 'array', 'items': {'type': 'string'}},
-            'instructions': {'type': 'array', 'items': {'type': 'string'}},
-            'prep_time': {'type': 'string'},
-            'cook_time': {'type': 'string'},
-            'total_time': {'type': 'string'},
-            'yields': {'type': 'string'},
+    "recipe_remix": {
+        "type": "object",
+        "required": ["title", "ingredients", "instructions", "description"],
+        "properties": {
+            "title": {"type": "string"},
+            "description": {"type": "string"},
+            "ingredients": {"type": "array", "items": {"type": "string"}},
+            "instructions": {"type": "array", "items": {"type": "string"}},
+            "prep_time": {"type": "string"},
+            "cook_time": {"type": "string"},
+            "total_time": {"type": "string"},
+            "yields": {"type": "string"},
         },
     },
-    'serving_adjustment': {
-        'type': 'object',
-        'required': ['ingredients'],
-        'properties': {
-            'ingredients': {'type': 'array', 'items': {'type': 'string'}},
-            'instructions': {'type': 'array', 'items': {'type': 'string'}},  # QA-031
-            'notes': {'type': 'array', 'items': {'type': 'string'}},
-            'prep_time': {'type': ['string', 'null']},   # QA-032
-            'cook_time': {'type': ['string', 'null']},   # QA-032
-            'total_time': {'type': ['string', 'null']},  # QA-032
+    "serving_adjustment": {
+        "type": "object",
+        "required": ["ingredients"],
+        "properties": {
+            "ingredients": {"type": "array", "items": {"type": "string"}},
+            "instructions": {"type": "array", "items": {"type": "string"}},  # QA-031
+            "notes": {"type": "array", "items": {"type": "string"}},
+            "prep_time": {"type": ["string", "null"]},  # QA-032
+            "cook_time": {"type": ["string", "null"]},  # QA-032
+            "total_time": {"type": ["string", "null"]},  # QA-032
         },
     },
-    'tips_generation': {
-        'type': 'array',
-        'items': {'type': 'string'},
-        'minItems': 3,
-        'maxItems': 5,
+    "tips_generation": {
+        "type": "array",
+        "items": {"type": "string"},
+        "minItems": 3,
+        "maxItems": 5,
     },
-    'timer_naming': {
-        'type': 'object',
-        'required': ['label'],
-        'properties': {
-            'label': {'type': 'string'},
+    "timer_naming": {
+        "type": "object",
+        "required": ["label"],
+        "properties": {
+            "label": {"type": "string"},
         },
     },
-    'remix_suggestions': {
-        'type': 'array',
-        'items': {'type': 'string'},
-        'minItems': 6,
-        'maxItems': 6,
+    "remix_suggestions": {
+        "type": "array",
+        "items": {"type": "string"},
+        "minItems": 6,
+        "maxItems": 6,
     },
-    'discover_favorites': {
-        'type': 'array',
-        'items': {
-            'type': 'object',
-            'required': ['search_query', 'title', 'description'],
-            'properties': {
-                'search_query': {'type': 'string'},
-                'title': {'type': 'string'},
-                'description': {'type': 'string'},
+    "discover_favorites": {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "required": ["search_query", "title", "description"],
+            "properties": {
+                "search_query": {"type": "string"},
+                "title": {"type": "string"},
+                "description": {"type": "string"},
             },
         },
-        'minItems': 1,
-        'maxItems': 5,
+        "minItems": 1,
+        "maxItems": 5,
     },
-    'discover_seasonal': {
-        'type': 'array',
-        'items': {
-            'type': 'object',
-            'required': ['search_query', 'title', 'description'],
-            'properties': {
-                'search_query': {'type': 'string'},
-                'title': {'type': 'string'},
-                'description': {'type': 'string'},
+    "discover_seasonal": {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "required": ["search_query", "title", "description"],
+            "properties": {
+                "search_query": {"type": "string"},
+                "title": {"type": "string"},
+                "description": {"type": "string"},
             },
         },
-        'minItems': 1,
-        'maxItems': 5,
+        "minItems": 1,
+        "maxItems": 5,
     },
-    'discover_new': {
-        'type': 'array',
-        'items': {
-            'type': 'object',
-            'required': ['search_query', 'title', 'description'],
-            'properties': {
-                'search_query': {'type': 'string'},
-                'title': {'type': 'string'},
-                'description': {'type': 'string'},
+    "discover_new": {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "required": ["search_query", "title", "description"],
+            "properties": {
+                "search_query": {"type": "string"},
+                "title": {"type": "string"},
+                "description": {"type": "string"},
             },
         },
-        'minItems': 1,
-        'maxItems': 5,
+        "minItems": 1,
+        "maxItems": 5,
     },
-    'search_ranking': {
-        'type': 'array',
-        'items': {'type': 'integer'},
+    "search_ranking": {
+        "type": "array",
+        "items": {"type": "integer"},
     },
-    'selector_repair': {
-        'type': 'object',
-        'required': ['suggestions', 'confidence'],
-        'properties': {
-            'suggestions': {'type': 'array', 'items': {'type': 'string'}},
-            'confidence': {'type': 'number'},
+    "selector_repair": {
+        "type": "object",
+        "required": ["suggestions", "confidence"],
+        "properties": {
+            "suggestions": {"type": "array", "items": {"type": "string"}},
+            "confidence": {"type": "number"},
         },
     },
-    'nutrition_estimate': {
-        'type': 'object',
-        'required': ['calories'],
-        'properties': {
-            'calories': {'type': 'string'},
-            'carbohydrateContent': {'type': 'string'},
-            'proteinContent': {'type': 'string'},
-            'fatContent': {'type': 'string'},
-            'saturatedFatContent': {'type': 'string'},
-            'unsaturatedFatContent': {'type': 'string'},
-            'cholesterolContent': {'type': 'string'},
-            'sodiumContent': {'type': 'string'},
-            'fiberContent': {'type': 'string'},
+    "nutrition_estimate": {
+        "type": "object",
+        "required": ["calories"],
+        "properties": {
+            "calories": {"type": "string"},
+            "carbohydrateContent": {"type": "string"},
+            "proteinContent": {"type": "string"},
+            "fatContent": {"type": "string"},
+            "saturatedFatContent": {"type": "string"},
+            "unsaturatedFatContent": {"type": "string"},
+            "cholesterolContent": {"type": "string"},
+            "sodiumContent": {"type": "string"},
+            "fiberContent": {"type": "string"},
         },
     },
 }
 
 
 class AIResponseValidator:
-    """Validates AI responses against expected schemas."""
+    """Validates AI responses against expected schemas using jsonschema."""
 
     def validate(self, prompt_type: str, response: Any) -> dict | list:
         """Validate an AI response against its expected schema.
@@ -147,117 +149,53 @@ class AIResponseValidator:
             ValidationError: If the response doesn't match the schema.
         """
         if prompt_type not in RESPONSE_SCHEMAS:
-            raise ValidationError(f'Unknown prompt type: {prompt_type}')
+            raise ValidationError(f"Unknown prompt type: {prompt_type}")
 
         schema = RESPONSE_SCHEMAS[prompt_type]
-        errors = self._validate_value(response, schema, 'response')
 
-        if errors:
-            raise ValidationError(
-                f'AI response validation failed for {prompt_type}',
-                errors=errors
-            )
+        try:
+            jsonschema.validate(response, schema)
+        except jsonschema.ValidationError as e:
+            # Convert jsonschema error to human-readable format
+            errors = [self._format_error(e)]
+            raise ValidationError(f"AI response validation failed for {prompt_type}", errors=errors)
 
         return response
 
-    def _validate_value(
-        self,
-        value: Any,
-        schema: dict,
-        path: str
-    ) -> list[str]:
-        """Validate a value against a schema definition.
+    def _format_error(self, error: jsonschema.ValidationError) -> str:
+        """Convert a jsonschema ValidationError to a human-readable message."""
+        path = "response" + "".join(f"[{p}]" if isinstance(p, int) else f".{p}" for p in error.absolute_path)
 
-        Returns a list of error messages.
-        """
-        errors = []
-        expected_type = schema.get('type')
+        # Handle different error types with user-friendly messages
+        if error.validator == "required":
+            # error.message is like "'ingredients' is a required property"
+            # Extract the field name from the message
+            import re
 
-        # Handle union types (e.g., ['string', 'null'])
-        if isinstance(expected_type, list):
-            valid = False
-            for t in expected_type:
-                if t == 'null' and value is None:
-                    valid = True
-                    break
-                elif t == 'string' and isinstance(value, str):
-                    valid = True
-                    break
-                elif t == 'integer' and isinstance(value, int) and not isinstance(value, bool):
-                    valid = True
-                    break
-                elif t == 'number' and isinstance(value, (int, float)) and not isinstance(value, bool):
-                    valid = True
-                    break
-                elif t == 'boolean' and isinstance(value, bool):
-                    valid = True
-                    break
-            if not valid:
-                types_str = ' or '.join(expected_type)
-                errors.append(f'{path}: expected {types_str}, got {type(value).__name__}')
-            return errors
+            match = re.search(r"'([^']+)' is a required property", error.message)
+            if match:
+                return f'{path}: missing required field "{match.group(1)}"'
+            # Fallback: find which field is actually missing
+            for field in error.validator_value:
+                if field not in error.instance:
+                    return f'{path}: missing required field "{field}"'
+            return f"{path}: {error.message}"
 
-        # Type validation
-        if expected_type == 'object':
-            if not isinstance(value, dict):
-                return [f'{path}: expected object, got {type(value).__name__}']
+        elif error.validator == "type":
+            expected = error.validator_value
+            if isinstance(expected, list):
+                expected = " or ".join(expected)
+            actual = type(error.instance).__name__
+            return f"{path}: expected {expected}, got {actual}"
 
-            # Check required fields
-            required = schema.get('required', [])
-            for field in required:
-                if field not in value:
-                    errors.append(f'{path}: missing required field "{field}"')
+        elif error.validator == "minItems":
+            return f"{path}: expected at least {error.validator_value} items, got {len(error.instance)}"
 
-            # Validate properties if defined
-            properties = schema.get('properties', {})
-            for key, val in value.items():
-                if key in properties:
-                    errors.extend(
-                        self._validate_value(val, properties[key], f'{path}.{key}')
-                    )
+        elif error.validator == "maxItems":
+            return f"{path}: expected at most {error.validator_value} items, got {len(error.instance)}"
 
-        elif expected_type == 'array':
-            if not isinstance(value, list):
-                return [f'{path}: expected array, got {type(value).__name__}']
-
-            # Check array length constraints
-            min_items = schema.get('minItems')
-            max_items = schema.get('maxItems')
-
-            if min_items is not None and len(value) < min_items:
-                errors.append(
-                    f'{path}: expected at least {min_items} items, got {len(value)}'
-                )
-            if max_items is not None and len(value) > max_items:
-                errors.append(
-                    f'{path}: expected at most {max_items} items, got {len(value)}'
-                )
-
-            # Validate items
-            items_schema = schema.get('items')
-            if items_schema:
-                for i, item in enumerate(value):
-                    errors.extend(
-                        self._validate_value(item, items_schema, f'{path}[{i}]')
-                    )
-
-        elif expected_type == 'string':
-            if not isinstance(value, str):
-                errors.append(f'{path}: expected string, got {type(value).__name__}')
-
-        elif expected_type == 'integer':
-            if not isinstance(value, int) or isinstance(value, bool):
-                errors.append(f'{path}: expected integer, got {type(value).__name__}')
-
-        elif expected_type == 'number':
-            if not isinstance(value, (int, float)) or isinstance(value, bool):
-                errors.append(f'{path}: expected number, got {type(value).__name__}')
-
-        elif expected_type == 'boolean':
-            if not isinstance(value, bool):
-                errors.append(f'{path}: expected boolean, got {type(value).__name__}')
-
-        return errors
+        # Fallback to the default jsonschema message
+        return f"{path}: {error.message}"
 
     def get_schema(self, prompt_type: str) -> dict | None:
         """Get the schema for a prompt type."""

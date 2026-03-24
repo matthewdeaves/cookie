@@ -41,13 +41,10 @@ def get_discover_suggestions(profile_id: int) -> dict:
 
     # Check for cached suggestions (within 24 hours)
     cache_cutoff = timezone.now() - timedelta(hours=CACHE_DURATION_HOURS)
-    cached = AIDiscoverySuggestion.objects.filter(
-        profile=profile,
-        created_at__gte=cache_cutoff
-    )
+    cached = AIDiscoverySuggestion.objects.filter(profile=profile, created_at__gte=cache_cutoff)
 
     if cached.exists():
-        logger.info(f'Returning cached discover suggestions for profile {profile_id}')
+        logger.info(f"Returning cached discover suggestions for profile {profile_id}")
         return _format_suggestions(cached)
 
     # Clear old suggestions
@@ -76,8 +73,8 @@ def get_discover_suggestions(profile_id: int) -> dict:
     if not suggestions:
         # If no suggestions generated, return empty
         return {
-            'suggestions': [],
-            'refreshed_at': timezone.now().isoformat(),
+            "suggestions": [],
+            "refreshed_at": timezone.now().isoformat(),
         }
 
     return _format_suggestions(suggestions)
@@ -88,15 +85,17 @@ def _format_suggestions(suggestions) -> dict:
     result = []
 
     for suggestion in suggestions:
-        result.append({
-            'type': suggestion.suggestion_type,
-            'title': suggestion.title,
-            'description': suggestion.description,
-            'search_query': suggestion.search_query,
-        })
+        result.append(
+            {
+                "type": suggestion.suggestion_type,
+                "title": suggestion.title,
+                "description": suggestion.description,
+                "search_query": suggestion.search_query,
+            }
+        )
 
     # Get the most recent created_at for refreshed_at
-    if hasattr(suggestions, 'first'):
+    if hasattr(suggestions, "first"):
         # QuerySet
         first = suggestions.first()
         refreshed_at = first.created_at.isoformat() if first else timezone.now().isoformat()
@@ -105,22 +104,22 @@ def _format_suggestions(suggestions) -> dict:
         refreshed_at = suggestions[0].created_at.isoformat() if suggestions else timezone.now().isoformat()
 
     return {
-        'suggestions': result,
-        'refreshed_at': refreshed_at,
+        "suggestions": result,
+        "refreshed_at": refreshed_at,
     }
 
 
 def _generate_seasonal_suggestions(profile: Profile) -> List[AIDiscoverySuggestion]:
     """Generate seasonal/holiday suggestions."""
     try:
-        prompt = AIPrompt.get_prompt('discover_seasonal')
+        prompt = AIPrompt.get_prompt("discover_seasonal")
     except AIPrompt.DoesNotExist:
-        logger.warning('discover_seasonal prompt not found')
+        logger.warning("discover_seasonal prompt not found")
         return []
 
     # Get current date info
     now = datetime.now()
-    date_str = now.strftime('%B %d, %Y')  # e.g., "January 15, 2024"
+    date_str = now.strftime("%B %d, %Y")  # e.g., "January 15, 2024"
     season = _get_season(now)
 
     user_prompt = prompt.format_user_prompt(
@@ -138,45 +137,44 @@ def _generate_seasonal_suggestions(profile: Profile) -> List[AIDiscoverySuggesti
         )
 
         validator = AIResponseValidator()
-        validated = validator.validate('discover_seasonal', response)
+        validated = validator.validate("discover_seasonal", response)
 
         # Create and save suggestions
         suggestions = []
         for item in validated:
             suggestion = AIDiscoverySuggestion.objects.create(
                 profile=profile,
-                suggestion_type='seasonal',
-                search_query=item['search_query'],
-                title=item['title'],
-                description=item['description'],
+                suggestion_type="seasonal",
+                search_query=item["search_query"],
+                title=item["title"],
+                description=item["description"],
             )
             suggestions.append(suggestion)
 
-        logger.info(f'Generated {len(suggestions)} seasonal suggestions for profile {profile.id}')
+        logger.info(f"Generated {len(suggestions)} seasonal suggestions for profile {profile.id}")
         return suggestions
 
     except (AIUnavailableError, AIResponseError, ValidationError) as e:
-        logger.warning(f'Failed to generate seasonal suggestions: {e}')
+        logger.warning(f"Failed to generate seasonal suggestions: {e}")
         return []
 
 
 def _generate_recommended_suggestions(profile: Profile) -> List[AIDiscoverySuggestion]:
     """Generate suggestions based on user's viewing history."""
     try:
-        prompt = AIPrompt.get_prompt('discover_favorites')
+        prompt = AIPrompt.get_prompt("discover_favorites")
     except AIPrompt.DoesNotExist:
-        logger.warning('discover_favorites prompt not found')
+        logger.warning("discover_favorites prompt not found")
         return []
 
     # Get user's recently viewed recipes
-    history = RecipeViewHistory.objects.filter(profile=profile).select_related('recipe').order_by('-viewed_at')[:15]
+    history = RecipeViewHistory.objects.filter(profile=profile).select_related("recipe").order_by("-viewed_at")[:15]
     if not history:
         return []
 
     # Format history list
-    history_list = '\n'.join(
-        f'- {item.recipe.title} ({item.recipe.cuisine or item.recipe.category or "uncategorized"})'
-        for item in history
+    history_list = "\n".join(
+        f"- {item.recipe.title} ({item.recipe.cuisine or item.recipe.category or 'uncategorized'})" for item in history
     )
 
     user_prompt = prompt.format_user_prompt(favorites=history_list)
@@ -191,43 +189,43 @@ def _generate_recommended_suggestions(profile: Profile) -> List[AIDiscoverySugge
         )
 
         validator = AIResponseValidator()
-        validated = validator.validate('discover_favorites', response)
+        validated = validator.validate("discover_favorites", response)
 
         # Create and save suggestions
         suggestions = []
         for item in validated:
             suggestion = AIDiscoverySuggestion.objects.create(
                 profile=profile,
-                suggestion_type='favorites',  # Keep type for frontend compatibility
-                search_query=item['search_query'],
-                title=item['title'],
-                description=item['description'],
+                suggestion_type="favorites",  # Keep type for frontend compatibility
+                search_query=item["search_query"],
+                title=item["title"],
+                description=item["description"],
             )
             suggestions.append(suggestion)
 
-        logger.info(f'Generated {len(suggestions)} recommended suggestions for profile {profile.id}')
+        logger.info(f"Generated {len(suggestions)} recommended suggestions for profile {profile.id}")
         return suggestions
 
     except (AIUnavailableError, AIResponseError, ValidationError) as e:
-        logger.warning(f'Failed to generate recommended suggestions: {e}')
+        logger.warning(f"Failed to generate recommended suggestions: {e}")
         return []
 
 
 def _generate_new_suggestions(profile: Profile) -> List[AIDiscoverySuggestion]:
     """Generate suggestions for trying something new."""
     try:
-        prompt = AIPrompt.get_prompt('discover_new')
+        prompt = AIPrompt.get_prompt("discover_new")
     except AIPrompt.DoesNotExist:
-        logger.warning('discover_new prompt not found')
+        logger.warning("discover_new prompt not found")
         return []
 
     # Get user's recent recipes from history to understand their preferences
-    history = RecipeViewHistory.objects.filter(profile=profile).select_related('recipe').order_by('-viewed_at')[:15]
+    history = RecipeViewHistory.objects.filter(profile=profile).select_related("recipe").order_by("-viewed_at")[:15]
     if not history:
         return []
 
-    recent_recipes = '\n'.join(
-        f'- {item.recipe.title} ({item.recipe.cuisine or "unknown cuisine"}, {item.recipe.category or "unknown category"})'
+    recent_recipes = "\n".join(
+        f"- {item.recipe.title} ({item.recipe.cuisine or 'unknown cuisine'}, {item.recipe.category or 'unknown category'})"
         for item in history
     )
 
@@ -243,25 +241,25 @@ def _generate_new_suggestions(profile: Profile) -> List[AIDiscoverySuggestion]:
         )
 
         validator = AIResponseValidator()
-        validated = validator.validate('discover_new', response)
+        validated = validator.validate("discover_new", response)
 
         # Create and save suggestions
         suggestions = []
         for item in validated:
             suggestion = AIDiscoverySuggestion.objects.create(
                 profile=profile,
-                suggestion_type='new',
-                search_query=item['search_query'],
-                title=item['title'],
-                description=item['description'],
+                suggestion_type="new",
+                search_query=item["search_query"],
+                title=item["title"],
+                description=item["description"],
             )
             suggestions.append(suggestion)
 
-        logger.info(f'Generated {len(suggestions)} try-new suggestions for profile {profile.id}')
+        logger.info(f"Generated {len(suggestions)} try-new suggestions for profile {profile.id}")
         return suggestions
 
     except (AIUnavailableError, AIResponseError, ValidationError) as e:
-        logger.warning(f'Failed to generate try-new suggestions: {e}')
+        logger.warning(f"Failed to generate try-new suggestions: {e}")
         return []
 
 
@@ -269,10 +267,10 @@ def _get_season(dt: datetime) -> str:
     """Get the season for a given date (Northern Hemisphere)."""
     month = dt.month
     if month in (12, 1, 2):
-        return 'winter'
+        return "winter"
     elif month in (3, 4, 5):
-        return 'spring'
+        return "spring"
     elif month in (6, 7, 8):
-        return 'summer'
+        return "summer"
     else:
-        return 'autumn'
+        return "autumn"

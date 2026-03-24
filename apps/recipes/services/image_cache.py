@@ -17,6 +17,7 @@ from curl_cffi.requests import AsyncSession
 from django.core.files.base import ContentFile
 from PIL import Image
 
+from apps.core.validators import validate_url
 from apps.recipes.services.fingerprint import BROWSER_PROFILES
 
 logger = logging.getLogger(__name__)
@@ -53,10 +54,7 @@ class SearchImageCache:
         semaphore = asyncio.Semaphore(self.MAX_CONCURRENT)
 
         # Create download tasks
-        tasks = [
-            self._download_and_save(None, semaphore, url)
-            for url in image_urls
-        ]
+        tasks = [self._download_and_save(None, semaphore, url) for url in image_urls]
 
         # Run concurrently without awaiting completion
         if tasks:
@@ -77,11 +75,8 @@ class SearchImageCache:
         async with semaphore:
             try:
                 # Get or create cache record
-                cached, created = await sync_to_async(
-                    CachedSearchImage.objects.get_or_create
-                )(
-                    external_url=url,
-                    defaults={'status': CachedSearchImage.STATUS_PENDING}
+                cached, created = await sync_to_async(CachedSearchImage.objects.get_or_create)(
+                    external_url=url, defaults={"status": CachedSearchImage.STATUS_PENDING}
                 )
 
                 # Skip if already successfully cached
@@ -92,21 +87,21 @@ class SearchImageCache:
                 image_data = await self._fetch_image(url)
                 if not image_data:
                     cached.status = CachedSearchImage.STATUS_FAILED
-                    await sync_to_async(cached.save)(update_fields=['status'])
+                    await sync_to_async(cached.save)(update_fields=["status"])
                     return
 
                 # Convert to JPEG for iOS 9 compatibility (no WebP support)
                 converted_data = self._convert_to_jpeg(image_data)
                 if not converted_data:
                     cached.status = CachedSearchImage.STATUS_FAILED
-                    await sync_to_async(cached.save)(update_fields=['status'])
+                    await sync_to_async(cached.save)(update_fields=["status"])
                     return
 
                 # Generate filename and save
                 filename = self._generate_filename(url)
                 cached.image = ContentFile(converted_data, name=filename)
                 cached.status = CachedSearchImage.STATUS_SUCCESS
-                await sync_to_async(cached.save)(update_fields=['image', 'status'])
+                await sync_to_async(cached.save)(update_fields=["image", "status"])
                 logger.info(f"Cached image from {url}")
 
             except Exception as e:
@@ -114,13 +109,12 @@ class SearchImageCache:
                 # Try to mark as failed if we have a record
                 try:
                     from apps.recipes.models import CachedSearchImage
-                    cached = await sync_to_async(
-                        CachedSearchImage.objects.get
-                    )(external_url=url)
+
+                    cached = await sync_to_async(CachedSearchImage.objects.get)(external_url=url)
                     cached.status = CachedSearchImage.STATUS_FAILED
-                    await sync_to_async(cached.save)(update_fields=['status'])
+                    await sync_to_async(cached.save)(update_fields=["status"])
                 except Exception:
-                    pass
+                    logger.warning("Failed to mark cached image as failed for %s", url, exc_info=True)
 
     async def _fetch_image(self, url: str) -> bytes | None:
         """
@@ -135,7 +129,11 @@ class SearchImageCache:
         Returns:
             Image bytes or None if fetch fails
         """
-        if not self._is_image_url(url):
+        # Validate URL for SSRF protection
+        try:
+            validate_url(url)
+        except ValueError:
+            logger.warning(f"Blocked image URL (SSRF): {url}")
             return None
 
         # Try each browser profile until one succeeds
@@ -148,16 +146,32 @@ class SearchImageCache:
                         allow_redirects=True,
                     )
 
-                    if response.status_code == 200:
-                        content_type = response.headers.get('content-type', '')
-                        if 'image' in content_type:
+                    if response.status_code == 200 and response.content:
+                        content_type = response.headers.get("content-type", "")
+                        # Accept if content-type says image, or if we can
+                        # validate the bytes are a valid image
+                        if "image" in content_type:
                             return response.content
+                        if self._looks_like_image(response.content):
+                            return response.content
+
+                    # Don't try more profiles for non-transient errors
+                    if response.status_code in (404, 410):
+                        return None
 
             except Exception as e:
                 logger.debug(f"Failed to fetch image {url} with {profile}: {e}")
                 continue
 
         return None
+
+    @staticmethod
+    def _looks_like_image(data: bytes) -> bool:
+        """Check if bytes look like an image by inspecting magic bytes."""
+        if len(data) < 4:
+            return False
+        # JPEG, PNG, GIF, WebP magic bytes
+        return data[:2] == b"\xff\xd8" or data[:4] == b"\x89PNG" or data[:4] == b"GIF8" or data[:4] == b"RIFF"
 
     async def get_cached_urls_batch(self, urls: list) -> dict:
         """
@@ -182,7 +196,7 @@ class SearchImageCache:
                     external_url__in=urls,
                     status=CachedSearchImage.STATUS_SUCCESS,
                     image__isnull=False,
-                ).exclude(image='')
+                ).exclude(image="")
             )
         )()
 
@@ -200,24 +214,16 @@ class SearchImageCache:
         """
         Generate unique hash-based filename for cached image.
 
+        Always uses .jpg extension since all images are converted to JPEG.
+
         Args:
             image_url: External image URL
 
         Returns:
-            Filename like 'search_{hash}.{ext}'
+            Filename like 'search_{hash}.jpg'
         """
-        # Create hash from URL for uniqueness
-        url_hash = hashlib.md5(image_url.encode()).hexdigest()[:12]
-
-        # Get extension from image URL
-        ext = '.jpg'  # default
-        if image_url:
-            parsed = urlparse(image_url)
-            path_ext = Path(parsed.path).suffix.lower()
-            if path_ext in ('.jpg', '.jpeg', '.png', '.gif', '.webp'):
-                ext = path_ext
-
-        return f"search_{url_hash}{ext}"
+        url_hash = hashlib.md5(image_url.encode(), usedforsecurity=False).hexdigest()[:12]
+        return f"search_{url_hash}.jpg"
 
     def _convert_to_jpeg(self, image_data: bytes) -> bytes | None:
         """
@@ -237,35 +243,21 @@ class SearchImageCache:
             img = Image.open(io.BytesIO(image_data))
 
             # Convert RGBA to RGB (JPEG doesn't support transparency)
-            if img.mode in ('RGBA', 'LA', 'P'):
+            if img.mode in ("RGBA", "LA", "P"):
                 # Create white background
-                background = Image.new('RGB', img.size, (255, 255, 255))
-                if img.mode == 'P':
-                    img = img.convert('RGBA')
-                background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+                background = Image.new("RGB", img.size, (255, 255, 255))
+                if img.mode == "P":
+                    img = img.convert("RGBA")
+                background.paste(img, mask=img.split()[-1] if img.mode in ("RGBA", "LA") else None)
                 img = background
-            elif img.mode != 'RGB':
-                img = img.convert('RGB')
+            elif img.mode != "RGB":
+                img = img.convert("RGB")
 
             # Save as JPEG
             output = io.BytesIO()
-            img.save(output, format='JPEG', quality=92, optimize=True)
+            img.save(output, format="JPEG", quality=92, optimize=True)
             return output.getvalue()
 
         except Exception as e:
             logger.error(f"Failed to convert image to JPEG: {e}")
             return None
-
-    def _is_image_url(self, url: str) -> bool:
-        """
-        Check if URL looks like an image based on extension.
-
-        Args:
-            url: URL to check
-
-        Returns:
-            True if URL has image extension, False otherwise
-        """
-        image_extensions = ('.jpg', '.jpeg', '.png', '.gif', '.webp')
-        parsed = urlparse(url)
-        return parsed.path.lower().endswith(image_extensions)

@@ -15,7 +15,9 @@ db.sqlite3
 db.sqlite3-shm
 db.sqlite3-wal
 staticfiles/
-media/
+media/*
+!media/.gitkeep
+!media/*/.gitkeep
 
 # IDE
 .idea/
@@ -23,20 +25,39 @@ media/
 *.swp
 *.swo
 
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+
 # Docker
 .docker/
+docker-compose.override.yml
 
 # Testing
 .pytest_cache/
 .coverage
 coverage/
+coverage.json
 htmlcov/
+
+# Linting/Security
+.ruff_cache/
+frontend/.secrets.baseline
 
 # Frontend
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
+frontend/coverage/
 *.local
 
 # Root node_modules (from CI tooling tests)
 node_modules/
+
+# Local/generated artifacts
+.mcp.json
+data/
+screenshots/
+.specify/
+specs/

@@ -65,178 +65,112 @@ Cookie.pages.detail = (function() {
     }
 
     /**
-     * Setup event listeners
+     * Helper: bind click listener to element by ID
      */
-    function setupEventListeners() {
-        // Back button
-        var backBtn = document.getElementById('back-btn');
-        if (backBtn) {
-            backBtn.addEventListener('click', handleBack);
-        }
+    function bindClick(id, handler) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('click', handler);
+    }
 
-        // Meta section toggle
-        var metaToggle = document.getElementById('meta-toggle');
-        if (metaToggle) {
-            metaToggle.addEventListener('click', handleMetaToggle);
-        }
-
-        // Tab buttons
-        var tabs = document.querySelectorAll('.tab');
-        for (var i = 0; i < tabs.length; i++) {
-            tabs[i].addEventListener('click', handleTabClick);
-        }
-
-        // Favorite button
-        var favoriteBtn = document.getElementById('favorite-btn');
-        if (favoriteBtn) {
-            favoriteBtn.addEventListener('click', handleFavoriteClick);
-        }
-
-        // Collection button
-        var collectionBtn = document.getElementById('collection-btn');
-        if (collectionBtn) {
-            collectionBtn.addEventListener('click', handleCollectionClick);
-        }
-
-        // Cook button
-        var cookBtn = document.getElementById('cook-btn');
-        if (cookBtn) {
-            cookBtn.addEventListener('click', handleCookClick);
-        }
-
-        // Collection modal close
-        var modalClose = document.getElementById('modal-close');
-        if (modalClose) {
-            modalClose.addEventListener('click', closeCollectionModal);
-        }
-
-        // Create collection button
-        var createCollectionBtn = document.getElementById('create-collection-btn');
-        if (createCollectionBtn) {
-            createCollectionBtn.addEventListener('click', openCreateCollectionModal);
-        }
-
-        // Create collection modal close
-        var createModalClose = document.getElementById('create-modal-close');
-        if (createModalClose) {
-            createModalClose.addEventListener('click', closeCreateCollectionModal);
-        }
-
-        // Collection options
-        var collectionOptions = document.querySelectorAll('.collection-option');
-        for (var j = 0; j < collectionOptions.length; j++) {
-            collectionOptions[j].addEventListener('click', handleCollectionOptionClick);
-        }
-
-        // Create collection form
-        var createForm = document.getElementById('create-collection-form');
-        if (createForm) {
-            createForm.addEventListener('submit', handleCreateCollection);
-        }
-
-        // Modal overlay click to close
-        var collectionModal = document.getElementById('collection-modal');
-        if (collectionModal) {
-            collectionModal.addEventListener('click', function(e) {
-                if (e.target === collectionModal) {
-                    closeCollectionModal();
-                }
-            });
-        }
-
-        var createCollectionModal = document.getElementById('create-collection-modal');
-        if (createCollectionModal) {
-            createCollectionModal.addEventListener('click', function(e) {
-                if (e.target === createCollectionModal) {
-                    closeCreateCollectionModal();
-                }
-            });
-        }
-
-        // Serving adjuster
-        var servingAdjuster = document.querySelector('.serving-adjuster');
-        if (servingAdjuster) {
-            originalServings = parseInt(servingAdjuster.getAttribute('data-original-servings'), 10);
-            currentServings = originalServings;
-
-            var decreaseBtn = servingAdjuster.querySelector('.serving-decrease');
-            var increaseBtn = servingAdjuster.querySelector('.serving-increase');
-
-            if (decreaseBtn) {
-                decreaseBtn.addEventListener('click', function() {
-                    adjustServings(-1);
-                });
-            }
-            if (increaseBtn) {
-                increaseBtn.addEventListener('click', function() {
-                    adjustServings(1);
-                });
-            }
-
-            updateServingButtons();
-        }
-
-        // Remix button
-        var remixBtn = document.getElementById('remix-btn');
-        if (remixBtn) {
-            remixBtn.addEventListener('click', handleRemixClick);
-        }
-
-        // Remix modal close
-        var remixModalClose = document.getElementById('remix-modal-close');
-        if (remixModalClose) {
-            remixModalClose.addEventListener('click', closeRemixModal);
-        }
-
-        // Remix modal overlay click to close
-        var remixModal = document.getElementById('remix-modal');
-        if (remixModal) {
-            remixModal.addEventListener('click', function(e) {
-                if (e.target === remixModal) {
-                    closeRemixModal();
-                }
-            });
-        }
-
-        // Remix custom input
-        var remixCustomInput = document.getElementById('remix-custom-input');
-        if (remixCustomInput) {
-            remixCustomInput.addEventListener('input', handleRemixCustomInput);
-        }
-
-        // Remix create button
-        var remixCreateBtn = document.getElementById('remix-create-btn');
-        if (remixCreateBtn) {
-            remixCreateBtn.addEventListener('click', handleRemixCreate);
-        }
-
-        // Generate tips button
-        var generateTipsBtn = document.getElementById('generate-tips-btn');
-        if (generateTipsBtn) {
-            generateTipsBtn.addEventListener('click', function() {
-                handleGenerateTips(false);
-            });
-        }
-
-        // Regenerate tips button
-        var regenerateTipsBtn = document.getElementById('regenerate-tips-btn');
-        if (regenerateTipsBtn) {
-            regenerateTipsBtn.addEventListener('click', function() {
-                handleGenerateTips(true);
+    /**
+     * Helper: bind modal overlay click to close
+     */
+    function bindModalOverlay(modalId, closeHandler) {
+        var modal = document.getElementById(modalId);
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) closeHandler();
             });
         }
     }
 
     /**
-     * Handle back button click
+     * Setup navigation event listeners
      */
-    function handleBack() {
-        // Go back to previous page, or home if no history
-        if (window.history.length > 1) {
-            window.history.back();
-        } else {
-            window.location.href = '/legacy/home/';
+    function setupNavigationListeners() {
+        bindClick('meta-toggle', handleMetaToggle);
+        bindClick('cook-btn', handleCookClick);
+
+        var tabs = document.querySelectorAll('.tab');
+        for (var i = 0; i < tabs.length; i++) {
+            tabs[i].addEventListener('click', handleTabClick);
         }
+    }
+
+    /**
+     * Setup collection modal event listeners
+     */
+    function setupCollectionListeners() {
+        bindClick('favorite-btn', handleFavoriteClick);
+        bindClick('collection-btn', handleCollectionClick);
+        bindClick('modal-close', closeCollectionModal);
+        bindClick('create-collection-btn', openCreateCollectionModal);
+        bindClick('create-modal-close', closeCreateCollectionModal);
+
+        var collectionOptions = document.querySelectorAll('.collection-option');
+        for (var j = 0; j < collectionOptions.length; j++) {
+            collectionOptions[j].addEventListener('click', handleCollectionOptionClick);
+        }
+
+        var createForm = document.getElementById('create-collection-form');
+        if (createForm) createForm.addEventListener('submit', handleCreateCollection);
+
+        bindModalOverlay('collection-modal', closeCollectionModal);
+        bindModalOverlay('create-collection-modal', closeCreateCollectionModal);
+    }
+
+    /**
+     * Setup serving adjuster event listeners
+     */
+    function setupServingListeners() {
+        var servingAdjuster = document.querySelector('.serving-adjuster');
+        if (!servingAdjuster) return;
+
+        originalServings = parseInt(servingAdjuster.getAttribute('data-original-servings'), 10);
+        currentServings = originalServings;
+
+        var decreaseBtn = servingAdjuster.querySelector('.serving-decrease');
+        var increaseBtn = servingAdjuster.querySelector('.serving-increase');
+
+        if (decreaseBtn) decreaseBtn.addEventListener('click', function() { adjustServings(-1); });
+        if (increaseBtn) increaseBtn.addEventListener('click', function() { adjustServings(1); });
+
+        updateServingButtons();
+    }
+
+    /**
+     * Setup remix modal event listeners
+     */
+    function setupRemixListeners() {
+        bindClick('remix-btn', handleRemixClick);
+        bindClick('remix-modal-close', closeRemixModal);
+        bindClick('remix-create-btn', handleRemixCreate);
+        bindModalOverlay('remix-modal', closeRemixModal);
+
+        var remixCustomInput = document.getElementById('remix-custom-input');
+        if (remixCustomInput) remixCustomInput.addEventListener('input', handleRemixCustomInput);
+    }
+
+    /**
+     * Setup tips generation event listeners
+     */
+    function setupTipsListeners() {
+        var generateBtn = document.getElementById('generate-tips-btn');
+        if (generateBtn) generateBtn.addEventListener('click', function() { handleGenerateTips(false); });
+
+        var regenerateBtn = document.getElementById('regenerate-tips-btn');
+        if (regenerateBtn) regenerateBtn.addEventListener('click', function() { handleGenerateTips(true); });
+    }
+
+    /**
+     * Setup all event listeners (orchestrator)
+     */
+    function setupEventListeners() {
+        setupNavigationListeners();
+        setupCollectionListeners();
+        setupServingListeners();
+        setupRemixListeners();
+        setupTipsListeners();
     }
 
     /**
@@ -671,16 +605,7 @@ Cookie.pages.detail = (function() {
         }
     }
 
-    /**
-     * Format minutes as readable time
-     */
-    function formatTime(minutes) {
-        if (!minutes) return null;
-        if (minutes < 60) return minutes + ' min';
-        var hours = Math.floor(minutes / 60);
-        var mins = minutes % 60;
-        return mins > 0 ? hours + 'h ' + mins + 'm' : hours + 'h';
-    }
+    // Use shared utility: Cookie.utils.formatTime
 
     /**
      * Render adjusted cooking times
@@ -702,14 +627,14 @@ Cookie.pages.detail = (function() {
                     var originalMinutesAttr = el.getAttribute('data-original-minutes');
                     var originalMinutes = originalMinutesAttr ? parseInt(originalMinutesAttr, 10) : null;
                     var adjustedMinutes = parseInt(adjusted, 10);
-                    var adjustedFormatted = formatTime(adjustedMinutes);
+                    var adjustedFormatted = Cookie.utils.formatTime(adjustedMinutes);
 
                     // Only show "(was X)" if time actually changed
                     // Compare integers if we have original minutes, otherwise times are equal (no attr = stale cache)
                     var timeChanged = (originalMinutes !== null) && (adjustedMinutes !== originalMinutes);
 
                     if (timeChanged) {
-                        var originalFormatted = formatTime(originalMinutes);
+                        var originalFormatted = Cookie.utils.formatTime(originalMinutes);
                         valueEl.innerHTML = adjustedFormatted + ' <span class="time-was">(was ' + originalFormatted + ')</span>';
                         valueEl.classList.add('time-adjusted');
                     } else {
@@ -756,7 +681,6 @@ Cookie.pages.detail = (function() {
             if (textEl) {
                 // Store original if not already stored
                 if (!textEl.classList.contains('has-scaled')) {
-                    var originalText = textEl.textContent;
                     textEl.classList.add('has-scaled', 'ingredient-text-original');
 
                     // Create scaled text element
@@ -810,7 +734,7 @@ Cookie.pages.detail = (function() {
         if (scalingNotes.length > 0) {
             var notesHtml = '<h4 class="scaling-notes-title"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg> Scaling Notes</h4><ul class="scaling-notes-list">';
             for (var j = 0; j < scalingNotes.length; j++) {
-                notesHtml += '<li>' + escapeHtml(scalingNotes[j]) + '</li>';
+                notesHtml += '<li>' + Cookie.utils.escapeHtml(scalingNotes[j]) + '</li>';
             }
             notesHtml += '</ul>';
             notesContainer.innerHTML = notesHtml;
@@ -949,7 +873,7 @@ Cookie.pages.detail = (function() {
         var html = '';
         for (var i = 0; i < remixSuggestions.length; i++) {
             var suggestion = remixSuggestions[i];
-            html += '<button type="button" class="remix-chip" data-suggestion="' + escapeHtml(suggestion) + '">' + escapeHtml(suggestion) + '</button>';
+            html += '<button type="button" class="remix-chip" data-suggestion="' + Cookie.utils.escapeHtml(suggestion) + '">' + Cookie.utils.escapeHtml(suggestion) + '</button>';
         }
         suggestionsContainer.innerHTML = html;
 
@@ -1037,8 +961,8 @@ Cookie.pages.detail = (function() {
         if (!modification || isCreatingRemix) return;
 
         var modal = document.getElementById('remix-modal');
-        var profileId = modal ? parseInt(modal.getAttribute('data-profile-id'), 10) : null;
-        if (!profileId) {
+        var remixProfileId = modal ? parseInt(modal.getAttribute('data-profile-id'), 10) : null;
+        if (!remixProfileId) {
             Cookie.toast.error('Profile not found');
             return;
         }
@@ -1055,7 +979,7 @@ Cookie.pages.detail = (function() {
         Cookie.ajax.post('/api/ai/remix', {
             recipe_id: recipeId,
             modification: modification,
-            profile_id: profileId
+            profile_id: remixProfileId
         }, function(err, response) {
             isCreatingRemix = false;
 
@@ -1080,14 +1004,7 @@ Cookie.pages.detail = (function() {
         });
     }
 
-    /**
-     * Escape HTML characters
-     */
-    function escapeHtml(text) {
-        var div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+    // Use shared utility: Cookie.utils.escapeHtml
 
     /**
      * Start polling for tips (for recently imported recipes)
@@ -1238,7 +1155,7 @@ Cookie.pages.detail = (function() {
         for (var i = 0; i < tips.length; i++) {
             html += '<li class="tip-item">';
             html += '<span class="tip-number">' + (i + 1) + '</span>';
-            html += '<p class="tip-text">' + escapeHtml(tips[i]) + '</p>';
+            html += '<p class="tip-text">' + Cookie.utils.escapeHtml(tips[i]) + '</p>';
             html += '</li>';
         }
         html += '</ol>';

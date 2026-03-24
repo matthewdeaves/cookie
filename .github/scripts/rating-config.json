@@ -1,0 +1,71 @@
+{
+  "coverage": {
+    "thresholds": {
+      "A": 80,
+      "B": 60,
+      "C": 40
+    },
+    "description": "Test coverage percentage (higher is better)"
+  },
+  "complexity": {
+    "thresholds": {
+      "A": 5,
+      "B": 10,
+      "C": 20
+    },
+    "description": "Average cyclomatic complexity (lower is better)"
+  },
+  "maintainability": {
+    "thresholds": {
+      "A": 80,
+      "B": 60,
+      "C": 40
+    },
+    "description": "Maintainability index 0-100 (higher is better)"
+  },
+  "duplication": {
+    "thresholds": {
+      "frontend": {
+        "A": 3,
+        "B": 5,
+        "C": 10
+      },
+      "backend": {
+        "A": 3,
+        "B": 5,
+        "C": 10
+      },
+      "legacy": {
+        "A": 5,
+        "B": 10,
+        "C": 15
+      }
+    },
+    "description": "Code duplication percentage (lower is better)"
+  },
+  "bundle": {
+    "thresholds": {
+      "gzip_kb": {
+        "A": 150,
+        "B": 300,
+        "C": 500
+      }
+    },
+    "description": "Gzipped bundle size in KB (lower is better)"
+  },
+  "security": {
+    "thresholds": {
+      "critical": 0,
+      "high": 0,
+      "moderate": 3
+    },
+    "description": "Vulnerability counts - D if critical/high > 0, C if moderate > threshold"
+  },
+  "colors": {
+    "A": "brightgreen",
+    "B": "green",
+    "C": "yellow",
+    "D": "red",
+    "N/A": "lightgrey"
+  }
+}

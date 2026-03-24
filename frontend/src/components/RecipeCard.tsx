@@ -1,6 +1,8 @@
+import { useState, useCallback } from 'react'
 import { Star, Clock, Heart } from 'lucide-react'
 import type { Recipe } from '../api/client'
 import { cn } from '../lib/utils'
+import { formatTime } from '../lib/formatting'
 
 interface RecipeCardProps {
   recipe: Recipe
@@ -16,14 +18,11 @@ export default function RecipeCard({
   onClick,
 }: RecipeCardProps) {
   const imageUrl = recipe.image || recipe.image_url
+  const [imgError, setImgError] = useState(false)
 
-  const formatTime = (minutes: number | null) => {
-    if (!minutes) return null
-    if (minutes < 60) return `${minutes} min`
-    const hours = Math.floor(minutes / 60)
-    const mins = minutes % 60
-    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
-  }
+  const handleImgError = useCallback(() => {
+    setImgError(true)
+  }, [])
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -40,15 +39,17 @@ export default function RecipeCard({
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-        {imageUrl ? (
+        {imageUrl && !imgError ? (
           <img
             src={imageUrl}
             alt={recipe.title}
+            loading="lazy"
+            onError={handleImgError}
             className="h-full w-full object-cover transition-transform group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-            No image
+          <div className="flex h-full w-full items-center justify-center bg-muted px-3 text-center text-sm font-medium text-muted-foreground">
+            {recipe.title}
           </div>
         )}
 
