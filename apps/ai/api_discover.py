@@ -1,13 +1,17 @@
 """AI discover suggestions API endpoints."""
 
+import logging
 from typing import List
 
+from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema
 
 from apps.profiles.models import Profile
 
 from .api import ErrorOut, handle_ai_errors
 from .services.discover import get_discover_suggestions
+
+security_logger = logging.getLogger("security")
 
 router = Router(tags=["ai"])
 
@@ -30,7 +34,8 @@ class DiscoverOut(Schema):
 # Endpoints
 
 
-@router.get("/discover/{profile_id}/", response={200: DiscoverOut, 404: ErrorOut, 503: ErrorOut})
+@router.get("/discover/{profile_id}/", response={200: DiscoverOut, 404: ErrorOut, 429: dict, 503: ErrorOut})
+@ratelimit(key="ip", rate="20/h", method="GET", block=False)
 @handle_ai_errors
 def discover_endpoint(request, profile_id: int):
     """Get AI discovery suggestions for a profile.
@@ -40,6 +45,9 @@ def discover_endpoint(request, profile_id: int):
 
     For new users (no favorites), only seasonal suggestions are returned.
     """
+    if getattr(request, "limited", False):
+        security_logger.warning("Rate limit hit: /ai/discover from %s", request.META.get("REMOTE_ADDR"))
+        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
     try:
         result = get_discover_suggestions(profile_id)
         return result

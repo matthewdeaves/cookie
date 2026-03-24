@@ -31,11 +31,6 @@ api.add_router("/sources", sources_router)
 api.add_router("/system", system_router)
 
 
-@api.get("/health")
-def health(request):
-    return {"status": "ok"}
-
-
 urlpatterns = [
     path("api/", api.urls),
     path("legacy/", include("apps.legacy.urls")),

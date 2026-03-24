@@ -4,7 +4,10 @@ import logging
 import os
 import shutil
 
+from django_ratelimit.decorators import ratelimit
+
 logger = logging.getLogger(__name__)
+security_logger = logging.getLogger("security")
 
 from django.conf import settings
 from django.core.cache import cache
@@ -31,20 +34,30 @@ router = Router(tags=["system"])
 
 class HealthSchema(Schema):
     status: str
+
+
+class ReadySchema(Schema):
+    status: str
     database: str
 
 
 @router.get("/health/", response=HealthSchema)
 def health_check(request):
-    """Simple health check for container orchestration."""
+    """Liveness probe — confirms the process is running. No dependency checks."""
+    return {"status": "healthy"}
+
+
+@router.get("/ready/", response={200: ReadySchema, 503: ReadySchema})
+def readiness_check(request):
+    """Readiness probe — checks database connectivity."""
     from django.db import connection
 
     try:
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
-        return {"status": "healthy", "database": "ok"}
+        return 200, {"status": "ready", "database": "ok"}
     except Exception:
-        return {"status": "unhealthy", "database": "error"}
+        return 503, {"status": "not_ready", "database": "error"}
 
 
 class DataCountsSchema(Schema):
@@ -110,13 +123,17 @@ def get_reset_preview(request):
     }
 
 
-@router.post("/reset/", response={200: ResetSuccessSchema, 400: ErrorSchema}, auth=SessionAuth())
+@router.post("/reset/", response={200: ResetSuccessSchema, 400: ErrorSchema, 429: dict}, auth=SessionAuth())
+@ratelimit(key="ip", rate="1/m", method="POST", block=False)
 def reset_database(request, data: ResetConfirmSchema):
     """
     Completely reset the database to factory state.
 
     Requires confirmation_text="RESET" to proceed.
     """
+    if getattr(request, "limited", False):
+        security_logger.warning("Rate limit hit: /system/reset/ from %s", request.META.get("REMOTE_ADDR"))
+        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
     if data.confirmation_text != "RESET":
         return 400, {
             "error": "invalid_confirmation",

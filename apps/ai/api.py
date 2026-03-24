@@ -2,6 +2,7 @@
 AI settings and prompts API endpoints.
 """
 
+import logging
 from functools import wraps
 from typing import Callable, List, Optional
 
@@ -18,6 +19,8 @@ from .services.timer import generate_timer_name
 from .services.selector import repair_selector, get_sources_needing_attention
 from .services.validator import ValidationError
 from apps.core.auth import SessionAuth
+
+security_logger = logging.getLogger("security")
 
 router = Router(tags=["ai"])
 
@@ -289,7 +292,8 @@ class TipsOut(Schema):
 # Tips Endpoints
 
 
-@router.post("/tips", response={200: TipsOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+@router.post("/tips", response={200: TipsOut, 400: ErrorOut, 404: ErrorOut, 429: dict, 503: ErrorOut})
+@ratelimit(key="ip", rate="20/h", method="POST", block=False)
 @handle_ai_errors
 def tips_endpoint(request, data: TipsIn):
     """Generate cooking tips for a recipe.
@@ -297,6 +301,10 @@ def tips_endpoint(request, data: TipsIn):
     Pass regenerate=True to clear existing tips and generate fresh ones.
     Only works for recipes owned by the requesting profile.
     """
+    if getattr(request, "limited", False):
+        security_logger.warning("Rate limit hit: /ai/tips from %s", request.META.get("REMOTE_ADDR"))
+        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
+
     from apps.profiles.utils import get_current_profile_or_none
 
     profile = get_current_profile_or_none(request)
@@ -338,13 +346,17 @@ class TimerNameOut(Schema):
 # Timer Naming Endpoints
 
 
-@router.post("/timer-name", response={200: TimerNameOut, 400: ErrorOut, 503: ErrorOut})
+@router.post("/timer-name", response={200: TimerNameOut, 400: ErrorOut, 429: dict, 503: ErrorOut})
+@ratelimit(key="ip", rate="60/h", method="POST", block=False)
 @handle_ai_errors
 def timer_name_endpoint(request, data: TimerNameIn):
     """Generate a descriptive name for a cooking timer.
 
     Takes a cooking instruction and duration, returns a short label.
     """
+    if getattr(request, "limited", False):
+        security_logger.warning("Rate limit hit: /ai/timer-name from %s", request.META.get("REMOTE_ADDR"))
+        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
     if not data.step_text:
         return 400, {
             "error": "validation_error",
@@ -396,9 +408,10 @@ class SourceNeedingAttentionOut(Schema):
 
 @router.post(
     "/repair-selector",
-    response={200: SelectorRepairOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut},
+    response={200: SelectorRepairOut, 400: ErrorOut, 404: ErrorOut, 429: dict, 503: ErrorOut},
     auth=SessionAuth(),
 )
+@ratelimit(key="ip", rate="5/h", method="POST", block=False)
 @handle_ai_errors
 def repair_selector_endpoint(request, data: SelectorRepairIn):
     """Attempt to repair a broken CSS selector using AI.
@@ -408,6 +421,9 @@ def repair_selector_endpoint(request, data: SelectorRepairIn):
 
     This endpoint is intended for admin/maintenance use.
     """
+    if getattr(request, "limited", False):
+        security_logger.warning("Rate limit hit: /ai/repair-selector from %s", request.META.get("REMOTE_ADDR"))
+        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
     from apps.recipes.models import SearchSource
 
     try:

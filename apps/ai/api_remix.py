@@ -1,13 +1,17 @@
 """AI remix API endpoints."""
 
+import logging
 from typing import List, Optional
 
+from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema
 
 from apps.recipes.models import Recipe
 
 from .api import ErrorOut, handle_ai_errors
 from .services.remix import get_remix_suggestions, create_remix
+
+security_logger = logging.getLogger("security")
 
 router = Router(tags=["ai"])
 
@@ -48,13 +52,19 @@ class RemixOut(Schema):
 # Endpoints
 
 
-@router.post("/remix-suggestions", response={200: RemixSuggestionsOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+@router.post(
+    "/remix-suggestions", response={200: RemixSuggestionsOut, 400: ErrorOut, 404: ErrorOut, 429: dict, 503: ErrorOut}
+)
+@ratelimit(key="ip", rate="30/h", method="POST", block=False)
 @handle_ai_errors
 def remix_suggestions(request, data: RemixSuggestionsIn):
     """Get 6 AI-generated remix suggestions for a recipe.
 
     Only works for recipes owned by the requesting profile.
     """
+    if getattr(request, "limited", False):
+        security_logger.warning("Rate limit hit: /ai/remix-suggestions from %s", request.META.get("REMOTE_ADDR"))
+        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
     from apps.profiles.utils import get_current_profile_or_none
 
     profile = get_current_profile_or_none(request)
@@ -77,7 +87,8 @@ def remix_suggestions(request, data: RemixSuggestionsIn):
     return {"suggestions": suggestions}
 
 
-@router.post("/remix", response={200: RemixOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+@router.post("/remix", response={200: RemixOut, 400: ErrorOut, 404: ErrorOut, 429: dict, 503: ErrorOut})
+@ratelimit(key="ip", rate="10/h", method="POST", block=False)
 @handle_ai_errors
 def create_remix_endpoint(request, data: CreateRemixIn):
     """Create a remixed recipe using AI.
@@ -85,6 +96,9 @@ def create_remix_endpoint(request, data: CreateRemixIn):
     Only works for recipes owned by the requesting profile.
     The remix will be owned by the same profile.
     """
+    if getattr(request, "limited", False):
+        security_logger.warning("Rate limit hit: /ai/remix from %s", request.META.get("REMOTE_ADDR"))
+        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
     from apps.profiles.utils import get_current_profile_or_none
 
     profile = get_current_profile_or_none(request)

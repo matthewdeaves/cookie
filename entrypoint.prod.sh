@@ -7,14 +7,6 @@ mkdir -p "$DATA_DIR/media" 2>/dev/null || {
     echo "Warning: Could not create $DATA_DIR/media - ensure volume has correct permissions"
 }
 
-# Link database to data directory if not already there
-if [ ! -f "$DATA_DIR/db.sqlite3" ]; then
-    echo "Initializing database..."
-fi
-
-# Use data directory for database
-export DATABASE_PATH="$DATA_DIR/db.sqlite3"
-
 # Generate secret key if not provided
 if [ -z "$SECRET_KEY" ]; then
     SECRET_KEY_FILE="$DATA_DIR/.secret_key"
@@ -46,8 +38,20 @@ fi
 echo "Running migrations..."
 python manage.py migrate --noinput
 
+echo "Creating cache table..."
+python manage.py createcachetable
+
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
+
+# Process supervision: if either process exits, terminate the other and exit
+cleanup() {
+    echo "Shutting down..."
+    kill -TERM "$GUNICORN_PID" "$NGINX_PID" 2>/dev/null
+    wait "$GUNICORN_PID" "$NGINX_PID" 2>/dev/null
+    exit 0
+}
+trap cleanup SIGTERM SIGINT
 
 # Start Gunicorn in background (binds to localhost only, nginx proxies to it)
 echo "Starting Gunicorn on 127.0.0.1:8000..."
@@ -62,10 +66,14 @@ gunicorn \
     --capture-output \
     --enable-stdio-inheritance \
     cookie.wsgi:application &
+GUNICORN_PID=$!
 
-# Wait for gunicorn to start
-sleep 2
-
-# Start Nginx in foreground
+# Start Nginx in background
 echo "Starting Nginx on 0.0.0.0:80..."
-exec nginx -g 'daemon off;'
+nginx -g 'daemon off;' &
+NGINX_PID=$!
+
+# Wait for either process to exit, then terminate the other
+wait -n
+echo "Process exited unexpectedly, shutting down..."
+cleanup

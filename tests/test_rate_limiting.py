@@ -25,8 +25,10 @@ def client():
 
 
 @pytest.fixture(autouse=True)
-def _clear_rate_limit_cache():
-    """Clear the rate limit cache before each test."""
+def _enable_rate_limiting(settings):
+    """Enable rate limiting for these tests and clear cache."""
+    settings.RATELIMIT_ENABLE = True
+    settings.RATELIMIT_IP_META_KEY = "HTTP_X_FORWARDED_FOR"
     cache.clear()
     yield
     cache.clear()
