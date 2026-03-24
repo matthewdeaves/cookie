@@ -37,6 +37,9 @@ class TestProfilesAPI:
     def test_update_profile(self, client):
         """Update an existing profile."""
         profile = Profile.objects.create(name="Test", avatar_color="#123456")
+        session = client.session
+        session["profile_id"] = profile.id
+        session.save()
         data = {
             "name": "Updated",
             "avatar_color": "#654321",
@@ -56,6 +59,9 @@ class TestProfilesAPI:
     def test_delete_profile(self, client):
         """Delete a profile."""
         profile = Profile.objects.create(name="Test", avatar_color="#123456")
+        session = client.session
+        session["profile_id"] = profile.id
+        session.save()
         response = client.delete(f"/api/profiles/{profile.id}/")
         assert response.status_code == 204
         assert not Profile.objects.filter(id=profile.id).exists()

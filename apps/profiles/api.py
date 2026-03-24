@@ -6,6 +6,7 @@ from django.conf import settings
 from django.db.models import Count, Q
 from ninja import Router, Schema
 
+from apps.core.auth import SessionAuth
 from .models import Profile
 
 router = Router(tags=["profiles"])
@@ -132,7 +133,7 @@ def get_profile(request, profile_id: int):
     return Profile.objects.get(id=profile_id)
 
 
-@router.put("/{profile_id}/", response=ProfileOut)
+@router.put("/{profile_id}/", response=ProfileOut, auth=SessionAuth())
 def update_profile(request, profile_id: int, payload: ProfileIn):
     """Update a profile."""
     profile = Profile.objects.get(id=profile_id)
@@ -197,7 +198,7 @@ def get_deletion_preview(request, profile_id: int):
     }
 
 
-@router.delete("/{profile_id}/", response={204: None, 400: ErrorSchema, 404: ErrorSchema})
+@router.delete("/{profile_id}/", response={204: None, 400: ErrorSchema, 404: ErrorSchema}, auth=SessionAuth())
 def delete_profile(request, profile_id: int):
     """
     Delete a profile and ALL associated data.

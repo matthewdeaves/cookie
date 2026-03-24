@@ -11,6 +11,7 @@ from django.db.models import Max
 from django.shortcuts import get_object_or_404
 from ninja import Router, Schema
 
+from apps.core.auth import SessionAuth
 from apps.profiles.utils import get_current_profile
 
 from .api import RecipeListOut
@@ -53,7 +54,7 @@ def list_favorites(request):
     return RecipeFavorite.objects.filter(profile=profile).select_related("recipe")
 
 
-@favorites_router.post("/", response={201: FavoriteOut, 400: ErrorOut, 404: ErrorOut})
+@favorites_router.post("/", response={201: FavoriteOut, 400: ErrorOut, 404: ErrorOut}, auth=SessionAuth())
 def add_favorite(request, payload: FavoriteIn):
     """Add a recipe to favorites."""
     profile = get_current_profile(request)
@@ -66,7 +67,7 @@ def add_favorite(request, payload: FavoriteIn):
         return 400, {"detail": "Recipe is already a favorite"}
 
 
-@favorites_router.delete("/{recipe_id}/", response={204: None, 404: ErrorOut})
+@favorites_router.delete("/{recipe_id}/", response={204: None, 404: ErrorOut}, auth=SessionAuth())
 def remove_favorite(request, recipe_id: int):
     """Remove a recipe from favorites."""
     profile = get_current_profile(request)
@@ -150,7 +151,7 @@ def list_collections(request):
     return RecipeCollection.objects.filter(profile=profile).prefetch_related("items")
 
 
-@collections_router.post("/", response={201: CollectionOut, 400: ErrorOut})
+@collections_router.post("/", response={201: CollectionOut, 400: ErrorOut}, auth=SessionAuth())
 def create_collection(request, payload: CollectionIn):
     """Create a new collection."""
     profile = get_current_profile(request)
@@ -174,7 +175,9 @@ def get_collection(request, collection_id: int):
     return collection
 
 
-@collections_router.put("/{collection_id}/", response={200: CollectionOut, 400: ErrorOut, 404: ErrorOut})
+@collections_router.put(
+    "/{collection_id}/", response={200: CollectionOut, 400: ErrorOut, 404: ErrorOut}, auth=SessionAuth()
+)
 def update_collection(request, collection_id: int, payload: CollectionIn):
     """Update a collection."""
     profile = get_current_profile(request)
@@ -189,7 +192,7 @@ def update_collection(request, collection_id: int, payload: CollectionIn):
         return 400, {"detail": "A collection with this name already exists"}
 
 
-@collections_router.delete("/{collection_id}/", response={204: None, 404: ErrorOut})
+@collections_router.delete("/{collection_id}/", response={204: None, 404: ErrorOut}, auth=SessionAuth())
 def delete_collection(request, collection_id: int):
     """Delete a collection."""
     profile = get_current_profile(request)
@@ -198,7 +201,9 @@ def delete_collection(request, collection_id: int):
     return 204, None
 
 
-@collections_router.post("/{collection_id}/recipes/", response={201: CollectionItemOut, 400: ErrorOut, 404: ErrorOut})
+@collections_router.post(
+    "/{collection_id}/recipes/", response={201: CollectionItemOut, 400: ErrorOut, 404: ErrorOut}, auth=SessionAuth()
+)
 def add_recipe_to_collection(request, collection_id: int, payload: CollectionItemIn):
     """Add a recipe to a collection."""
     profile = get_current_profile(request)
@@ -220,7 +225,9 @@ def add_recipe_to_collection(request, collection_id: int, payload: CollectionIte
         return 400, {"detail": "Recipe is already in this collection"}
 
 
-@collections_router.delete("/{collection_id}/recipes/{recipe_id}/", response={204: None, 404: ErrorOut})
+@collections_router.delete(
+    "/{collection_id}/recipes/{recipe_id}/", response={204: None, 404: ErrorOut}, auth=SessionAuth()
+)
 def remove_recipe_from_collection(request, collection_id: int, recipe_id: int):
     """Remove a recipe from a collection."""
     profile = get_current_profile(request)
@@ -261,7 +268,7 @@ def list_history(request, limit: int = 6):
     return RecipeViewHistory.objects.filter(profile=profile).select_related("recipe")[:limit]
 
 
-@history_router.post("/", response={200: HistoryOut, 201: HistoryOut, 404: ErrorOut})
+@history_router.post("/", response={200: HistoryOut, 201: HistoryOut, 404: ErrorOut}, auth=SessionAuth())
 def record_view(request, payload: HistoryIn):
     """
     Record a recipe view.
@@ -281,7 +288,7 @@ def record_view(request, payload: HistoryIn):
     return status, history
 
 
-@history_router.delete("/", response={204: None})
+@history_router.delete("/", response={204: None}, auth=SessionAuth())
 def clear_history(request):
     """Clear all view history for the current profile."""
     profile = get_current_profile(request)

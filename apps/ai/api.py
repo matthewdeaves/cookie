@@ -160,7 +160,7 @@ def get_ai_status(request):
     return status
 
 
-@router.post("/test-api-key", response={200: TestApiKeyOut, 400: ErrorOut, 429: dict})
+@router.post("/test-api-key", response={200: TestApiKeyOut, 400: ErrorOut, 429: dict}, auth=SessionAuth())
 @ratelimit(key="ip", rate="5/h", method="POST", block=False)
 def test_api_key(request, data: TestApiKeyIn):
     """Test if an API key is valid."""
@@ -179,7 +179,7 @@ def test_api_key(request, data: TestApiKeyIn):
     }
 
 
-@router.post("/save-api-key", response={200: SaveApiKeyOut, 400: ErrorOut, 429: dict})
+@router.post("/save-api-key", response={200: SaveApiKeyOut, 400: ErrorOut, 429: dict}, auth=SessionAuth())
 @ratelimit(key="ip", rate="3/h", method="POST", block=False)
 def save_api_key(request, data: SaveApiKeyIn):
     """Save the OpenRouter API key."""
@@ -218,7 +218,7 @@ def get_prompt(request, prompt_type: str):
         }
 
 
-@router.put("/prompts/{prompt_type}", response={200: PromptOut, 404: ErrorOut, 422: ErrorOut})
+@router.put("/prompts/{prompt_type}", response={200: PromptOut, 404: ErrorOut, 422: ErrorOut}, auth=SessionAuth())
 def update_prompt(request, prompt_type: str, data: PromptUpdateIn):
     """Update a specific AI prompt."""
     try:
@@ -292,7 +292,9 @@ class TipsOut(Schema):
 # Tips Endpoints
 
 
-@router.post("/tips", response={200: TipsOut, 400: ErrorOut, 404: ErrorOut, 429: dict, 503: ErrorOut})
+@router.post(
+    "/tips", response={200: TipsOut, 400: ErrorOut, 404: ErrorOut, 429: dict, 503: ErrorOut}, auth=SessionAuth()
+)
 @ratelimit(key="ip", rate="20/h", method="POST", block=False)
 @handle_ai_errors
 def tips_endpoint(request, data: TipsIn):
@@ -346,7 +348,7 @@ class TimerNameOut(Schema):
 # Timer Naming Endpoints
 
 
-@router.post("/timer-name", response={200: TimerNameOut, 400: ErrorOut, 429: dict, 503: ErrorOut})
+@router.post("/timer-name", response={200: TimerNameOut, 400: ErrorOut, 429: dict, 503: ErrorOut}, auth=SessionAuth())
 @ratelimit(key="ip", rate="60/h", method="POST", block=False)
 @handle_ai_errors
 def timer_name_endpoint(request, data: TimerNameIn):

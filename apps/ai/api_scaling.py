@@ -6,6 +6,7 @@ from typing import List, Optional
 from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema
 
+from apps.core.auth import SessionAuth
 from apps.recipes.models import Recipe
 
 from .api import ErrorOut, handle_ai_errors
@@ -47,7 +48,9 @@ class ScaleOut(Schema):
 # Endpoints
 
 
-@router.post("/scale", response={200: ScaleOut, 400: ErrorOut, 404: ErrorOut, 429: dict, 503: ErrorOut})
+@router.post(
+    "/scale", response={200: ScaleOut, 400: ErrorOut, 404: ErrorOut, 429: dict, 503: ErrorOut}, auth=SessionAuth()
+)
 @ratelimit(key="ip", rate="30/h", method="POST", block=False)
 @handle_ai_errors
 def scale_recipe_endpoint(request, data: ScaleIn):

@@ -25,6 +25,7 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
       - DATABASE_URL=postgres://cookie:cookie_dev@db:5432/cookie
+      - DEV_TOOLS=1
     depends_on:
       db:
         condition: service_healthy
