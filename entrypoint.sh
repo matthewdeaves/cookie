@@ -15,6 +15,12 @@ until DJANGO_SETTINGS_MODULE=cookie.settings python -c "import django; django.se
 done
 echo "Database is available."
 
+# Install dev tools if in development mode
+if [ "$DEV_TOOLS" = "1" ] && [ -f requirements-dev.txt ]; then
+  echo "Installing dev tools..."
+  pip install --quiet --no-cache-dir -r requirements-dev.txt
+fi
+
 echo "Running migrations..."
 python manage.py migrate --noinput
 

@@ -9,9 +9,12 @@ from typing import List, Optional
 logger = logging.getLogger(__name__)
 
 from asgiref.sync import sync_to_async
+from django.conf import settings
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from ninja import Router, Schema
 
+from apps.core.auth import SessionAuth
 from apps.profiles.utils import aget_current_profile_or_none, get_current_profile_or_none
 
 from .models import Recipe
@@ -183,7 +186,7 @@ def list_recipes(
     return qs[offset : offset + limit]
 
 
-@router.post("/scrape/", response={201: RecipeOut, 400: ErrorOut, 403: ErrorOut, 502: ErrorOut})
+@router.post("/scrape/", response={201: RecipeOut, 400: ErrorOut, 403: ErrorOut, 502: ErrorOut}, auth=SessionAuth())
 async def scrape_recipe(request, payload: ScrapeIn):
     """
     Scrape a recipe from a URL.
@@ -237,13 +240,63 @@ async def search_recipes(
     if sources:
         source_list = [s.strip() for s in sources.split(",") if s.strip()]
 
-    search = RecipeSearch()
-    results = await search.search(
-        query=q,
-        sources=source_list,
-        page=page,
-        per_page=per_page,
-    )
+    # Check global search cache (shared across all profiles)
+    cache_key = f"search:{q.lower().strip()}"
+    cached_all = await sync_to_async(cache.get)(cache_key)
+
+    if cached_all is not None:
+        # Serve from cache: apply source filtering and pagination
+        filtered = cached_all
+        if source_list:
+            filtered = [r for r in filtered if r["host"] in source_list]
+
+        sites = {}
+        for r in filtered:
+            sites[r["host"]] = sites.get(r["host"], 0) + 1
+
+        total = len(filtered)
+        start = (page - 1) * per_page
+        end = start + per_page
+
+        results = {
+            "results": filtered[start:end],
+            "total": total,
+            "page": page,
+            "has_more": end < total,
+            "sites": sites,
+        }
+    else:
+        # Cache miss: fetch all results (no source filter, no pagination)
+        search = RecipeSearch()
+        full_results = await search.search(
+            query=q,
+            per_page=10000,
+        )
+
+        # Cache the full unfiltered result list
+        all_result_dicts = full_results.get("results", [])
+        await sync_to_async(cache.set)(cache_key, all_result_dicts, settings.SEARCH_CACHE_TIMEOUT)
+
+        # Apply source filtering and pagination for this request
+        filtered = all_result_dicts
+        if source_list:
+            filtered = [r for r in filtered if r["host"] in source_list]
+
+        sites = {}
+        for r in filtered:
+            sites[r["host"]] = sites.get(r["host"], 0) + 1
+
+        total = len(filtered)
+        start = (page - 1) * per_page
+        end = start + per_page
+
+        results = {
+            "results": filtered[start:end],
+            "total": total,
+            "page": page,
+            "has_more": end < total,
+            "sites": sites,
+        }
 
     # Extract image URLs from search results
     image_urls = [r["image_url"] for r in results["results"] if r.get("image_url")]
@@ -365,7 +418,7 @@ def get_recipe(request, recipe_id: int):
     return recipe
 
 
-@router.delete("/{recipe_id}/", response={204: None, 404: ErrorOut})
+@router.delete("/{recipe_id}/", response={204: None, 404: ErrorOut}, auth=SessionAuth())
 def delete_recipe(request, recipe_id: int):
     """
     Delete a recipe by ID.

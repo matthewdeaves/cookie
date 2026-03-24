@@ -150,6 +150,14 @@ class AIResponseValidatorTests(TestCase):
 class AIAPITests(TestCase):
     """Tests for the AI API endpoints."""
 
+    def setUp(self):
+        from apps.profiles.models import Profile
+
+        self.profile = Profile.objects.create(name="Test Profile")
+        session = self.client.session
+        session["profile_id"] = self.profile.id
+        session.save()
+
     def test_ai_status_endpoint(self):
         """Test the AI status endpoint returns enhanced status fields."""
         response = self.client.get("/api/ai/status")
@@ -645,6 +653,14 @@ class TimerNamingServiceTests(TestCase):
 
 class TimerNamingAPITests(TestCase):
     """Tests for the timer naming API endpoint."""
+
+    def setUp(self):
+        from apps.profiles.models import Profile
+
+        self.profile = Profile.objects.create(name="Test Profile")
+        session = self.client.session
+        session["profile_id"] = self.profile.id
+        session.save()
 
     @patch("apps.ai.api.generate_timer_name")
     def test_timer_name_endpoint_success(self, mock_generate):

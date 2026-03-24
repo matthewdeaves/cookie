@@ -6,6 +6,7 @@ from typing import List, Optional
 from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema
 
+from apps.core.auth import SessionAuth
 from apps.recipes.models import Recipe
 
 from .api import ErrorOut, handle_ai_errors
@@ -53,7 +54,9 @@ class RemixOut(Schema):
 
 
 @router.post(
-    "/remix-suggestions", response={200: RemixSuggestionsOut, 400: ErrorOut, 404: ErrorOut, 429: dict, 503: ErrorOut}
+    "/remix-suggestions",
+    response={200: RemixSuggestionsOut, 400: ErrorOut, 404: ErrorOut, 429: dict, 503: ErrorOut},
+    auth=SessionAuth(),
 )
 @ratelimit(key="ip", rate="30/h", method="POST", block=False)
 @handle_ai_errors
@@ -87,7 +90,9 @@ def remix_suggestions(request, data: RemixSuggestionsIn):
     return {"suggestions": suggestions}
 
 
-@router.post("/remix", response={200: RemixOut, 400: ErrorOut, 404: ErrorOut, 429: dict, 503: ErrorOut})
+@router.post(
+    "/remix", response={200: RemixOut, 400: ErrorOut, 404: ErrorOut, 429: dict, 503: ErrorOut}, auth=SessionAuth()
+)
 @ratelimit(key="ip", rate="10/h", method="POST", block=False)
 @handle_ai_errors
 def create_remix_endpoint(request, data: CreateRemixIn):

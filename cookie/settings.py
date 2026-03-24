@@ -136,6 +136,9 @@ CACHES = {
     }
 }
 
+# Search result cache: 5 days (shared globally across all profiles)
+SEARCH_CACHE_TIMEOUT = 432000  # 5 days in seconds
+
 # Session settings
 # Database-backed sessions: intentional for single-server deployment.
 # Upgrade path: switch to django.contrib.sessions.backends.cache with Redis

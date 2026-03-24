@@ -153,7 +153,7 @@ def update_selector(request, source_id: int, data: SourceUpdateIn):
         }
 
 
-@router.post("/{source_id}/test/", response={200: SourceTestOut, 404: ErrorOut, 500: ErrorOut})
+@router.post("/{source_id}/test/", response={200: SourceTestOut, 404: ErrorOut, 500: ErrorOut}, auth=SessionAuth())
 async def test_source(request, source_id: int):
     """Test a source by performing a sample search.
 
