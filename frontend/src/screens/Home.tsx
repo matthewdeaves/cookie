@@ -117,14 +117,21 @@ export default function Home() {
     navigate(`/recipe/${recipeId}`)
   }
 
-  const handleRemoveFavorite = async (recipe: Recipe) => {
+  const handleToggleFavorite = async (recipe: Recipe) => {
+    const isFav = localFavoriteIds.has(recipe.id)
     try {
-      await api.favorites.remove(recipe.id)
-      setFavorites(favorites.filter((f) => f.recipe.id !== recipe.id))
-      toast.success('Removed from favorites')
+      if (isFav) {
+        await api.favorites.remove(recipe.id)
+        setFavorites(favorites.filter((f) => f.recipe.id !== recipe.id))
+        toast.success('Removed from favorites')
+      } else {
+        const newFav = await api.favorites.add(recipe.id)
+        setFavorites([...favorites, newFav])
+        toast.success('Added to favorites')
+      }
     } catch (error) {
-      console.error('Failed to remove favorite:', error)
-      toast.error('Failed to remove from favorites')
+      console.error('Failed to toggle favorite:', error)
+      toast.error(isFav ? 'Failed to remove from favorites' : 'Failed to add to favorites')
     }
   }
 
@@ -211,6 +218,7 @@ export default function Home() {
                         key={item.recipe.id}
                         recipe={item.recipe}
                         isFavorite={localFavoriteIds.has(item.recipe.id)}
+                        onFavoriteToggle={handleToggleFavorite}
                         onClick={() => handleRecipeClick(item.recipe.id)}
                       />
                     ))}
@@ -240,7 +248,7 @@ export default function Home() {
                         key={favorite.recipe.id}
                         recipe={favorite.recipe}
                         isFavorite
-                        onFavoriteToggle={handleRemoveFavorite}
+                        onFavoriteToggle={handleToggleFavorite}
                         onClick={() => handleRecipeClick(favorite.recipe.id)}
                       />
                     ))}

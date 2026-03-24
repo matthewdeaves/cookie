@@ -285,7 +285,7 @@ function SearchResultCard({
   }, [])
 
   return (
-    <div className="group overflow-hidden rounded-lg bg-card shadow-sm transition-all hover:shadow-md">
+    <div className="group flex flex-col overflow-hidden rounded-lg bg-card shadow-sm transition-all hover:shadow-md">
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
         {imageUrl && !imgError ? (
@@ -304,7 +304,7 @@ function SearchResultCard({
       </div>
 
       {/* Content */}
-      <div className="p-3">
+      <div className="flex flex-1 flex-col p-3">
         <h3 className="mb-1 line-clamp-2 text-sm font-medium text-card-foreground">
           {result.title}
         </h3>
@@ -322,7 +322,7 @@ function SearchResultCard({
         <button
           onClick={() => onImport(result.url)}
           disabled={importing}
-          className="w-full rounded-md bg-primary/10 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
+          className="mt-auto w-full rounded-md bg-primary/10 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
         >
           {importing ? (
             <span className="inline-flex items-center gap-1">

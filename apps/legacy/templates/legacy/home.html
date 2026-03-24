@@ -50,7 +50,7 @@
                 </div>
                 <div class="recipe-grid">
                     {% for item in history %}
-                    {% with recipe=item.recipe is_favorite=item.recipe.id|in_list:favorite_recipe_ids show_favorite_btn=False %}
+                    {% with recipe=item.recipe is_favorite=item.recipe.id|in_list:favorite_recipe_ids show_favorite_btn=True %}
                     {% include 'legacy/partials/recipe_card.html' %}
                     {% endwith %}
                     {% endfor %}

@@ -5,6 +5,7 @@ Extracted from RecipeSearch to keep search.py focused on orchestration.
 All functions are module-level (no class needed).
 """
 
+import logging
 import re
 from typing import Optional
 from urllib.parse import urljoin, urlparse
@@ -12,6 +13,8 @@ from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 
 from apps.recipes.services.search import SearchResult
+
+logger = logging.getLogger(__name__)
 
 
 def find_link(element) -> Optional[tuple]:
@@ -168,9 +171,10 @@ def extract_result_from_element(
         return None
     link, url = link_result
 
-    # Make URL absolute and validate
+    # Make URL absolute and get signal strength
     url = urljoin(base_url, url)
-    if not looks_like_recipe_url(url, host):
+    url_signal = get_url_signal(url, host)
+    if url_signal in ("strong_exclude", "reject"):
         return None
 
     # Extract title
@@ -185,12 +189,27 @@ def extract_result_from_element(
     if not title:
         return None
 
+    # Filter non-recipe content by title (012-filter-search-results)
+    if not looks_like_recipe_title(title, url_signal):
+        logger.debug("Filtered non-recipe title: %s (%s)", title, url)
+        return None
+
+    image_url = extract_image(element, base_url)
+    description = extract_description(element)
+
+    # Field validation: neutral URL results must have both image AND description.
+    # Real recipe cards from search pages almost always have both.
+    # Editorial/article results often lack one or both.
+    if url_signal == "neutral" and (not image_url or not description):
+        logger.debug("Filtered neutral URL missing image or description: %s (%s)", title, url)
+        return None
+
     return SearchResult(
         url=url,
         title=title[:200],
         host=host,
-        image_url=extract_image(element, base_url),
-        description=extract_description(element),
+        image_url=image_url,
+        description=description,
         rating_count=rating_count,
     )
 
@@ -234,9 +253,10 @@ def fallback_parse(
     # Strategy 3: Look for links that look like recipe URLs
     for link in soup.find_all("a", href=True)[:100]:
         url = urljoin(base_url, link.get("href", ""))
-        if looks_like_recipe_url(url, host):
+        url_signal = get_url_signal(url, host)
+        if url_signal in ("strong_include", "neutral"):
             title = link.get_text(strip=True)
-            if title and len(title) > 5:
+            if title and len(title) > 5 and looks_like_recipe_title(title, url_signal):
                 results.append(
                     SearchResult(
                         url=url,
@@ -331,41 +351,122 @@ _EXCLUDE_PATTERNS = [
 ]
 
 
-def looks_like_recipe_url(url: str, host: str) -> bool:
-    """
-    Check if a URL looks like a recipe detail page.
+def get_url_signal(url: str, host: str) -> str:
+    """Determine URL signal strength for recipe filtering.
+
+    Returns:
+        "strong_exclude" - URL matches exclusion patterns (articles, blogs, etc.)
+        "strong_include" - URL matches recipe patterns (/recipe/, /recipes/, etc.)
+        "neutral" - URL passes heuristics but has no strong signal
+        "reject" - URL fails all checks (wrong host, too short, etc.)
     """
     parsed = urlparse(url)
 
-    # Must be from the expected host
     if host not in parsed.netloc:
-        return False
+        return "reject"
 
     path = parsed.path.lower()
 
     for pattern in _EXCLUDE_PATTERNS:
         if pattern.search(path):
-            return False
+            return "strong_exclude"
 
-    # Site-specific requirements (QA-058)
-    # AllRecipes has article pages at root that look like recipes but aren't
-    # Real recipes are always under /recipe/ path
+    # Site-specific: AllRecipes requires /recipe/ path
     if "allrecipes.com" in host and "/recipe/" not in path:
-        return False
+        return "reject"
 
-    # Check for recipe patterns
     for pattern in _RECIPE_PATTERNS:
         if pattern.search(path):
-            return True
+            return "strong_include"
 
-    # Heuristic: URL path has enough segments and isn't too short
+    # Heuristic fallbacks → neutral signal
     segments = [s for s in path.split("/") if s]
     if len(segments) >= 2 and len(path) > 20:
-        return True
+        return "neutral"
 
-    # Also accept single-segment slug-style URLs (common for food blogs)
-    # e.g., /30-cloves-garlic-chicken/
     if len(segments) == 1 and len(path) > 15 and path.count("-") >= 2:
+        return "neutral"
+
+    return "reject"
+
+
+def looks_like_recipe_url(url: str, host: str) -> bool:
+    """Check if a URL looks like a recipe detail page."""
+    signal = get_url_signal(url, host)
+    return signal in ("strong_include", "neutral")
+
+
+# Strong editorial patterns — always reject even if recipe words present
+# These are clearly article/editorial headlines, not recipe titles
+_STRONG_EDITORIAL_PATTERNS = [
+    re.compile(p, re.IGNORECASE)
+    for p in [
+        r"\bdeserves?\s+a\s+(?:gold|silver|bronze)\s+medal\b",
+        r"\bis\s+a\s+weeknight\s+winner\b",
+        r"\btop\s+trending\s+recipe\s+of\s+\d{4}\b",
+        r"\binsanely\s+awesome\b",
+        r"\bmost\s+beautiful\s+destination\b",
+        r"\bbest\s+time\s+to\s+book\b",
+    ]
+]
+
+# Mild editorial patterns — rejected unless recipe-context words present
+_EDITORIAL_TITLE_PATTERNS = [
+    re.compile(p, re.IGNORECASE)
+    for p in [
+        # Listicles: "Top 10...", "5 Best...", "7 Reasons..."
+        r"^(?:the\s+)?(?:top\s+)?\d+\s+(?:best|worst|things|reasons|ways|places|tips|tricks|destinations|restaurants|spots|cities|towns)\b",
+        # Travel/destination content
+        r"\btravel\s+guide\b",
+        r"\bbest\s+destinations?\b",
+        r"\bplaces?\s+to\s+visit\b",
+        r"\bwhere\s+to\s+(?:eat|go|stay|travel)\b",
+        r"\bbook\s+(?:your\s+)?(?:thanksgiving|christmas|holiday)\s+travel\b",
+        # Review/editorial
+        r"^review\s*:",
+        r"\b(?:product|book|restaurant|movie|hotel|app)\s+review\b",
+        # News/trending headers
+        r"^(?:news|breaking|update|trending)\s*:",
+        # Meta/navigation pages
+        r"^(?:about\s+us|contact\s+us|privacy\s+policy|terms\s+of|cookie\s+policy|subscribe|newsletter|sign\s+up|log\s+in)\b",
+    ]
+]
+
+# Recipe-context words that override mild editorial title patterns
+_RECIPE_CONTEXT_PATTERN = re.compile(
+    r"\b(?:recipe[s]?|cook(?:ing|ed)?|bake[ds]?|baking|roast(?:ed|ing)?|"
+    r"grill(?:ed|ing)?|how\s+to\s+(?:make|cook|bake|prepare)|homemade|"
+    r"ingredient[s]?|from\s+scratch|step.by.step|easy\s+(?:to\s+)?make)\b",
+    re.IGNORECASE,
+)
+
+
+def looks_like_recipe_title(title: str, url_signal: str) -> bool:
+    """Check if a search result title looks like recipe content.
+
+    Uses tiered resolution with URL signal strength:
+    - strong_include URLs: always pass (recipe URL overrides title concerns)
+    - neutral URLs: evaluated by title patterns
+    - Strong editorial patterns always reject (even with recipe words)
+    - Mild editorial patterns rejected unless recipe-context words present
+    """
+    if url_signal == "strong_include":
         return True
 
-    return False
+    title_stripped = title.strip()
+    if not title_stripped:
+        return False
+
+    # Strong editorial patterns always reject
+    for pattern in _STRONG_EDITORIAL_PATTERNS:
+        if pattern.search(title_stripped):
+            return False
+
+    # Mild editorial patterns rejected unless recipe-context words present
+    for pattern in _EDITORIAL_TITLE_PATTERNS:
+        if pattern.search(title_stripped):
+            if _RECIPE_CONTEXT_PATTERN.search(title_stripped):
+                return True
+            return False
+
+    return True

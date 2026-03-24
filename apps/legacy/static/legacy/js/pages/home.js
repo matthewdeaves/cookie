@@ -298,7 +298,78 @@ Cookie.pages.home = (function() {
                 svg.setAttribute('fill', 'currentColor');
             }
             Cookie.toast.success('Added to favorites');
+
+            // Add card to favorites section on home page
+            addCardToFavorites(btn);
         });
+    }
+
+    /**
+     * Clone a recipe card into the favorites section on the home page.
+     */
+    function addCardToFavorites(btn) {
+        var sourceCard = btn.closest('.recipe-card');
+        if (!sourceCard) return;
+
+        var favoritesTab = document.getElementById('tab-favorites');
+        if (!favoritesTab) return;
+
+        // Find or create the favorites grid
+        var favGrid = favoritesTab.querySelector('.section:last-child .recipe-grid');
+        var emptyState = favoritesTab.querySelector('.section:last-child .empty-state');
+
+        if (!favGrid) {
+            // Replace empty state with a grid
+            if (emptyState) {
+                favGrid = document.createElement('div');
+                favGrid.className = 'recipe-grid';
+                emptyState.parentNode.replaceChild(favGrid, emptyState);
+            } else {
+                return;
+            }
+        }
+
+        // Check if card already exists in favorites
+        var existingCard = favGrid.querySelector('.recipe-card[data-recipe-id="' + sourceCard.getAttribute('data-recipe-id') + '"]');
+        if (existingCard) return;
+
+        // Clone the card and ensure favorite button is active
+        var clone = sourceCard.cloneNode(true);
+        var cloneFavBtn = clone.querySelector('.recipe-card-favorite');
+        if (cloneFavBtn) {
+            cloneFavBtn.classList.add('active');
+            var cloneSvg = cloneFavBtn.querySelector('svg');
+            if (cloneSvg) {
+                cloneSvg.setAttribute('fill', 'currentColor');
+            }
+            cloneFavBtn.addEventListener('click', handleFavoriteClick);
+        }
+
+        // Animate in
+        clone.style.opacity = '0';
+        clone.style.transform = 'scale(0.9)';
+        favGrid.insertBefore(clone, favGrid.firstChild);
+        // Force reflow then animate
+        clone.offsetHeight;
+        clone.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+        clone.style.opacity = '1';
+        clone.style.transform = 'scale(1)';
+
+        // Update the "View All" count
+        updateFavoritesCount(1);
+    }
+
+    /**
+     * Update the favorites "View All (N)" count.
+     */
+    function updateFavoritesCount(delta) {
+        var link = document.querySelector('#tab-favorites .section-header .section-link');
+        if (!link) return;
+        var match = link.textContent.match(/\((\d+)\)/);
+        if (match) {
+            var count = parseInt(match[1], 10) + delta;
+            link.textContent = 'View All (' + count + ')';
+        }
     }
 
     /**
@@ -310,25 +381,33 @@ Cookie.pages.home = (function() {
                 Cookie.toast.error('Failed to remove from favorites');
                 return;
             }
-            btn.classList.remove('active');
-            // Update the heart icon to outline
-            var svg = btn.querySelector('svg');
-            if (svg) {
-                svg.setAttribute('fill', 'none');
-            }
             Cookie.toast.success('Removed from favorites');
 
-            // If on home page, remove the card from view
-            var card = btn.closest('.recipe-card');
-            if (card) {
-                card.style.opacity = '0';
-                card.style.transform = 'scale(0.9)';
-                setTimeout(function() {
-                    card.remove();
-                    // Check if favorites section is now empty
-                    checkEmptyFavorites();
-                }, 200);
+            // Update ALL heart buttons for this recipe (recently viewed + favorites)
+            var allBtns = document.querySelectorAll('.recipe-card-favorite[data-recipe-id="' + recipeId + '"]');
+            for (var i = 0; i < allBtns.length; i++) {
+                allBtns[i].classList.remove('active');
+                var svg = allBtns[i].querySelector('svg');
+                if (svg) {
+                    svg.setAttribute('fill', 'none');
+                }
             }
+
+            // Remove the card from the favorites grid (not recently viewed)
+            var favGrid = document.querySelector('#tab-favorites .section:last-child .recipe-grid');
+            if (favGrid) {
+                var favCard = favGrid.querySelector('.recipe-card[data-recipe-id="' + recipeId + '"]');
+                if (favCard) {
+                    favCard.style.opacity = '0';
+                    favCard.style.transform = 'scale(0.9)';
+                    setTimeout(function() {
+                        favCard.remove();
+                        checkEmptyFavorites();
+                    }, 200);
+                }
+            }
+
+            updateFavoritesCount(-1);
         });
     }
 
