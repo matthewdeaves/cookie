@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-24T02:35:30.207Z",
+    "detectionDate": "2026-03-24T07:32:38.400Z",
     "formats": {
       "python": {
         "sources": {
@@ -29,8 +29,8 @@
             "newClones": 0
           },
           "cookie/settings.py": {
-            "lines": 218,
-            "tokens": 1198,
+            "lines": 221,
+            "tokens": 1209,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -258,7 +258,7 @@
           },
           "apps/recipes/sources_api.py": {
             "lines": 304,
-            "tokens": 2081,
+            "tokens": 2088,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -281,8 +281,8 @@
             "newClones": 0
           },
           "apps/recipes/api_user.py": {
-            "lines": 288,
-            "tokens": 2014,
+            "lines": 295,
+            "tokens": 2098,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -293,14 +293,14 @@
             "newClones": 0
           },
           "apps/recipes/api.py": {
-            "lines": 381,
-            "tokens": 2377,
+            "lines": 438,
+            "tokens": 2918,
             "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
+            "clones": 2,
+            "duplicatedLines": 38,
+            "duplicatedTokens": 352,
+            "percentage": 8.68,
+            "percentageTokens": 12.06,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -341,8 +341,8 @@
             "newClones": 0
           },
           "apps/profiles/api.py": {
-            "lines": 260,
-            "tokens": 1866,
+            "lines": 261,
+            "tokens": 1892,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -509,26 +509,26 @@
             "newClones": 0
           },
           "apps/ai/api_scaling.py": {
-            "lines": 124,
-            "tokens": 890,
+            "lines": 127,
+            "tokens": 912,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 33,
             "duplicatedTokens": 233,
-            "percentage": 26.61,
-            "percentageTokens": 26.18,
+            "percentage": 25.98,
+            "percentageTokens": 25.55,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/ai/api_remix.py": {
-            "lines": 151,
-            "tokens": 1086,
+            "lines": 156,
+            "tokens": 1118,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 54,
             "duplicatedTokens": 395,
-            "percentage": 35.76,
-            "percentageTokens": 36.37,
+            "percentage": 34.62,
+            "percentageTokens": 35.33,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -545,41 +545,41 @@
             "newClones": 0
           },
           "apps/ai/api.py": {
-            "lines": 474,
-            "tokens": 3069,
+            "lines": 476,
+            "tokens": 3107,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 21,
             "duplicatedTokens": 162,
-            "percentage": 4.43,
-            "percentageTokens": 5.28,
+            "percentage": 4.41,
+            "percentageTokens": 5.21,
             "newDuplicatedLines": 0,
             "newClones": 0
           }
         },
         "total": {
-          "lines": 7867,
-          "tokens": 50191,
+          "lines": 7945,
+          "tokens": 50952,
           "sources": 46,
-          "clones": 6,
-          "duplicatedLines": 123,
-          "duplicatedTokens": 868,
-          "percentage": 1.56,
-          "percentageTokens": 1.73,
+          "clones": 7,
+          "duplicatedLines": 142,
+          "duplicatedTokens": 1044,
+          "percentage": 1.79,
+          "percentageTokens": 2.05,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7867,
-      "tokens": 50191,
+      "lines": 7945,
+      "tokens": 50952,
       "sources": 46,
-      "clones": 6,
-      "duplicatedLines": 123,
-      "duplicatedTokens": 868,
-      "percentage": 1.56,
-      "percentageTokens": 1.73,
+      "clones": 7,
+      "duplicatedLines": 142,
+      "duplicatedTokens": 1044,
+      "percentage": 1.79,
+      "percentageTokens": 2.05,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -731,37 +731,73 @@
     },
     {
       "format": "python",
+      "lines": 20,
+      "fragment": "if source_list:\n            filtered = [r for r in filtered if r[\"host\"] in source_list]\n\n        sites = {}\n        for r in filtered:\n            sites[r[\"host\"]] = sites.get(r[\"host\"], 0) + 1\n\n        total = len(filtered)\n        start = (page - 1) * per_page\n        end = start + per_page\n\n        results = {\n            \"results\": filtered[start:end],\n            \"total\": total,\n            \"page\": page,\n            \"has_more\": end < total,\n            \"sites\": sites,\n        }\n\n    # Extract image URLs from search results",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/recipes/api.py",
+        "start": 286,
+        "end": 305,
+        "startLoc": {
+          "line": 286,
+          "column": 9,
+          "position": 1834
+        },
+        "endLoc": {
+          "line": 305,
+          "column": 41,
+          "position": 2010
+        }
+      },
+      "secondFile": {
+        "name": "apps/recipes/api.py",
+        "start": 254,
+        "end": 272,
+        "startLoc": {
+          "line": 254,
+          "column": 9,
+          "position": 1564
+        },
+        "endLoc": {
+          "line": 272,
+          "column": 5,
+          "position": 1739
+        }
+      }
+    },
+    {
+      "format": "python",
       "lines": 34,
       "fragment": ", request.META.get(\"REMOTE_ADDR\"))\n        return 429, {\"error\": \"rate_limited\", \"message\": \"Too many requests. Please try again later.\"}\n    from apps.profiles.utils import get_current_profile_or_none\n\n    profile = get_current_profile_or_none(request)\n\n    if not profile:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": \"Profile not found\",\n        }\n\n    # Verify the profile_id in the request matches the session profile\n    if data.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Profile {data.profile_id} not found\",\n        }\n\n    try:\n        recipe = Recipe.objects.get(id=data.recipe_id)\n    except Recipe.DoesNotExist:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    if recipe.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    remix",
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/api_remix.py",
-        "start": 100,
-        "end": 133,
+        "start": 105,
+        "end": 138,
         "startLoc": {
-          "line": 100,
+          "line": 105,
           "column": 36,
-          "position": 698
+          "position": 730
         },
         "endLoc": {
-          "line": 133,
+          "line": 138,
           "column": 6,
-          "position": 931
+          "position": 963
         }
       },
       "secondFile": {
         "name": "apps/ai/api_scaling.py",
-        "start": 59,
-        "end": 92,
+        "start": 62,
+        "end": 95,
         "startLoc": {
-          "line": 59,
+          "line": 62,
           "column": 36,
-          "position": 399
+          "position": 421
         },
         "endLoc": {
-          "line": 92,
+          "line": 95,
           "column": 4,
-          "position": 632
+          "position": 654
         }
       }
     },
@@ -772,32 +808,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/api.py",
-        "start": 305,
-        "end": 326,
+        "start": 307,
+        "end": 328,
         "startLoc": {
-          "line": 305,
+          "line": 307,
           "column": 35,
-          "position": 1963
+          "position": 1994
         },
         "endLoc": {
-          "line": 326,
+          "line": 328,
           "column": 46,
-          "position": 2125
+          "position": 2156
         }
       },
       "secondFile": {
         "name": "apps/ai/api_remix.py",
-        "start": 66,
-        "end": 86,
+        "start": 69,
+        "end": 89,
         "startLoc": {
-          "line": 66,
+          "line": 69,
           "column": 48,
-          "position": 411
+          "position": 433
         },
         "endLoc": {
-          "line": 86,
+          "line": 89,
           "column": 12,
-          "position": 572
+          "position": 594
         }
       }
     }
