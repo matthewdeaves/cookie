@@ -37,19 +37,19 @@
 
     <div class="summary">
         <div class="stat">
-            <div class="stat-value rating-A">2.76</div>
+            <div class="stat-value rating-A">2.77</div>
             <div class="stat-label">Avg Cyclomatic Complexity</div>
         </div>
         <div class="stat">
-            <div class="stat-value rating-A">83.57</div>
+            <div class="stat-value rating-A">83.87</div>
             <div class="stat-label">Avg Maintainability Index</div>
         </div>
         <div class="stat">
-            <div class="stat-value">639</div>
+            <div class="stat-value">644</div>
             <div class="stat-label">Functions Analyzed</div>
         </div>
         <div class="stat">
-            <div class="stat-value">96</div>
+            <div class="stat-value">98</div>
             <div class="stat-label">Files Analyzed</div>
         </div>
     </div>
@@ -64,7 +64,7 @@
                 <td>apps/recipes/api.py</td>
                 <td>search_recipes</td>
                 <td>function</td>
-                <td class="complexity-high">19</td>
+                <td class="complexity-high">15</td>
                 <td>C</td>
             </tr>
             <tr>
@@ -76,7 +76,7 @@
             </tr>
             <tr>
                 <td>apps/recipes/services/search_parsers.py</td>
-                <td>looks_like_recipe_url</td>
+                <td>get_url_signal</td>
                 <td>function</td>
                 <td class="complexity-high">15</td>
                 <td>C</td>
@@ -96,6 +96,13 @@
                 <td>C</td>
             </tr>
             <tr>
+                <td>apps/recipes/services/search_parsers.py</td>
+                <td>fallback_parse</td>
+                <td>function</td>
+                <td class="complexity-high">13</td>
+                <td>C</td>
+            </tr>
+            <tr>
                 <td>apps/recipes/services/search.py</td>
                 <td>search</td>
                 <td>method</td>
@@ -105,13 +112,6 @@
             <tr>
                 <td>apps/recipes/services/search_parsers.py</td>
                 <td>best_url_from_srcset</td>
-                <td>function</td>
-                <td class="complexity-high">12</td>
-                <td>C</td>
-            </tr>
-            <tr>
-                <td>apps/recipes/services/search_parsers.py</td>
-                <td>fallback_parse</td>
                 <td>function</td>
                 <td class="complexity-high">12</td>
                 <td>C</td>
@@ -166,6 +166,13 @@
                 <td>B</td>
             </tr>
             <tr>
+                <td>apps/recipes/services/search_parsers.py</td>
+                <td>extract_result_from_element</td>
+                <td>function</td>
+                <td class="complexity-medium">9</td>
+                <td>B</td>
+            </tr>
+            <tr>
                 <td>apps/recipes/management/commands/cleanup_search_images.py</td>
                 <td>handle</td>
                 <td>method</td>
@@ -212,6 +219,13 @@
                 <td>delete_profile</td>
                 <td>function</td>
                 <td class="complexity-medium">9</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/search_parsers.py</td>
+                <td>looks_like_recipe_title</td>
+                <td>function</td>
+                <td class="complexity-medium">8</td>
                 <td>B</td>
             </tr>
             <tr>
@@ -628,13 +642,6 @@
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/recipes/services/search_parsers.py</td>
-                <td>extract_result_from_element</td>
-                <td>function</td>
-                <td class="complexity-low">5</td>
-                <td>A</td>
-            </tr>
-            <tr>
                 <td>apps/ai/api.py</td>
                 <td>repair_selector_endpoint</td>
                 <td>function</td>
@@ -753,13 +760,6 @@
                 <td class="complexity-low">5</td>
                 <td>A</td>
             </tr>
-            <tr>
-                <td>apps/ai/services/discover.py</td>
-                <td>_format_suggestions</td>
-                <td>function</td>
-                <td class="complexity-low">5</td>
-                <td>A</td>
-            </tr>
         </tbody>
     </table>
 
@@ -790,18 +790,23 @@
                 <td>A</td>
             </tr>
             <tr>
+                <td>apps/recipes/services/search_parsers.py</td>
+                <td class="complexity-medium">45.6</td>
+                <td>A</td>
+            </tr>
+            <tr>
                 <td>apps/ai/api.py</td>
                 <td class="complexity-medium">46.2</td>
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/recipes/api.py</td>
-                <td class="complexity-medium">46.7</td>
+                <td>apps/recipes/sources_api.py</td>
+                <td class="complexity-medium">47.6</td>
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/recipes/sources_api.py</td>
-                <td class="complexity-medium">47.6</td>
+                <td>apps/recipes/api.py</td>
+                <td class="complexity-medium">48.9</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -812,11 +817,6 @@
             <tr>
                 <td>apps/recipes/services/scraper.py</td>
                 <td class="complexity-medium">49.9</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/recipes/services/search_parsers.py</td>
-                <td class="complexity-medium">50.2</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -835,13 +835,13 @@
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/ai/services/discover.py</td>
-                <td class="complexity-medium">58.0</td>
+                <td>apps/recipes/api_user.py</td>
+                <td class="complexity-medium">56.6</td>
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/recipes/api_user.py</td>
-                <td class="complexity-medium">58.1</td>
+                <td>apps/ai/services/discover.py</td>
+                <td class="complexity-medium">57.7</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -850,13 +850,13 @@
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/core/api.py</td>
+                <td>apps/core/tests.py</td>
                 <td class="complexity-medium">59.9</td>
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/core/tests.py</td>
-                <td class="complexity-medium">59.9</td>
+                <td>apps/core/api.py</td>
+                <td class="complexity-low">60.3</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -1155,6 +1155,11 @@
                 <td>A</td>
             </tr>
             <tr>
+                <td>apps/ai/migrations/0010_alter_aiprompt_model.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
                 <td>apps/ai/migrations/0004_update_serving_adjustment_prompt.py</td>
                 <td class="complexity-low">100.0</td>
                 <td>A</td>
@@ -1196,6 +1201,11 @@
             </tr>
             <tr>
                 <td>apps/core/management/commands/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/core/migrations/0002_alter_appsettings_default_ai_model.py</td>
                 <td class="complexity-low">100.0</td>
                 <td>A</td>
             </tr>

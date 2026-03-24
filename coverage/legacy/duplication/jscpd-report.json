@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-24T17:44:44.702Z",
+    "detectionDate": "2026-03-24T22:06:43.037Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -137,14 +137,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/home.js": {
-            "lines": 359,
-            "tokens": 2699,
+            "lines": 439,
+            "tokens": 3378,
             "sources": 1,
-            "clones": 10,
-            "duplicatedLines": 83,
-            "duplicatedTokens": 639,
-            "percentage": 23.12,
-            "percentageTokens": 23.68,
+            "clones": 8,
+            "duplicatedLines": 72,
+            "duplicatedTokens": 534,
+            "percentage": 16.4,
+            "percentageTokens": 15.81,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -152,11 +152,11 @@
             "lines": 101,
             "tokens": 671,
             "sources": 1,
-            "clones": 6,
-            "duplicatedLines": 58,
-            "duplicatedTokens": 397,
-            "percentage": 57.43,
-            "percentageTokens": 59.17,
+            "clones": 5,
+            "duplicatedLines": 53,
+            "duplicatedTokens": 345,
+            "percentage": 52.48,
+            "percentageTokens": 51.42,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -212,11 +212,11 @@
             "lines": 65,
             "tokens": 509,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 12,
-            "duplicatedTokens": 102,
-            "percentage": 18.46,
-            "percentageTokens": 20.04,
+            "clones": 1,
+            "duplicatedLines": 6,
+            "duplicatedTokens": 49,
+            "percentage": 9.23,
+            "percentageTokens": 9.63,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -365,14 +365,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/app.js": {
-            "lines": 136,
-            "tokens": 1062,
+            "lines": 154,
+            "tokens": 1173,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 10,
             "duplicatedTokens": 106,
-            "percentage": 7.35,
-            "percentageTokens": 9.98,
+            "percentage": 6.49,
+            "percentageTokens": 9.04,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -402,28 +402,28 @@
           }
         },
         "total": {
-          "lines": 6404,
-          "tokens": 48737,
+          "lines": 6502,
+          "tokens": 49527,
           "sources": 33,
-          "clones": 32,
-          "duplicatedLines": 321,
-          "duplicatedTokens": 2688,
-          "percentage": 5.01,
-          "percentageTokens": 5.52,
+          "clones": 30,
+          "duplicatedLines": 310,
+          "duplicatedTokens": 2583,
+          "percentage": 4.77,
+          "percentageTokens": 5.22,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 6404,
-      "tokens": 48737,
+      "lines": 6502,
+      "tokens": 49527,
       "sources": 33,
-      "clones": 32,
-      "duplicatedLines": 321,
-      "duplicatedTokens": 2688,
-      "percentage": 5.01,
-      "percentageTokens": 5.52,
+      "clones": 30,
+      "duplicatedLines": 310,
+      "duplicatedTokens": 2583,
+      "percentage": 4.77,
+      "percentageTokens": 5.22,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -760,17 +760,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 345,
-        "end": 356,
+        "start": 425,
+        "end": 436,
         "startLoc": {
-          "line": 345,
+          "line": 425,
           "column": 9,
-          "position": 2603
+          "position": 3282
         },
         "endLoc": {
-          "line": 356,
+          "line": 436,
           "column": 5,
-          "position": 2667
+          "position": 3346
         }
       },
       "secondFile": {
@@ -811,33 +811,33 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 267,
-        "end": 273,
+        "start": 268,
+        "end": 274,
         "startLoc": {
-          "line": 267,
+          "line": 268,
           "column": 5,
-          "position": 2021
+          "position": 2045
         },
         "endLoc": {
-          "line": 273,
+          "line": 274,
           "column": 4,
-          "position": 2075
+          "position": 2099
         }
       }
     },
     {
       "format": "javascript",
-      "lines": 14,
-      "fragment": ");\n    }\n\n    /**\n     * Remove recipe from favorites\n     */\n    function removeFavorite(recipeId, btn) {\n        Cookie.ajax.delete('/api/favorites/' + recipeId + '/', function(err) {\n            if (err) {\n                Cookie.toast.error('Failed to remove from favorites');\n                return;\n            }\n\n            // Animate and remove the card",
+      "lines": 13,
+      "fragment": "}\n\n    /**\n     * Remove recipe from favorites\n     */\n    function removeFavorite(recipeId, btn) {\n        Cookie.ajax.delete('/api/favorites/' + recipeId + '/', function(err) {\n            if (err) {\n                Cookie.toast.error('Failed to remove from favorites');\n                return;\n            }\n\n            // Animate and remove the card",
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/favorites.js",
-        "start": 38,
+        "start": 39,
         "end": 51,
         "startLoc": {
-          "line": 38,
-          "column": 4,
-          "position": 220
+          "line": 39,
+          "column": 5,
+          "position": 224
         },
         "endLoc": {
           "line": 51,
@@ -847,53 +847,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 300,
-        "end": 312,
+        "start": 373,
+        "end": 384,
         "startLoc": {
-          "line": 300,
-          "column": 2,
-          "position": 2283
-        },
-        "endLoc": {
-          "line": 312,
-          "column": 4,
-          "position": 2359
-        }
-      }
-    },
-    {
-      "format": "javascript",
-      "lines": 5,
-      "fragment": "var card = btn.closest('.recipe-card');\n            if (card) {\n                card.style.opacity = '0';\n                card.style.transform = 'scale(0.9)';\n                card",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/legacy/static/legacy/js/pages/favorites.js",
-        "start": 52,
-        "end": 56,
-        "startLoc": {
-          "line": 52,
-          "column": 13,
-          "position": 300
-        },
-        "endLoc": {
-          "line": 56,
+          "line": 373,
           "column": 5,
-          "position": 348
-        }
-      },
-      "secondFile": {
-        "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 321,
-        "end": 325,
-        "startLoc": {
-          "line": 321,
-          "column": 13,
-          "position": 2427
+          "position": 2864
         },
         "endLoc": {
-          "line": 325,
-          "column": 11,
-          "position": 2475
+          "line": 384,
+          "column": 7,
+          "position": 2936
         }
       }
     },
@@ -919,12 +883,12 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 344,
+        "start": 424,
         "end": 619,
         "startLoc": {
-          "line": 344,
+          "line": 424,
           "column": 13,
-          "position": 2593
+          "position": 3272
         },
         "endLoc": {
           "line": 619,
@@ -1171,53 +1135,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 288,
-        "end": 294,
+        "start": 289,
+        "end": 295,
         "startLoc": {
-          "line": 288,
+          "line": 289,
           "column": 2,
-          "position": 2180
+          "position": 2204
         },
         "endLoc": {
-          "line": 294,
+          "line": 295,
           "column": 35,
-          "position": 2229
-        }
-      }
-    },
-    {
-      "format": "javascript",
-      "lines": 7,
-      "fragment": "recipeId + '/', function(err) {\n            if (err) {\n                Cookie.toast.error('Failed to remove from favorites');\n                return;\n            }\n            btn.classList.remove('active');\n            var",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/legacy/static/legacy/js/pages/detail-favorites.js",
-        "start": 47,
-        "end": 53,
-        "startLoc": {
-          "line": 47,
-          "column": 2,
-          "position": 354
-        },
-        "endLoc": {
-          "line": 53,
-          "column": 4,
-          "position": 407
-        }
-      },
-      "secondFile": {
-        "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 307,
-        "end": 313,
-        "startLoc": {
-          "line": 307,
-          "column": 2,
-          "position": 2317
-        },
-        "endLoc": {
-          "line": 313,
-          "column": 36,
-          "position": 2370
+          "position": 2253
         }
       }
     },
@@ -1279,17 +1207,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 267,
-        "end": 273,
+        "start": 268,
+        "end": 274,
         "startLoc": {
-          "line": 267,
+          "line": 268,
           "column": 20,
-          "position": 2024
+          "position": 2048
         },
         "endLoc": {
-          "line": 273,
+          "line": 274,
           "column": 4,
-          "position": 2075
+          "position": 2099
         }
       }
     },
@@ -1552,32 +1480,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/app.js",
-        "start": 79,
-        "end": 84,
+        "start": 97,
+        "end": 102,
         "startLoc": {
-          "line": 79,
+          "line": 97,
           "column": 19,
-          "position": 622
+          "position": 733
         },
         "endLoc": {
-          "line": 84,
+          "line": 102,
           "column": 4,
-          "position": 675
+          "position": 786
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/app.js",
-        "start": 53,
-        "end": 58,
+        "start": 71,
+        "end": 76,
         "startLoc": {
-          "line": 53,
+          "line": 71,
           "column": 23,
-          "position": 362
+          "position": 473
         },
         "endLoc": {
-          "line": 58,
+          "line": 76,
           "column": 7,
-          "position": 415
+          "position": 526
         }
       }
     }

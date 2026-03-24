@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-24T17:44:43.179Z",
+    "detectionDate": "2026-03-24T22:06:47.997Z",
     "formats": {
       "python": {
         "sources": {
@@ -77,8 +77,8 @@
             "newClones": 0
           },
           "apps/recipes/services/search_parsers.py": {
-            "lines": 370,
-            "tokens": 2289,
+            "lines": 471,
+            "tokens": 2838,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -245,8 +245,8 @@
             "newClones": 0
           },
           "apps/ai/services/discover.py": {
-            "lines": 275,
-            "tokens": 1812,
+            "lines": 277,
+            "tokens": 1830,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -305,8 +305,8 @@
             "newClones": 0
           },
           "apps/recipes/api_user.py": {
-            "lines": 295,
-            "tokens": 2098,
+            "lines": 307,
+            "tokens": 2191,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -317,14 +317,14 @@
             "newClones": 0
           },
           "apps/recipes/api.py": {
-            "lines": 438,
-            "tokens": 2928,
+            "lines": 420,
+            "tokens": 2753,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 38,
-            "duplicatedTokens": 352,
-            "percentage": 8.68,
-            "percentageTokens": 12.02,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -533,8 +533,8 @@
             "newClones": 0
           },
           "apps/core/api.py": {
-            "lines": 232,
-            "tokens": 1593,
+            "lines": 238,
+            "tokens": 1637,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -593,8 +593,8 @@
             "newClones": 0
           },
           "apps/ai/api_discover.py": {
-            "lines": 57,
-            "tokens": 348,
+            "lines": 58,
+            "tokens": 363,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -618,28 +618,28 @@
           }
         },
         "total": {
-          "lines": 8742,
-          "tokens": 58039,
+          "lines": 8846,
+          "tokens": 58583,
           "sources": 51,
-          "clones": 7,
-          "duplicatedLines": 142,
-          "duplicatedTokens": 1047,
-          "percentage": 1.62,
-          "percentageTokens": 1.8,
+          "clones": 6,
+          "duplicatedLines": 123,
+          "duplicatedTokens": 871,
+          "percentage": 1.39,
+          "percentageTokens": 1.49,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 8742,
-      "tokens": 58039,
+      "lines": 8846,
+      "tokens": 58583,
       "sources": 51,
-      "clones": 7,
-      "duplicatedLines": 142,
-      "duplicatedTokens": 1047,
-      "percentage": 1.62,
-      "percentageTokens": 1.8,
+      "clones": 6,
+      "duplicatedLines": 123,
+      "duplicatedTokens": 871,
+      "percentage": 1.39,
+      "percentageTokens": 1.49,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -786,42 +786,6 @@
           "line": 114,
           "column": 6,
           "position": 722
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 20,
-      "fragment": "if source_list:\n            filtered = [r for r in filtered if r[\"host\"] in source_list]\n\n        sites = {}\n        for r in filtered:\n            sites[r[\"host\"]] = sites.get(r[\"host\"], 0) + 1\n\n        total = len(filtered)\n        start = (page - 1) * per_page\n        end = start + per_page\n\n        results = {\n            \"results\": filtered[start:end],\n            \"total\": total,\n            \"page\": page,\n            \"has_more\": end < total,\n            \"sites\": sites,\n        }\n\n    # Extract image URLs from search results",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/recipes/api.py",
-        "start": 286,
-        "end": 305,
-        "startLoc": {
-          "line": 286,
-          "column": 9,
-          "position": 1837
-        },
-        "endLoc": {
-          "line": 305,
-          "column": 41,
-          "position": 2013
-        }
-      },
-      "secondFile": {
-        "name": "apps/recipes/api.py",
-        "start": 254,
-        "end": 272,
-        "startLoc": {
-          "line": 254,
-          "column": 9,
-          "position": 1567
-        },
-        "endLoc": {
-          "line": 272,
-          "column": 5,
-          "position": 1742
         }
       }
     },

@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-24T17:44:48.606Z",
+    "detectionDate": "2026-03-24T22:06:48.435Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -221,8 +221,8 @@
             "newClones": 0
           },
           "src/screens/Home.tsx": {
-            "lines": 234,
-            "tokens": 1802,
+            "lines": 235,
+            "tokens": 1823,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -245,8 +245,8 @@
             "newClones": 0
           },
           "src/screens/Collections.tsx": {
-            "lines": 103,
-            "tokens": 740,
+            "lines": 115,
+            "tokens": 821,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -438,8 +438,8 @@
           }
         },
         "total": {
-          "lines": 2868,
-          "tokens": 20814,
+          "lines": 2881,
+          "tokens": 20916,
           "sources": 36,
           "clones": 0,
           "duplicatedLines": 0,
@@ -669,14 +669,14 @@
             "newClones": 0
           },
           "src/screens/Home.tsx": {
-            "lines": 392,
-            "tokens": 3205,
+            "lines": 401,
+            "tokens": 3326,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 13,
-            "duplicatedTokens": 115,
-            "percentage": 3.32,
-            "percentageTokens": 3.59,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -684,17 +684,17 @@
             "lines": 96,
             "tokens": 821,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 13,
-            "duplicatedTokens": 115,
-            "percentage": 13.54,
-            "percentageTokens": 14.01,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "src/screens/Collections.tsx": {
-            "lines": 212,
-            "tokens": 1671,
+            "lines": 224,
+            "tokens": 1752,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -898,14 +898,14 @@
           }
         },
         "total": {
-          "lines": 6306,
-          "tokens": 49044,
+          "lines": 6327,
+          "tokens": 49246,
           "sources": 37,
-          "clones": 6,
-          "duplicatedLines": 75,
-          "duplicatedTokens": 569,
-          "percentage": 1.19,
-          "percentageTokens": 1.16,
+          "clones": 5,
+          "duplicatedLines": 62,
+          "duplicatedTokens": 454,
+          "percentage": 0.98,
+          "percentageTokens": 0.92,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -1009,8 +1009,8 @@
             "newClones": 0
           },
           "src/api/types.ts": {
-            "lines": 377,
-            "tokens": 2149,
+            "lines": 378,
+            "tokens": 2159,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1022,40 +1022,40 @@
           },
           "src/api/client.ts": {
             "lines": 427,
-            "tokens": 3455,
+            "tokens": 3473,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 96,
             "duplicatedTokens": 374,
             "percentage": 22.48,
-            "percentageTokens": 10.82,
+            "percentageTokens": 10.77,
             "newDuplicatedLines": 0,
             "newClones": 0
           }
         },
         "total": {
-          "lines": 1718,
-          "tokens": 12590,
+          "lines": 1719,
+          "tokens": 12618,
           "sources": 10,
           "clones": 4,
           "duplicatedLines": 90,
           "duplicatedTokens": 608,
           "percentage": 5.24,
-          "percentageTokens": 4.83,
+          "percentageTokens": 4.82,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 10892,
-      "tokens": 82448,
+      "lines": 10927,
+      "tokens": 82780,
       "sources": 83,
-      "clones": 10,
-      "duplicatedLines": 165,
-      "duplicatedTokens": 1177,
-      "percentage": 1.51,
-      "percentageTokens": 1.43,
+      "clones": 9,
+      "duplicatedLines": 152,
+      "duplicatedTokens": 1062,
+      "percentage": 1.39,
+      "percentageTokens": 1.28,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -1130,42 +1130,6 @@
           "line": 100,
           "column": 2,
           "position": 894
-        }
-      }
-    },
-    {
-      "format": "tsx",
-      "lines": 14,
-      "fragment": "}\n\n  const handleRemoveFavorite = async (recipe: Recipe) => {\n    try {\n      await api.favorites.remove(recipe.id)\n      setFavorites(favorites.filter((f) => f.recipe.id !== recipe.id))\n      toast.success('Removed from favorites')\n    } catch (error) {\n      console.error('Failed to remove favorite:', error)\n      toast.error('Failed to remove from favorites')\n    }\n  }\n\n  const",
-      "tokens": 0,
-      "firstFile": {
-        "name": "src/screens/Favorites.tsx",
-        "start": 29,
-        "end": 42,
-        "startLoc": {
-          "line": 29,
-          "column": 3,
-          "position": 281
-        },
-        "endLoc": {
-          "line": 42,
-          "column": 6,
-          "position": 396
-        }
-      },
-      "secondFile": {
-        "name": "src/screens/Home.tsx",
-        "start": 117,
-        "end": 130,
-        "startLoc": {
-          "line": 117,
-          "column": 3,
-          "position": 1109
-        },
-        "endLoc": {
-          "line": 130,
-          "column": 39,
-          "position": 1224
         }
       }
     },
