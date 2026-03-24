@@ -37,19 +37,19 @@
 
     <div class="summary">
         <div class="stat">
-            <div class="stat-value rating-A">2.7</div>
+            <div class="stat-value rating-A">2.76</div>
             <div class="stat-label">Avg Cyclomatic Complexity</div>
         </div>
         <div class="stat">
-            <div class="stat-value rating-A">84.83</div>
+            <div class="stat-value rating-A">83.57</div>
             <div class="stat-label">Avg Maintainability Index</div>
         </div>
         <div class="stat">
-            <div class="stat-value">588</div>
+            <div class="stat-value">639</div>
             <div class="stat-label">Functions Analyzed</div>
         </div>
         <div class="stat">
-            <div class="stat-value">88</div>
+            <div class="stat-value">96</div>
             <div class="stat-label">Files Analyzed</div>
         </div>
     </div>
@@ -187,6 +187,34 @@
                 <td>B</td>
             </tr>
             <tr>
+                <td>apps/core/api.py</td>
+                <td>reset_database</td>
+                <td>function</td>
+                <td class="complexity-medium">9</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/core/auth.py</td>
+                <td>_authenticate_public</td>
+                <td>method</td>
+                <td class="complexity-medium">9</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/core/management/commands/cookie_admin.py</td>
+                <td>_handle_list_users</td>
+                <td>method</td>
+                <td class="complexity-medium">9</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/profiles/api.py</td>
+                <td>delete_profile</td>
+                <td>function</td>
+                <td class="complexity-medium">9</td>
+                <td>B</td>
+            </tr>
+            <tr>
                 <td>apps/ai/api_scaling.py</td>
                 <td>scale_recipe_endpoint</td>
                 <td>function</td>
@@ -243,8 +271,8 @@
                 <td>B</td>
             </tr>
             <tr>
-                <td>apps/core/api.py</td>
-                <td>reset_database</td>
+                <td>apps/profiles/api.py</td>
+                <td>_resolve_public_user</td>
                 <td>function</td>
                 <td class="complexity-medium">8</td>
                 <td>B</td>
@@ -376,6 +404,13 @@
                 <td>B</td>
             </tr>
             <tr>
+                <td>apps/core/logging.py</td>
+                <td>JSONFormatter</td>
+                <td>class</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
                 <td>apps/recipes/services/image_cache.py</td>
                 <td>SearchImageCache</td>
                 <td>class</td>
@@ -495,6 +530,27 @@
                 <td>B</td>
             </tr>
             <tr>
+                <td>apps/core/logging.py</td>
+                <td>format</td>
+                <td>method</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/core/auth.py</td>
+                <td>SessionAuth</td>
+                <td>class</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/core/auth.py</td>
+                <td>AdminAuth</td>
+                <td>class</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
                 <td>apps/core/middleware.py</td>
                 <td>DeviceDetectionMiddleware</td>
                 <td>class</td>
@@ -502,8 +558,22 @@
                 <td>B</td>
             </tr>
             <tr>
+                <td>apps/core/auth_api.py</td>
+                <td>_validate_registration</td>
+                <td>function</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/core/auth_api.py</td>
+                <td>login_view</td>
+                <td>function</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
                 <td>apps/profiles/api.py</td>
-                <td>delete_profile</td>
+                <td>_check_profile_ownership</td>
                 <td>function</td>
                 <td class="complexity-medium">6</td>
                 <td>B</td>
@@ -690,76 +760,6 @@
                 <td class="complexity-low">5</td>
                 <td>A</td>
             </tr>
-            <tr>
-                <td>apps/ai/services/remix.py</td>
-                <td>_parse_time</td>
-                <td>function</td>
-                <td class="complexity-low">5</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/core/encryption.py</td>
-                <td>decrypt_value</td>
-                <td>function</td>
-                <td class="complexity-low">5</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/legacy/templatetags/legacy_tags.py</td>
-                <td>format_time</td>
-                <td>function</td>
-                <td class="complexity-low">4</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/legacy/templatetags/legacy_tags.py</td>
-                <td>format_nutrition_key</td>
-                <td>function</td>
-                <td class="complexity-low">4</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/recipes/api.py</td>
-                <td>list_recipes</td>
-                <td>function</td>
-                <td class="complexity-low">4</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/recipes/api.py</td>
-                <td>scrape_recipe</td>
-                <td>function</td>
-                <td class="complexity-low">4</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/recipes/services/image_cache.py</td>
-                <td>cache_images</td>
-                <td>method</td>
-                <td class="complexity-low">4</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/recipes/services/image_cache.py</td>
-                <td>get_cached_urls_batch</td>
-                <td>method</td>
-                <td class="complexity-low">4</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/recipes/services/scraper.py</td>
-                <td>RecipeScraper</td>
-                <td>class</td>
-                <td class="complexity-low">4</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/recipes/services/scraper.py</td>
-                <td>_fetch_html</td>
-                <td>method</td>
-                <td class="complexity-low">4</td>
-                <td>A</td>
-            </tr>
         </tbody>
     </table>
 
@@ -773,6 +773,21 @@
                 <td>apps/ai/tests.py</td>
                 <td class="complexity-high">0.0</td>
                 <td>C</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/openrouter.py</td>
+                <td class="complexity-high">35.6</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/profiles/api.py</td>
+                <td class="complexity-high">38.2</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/core/auth_api.py</td>
+                <td class="complexity-high">39.8</td>
+                <td>A</td>
             </tr>
             <tr>
                 <td>apps/ai/api.py</td>
@@ -790,6 +805,11 @@
                 <td>A</td>
             </tr>
             <tr>
+                <td>apps/core/management/commands/cookie_admin.py</td>
+                <td class="complexity-medium">49.1</td>
+                <td>A</td>
+            </tr>
+            <tr>
                 <td>apps/recipes/services/scraper.py</td>
                 <td class="complexity-medium">49.9</td>
                 <td>A</td>
@@ -797,6 +817,11 @@
             <tr>
                 <td>apps/recipes/services/search_parsers.py</td>
                 <td class="complexity-medium">50.2</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/legacy/views.py</td>
+                <td class="complexity-medium">51.9</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -810,11 +835,6 @@
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/ai/services/openrouter.py</td>
-                <td class="complexity-medium">57.2</td>
-                <td>A</td>
-            </tr>
-            <tr>
                 <td>apps/ai/services/discover.py</td>
                 <td class="complexity-medium">58.0</td>
                 <td>A</td>
@@ -825,23 +845,18 @@
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/legacy/views.py</td>
-                <td class="complexity-medium">58.4</td>
-                <td>A</td>
-            </tr>
-            <tr>
                 <td>apps/ai/api_remix.py</td>
                 <td class="complexity-medium">59.5</td>
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/core/tests.py</td>
+                <td>apps/core/api.py</td>
                 <td class="complexity-medium">59.9</td>
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/profiles/api.py</td>
-                <td class="complexity-low">60.4</td>
+                <td>apps/core/tests.py</td>
+                <td class="complexity-medium">59.9</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -865,8 +880,13 @@
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/core/api.py</td>
-                <td class="complexity-low">66.3</td>
+                <td>apps/core/auth.py</td>
+                <td class="complexity-low">65.1</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>cookie/settings.py</td>
+                <td class="complexity-low">65.6</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -875,13 +895,13 @@
                 <td>A</td>
             </tr>
             <tr>
-                <td>cookie/settings.py</td>
-                <td class="complexity-low">66.5</td>
+                <td>apps/recipes/utils.py</td>
+                <td class="complexity-low">67.1</td>
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/recipes/utils.py</td>
-                <td class="complexity-low">67.1</td>
+                <td>apps/core/management/commands/cleanup_unverified.py</td>
+                <td class="complexity-low">69.9</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -897,6 +917,11 @@
             <tr>
                 <td>apps/recipes/services/fingerprint.py</td>
                 <td class="complexity-low">73.5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/core/middleware.py</td>
+                <td class="complexity-low">74.4</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -920,11 +945,6 @@
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/core/middleware.py</td>
-                <td class="complexity-low">77.8</td>
-                <td>A</td>
-            </tr>
-            <tr>
                 <td>apps/legacy/templatetags/legacy_tags.py</td>
                 <td class="complexity-low">80.3</td>
                 <td>A</td>
@@ -945,18 +965,18 @@
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/profiles/utils.py</td>
-                <td class="complexity-low">87.0</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/core/auth.py</td>
-                <td class="complexity-low">88.7</td>
+                <td>apps/core/logging.py</td>
+                <td class="complexity-low">85.3</td>
                 <td>A</td>
             </tr>
             <tr>
                 <td>apps/profiles/models.py</td>
-                <td class="complexity-low">88.7</td>
+                <td class="complexity-low">86.5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/profiles/utils.py</td>
+                <td class="complexity-low">87.0</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -1150,6 +1170,11 @@
                 <td>A</td>
             </tr>
             <tr>
+                <td>apps/core/email_service.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
                 <td>apps/core/__init__.py</td>
                 <td class="complexity-low">100.0</td>
                 <td>A</td>
@@ -1161,6 +1186,16 @@
             </tr>
             <tr>
                 <td>apps/core/apps.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/core/management/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/core/management/commands/__init__.py</td>
                 <td class="complexity-low">100.0</td>
                 <td>A</td>
             </tr>
@@ -1191,6 +1226,11 @@
             </tr>
             <tr>
                 <td>apps/profiles/migrations/0001_initial.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/profiles/migrations/0002_add_user_field.py</td>
                 <td class="complexity-low">100.0</td>
                 <td>A</td>
             </tr>

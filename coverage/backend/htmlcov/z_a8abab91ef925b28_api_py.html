@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_a8abab91ef925b28_api_user_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.13.5">coverage.py v7.13.5</a>,
-            created at 2026-03-24 07:48 +0000
+            created at 2026-03-24 17:46 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -96,7 +96,7 @@
     <p class="run"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t"><span class="key">from</span> <span class="nam">django</span><span class="op">.</span><span class="nam">shortcuts</span> <span class="key">import</span> <span class="nam">get_object_or_404</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t15" href="#t15">15</a></span><span class="t"><span class="key">from</span> <span class="nam">ninja</span> <span class="key">import</span> <span class="nam">Router</span><span class="op">,</span> <span class="nam">Schema</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t"><span class="key">from</span> <span class="nam">apps</span><span class="op">.</span><span class="nam">core</span><span class="op">.</span><span class="nam">auth</span> <span class="key">import</span> <span class="nam">SessionAuth</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t"><span class="key">from</span> <span class="nam">apps</span><span class="op">.</span><span class="nam">core</span><span class="op">.</span><span class="nam">auth</span> <span class="key">import</span> <span class="nam">AdminAuth</span><span class="op">,</span> <span class="nam">SessionAuth</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t18" href="#t18">18</a></span><span class="t"><span class="key">from</span> <span class="nam">apps</span><span class="op">.</span><span class="nam">profiles</span><span class="op">.</span><span class="nam">utils</span> <span class="key">import</span> <span class="nam">aget_current_profile_or_none</span><span class="op">,</span> <span class="nam">get_current_profile_or_none</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t19" href="#t19">19</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t20" href="#t20">20</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="nam">models</span> <span class="key">import</span> <span class="nam">Recipe</span>&nbsp;</span><span class="r"></span></p>
@@ -406,7 +406,7 @@
     <p class="run"><span class="n"><a id="t324" href="#t324">324</a></span><span class="t">    <span class="key">return</span> <span class="nam">results</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t325" href="#t325">325</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t326" href="#t326">326</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t327" href="#t327">327</a></span><span class="t"><span class="op">@</span><span class="nam">router</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">"/cache/health/"</span><span class="op">,</span> <span class="nam">response</span><span class="op">=</span><span class="op">{</span><span class="num">200</span><span class="op">:</span> <span class="nam">dict</span><span class="op">}</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t327" href="#t327">327</a></span><span class="t"><span class="op">@</span><span class="nam">router</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">"/cache/health/"</span><span class="op">,</span> <span class="nam">response</span><span class="op">=</span><span class="op">{</span><span class="num">200</span><span class="op">:</span> <span class="nam">dict</span><span class="op">}</span><span class="op">,</span> <span class="nam">auth</span><span class="op">=</span><span class="nam">AdminAuth</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t328" href="#t328">328</a></span><span class="t"><span class="key">def</span> <span class="nam">cache_health</span><span class="op">(</span><span class="nam">request</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t329" href="#t329">329</a></span><span class="t">    <span class="str">"""</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t330" href="#t330">330</a></span><span class="t"><span class="str">    Health check endpoint for image cache monitoring.</span>&nbsp;</span><span class="r"></span></p>
@@ -528,7 +528,7 @@
             <a class="nav" href="z_a8abab91ef925b28_api_user_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.13.5">coverage.py v7.13.5</a>,
-            created at 2026-03-24 07:48 +0000
+            created at 2026-03-24 17:46 +0000
         </p>
     </div>
 </footer>

@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-24T07:47:29.794Z",
+    "detectionDate": "2026-03-24T17:44:43.179Z",
     "formats": {
       "python": {
         "sources": {
@@ -17,8 +17,8 @@
             "newClones": 0
           },
           "cookie/urls.py": {
-            "lines": 36,
-            "tokens": 331,
+            "lines": 45,
+            "tokens": 403,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -29,8 +29,8 @@
             "newClones": 0
           },
           "cookie/settings.py": {
-            "lines": 221,
-            "tokens": 1209,
+            "lines": 273,
+            "tokens": 1532,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -43,6 +43,30 @@
           "apps/recipes/management/commands/cleanup_search_images.py": {
             "lines": 100,
             "tokens": 556,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/core/management/commands/cookie_admin.py": {
+            "lines": 174,
+            "tokens": 1552,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/core/management/commands/cleanup_unverified.py": {
+            "lines": 35,
+            "tokens": 306,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -209,14 +233,14 @@
             "newClones": 0
           },
           "apps/ai/services/openrouter.py": {
-            "lines": 295,
-            "tokens": 1740,
+            "lines": 233,
+            "tokens": 1728,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 52,
-            "duplicatedTokens": 316,
-            "percentage": 17.63,
-            "percentageTokens": 18.16,
+            "duplicatedTokens": 322,
+            "percentage": 22.32,
+            "percentageTokens": 18.63,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -258,7 +282,7 @@
           },
           "apps/recipes/sources_api.py": {
             "lines": 304,
-            "tokens": 2088,
+            "tokens": 2091,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -294,13 +318,13 @@
           },
           "apps/recipes/api.py": {
             "lines": 438,
-            "tokens": 2918,
+            "tokens": 2928,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 38,
             "duplicatedTokens": 352,
             "percentage": 8.68,
-            "percentageTokens": 12.06,
+            "percentageTokens": 12.02,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -317,8 +341,8 @@
             "newClones": 0
           },
           "apps/profiles/models.py": {
-            "lines": 48,
-            "tokens": 365,
+            "lines": 56,
+            "tokens": 420,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -341,8 +365,8 @@
             "newClones": 0
           },
           "apps/profiles/api.py": {
-            "lines": 261,
-            "tokens": 1892,
+            "lines": 317,
+            "tokens": 2536,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -353,8 +377,8 @@
             "newClones": 0
           },
           "apps/legacy/views.py": {
-            "lines": 402,
-            "tokens": 2492,
+            "lines": 433,
+            "tokens": 2801,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -365,8 +389,8 @@
             "newClones": 0
           },
           "apps/legacy/urls.py": {
-            "lines": 19,
-            "tokens": 206,
+            "lines": 21,
+            "tokens": 240,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -389,8 +413,8 @@
             "newClones": 0
           },
           "apps/core/views.py": {
-            "lines": 7,
-            "tokens": 47,
+            "lines": 12,
+            "tokens": 76,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -425,8 +449,20 @@
             "newClones": 0
           },
           "apps/core/middleware.py": {
-            "lines": 63,
-            "tokens": 391,
+            "lines": 77,
+            "tokens": 489,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/core/logging.py": {
+            "lines": 31,
+            "tokens": 253,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -448,9 +484,33 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/core/email_service.py": {
+            "lines": 61,
+            "tokens": 351,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/core/auth_api.py": {
+            "lines": 303,
+            "tokens": 2446,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/core/auth.py": {
-            "lines": 41,
-            "tokens": 253,
+            "lines": 104,
+            "tokens": 738,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -473,8 +533,8 @@
             "newClones": 0
           },
           "apps/core/api.py": {
-            "lines": 217,
-            "tokens": 1474,
+            "lines": 232,
+            "tokens": 1593,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -546,40 +606,40 @@
           },
           "apps/ai/api.py": {
             "lines": 476,
-            "tokens": 3107,
+            "tokens": 3117,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 21,
             "duplicatedTokens": 162,
             "percentage": 4.41,
-            "percentageTokens": 5.21,
+            "percentageTokens": 5.2,
             "newDuplicatedLines": 0,
             "newClones": 0
           }
         },
         "total": {
-          "lines": 7945,
-          "tokens": 50952,
-          "sources": 46,
+          "lines": 8742,
+          "tokens": 58039,
+          "sources": 51,
           "clones": 7,
           "duplicatedLines": 142,
-          "duplicatedTokens": 1044,
-          "percentage": 1.79,
-          "percentageTokens": 2.05,
+          "duplicatedTokens": 1047,
+          "percentage": 1.62,
+          "percentageTokens": 1.8,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7945,
-      "tokens": 50952,
-      "sources": 46,
+      "lines": 8742,
+      "tokens": 58039,
+      "sources": 51,
       "clones": 7,
       "duplicatedLines": 142,
-      "duplicatedTokens": 1044,
-      "percentage": 1.79,
-      "percentageTokens": 2.05,
+      "duplicatedTokens": 1047,
+      "percentage": 1.62,
+      "percentageTokens": 1.8,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -696,36 +756,36 @@
     {
       "format": "python",
       "lines": 27,
-      "fragment": "(\n                    messages=messages,\n                    model=model,\n                    stream=False,\n                )\n\n            # Extract the response content\n            if not response or not hasattr(response, \"choices\"):\n                raise AIResponseError(\"Invalid response structure from OpenRouter\")\n\n            if not response.choices:\n                raise AIResponseError(\"No choices in OpenRouter response\")\n\n            content = response.choices[0].message.content\n\n            if json_response:\n                return self._parse_json_response(content)\n\n            return {\"content\": content}\n\n        except AIServiceError:\n            raise\n        except Exception as e:\n            logger.exception(\"OpenRouter API error\")\n            raise AIResponseError(f\"OpenRouter API error: {e}\")\n\n    @",
+      "fragment": "(\n                    messages=messages,\n                    model=model,\n                    stream=False,\n                    timeout_ms=timeout_ms,\n                )\n\n            if not response or not hasattr(response, \"choices\"):\n                raise AIResponseError(\"Invalid response structure from OpenRouter\")\n\n            if not response.choices:\n                raise AIResponseError(\"No choices in OpenRouter response\")\n\n            content = response.choices[0].message.content\n\n            if json_response:\n                return self._parse_json_response(content)\n\n            return {\"content\": content}\n\n        except AIServiceError:\n            raise\n        except Exception as e:\n            logger.exception(\"OpenRouter API error\")\n            raise AIResponseError(f\"OpenRouter API error: {e}\")\n\n    @",
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/services/openrouter.py",
-        "start": 170,
-        "end": 196,
+        "start": 132,
+        "end": 158,
         "startLoc": {
-          "line": 170,
+          "line": 132,
           "column": 11,
-          "position": 892
+          "position": 886
         },
         "endLoc": {
-          "line": 196,
+          "line": 158,
           "column": 2,
-          "position": 1050
+          "position": 1047
         }
       },
       "secondFile": {
         "name": "apps/ai/services/openrouter.py",
-        "start": 118,
-        "end": 144,
+        "start": 88,
+        "end": 114,
         "startLoc": {
-          "line": 118,
+          "line": 88,
           "column": 5,
-          "position": 572
+          "position": 561
         },
         "endLoc": {
-          "line": 144,
+          "line": 114,
           "column": 6,
-          "position": 730
+          "position": 722
         }
       }
     },
@@ -741,12 +801,12 @@
         "startLoc": {
           "line": 286,
           "column": 9,
-          "position": 1834
+          "position": 1837
         },
         "endLoc": {
           "line": 305,
           "column": 41,
-          "position": 2010
+          "position": 2013
         }
       },
       "secondFile": {
@@ -756,12 +816,12 @@
         "startLoc": {
           "line": 254,
           "column": 9,
-          "position": 1564
+          "position": 1567
         },
         "endLoc": {
           "line": 272,
           "column": 5,
-          "position": 1739
+          "position": 1742
         }
       }
     },
@@ -813,12 +873,12 @@
         "startLoc": {
           "line": 307,
           "column": 35,
-          "position": 1994
+          "position": 1997
         },
         "endLoc": {
           "line": 328,
           "column": 46,
-          "position": 2156
+          "position": 2159
         }
       },
       "secondFile": {
