@@ -1,7 +1,13 @@
 """System API for administrative operations like database reset."""
 
+import logging
 import os
 import shutil
+
+from django_ratelimit.decorators import ratelimit
+
+logger = logging.getLogger(__name__)
+security_logger = logging.getLogger("security")
 
 from django.conf import settings
 from django.core.cache import cache
@@ -21,25 +27,46 @@ from apps.recipes.models import (
     CachedSearchImage,
 )
 from apps.ai.models import AIDiscoverySuggestion, AIPrompt
+from apps.core.auth import AdminAuth, SessionAuth
 
-router = Router(tags=['system'])
+router = Router(tags=["system"])
 
 
 class HealthSchema(Schema):
     status: str
+
+
+class ReadySchema(Schema):
+    status: str
     database: str
 
 
-@router.get('/health/', response=HealthSchema)
+@router.get("/mode/", response={200: dict})
+def get_mode(request):
+    """Return the current operating mode."""
+    result = {"mode": settings.AUTH_MODE}
+    if settings.AUTH_MODE == "public":
+        result["registration_enabled"] = True
+    return result
+
+
+@router.get("/health/", response=HealthSchema)
 def health_check(request):
-    """Simple health check for container orchestration."""
+    """Liveness probe — confirms the process is running. No dependency checks."""
+    return {"status": "healthy"}
+
+
+@router.get("/ready/", response={200: ReadySchema, 503: ReadySchema})
+def readiness_check(request):
+    """Readiness probe — checks database connectivity."""
     from django.db import connection
+
     try:
         with connection.cursor() as cursor:
-            cursor.execute('SELECT 1')
-        return {'status': 'healthy', 'database': 'ok'}
+            cursor.execute("SELECT 1")
+        return 200, {"status": "ready", "database": "ok"}
     except Exception:
-        return {'status': 'unhealthy', 'database': 'error'}
+        return 503, {"status": "not_ready", "database": "error"}
 
 
 class DataCountsSchema(Schema):
@@ -76,48 +103,50 @@ class ResetSuccessSchema(Schema):
     actions_performed: list[str]
 
 
-@router.get('/reset-preview/', response=ResetPreviewSchema)
+@router.get("/reset-preview/", response=ResetPreviewSchema, auth=AdminAuth())
 def get_reset_preview(request):
     """Get summary of data that will be deleted on reset."""
     return {
-        'data_counts': {
-            'profiles': Profile.objects.count(),
-            'recipes': Recipe.objects.count(),
-            'recipe_images': Recipe.objects.exclude(image='').exclude(
-                image__isnull=True
-            ).count(),
-            'favorites': RecipeFavorite.objects.count(),
-            'collections': RecipeCollection.objects.count(),
-            'collection_items': RecipeCollectionItem.objects.count(),
-            'view_history': RecipeViewHistory.objects.count(),
-            'ai_suggestions': AIDiscoverySuggestion.objects.count(),
-            'serving_adjustments': ServingAdjustment.objects.count(),
-            'cached_search_images': CachedSearchImage.objects.count(),
+        "data_counts": {
+            "profiles": Profile.objects.count(),
+            "recipes": Recipe.objects.count(),
+            "recipe_images": Recipe.objects.exclude(image="").exclude(image__isnull=True).count(),
+            "favorites": RecipeFavorite.objects.count(),
+            "collections": RecipeCollection.objects.count(),
+            "collection_items": RecipeCollectionItem.objects.count(),
+            "view_history": RecipeViewHistory.objects.count(),
+            "ai_suggestions": AIDiscoverySuggestion.objects.count(),
+            "serving_adjustments": ServingAdjustment.objects.count(),
+            "cached_search_images": CachedSearchImage.objects.count(),
         },
-        'preserved': [
-            'Search source configurations',
-            'AI prompt templates',
-            'Application settings',
+        "preserved": [
+            "Search source configurations",
+            "AI prompt templates",
+            "Application settings",
         ],
-        'warnings': [
-            'All user data will be permanently deleted',
-            'All recipe images will be removed from storage',
-            'This action cannot be undone',
+        "warnings": [
+            "All user data will be permanently deleted",
+            "All recipe images will be removed from storage",
+            "This action cannot be undone",
         ],
     }
 
 
-@router.post('/reset/', response={200: ResetSuccessSchema, 400: ErrorSchema})
+@router.post("/reset/", response={200: ResetSuccessSchema, 400: ErrorSchema, 429: dict}, auth=AdminAuth())
+@ratelimit(key="ip", rate="1/m", method="POST", block=False)
 def reset_database(request, data: ResetConfirmSchema):
     """
     Completely reset the database to factory state.
 
     Requires confirmation_text="RESET" to proceed.
     """
-    if data.confirmation_text != 'RESET':
+    if getattr(request, "limited", False):
+        security_logger.warning("Rate limit hit: /system/reset/ from %s", request.META.get("REMOTE_ADDR"))
+        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
+    if data.confirmation_text != "RESET":
         return 400, {
-            'error': 'invalid_confirmation',
-            'message': 'Type RESET to confirm',
+            "error": "invalid_confirmation",
+            "message": "Type RESET to confirm",
         }
 
     try:
@@ -137,6 +166,12 @@ def reset_database(request, data: ResetConfirmSchema):
         # Delete all profiles
         Profile.objects.all().delete()
 
+        # In public mode, also delete all user accounts
+        if settings.AUTH_MODE == "public":
+            from django.contrib.auth.models import User
+
+            User.objects.all().delete()
+
         # Reset SearchSource failure counters (keep selectors)
         SearchSource.objects.all().update(
             consecutive_failures=0,
@@ -145,13 +180,13 @@ def reset_database(request, data: ResetConfirmSchema):
         )
 
         # 2. Clear recipe images
-        images_dir = os.path.join(settings.MEDIA_ROOT, 'recipe_images')
+        images_dir = os.path.join(settings.MEDIA_ROOT, "recipe_images")
         if os.path.exists(images_dir):
             shutil.rmtree(images_dir)
             os.makedirs(images_dir)  # Recreate empty directory
 
         # Clear cached search images
-        search_images_dir = os.path.join(settings.MEDIA_ROOT, 'search_images')
+        search_images_dir = os.path.join(settings.MEDIA_ROOT, "search_images")
         if os.path.exists(search_images_dir):
             shutil.rmtree(search_images_dir)
             os.makedirs(search_images_dir)  # Recreate empty directory
@@ -163,36 +198,36 @@ def reset_database(request, data: ResetConfirmSchema):
         Session.objects.all().delete()
 
         # 5. Re-run migrations (ensures clean state)
-        call_command('migrate', verbosity=0)
+        call_command("migrate", verbosity=0)
 
         # 6. Re-seed default data
         try:
-            call_command('seed_search_sources', verbosity=0)
+            call_command("seed_search_sources", verbosity=0)
         except Exception:
-            pass  # Command may not exist yet
+            logger.debug("seed_search_sources command not available, skipping")
 
         try:
-            call_command('seed_ai_prompts', verbosity=0)
+            call_command("seed_ai_prompts", verbosity=0)
         except Exception:
-            pass  # Command may not exist yet
+            logger.debug("seed_ai_prompts command not available, skipping")
 
         return {
-            'success': True,
-            'message': 'Database reset complete',
-            'actions_performed': [
-                'Deleted all user profiles',
-                'Deleted all recipes and images',
-                'Cleared all favorites and collections',
-                'Cleared all view history',
-                'Cleared all AI cache data',
-                'Cleared all cached search images',
-                'Reset search source counters',
-                'Cleared application cache',
-                'Cleared all sessions',
-                'Re-ran database migrations',
-                'Restored default seed data',
+            "success": True,
+            "message": "Database reset complete",
+            "actions_performed": [
+                "Deleted all user profiles",
+                "Deleted all recipes and images",
+                "Cleared all favorites and collections",
+                "Cleared all view history",
+                "Cleared all AI cache data",
+                "Cleared all cached search images",
+                "Reset search source counters",
+                "Cleared application cache",
+                "Cleared all sessions",
+                "Re-ran database migrations",
+                "Restored default seed data",
             ],
         }
 
     except Exception as e:
-        return 400, {'error': 'reset_failed', 'message': str(e)}
+        return 400, {"error": "reset_failed", "message": str(e)}

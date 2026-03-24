@@ -1,0 +1,7 @@
+Verify your Cookie account
+
+Click the link below to verify your account:
+
+{{ verify_url }}
+
+This link expires in {{ expiry_hours }} hours. If you did not create an account, you can ignore this email.

@@ -1,0 +1,105 @@
+"""Session-based authentication for Django Ninja endpoints."""
+
+import logging
+from typing import Any, Optional
+
+from django.conf import settings
+from django.http import HttpRequest
+from ninja.security import APIKeyCookie
+
+from apps.profiles.models import Profile
+
+security_logger = logging.getLogger("security")
+
+
+class SessionAuth(APIKeyCookie):
+    """Mode-aware authenticator.
+
+    Home mode: checks session["profile_id"] → Profile (unchanged behavior).
+    Public mode: checks request.user.is_authenticated → request.user.profile.
+    """
+
+    param_name: str = settings.SESSION_COOKIE_NAME
+
+    def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:
+        if settings.AUTH_MODE == "public":
+            return self._authenticate_public(request)
+        return self._authenticate_home(request)
+
+    def _authenticate_home(self, request: HttpRequest) -> Optional[Profile]:
+        profile_id = request.session.get("profile_id")
+        if not profile_id:
+            security_logger.warning(
+                "Auth failure: no profile_id in session for %s from %s",
+                request.path,
+                request.META.get("REMOTE_ADDR"),
+            )
+            return None
+        try:
+            return Profile.objects.get(id=profile_id)
+        except Profile.DoesNotExist:
+            security_logger.warning(
+                "Auth failure: invalid profile_id %s for %s from %s",
+                profile_id,
+                request.path,
+                request.META.get("REMOTE_ADDR"),
+            )
+            return None
+
+    def _authenticate_public(self, request: HttpRequest) -> Optional[Profile]:
+        user = getattr(request, "user", None)
+        if not user or not getattr(user, "is_authenticated", False):
+            # Fallback: check session profile_id (set during login)
+            profile_id = request.session.get("profile_id")
+            if profile_id:
+                try:
+                    profile = Profile.objects.select_related("user").get(id=profile_id)
+                    if profile.user and profile.user.is_active:
+                        # Attach user to request for downstream code
+                        request.user = profile.user
+                        return profile
+                except Profile.DoesNotExist:
+                    pass
+            security_logger.warning(
+                "Auth failure: unauthenticated request to %s from %s",
+                request.path,
+                request.META.get("REMOTE_ADDR"),
+            )
+            return None
+        if not user.is_active:
+            return None
+        try:
+            return user.profile
+        except Profile.DoesNotExist:
+            security_logger.warning(
+                "Auth failure: no profile for user %s at %s",
+                user.username,
+                request.path,
+            )
+            return None
+
+
+class AdminAuth(SessionAuth):
+    """Admin-only authenticator.
+
+    Home mode: identical to SessionAuth (no admin distinction).
+    Public mode: resolves user first, then checks is_staff.
+    """
+
+    def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:
+        if settings.AUTH_MODE == "public":
+            # Resolve profile (and request.user) first via parent
+            profile = self._authenticate_public(request)
+            if profile is None:
+                return None
+            # Now check admin status on the resolved user
+            user = getattr(request, "user", None)
+            if not user or not user.is_staff:
+                security_logger.warning(
+                    "Admin auth failure: %s from %s",
+                    request.path,
+                    request.META.get("REMOTE_ADDR"),
+                )
+                return None
+            return profile
+        return self._authenticate_home(request)

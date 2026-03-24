@@ -9,9 +9,12 @@ from typing import List, Optional
 logger = logging.getLogger(__name__)
 
 from asgiref.sync import sync_to_async
+from django.conf import settings
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from ninja import Router, Schema
 
+from apps.core.auth import AdminAuth, SessionAuth
 from apps.profiles.utils import aget_current_profile_or_none, get_current_profile_or_none
 
 from .models import Recipe
@@ -19,10 +22,19 @@ from .services.image_cache import SearchImageCache
 from .services.scraper import RecipeScraper, FetchError, ParseError
 from .services.search import RecipeSearch
 
-router = Router(tags=['recipes'])
+router = Router(tags=["recipes"])
 
 
 # Schemas
+
+
+class LinkedRecipeOut(Schema):
+    """Minimal recipe info for linked recipe navigation."""
+
+    id: int
+    title: str
+    relationship: str  # "original", "remix", "sibling"
+
 
 class RecipeOut(Schema):
     id: int
@@ -58,6 +70,8 @@ class RecipeOut(Schema):
     ai_tips: list
     is_remix: bool
     remix_profile_id: Optional[int]
+    remixed_from_id: Optional[int]
+    linked_recipes: List[LinkedRecipeOut] = []
     scraped_at: str
     updated_at: str
 
@@ -75,9 +89,19 @@ class RecipeOut(Schema):
     def resolve_updated_at(obj):
         return obj.updated_at.isoformat()
 
+    @staticmethod
+    def resolve_remixed_from_id(obj):
+        return getattr(obj, "remixed_from_id", None)
+
+    @staticmethod
+    def resolve_linked_recipes(obj):
+        # Return linked_recipes if set, otherwise empty list
+        return getattr(obj, "linked_recipes", [])
+
 
 class RecipeListOut(Schema):
     """Condensed recipe output for list views."""
+
     id: int
     title: str
     host: str
@@ -128,7 +152,8 @@ class SearchOut(Schema):
 # Endpoints
 # NOTE: Static routes must come before dynamic routes (e.g., /search/ before /{recipe_id}/)
 
-@router.get('/', response=List[RecipeListOut])
+
+@router.get("/", response=List[RecipeListOut])
 def list_recipes(
     request,
     host: Optional[str] = None,
@@ -151,17 +176,17 @@ def list_recipes(
         return []
 
     # Only show recipes owned by this profile
-    qs = Recipe.objects.filter(profile=profile).order_by('-scraped_at')
+    qs = Recipe.objects.filter(profile=profile).order_by("-scraped_at")
 
     if host:
         qs = qs.filter(host=host)
     if is_remix is not None:
         qs = qs.filter(is_remix=is_remix)
 
-    return qs[offset:offset + limit]
+    return qs[offset : offset + limit]
 
 
-@router.post('/scrape/', response={201: RecipeOut, 400: ErrorOut, 403: ErrorOut, 502: ErrorOut})
+@router.post("/scrape/", response={201: RecipeOut, 400: ErrorOut, 403: ErrorOut, 502: ErrorOut}, auth=SessionAuth())
 async def scrape_recipe(request, payload: ScrapeIn):
     """
     Scrape a recipe from a URL.
@@ -174,24 +199,24 @@ async def scrape_recipe(request, payload: ScrapeIn):
     """
     profile = await aget_current_profile_or_none(request)
     if not profile:
-        return 403, {'detail': 'Profile required to scrape recipes'}
+        return 403, {"detail": "Profile required to scrape recipes"}
 
     scraper = RecipeScraper()
-    logger.info(f'Scrape request: {payload.url}')
+    logger.info(f"Scrape request: {payload.url}")
 
     try:
         recipe = await scraper.scrape_url(payload.url, profile)
         logger.info(f'Scrape success: {payload.url} -> recipe {recipe.id} "{recipe.title}"')
         return 201, recipe
     except FetchError as e:
-        logger.warning(f'Scrape fetch error: {payload.url} - {e}')
-        return 502, {'detail': str(e)}
+        logger.warning(f"Scrape fetch error: {payload.url} - {e}")
+        return 502, {"detail": str(e)}
     except ParseError as e:
-        logger.warning(f'Scrape parse error: {payload.url} - {e}')
-        return 400, {'detail': str(e)}
+        logger.warning(f"Scrape parse error: {payload.url} - {e}")
+        return 400, {"detail": str(e)}
 
 
-@router.get('/search/', response=SearchOut)
+@router.get("/search/", response=SearchOut)
 async def search_recipes(
     request,
     q: str,
@@ -213,55 +238,93 @@ async def search_recipes(
     """
     source_list = None
     if sources:
-        source_list = [s.strip() for s in sources.split(',') if s.strip()]
+        source_list = [s.strip() for s in sources.split(",") if s.strip()]
 
-    search = RecipeSearch()
-    results = await search.search(
-        query=q,
-        sources=source_list,
-        page=page,
-        per_page=per_page,
-    )
+    # Check global search cache (shared across all profiles)
+    import hashlib
+
+    normalized_query = q.lower().strip()
+    query_hash = hashlib.sha256(normalized_query.encode()).hexdigest()[:16]
+    cache_key = f"search_{query_hash}"
+    cached_all = await sync_to_async(cache.get)(cache_key)
+
+    if cached_all is not None:
+        # Serve from cache: apply source filtering and pagination
+        filtered = cached_all
+        if source_list:
+            filtered = [r for r in filtered if r["host"] in source_list]
+
+        sites = {}
+        for r in filtered:
+            sites[r["host"]] = sites.get(r["host"], 0) + 1
+
+        total = len(filtered)
+        start = (page - 1) * per_page
+        end = start + per_page
+
+        results = {
+            "results": filtered[start:end],
+            "total": total,
+            "page": page,
+            "has_more": end < total,
+            "sites": sites,
+        }
+    else:
+        # Cache miss: fetch all results (no source filter, no pagination)
+        search = RecipeSearch()
+        full_results = await search.search(
+            query=q,
+            per_page=10000,
+        )
+
+        # Cache the full unfiltered result list
+        all_result_dicts = full_results.get("results", [])
+        await sync_to_async(cache.set)(cache_key, all_result_dicts, settings.SEARCH_CACHE_TIMEOUT)
+
+        # Apply source filtering and pagination for this request
+        filtered = all_result_dicts
+        if source_list:
+            filtered = [r for r in filtered if r["host"] in source_list]
+
+        sites = {}
+        for r in filtered:
+            sites[r["host"]] = sites.get(r["host"], 0) + 1
+
+        total = len(filtered)
+        start = (page - 1) * per_page
+        end = start + per_page
+
+        results = {
+            "results": filtered[start:end],
+            "total": total,
+            "page": page,
+            "has_more": end < total,
+            "sites": sites,
+        }
 
     # Extract image URLs from search results
-    image_urls = [r['image_url'] for r in results['results'] if r.get('image_url')]
+    image_urls = [r["image_url"] for r in results["results"] if r.get("image_url")]
 
     # Look up already-cached images
     image_cache = SearchImageCache()
     cached_urls = await image_cache.get_cached_urls_batch(image_urls)
 
-    # Add cached_image_url to results
-    for result in results['results']:
-        external_url = result.get('image_url', '')
-        result['cached_image_url'] = cached_urls.get(external_url)
-
-    # Cache uncached images in background thread (fire-and-forget)
+    # Cache uncached images before responding (ensures cached_image_url is populated)
     uncached_urls = [url for url in image_urls if url not in cached_urls]
     if uncached_urls:
-        import threading
-        import asyncio
+        await image_cache.cache_images(uncached_urls)
+        new_cached = await image_cache.get_cached_urls_batch(uncached_urls)
+        cached_urls.update(new_cached)
 
-        def cache_in_background():
-            """Run async cache_images in a new event loop (thread-safe)."""
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_until_complete(image_cache.cache_images(uncached_urls))
-            except Exception as e:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"Background image caching failed: {e}")
-            finally:
-                loop.close()
-
-        # Start background thread (daemon=True so it doesn't block shutdown)
-        thread = threading.Thread(target=cache_in_background, daemon=True)
-        thread.start()
+    # Add cached_image_url to results
+    for result in results["results"]:
+        external_url = result.get("image_url", "")
+        result["cached_image_url"] = cached_urls.get(external_url)
 
     return results
 
 
-@router.get('/cache/health/', response={200: dict})
+@router.get("/cache/health/", response={200: dict}, auth=AdminAuth())
 def cache_health(request):
     """
     Health check endpoint for image cache monitoring.
@@ -278,36 +341,88 @@ def cache_health(request):
     failed = CachedSearchImage.objects.filter(status=CachedSearchImage.STATUS_FAILED).count()
 
     return {
-        'status': 'healthy',
-        'cache_stats': {
-            'total': total,
-            'success': success,
-            'pending': pending,
-            'failed': failed,
-            'success_rate': f"{(success/total*100):.1f}%" if total > 0 else "N/A"
-        }
+        "status": "healthy",
+        "cache_stats": {
+            "total": total,
+            "success": success,
+            "pending": pending,
+            "failed": failed,
+            "success_rate": f"{(success / total * 100):.1f}%" if total > 0 else "N/A",
+        },
     }
 
 
 # Dynamic routes with {recipe_id} must come last
 
-@router.get('/{recipe_id}/', response={200: RecipeOut, 404: ErrorOut})
+
+@router.get("/{recipe_id}/", response={200: RecipeOut, 404: ErrorOut})
 def get_recipe(request, recipe_id: int):
     """
     Get a recipe by ID.
 
     Only returns recipes owned by the current profile.
+    Includes linked_recipes for navigation between original and remixes.
     """
     profile = get_current_profile_or_none(request)
     if not profile:
-        return 404, {'detail': 'Recipe not found'}
+        return 404, {"detail": "Recipe not found"}
 
     # Only allow access to recipes owned by this profile
     recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)
+
+    # Build linked recipes list for navigation
+    linked_recipes = []
+
+    # Add original recipe if this is a remix
+    if recipe.remixed_from_id:
+        original = recipe.remixed_from
+        if original and original.profile_id == profile.id:
+            linked_recipes.append(
+                {
+                    "id": original.id,
+                    "title": original.title,
+                    "relationship": "original",
+                }
+            )
+            # Add siblings (other remixes of the same original)
+            siblings = (
+                Recipe.objects.filter(
+                    remixed_from=original,
+                    profile=profile,
+                )
+                .exclude(id=recipe.id)
+                .values("id", "title")
+            )
+            for sibling in siblings:
+                linked_recipes.append(
+                    {
+                        "id": sibling["id"],
+                        "title": sibling["title"],
+                        "relationship": "sibling",
+                    }
+                )
+
+    # Add children (remixes of this recipe)
+    children = Recipe.objects.filter(
+        remixed_from=recipe,
+        profile=profile,
+    ).values("id", "title")
+    for child in children:
+        linked_recipes.append(
+            {
+                "id": child["id"],
+                "title": child["title"],
+                "relationship": "remix",
+            }
+        )
+
+    # Attach linked recipes to the recipe object for serialization
+    recipe.linked_recipes = linked_recipes
+
     return recipe
 
 
-@router.delete('/{recipe_id}/', response={204: None, 404: ErrorOut})
+@router.delete("/{recipe_id}/", response={204: None, 404: ErrorOut}, auth=SessionAuth())
 def delete_recipe(request, recipe_id: int):
     """
     Delete a recipe by ID.
@@ -316,7 +431,7 @@ def delete_recipe(request, recipe_id: int):
     """
     profile = get_current_profile_or_none(request)
     if not profile:
-        return 404, {'detail': 'Recipe not found'}
+        return 404, {"detail": "Recipe not found"}
 
     # Only allow deletion of recipes owned by this profile
     recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)

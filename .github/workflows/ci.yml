@@ -32,10 +32,10 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -51,10 +51,10 @@ jobs:
     name: Legacy Lint (ESLint ES5)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: '20'
 
@@ -66,21 +66,23 @@ jobs:
           npx eslint apps/legacy/static/legacy/js/ \
             --config apps/legacy/static/legacy/.eslintrc.json \
             --ext .js \
-            --format stylish || true
+            --max-warnings 0 \
+            --format stylish
 
       - name: Generate legacy lint report
         run: |
           mkdir -p legacy-reports
+          # Generate reports even if there are warnings (for dashboard)
           npx eslint apps/legacy/static/legacy/js/ \
             --config apps/legacy/static/legacy/.eslintrc.json \
             --ext .js \
-            --format json > legacy-reports/eslint-report.json || true
+            --format json > legacy-reports/eslint-report.json 2>/dev/null || true
 
           # Generate HTML report
           npx eslint apps/legacy/static/legacy/js/ \
             --config apps/legacy/static/legacy/.eslintrc.json \
             --ext .js \
-            --format html > legacy-reports/eslint-report.html || true
+            --format html > legacy-reports/eslint-report.html 2>/dev/null || true
 
           # Generate summary
           node << 'EOF'
@@ -118,7 +120,7 @@ jobs:
           EOF
 
       - name: Upload legacy lint artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: legacy-lint
           path: legacy-reports/
@@ -128,10 +130,10 @@ jobs:
     name: Backend Lint (ruff)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: '3.12'
 
@@ -197,7 +199,7 @@ jobs:
           EOF
 
       - name: Upload backend lint artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: backend-lint
           path: backend-lint/
@@ -210,10 +212,10 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -232,10 +234,10 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -248,7 +250,7 @@ jobs:
         run: npm run test:coverage
 
       - name: Upload frontend coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: frontend-coverage
           path: frontend/coverage/
@@ -257,11 +259,27 @@ jobs:
   backend-test:
     name: Backend Tests (pytest)
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: cookie_test
+          POSTGRES_USER: cookie
+          POSTGRES_PASSWORD: cookie_test  # pragma: allowlist secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -271,7 +289,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run pytest with coverage
+      - name: Run pytest (home mode - default)
         run: |
           pytest tests/ \
             --cov=apps \
@@ -283,10 +301,21 @@ jobs:
             -v
         env:
           DJANGO_SETTINGS_MODULE: cookie.settings
-          DATABASE_PATH: /tmp/test_db.sqlite3
+          DATABASE_URL: postgres://cookie:cookie_test@localhost:5432/cookie_test  # pragma: allowlist secret
+          SECURE_SSL_REDIRECT: "false"
+          AUTH_MODE: home
+
+      - name: Run auth tests (public mode)
+        run: |
+          pytest tests/test_auth.py tests/test_permissions.py tests/test_admin_cli.py tests/test_email_privacy.py tests/test_mode.py tests/test_logging.py -v --no-cov
+        env:
+          DJANGO_SETTINGS_MODULE: cookie.settings
+          DATABASE_URL: postgres://cookie:cookie_test@localhost:5432/cookie_test  # pragma: allowlist secret
+          SECURE_SSL_REDIRECT: "false"
+          AUTH_MODE: public
 
       - name: Upload backend coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: backend-coverage
           path: |
@@ -299,10 +328,10 @@ jobs:
     name: Backend Complexity (radon)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: '3.12'
 
@@ -493,7 +522,7 @@ jobs:
           EOF
 
       - name: Upload complexity artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: backend-complexity
           path: complexity/
@@ -506,10 +535,10 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -522,6 +551,9 @@ jobs:
         run: |
           mkdir -p complexity
 
+          # Install escomplex for actual cyclomatic complexity calculation
+          npm install escomplex typhonjs-escomplex --no-save
+
           # Run ESLint with complexity rules and JSON output
           npx eslint src/ \
             --rule '{"complexity": ["warn", 10]}' \
@@ -530,44 +562,11 @@ jobs:
             --rule '{"max-lines-per-function": ["warn", 50]}' \
             -f json > complexity/eslint-report.json || true
 
-          # Count lines of code
-          echo '{}' > complexity/loc.json
-          find src -name '*.ts' -o -name '*.tsx' | head -100 | while read file; do
-            wc -l "$file"
-          done > complexity/loc.txt || true
-
-          # Generate summary
-          node << 'EOF'
-          const fs = require('fs');
-
-          let report = [];
-          try {
-            report = JSON.parse(fs.readFileSync('complexity/eslint-report.json', 'utf8'));
-          } catch (e) {
-            report = [];
-          }
-
-          let complexityWarnings = 0;
-          let totalFiles = report.length;
-
-          report.forEach(file => {
-            file.messages.forEach(msg => {
-              if (msg.ruleId === 'complexity') complexityWarnings++;
-            });
-          });
-
-          const summary = {
-            total_files: totalFiles,
-            complexity_warnings: complexityWarnings,
-            rating: complexityWarnings === 0 ? 'A' : complexityWarnings <= 5 ? 'B' : complexityWarnings <= 10 ? 'C' : 'D'
-          };
-
-          fs.writeFileSync('complexity/summary.json', JSON.stringify(summary, null, 2));
-          console.log('Frontend complexity:', JSON.stringify(summary));
-          EOF
+          # Generate complexity report using extracted script
+          node ../.github/scripts/generate-frontend-complexity-report.js
 
       - name: Upload complexity artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: frontend-complexity
           path: frontend/complexity/
@@ -580,10 +579,10 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -628,7 +627,7 @@ jobs:
           EOF
 
       - name: Upload duplication artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: frontend-duplication
           path: frontend/duplication/
@@ -638,10 +637,10 @@ jobs:
     name: Legacy Duplication (jscpd)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: '20'
 
@@ -680,7 +679,7 @@ jobs:
           EOF
 
       - name: Upload legacy duplication artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: legacy-duplication
           path: legacy-duplication/
@@ -690,10 +689,10 @@ jobs:
     name: Backend Duplication (jscpd)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: '20'
 
@@ -733,7 +732,7 @@ jobs:
           EOF
 
       - name: Upload backend duplication artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: backend-duplication
           path: backend-duplication/
@@ -746,10 +745,10 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -787,86 +786,145 @@ jobs:
 
           fs.writeFileSync('security/summary.json', JSON.stringify(summary, null, 2));
           console.log('Security summary:', JSON.stringify(summary, null, 2));
+
+          // Fail on HIGH or CRITICAL vulnerabilities
+          if (vulns.critical > 0 || vulns.high > 0) {
+            console.error(`BLOCKING: Found ${vulns.critical} critical and ${vulns.high} high vulnerabilities`);
+            process.exit(1);
+          }
           EOF
 
       - name: Upload security artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: frontend-security
           path: frontend/security/
           retention-days: 30
 
   backend-security:
-    name: Backend Security (pip-audit)
+    name: Backend Security (pip-audit + Bandit SAST)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: '3.12'
           cache: 'pip'
 
-      - name: Install dependencies
+      - name: Install dependencies and security tools
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pip-audit
+          pip install pip-audit bandit
 
-      - name: Run pip-audit
+      - name: Run pip-audit (dependency vulnerabilities)
         run: |
           mkdir -p security
           pip-audit --format json --output security/pip-audit.json || true
           pip-audit > security/pip-audit.txt || true
 
-          # Generate summary
-          python3 << 'EOF'
+          # Fail if pip-audit found any vulnerabilities
+          VULN_COUNT=$(python3 -c "
           import json
+          with open('security/pip-audit.json') as f:
+              data = json.load(f)
+          vulns = [d for d in data if d.get('vulns')]
+          print(len(vulns))
+          " 2>/dev/null || echo "0")
+          if [ "$VULN_COUNT" -gt 0 ]; then
+            echo "BLOCKING: pip-audit found $VULN_COUNT vulnerable packages"
+            cat security/pip-audit.txt
+            exit 1
+          else
+            echo "pip-audit: No known vulnerabilities found"
+          fi
 
-          vulnerabilities = []
-          try:
-              with open('security/pip-audit.json') as f:
-                  data = json.load(f)
-                  # pip-audit format: {"dependencies": [...], "fixes": [...]}
-                  # Each dependency with vulns has: {"name": "...", "vulns": [...]}
-                  if isinstance(data, dict):
-                      for dep in data.get('dependencies', []):
-                          vulns = dep.get('vulns', [])
-                          vulnerabilities.extend(vulns)
-                  elif isinstance(data, list):
-                      vulnerabilities = data
-          except Exception as e:
-              print(f"Note: Could not parse pip-audit output: {e}")
+      - name: Run Bandit SAST (code security analysis)
+        run: |
+          # Run Bandit on application code, excluding tests and migrations
+          bandit -r apps/ \
+            --exclude "*/tests.py,*/test_*.py,*/migrations/*" \
+            -f json -o security/bandit.json || true
+          bandit -r apps/ \
+            --exclude "*/tests.py,*/test_*.py,*/migrations/*" \
+            -f txt -o security/bandit.txt || true
 
-          # Count vulnerabilities (pip-audit doesn't provide severity, so count total)
-          total = len(vulnerabilities)
+          # Fail on HIGH severity or above
+          HIGH_COUNT=$(python3 -c "
+          import json
+          with open('security/bandit.json') as f:
+              data = json.load(f)
+          high = sum(1 for r in data.get('results', []) if r.get('issue_severity') in ('HIGH', 'CRITICAL'))
+          print(high)
+          " 2>/dev/null || echo "0")
+          if [ "$HIGH_COUNT" -gt 0 ]; then
+            echo "BLOCKING: Bandit found $HIGH_COUNT HIGH/CRITICAL findings"
+            exit 1
+          fi
 
-          # Rating based on count (pip-audit doesn't have severity levels)
-          if total == 0:
-              rating = 'A'
-          elif total <= 2:
-              rating = 'B'
-          elif total <= 5:
-              rating = 'C'
-          else:
-              rating = 'D'
-
-          summary = {
-              'total_vulnerabilities': total,
-              'rating': rating
-          }
-
-          with open('security/summary.json', 'w') as f:
-              json.dump(summary, f, indent=2)
-
-          print(f"Security summary: {json.dumps(summary, indent=2)}")
-          EOF
+      - name: Generate combined security summary
+        run: python3 .github/scripts/generate-backend-security-report.py
 
       - name: Upload security artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: backend-security
+          path: security/
+          retention-days: 30
+
+  secrets-detection:
+    name: Secrets Detection
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0  # Full history for accurate scanning
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: '3.12'
+
+      - name: Install detect-secrets
+        run: pip install detect-secrets
+
+      - name: Scan for secrets
+        run: |
+          mkdir -p security
+
+          # Scan for new secrets against baseline
+          detect-secrets scan \
+            --baseline .secrets.baseline \
+            --exclude-files '\.lock$' \
+            --exclude-files 'package-lock\.json$' \
+            --exclude-files 'node_modules/' \
+            --exclude-files 'dist/' \
+            --exclude-files '\.secrets\.baseline$' \
+            > security/secrets-scan.json 2>&1 || true
+
+          # Generate reports and check for secrets
+          python3 .github/scripts/generate-secrets-report.py
+
+          # Fail if new secrets were detected
+          NEW_SECRETS=$(python3 -c "
+          import json
+          with open('security/secrets-scan.json') as f:
+              data = json.load(f)
+          count = sum(len(v) for v in data.get('results', {}).values())
+          print(count)
+          " 2>/dev/null || echo "0")
+          if [ "$NEW_SECRETS" -gt 0 ]; then
+            echo "BLOCKING: Detected $NEW_SECRETS potential secrets"
+            exit 1
+          fi
+
+      - name: Upload secrets scan artifact
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: secrets-detection
           path: security/
           retention-days: 30
 
@@ -877,10 +935,10 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -894,54 +952,329 @@ jobs:
           mkdir -p bundle
           npm run build
 
-          # Analyze bundle sizes
+          # Analyze bundle sizes (raw and gzipped)
           node << 'EOF'
           const fs = require('fs');
           const path = require('path');
+          const zlib = require('zlib');
 
           const distDir = 'dist/assets';
           let totalSize = 0;
+          let totalGzipSize = 0;
           let jsSize = 0;
+          let jsGzipSize = 0;
           let cssSize = 0;
+          let cssGzipSize = 0;
           const files = [];
 
           if (fs.existsSync(distDir)) {
             fs.readdirSync(distDir).forEach(file => {
+              // Skip source maps - they aren't served to users
+              if (file.endsWith('.map')) return;
+
               const filePath = path.join(distDir, file);
-              const stats = fs.statSync(filePath);
-              const sizeKB = Math.round(stats.size / 1024 * 100) / 100;
-              totalSize += stats.size;
+              const content = fs.readFileSync(filePath);
+              const rawSize = content.length;
+              const gzipSize = zlib.gzipSync(content).length;
 
-              if (file.endsWith('.js')) jsSize += stats.size;
-              if (file.endsWith('.css')) cssSize += stats.size;
+              const sizeKB = Math.round(rawSize / 1024 * 100) / 100;
+              const gzipSizeKB = Math.round(gzipSize / 1024 * 100) / 100;
 
-              files.push({ name: file, size_kb: sizeKB });
+              totalSize += rawSize;
+              totalGzipSize += gzipSize;
+
+              if (file.endsWith('.js')) {
+                jsSize += rawSize;
+                jsGzipSize += gzipSize;
+              }
+              if (file.endsWith('.css')) {
+                cssSize += rawSize;
+                cssGzipSize += gzipSize;
+              }
+
+              files.push({ name: file, size_kb: sizeKB, gzip_kb: gzipSizeKB });
             });
           }
 
+          // Rating based on gzipped size (actual transfer size)
+          // A: < 150KB gzipped, B: < 300KB, C: < 500KB, D: >= 500KB
+          const gzipKB = Math.round(totalGzipSize / 1024 * 100) / 100;
+          let rating;
+          if (gzipKB < 150) rating = 'A';
+          else if (gzipKB < 300) rating = 'B';
+          else if (gzipKB < 500) rating = 'C';
+          else rating = 'D';
+
           const summary = {
             total_size_kb: Math.round(totalSize / 1024 * 100) / 100,
+            total_gzip_kb: gzipKB,
             js_size_kb: Math.round(jsSize / 1024 * 100) / 100,
+            js_gzip_kb: Math.round(jsGzipSize / 1024 * 100) / 100,
             css_size_kb: Math.round(cssSize / 1024 * 100) / 100,
+            css_gzip_kb: Math.round(cssGzipSize / 1024 * 100) / 100,
             files: files.sort((a, b) => b.size_kb - a.size_kb),
-            rating: totalSize < 500000 ? 'A' : totalSize < 1000000 ? 'B' : totalSize < 2000000 ? 'C' : 'D'
+            rating: rating
           };
 
           fs.writeFileSync('bundle/summary.json', JSON.stringify(summary, null, 2));
           console.log('Bundle summary:', JSON.stringify(summary, null, 2));
+          console.log(`\nActual transfer size (gzipped): ${gzipKB}KB`);
+
+          // Fail if total gzipped size exceeds 300KB
+          if (totalGzipSize > 300000) {
+            console.error(`BLOCKING: Bundle size ${gzipKB}KB exceeds 300KB limit`);
+            process.exit(1);
+          }
           EOF
 
       - name: Upload bundle artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: frontend-bundle
           path: frontend/bundle/
           retention-days: 30
 
+  migration-check:
+    name: Migration Check
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: cookie_test
+          POSTGRES_USER: cookie
+          POSTGRES_PASSWORD: cookie_test  # pragma: allowlist secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Check for missing migrations
+        run: python manage.py makemigrations --check --dry-run
+        env:
+          DJANGO_SETTINGS_MODULE: cookie.settings
+          DATABASE_URL: postgres://cookie:cookie_test@localhost:5432/cookie_test  # pragma: allowlist secret
+          SECURE_SSL_REDIRECT: "false"
+
+  trivy-scan:
+    name: Docker Image Scan (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Build production image
+        run: docker build -f Dockerfile.prod -t cookie:ci-scan .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        with:
+          image-ref: 'cookie:ci-scan'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+
+      - name: Run Trivy (SARIF output for artifacts)
+        if: always()
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        with:
+          image-ref: 'cookie:ci-scan'
+          format: 'json'
+          output: 'trivy-results.json'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          ignore-unfixed: true
+
+      - name: Upload Trivy results
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: trivy-scan
+          path: trivy-results.json
+          retention-days: 30
+
+  semgrep:
+    name: SAST (Semgrep)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: '3.12'
+
+      - name: Install Semgrep
+        run: pip install semgrep
+
+      - name: Run Semgrep (Python/Django)
+        run: |
+          mkdir -p semgrep-results
+          semgrep scan \
+            --config p/django \
+            --config p/python \
+            --json --output semgrep-results/backend.json \
+            apps/ cookie/ \
+            || true
+
+      - name: Run Semgrep (TypeScript/React)
+        run: |
+          semgrep scan \
+            --config p/react \
+            --config p/typescript \
+            --json --output semgrep-results/frontend.json \
+            frontend/src/ \
+            || true
+
+      - name: Check for high-severity findings
+        run: |
+          python3 << 'EOF'
+          import json
+          import sys
+
+          total_errors = 0
+          for report_file in ['semgrep-results/backend.json', 'semgrep-results/frontend.json']:
+              try:
+                  with open(report_file) as f:
+                      data = json.load(f)
+                  for result in data.get('results', []):
+                      severity = result.get('extra', {}).get('severity', '').upper()
+                      if severity == 'ERROR':
+                          total_errors += 1
+                          msg = result.get('extra', {}).get('message', 'No message')
+                          path = result.get('path', 'unknown')
+                          line = result.get('start', {}).get('line', '?')
+                          print(f"HIGH: {path}:{line} - {msg}")
+              except FileNotFoundError:
+                  pass
+
+          if total_errors > 0:
+              print(f"\nBLOCKING: Semgrep found {total_errors} high-severity findings")
+              sys.exit(1)
+          else:
+              print("Semgrep: No high-severity findings")
+          EOF
+
+      - name: Upload Semgrep results
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: semgrep-results
+          path: semgrep-results/
+          retention-days: 30
+
+  hadolint:
+    name: Dockerfile Lint (Hadolint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Lint Dockerfile (dev)
+        uses: hadolint/hadolint-action@2332a7b74a6de0dda2e2221d575162eba76ba5e5 # v3.3.0
+        with:
+          dockerfile: Dockerfile
+          failure-threshold: warning
+
+      - name: Lint Dockerfile.prod
+        uses: hadolint/hadolint-action@2332a7b74a6de0dda2e2221d575162eba76ba5e5 # v3.3.0
+        with:
+          dockerfile: Dockerfile.prod
+          failure-threshold: warning
+
+  django-deploy-check:
+    name: Django Deploy Check
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: cookie_test
+          POSTGRES_USER: cookie
+          POSTGRES_PASSWORD: cookie_test  # pragma: allowlist secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Django deployment checks
+        run: |
+          python manage.py check --deploy --fail-level WARNING 2>&1 | tee deploy-check.txt
+          # Allow known warnings that are handled by the reverse proxy
+          # (SECURE_SSL_REDIRECT, SECURE_HSTS_SECONDS are handled by nginx)
+          CRITICAL=$(grep -c "CRITICAL" deploy-check.txt || true)
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "BLOCKING: Django deploy check found critical issues"
+            exit 1
+          fi
+        env:
+          DJANGO_SETTINGS_MODULE: cookie.settings
+          DATABASE_URL: postgres://cookie:cookie_test@localhost:5432/cookie_test  # pragma: allowlist secret
+          DEBUG: "false"
+          SECRET_KEY: ci-test-secret-key-not-for-production  # pragma: allowlist secret
+          SECURE_SSL_REDIRECT: "false"
+
+  gitleaks:
+    name: Secret Scanning (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0  # Full history for thorough scanning
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+      - name: Upload Gitleaks results
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: gitleaks-results
+          path: results.sarif
+          retention-days: 30
+          if-no-files-found: ignore
+
   ci-success:
     name: CI Success
     runs-on: ubuntu-latest
-    needs: [frontend-lint, frontend-typecheck, frontend-test, backend-test, backend-lint, backend-complexity, frontend-complexity, frontend-duplication, backend-duplication, legacy-lint, legacy-duplication]
+    needs: [frontend-lint, frontend-typecheck, frontend-test, backend-test, backend-lint, backend-complexity, frontend-complexity, frontend-duplication, backend-duplication, legacy-lint, legacy-duplication, frontend-security, backend-security, secrets-detection, frontend-bundle, migration-check, trivy-scan, semgrep, hadolint, django-deploy-check, gitleaks]
     if: always()
     steps:
       - name: Check all jobs passed
@@ -966,6 +1299,32 @@ jobs:
              [[ "${{ needs.legacy-duplication.result }}" != "success" ]]; then
             echo "Legacy JS quality checks failed"
             exit 1
+          fi
+          # Security jobs must pass
+          if [[ "${{ needs.frontend-security.result }}" != "success" ]] || \
+             [[ "${{ needs.backend-security.result }}" != "success" ]] || \
+             [[ "${{ needs.secrets-detection.result }}" != "success" ]] || \
+             [[ "${{ needs.gitleaks.result }}" != "success" ]] || \
+             [[ "${{ needs.semgrep.result }}" != "success" ]]; then
+            echo "One or more security jobs failed"
+            exit 1
+          fi
+          # Docker security jobs must pass
+          if [[ "${{ needs.trivy-scan.result }}" != "success" ]] || \
+             [[ "${{ needs.hadolint.result }}" != "success" ]]; then
+            echo "Docker security checks failed"
+            exit 1
+          fi
+          # Bundle size and migration checks must pass
+          if [[ "${{ needs.frontend-bundle.result }}" != "success" ]] || \
+             [[ "${{ needs.migration-check.result }}" != "success" ]]; then
+            echo "Bundle size or migration check failed"
+            exit 1
+          fi
+          # Django deploy check is informational (warn but don't fail)
+          # Many warnings are handled by reverse proxy (HSTS, SSL redirect)
+          if [[ "${{ needs.django-deploy-check.result }}" != "success" ]]; then
+            echo "Warning: Django deploy check had issues, but continuing..."
           fi
           # Backend analysis jobs are informational (warn but don't fail)
           if [[ "${{ needs.backend-complexity.result }}" != "success" ]]; then

@@ -1,0 +1,98 @@
+{% extends "legacy/base.html" %}
+{% block title %}Login - Cookie{% endblock %}
+
+{% block content %}
+<div style="display:-webkit-flex;display:flex;min-height:100vh;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;padding:20px;">
+  <div style="width:100%;max-width:340px;">
+    <h1 style="text-align:center;font-size:28px;margin-bottom:4px;">Cookie</h1>
+    <p style="text-align:center;color:#888;margin-bottom:24px;font-size:14px;">Sign in to your account</p>
+
+    {% if verified %}
+    <div id="verified-msg" style="background:#e6f9e6;color:#2d6b2d;padding:10px;border-radius:6px;margin-bottom:16px;font-size:14px;">
+      Your email has been verified. You can now log in.
+    </div>
+    {% endif %}
+
+    <div id="error-msg" style="display:none;background:#fde8e8;color:#9b1c1c;padding:10px;border-radius:6px;margin-bottom:16px;font-size:14px;"></div>
+
+    <form id="login-form" onsubmit="return handleLogin(event)">
+      <div style="margin-bottom:12px;">
+        <label for="username" style="display:block;font-size:14px;font-weight:500;margin-bottom:4px;">Username</label>
+        <input id="username" type="text" autocomplete="username" required
+               style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;font-size:16px;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label for="password" style="display:block;font-size:14px;font-weight:500;margin-bottom:4px;">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required
+               style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;font-size:16px;box-sizing:border-box;">
+      </div>
+      <button type="submit" id="submit-btn"
+              style="width:100%;padding:10px;background:#d97850;color:#fff;border:none;border-radius:6px;font-size:16px;cursor:pointer;">
+        Sign in
+      </button>
+    </form>
+
+    <p style="text-align:center;margin-top:16px;font-size:14px;color:#888;">
+      Don't have an account? <a href="/legacy/register/" style="color:#d97850;">Register</a>
+    </p>
+    <p style="text-align:center;font-size:13px;color:#aaa;margin-top:8px;">
+      Forgot your password? Contact the site administrator.
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ES5 only — iOS 9 compatible */
+function handleLogin(e) {
+  e.preventDefault();
+  var errorEl = document.getElementById('error-msg');
+  var btn = document.getElementById('submit-btn');
+  var username = document.getElementById('username').value;
+  var password = document.getElementById('password').value;
+
+  errorEl.style.display = 'none';
+  btn.textContent = 'Signing in...';
+  btn.disabled = true;
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', '/api/auth/login/');
+  xhr.setRequestHeader('Content-Type', 'application/json');
+
+  var csrfValue = '';
+  var cookieParts = ('; ' + document.cookie).split('; csrftoken=');
+  if (cookieParts.length === 2) {
+    csrfValue = cookieParts.pop().split(';').shift();
+  }
+  if (csrfValue) {
+    xhr.setRequestHeader('X-CSRFToken', csrfValue);
+  }
+
+  xhr.onload = function() {
+    btn.textContent = 'Sign in';
+    btn.disabled = false;
+    if (xhr.status === 200) {
+      window.location.href = '/legacy/home/';
+    } else {
+      try {
+        var data = JSON.parse(xhr.responseText);
+        errorEl.textContent = data.error || 'Login failed';
+      } catch(ex) {
+        errorEl.textContent = 'Login failed';
+      }
+      errorEl.style.display = 'block';
+    }
+  };
+  xhr.onerror = function() {
+    btn.textContent = 'Sign in';
+    btn.disabled = false;
+    errorEl.textContent = 'Network error. Please try again.';
+    errorEl.style.display = 'block';
+  };
+
+  xhr.send(JSON.stringify({username: username, password: password}));
+  return false;
+}
+</script>
+{% endblock %}
