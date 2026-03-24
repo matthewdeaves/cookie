@@ -366,7 +366,7 @@ export default function Home() {
                     Something went wrong. Please try again.
                   </p>
                   <button
-                    onClick={loadDiscoverSuggestions}
+                    onClick={() => loadDiscoverSuggestions()}
                     className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-primary/90"
                   >
                     <RefreshCw className="h-4 w-4" />
