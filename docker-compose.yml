@@ -24,6 +24,7 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
+      - DEBUG=true
       - DATABASE_URL=postgres://cookie:cookie_dev@db:5432/cookie
       - AUTH_MODE=${AUTH_MODE:-home}
       - DEV_TOOLS=1

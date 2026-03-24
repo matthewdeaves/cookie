@@ -5,7 +5,6 @@ import logging
 import time
 from typing import Any
 
-import httpx
 from openrouter import OpenRouter
 
 from apps.core.models import AppSettings
@@ -39,11 +38,6 @@ class OpenRouterService:
     KEY_VALIDATION_TTL = 300  # 5 minutes
 
     def __init__(self, api_key: str | None = None):
-        """Initialize the service with an API key.
-
-        Args:
-            api_key: OpenRouter API key. If None, fetches from AppSettings.
-        """
         if api_key is None:
             settings = AppSettings.get()
             api_key = settings.openrouter_api_key
@@ -54,21 +48,9 @@ class OpenRouterService:
         self.api_key = api_key
 
     def _parse_json_response(self, content: str) -> dict:
-        """Parse JSON from AI response, handling markdown code blocks.
-
-        Args:
-            content: Raw response content from the AI.
-
-        Returns:
-            Parsed JSON as a dict.
-
-        Raises:
-            AIResponseError: If the content is not valid JSON.
-        """
+        """Parse JSON from AI response, handling markdown code blocks."""
         try:
-            # Handle potential markdown code blocks
             if content.startswith("```"):
-                # Extract JSON from code block
                 lines = content.split("\n")
                 json_lines = []
                 in_block = False
@@ -93,35 +75,23 @@ class OpenRouterService:
         json_response: bool = True,
         timeout: int = 30,
     ) -> dict[str, Any]:
-        """Send a completion request to OpenRouter.
-
-        Args:
-            system_prompt: System message for the AI.
-            user_prompt: User message/query.
-            model: Model identifier (e.g., 'anthropic/claude-3.5-haiku').
-            json_response: Whether to request JSON output.
-
-        Returns:
-            Parsed JSON response from the AI, or raw text response.
-
-        Raises:
-            AIUnavailableError: If no API key is configured.
-            AIResponseError: If the response is invalid.
-        """
+        """Send a completion request to OpenRouter."""
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ]
 
+        timeout_ms = timeout * 1000
+
         try:
-            with OpenRouter(api_key=self.api_key, timeout=httpx.Timeout(timeout)) as client:
+            with OpenRouter(api_key=self.api_key) as client:
                 response = client.chat.send(
                     messages=messages,
                     model=model,
                     stream=False,
+                    timeout_ms=timeout_ms,
                 )
 
-            # Extract the response content
             if not response or not hasattr(response, "choices"):
                 raise AIResponseError("Invalid response structure from OpenRouter")
 
@@ -149,31 +119,23 @@ class OpenRouterService:
         json_response: bool = True,
         timeout: int = 30,
     ) -> dict[str, Any]:
-        """Async version of complete().
-
-        Args:
-            system_prompt: System message for the AI.
-            user_prompt: User message/query.
-            model: Model identifier (e.g., 'anthropic/claude-3.5-haiku').
-            json_response: Whether to request JSON output.
-
-        Returns:
-            Parsed JSON response from the AI, or raw text response.
-        """
+        """Async version of complete()."""
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ]
 
+        timeout_ms = timeout * 1000
+
         try:
-            async with OpenRouter(api_key=self.api_key, timeout=httpx.Timeout(timeout)) as client:
+            async with OpenRouter(api_key=self.api_key) as client:
                 response = await client.chat.send_async(
                     messages=messages,
                     model=model,
                     stream=False,
+                    timeout_ms=timeout_ms,
                 )
 
-            # Extract the response content
             if not response or not hasattr(response, "choices"):
                 raise AIResponseError("Invalid response structure from OpenRouter")
 
@@ -200,14 +162,7 @@ class OpenRouterService:
         return bool(settings.openrouter_api_key)
 
     def get_available_models(self) -> list[dict[str, str]]:
-        """Get list of available models from OpenRouter.
-
-        Returns:
-            List of dicts with 'id' and 'name' keys for each available model.
-
-        Raises:
-            AIResponseError: If the API call fails.
-        """
+        """Get list of available models from OpenRouter."""
         try:
             with OpenRouter(api_key=self.api_key) as client:
                 response = client.models.list()
@@ -229,17 +184,9 @@ class OpenRouterService:
 
     @classmethod
     def test_connection(cls, api_key: str) -> tuple[bool, str]:
-        """Test if an API key is valid by making a minimal request.
-
-        Args:
-            api_key: The API key to test.
-
-        Returns:
-            Tuple of (success: bool, message: str)
-        """
+        """Test if an API key is valid by making a minimal request."""
         try:
             service = cls(api_key=api_key)
-            # Make a minimal test request
             service.complete(
                 system_prompt='Respond with exactly: {"status": "ok"}',
                 user_prompt="Test connection",
@@ -257,14 +204,7 @@ class OpenRouterService:
 
     @classmethod
     def validate_key_cached(cls, api_key: str | None = None) -> tuple[bool, str | None]:
-        """Validate API key with caching to avoid excessive API calls.
-
-        Args:
-            api_key: API key to validate. If None, fetches from AppSettings.
-
-        Returns:
-            Tuple of (is_valid: bool, error_message: str | None)
-        """
+        """Validate API key with caching to avoid excessive API calls."""
         if api_key is None:
             settings = AppSettings.get()
             api_key = settings.openrouter_api_key
@@ -275,13 +215,11 @@ class OpenRouterService:
         key_hash = hash(api_key)
         now = time.time()
 
-        # Check cache
         if key_hash in cls._key_validation_cache:
             is_valid, timestamp = cls._key_validation_cache[key_hash]
             if now - timestamp < cls.KEY_VALIDATION_TTL:
                 return is_valid, None if is_valid else "API key is invalid or expired"
 
-        # Validate with API
         try:
             is_valid, message = cls.test_connection(api_key)
             cls._key_validation_cache[key_hash] = (is_valid, now)
