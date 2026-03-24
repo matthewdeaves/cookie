@@ -69,6 +69,7 @@ def repair_selector(
         user_prompt=user_prompt,
         model=prompt.model,
         json_response=True,
+        timeout=10,
     )
 
     # Validate response

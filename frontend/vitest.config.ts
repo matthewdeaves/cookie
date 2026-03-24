@@ -20,12 +20,11 @@ export default mergeConfig(
           'src/main.tsx',
           'src/vite-env.d.ts'
         ],
-        // TODO: Raise to 75 when more component tests are added
         thresholds: {
-          lines: 50,
-          functions: 50,
-          branches: 45,
-          statements: 50,
+          lines: 75,
+          functions: 75,
+          branches: 75,
+          statements: 75,
         },
       },
     },

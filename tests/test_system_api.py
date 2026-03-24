@@ -143,15 +143,28 @@ def populated_database(db, test_profile):
 
 @pytest.mark.django_db
 class TestHealthCheck:
-    """Tests for GET /api/system/health/"""
+    """Tests for GET /api/system/health/ (liveness probe)"""
 
     def test_health_check_returns_healthy(self, client):
-        """Test health check returns healthy status when database is accessible."""
+        """Test liveness probe returns healthy status."""
         response = client.get("/api/system/health/")
         assert response.status_code == 200
 
         data = response.json()
         assert data["status"] == "healthy"
+
+
+@pytest.mark.django_db
+class TestReadinessCheck:
+    """Tests for GET /api/system/ready/ (readiness probe)"""
+
+    def test_readiness_check_returns_ready(self, client):
+        """Test readiness probe returns ready status when database is accessible."""
+        response = client.get("/api/system/ready/")
+        assert response.status_code == 200
+
+        data = response.json()
+        assert data["status"] == "ready"
         assert data["database"] == "ok"
 
 

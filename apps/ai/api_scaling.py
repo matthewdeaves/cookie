@@ -1,13 +1,17 @@
 """AI recipe scaling API endpoints."""
 
+import logging
 from typing import List, Optional
 
+from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema
 
 from apps.recipes.models import Recipe
 
 from .api import ErrorOut, handle_ai_errors
 from .services.scaling import scale_recipe, calculate_nutrition
+
+security_logger = logging.getLogger("security")
 
 router = Router(tags=["ai"])
 
@@ -43,13 +47,17 @@ class ScaleOut(Schema):
 # Endpoints
 
 
-@router.post("/scale", response={200: ScaleOut, 400: ErrorOut, 404: ErrorOut, 503: ErrorOut})
+@router.post("/scale", response={200: ScaleOut, 400: ErrorOut, 404: ErrorOut, 429: dict, 503: ErrorOut})
+@ratelimit(key="ip", rate="30/h", method="POST", block=False)
 @handle_ai_errors
 def scale_recipe_endpoint(request, data: ScaleIn):
     """Scale a recipe to a different number of servings.
 
     Only works for recipes owned by the requesting profile.
     """
+    if getattr(request, "limited", False):
+        security_logger.warning("Rate limit hit: /ai/scale from %s", request.META.get("REMOTE_ADDR"))
+        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
     from apps.profiles.utils import get_current_profile_or_none
 
     profile = get_current_profile_or_none(request)

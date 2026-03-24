@@ -117,6 +117,7 @@ def create_remix(
         user_prompt=user_prompt,
         model=prompt.model,
         json_response=True,
+        timeout=60,
     )
 
     # Validate response

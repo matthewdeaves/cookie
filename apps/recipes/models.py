@@ -97,6 +97,7 @@ class Recipe(models.Model):
             models.Index(fields=["scraped_at"]),
             models.Index(fields=["profile"]),
             models.Index(fields=["remixed_from"]),
+            models.Index(fields=["title"]),
         ]
 
     def __str__(self):

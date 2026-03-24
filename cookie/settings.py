@@ -71,7 +71,6 @@ TEMPLATES = [
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
-                "django.template.context_processors.debug",
                 "django.template.context_processors.request",
             ],
         },
@@ -81,7 +80,9 @@ TEMPLATES = [
 WSGI_APPLICATION = "cookie.wsgi.application"
 
 # Database configuration
-# PostgreSQL is required — no SQLite fallback
+# PostgreSQL is required — no SQLite fallback.
+# conn_max_age=60 and conn_health_checks=True are appropriate for single-server
+# deployment with Gunicorn. Upgrade path: use pgbouncer for multi-server.
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if not DATABASE_URL:
@@ -127,7 +128,18 @@ MEDIA_ROOT = Path(data_dir) / "data" / "media" if not DEBUG else BASE_DIR / "med
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Cache configuration — database-backed for sharing across Gunicorn workers
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_cache",
+    }
+}
+
 # Session settings
+# Database-backed sessions: intentional for single-server deployment.
+# Upgrade path: switch to django.contrib.sessions.backends.cache with Redis
+# for multi-server deployments.
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_AGE = 43200  # 12 hours
 SESSION_COOKIE_SECURE = not DEBUG
@@ -140,14 +152,18 @@ CSRF_FAILURE_VIEW = "apps.core.views.csrf_failure"
 
 # Production security hardening (inactive in development)
 if not DEBUG:
-    SECURE_HSTS_SECONDS = 3600  # 1 hour; increase after confirming no issues
+    SECURE_HSTS_SECONDS = 63072000  # 2 years, matching nginx.prod.conf
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = False
+    SECURE_HSTS_PRELOAD = True
     SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true").lower() == "true"
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Rate limiting (django-ratelimit)
-RATELIMIT_IP_META_KEY = os.environ.get("RATELIMIT_IP_META_KEY", "HTTP_X_FORWARDED_FOR")
+# In production behind nginx, use X-Forwarded-For. In dev/test, use REMOTE_ADDR.
+RATELIMIT_IP_META_KEY = os.environ.get(
+    "RATELIMIT_IP_META_KEY",
+    "HTTP_X_FORWARDED_FOR" if not DEBUG else "REMOTE_ADDR",
+)
 
 # Logging configuration
 LOGGING = {
@@ -183,6 +199,16 @@ LOGGING = {
         "apps.ai": {
             "handlers": ["console"],
             "level": "INFO",
+            "propagate": False,
+        },
+        "django.security": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "security": {
+            "handlers": ["console"],
+            "level": "WARNING",
             "propagate": False,
         },
     },

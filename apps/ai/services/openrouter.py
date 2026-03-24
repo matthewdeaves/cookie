@@ -5,6 +5,7 @@ import logging
 import time
 from typing import Any
 
+import httpx
 from openrouter import OpenRouter
 
 from apps.core.models import AppSettings
@@ -90,6 +91,7 @@ class OpenRouterService:
         user_prompt: str,
         model: str = "anthropic/claude-3.5-haiku",
         json_response: bool = True,
+        timeout: int = 30,
     ) -> dict[str, Any]:
         """Send a completion request to OpenRouter.
 
@@ -112,7 +114,7 @@ class OpenRouterService:
         ]
 
         try:
-            with OpenRouter(api_key=self.api_key) as client:
+            with OpenRouter(api_key=self.api_key, timeout=httpx.Timeout(timeout)) as client:
                 response = client.chat.send(
                     messages=messages,
                     model=model,
@@ -145,6 +147,7 @@ class OpenRouterService:
         user_prompt: str,
         model: str = "anthropic/claude-3.5-haiku",
         json_response: bool = True,
+        timeout: int = 30,
     ) -> dict[str, Any]:
         """Async version of complete().
 
@@ -163,7 +166,7 @@ class OpenRouterService:
         ]
 
         try:
-            async with OpenRouter(api_key=self.api_key) as client:
+            async with OpenRouter(api_key=self.api_key, timeout=httpx.Timeout(timeout)) as client:
                 response = await client.chat.send_async(
                     messages=messages,
                     model=model,
@@ -242,6 +245,7 @@ class OpenRouterService:
                 user_prompt="Test connection",
                 model="anthropic/claude-3.5-haiku",
                 json_response=True,
+                timeout=10,
             )
             return True, "Connection successful"
         except AIUnavailableError:
