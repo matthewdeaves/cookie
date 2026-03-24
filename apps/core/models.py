@@ -8,7 +8,7 @@ class AppSettings(models.Model):
 
     # Stored encrypted with 'enc:' prefix
     _openrouter_api_key = models.CharField(max_length=500, blank=True, db_column="openrouter_api_key")
-    default_ai_model = models.CharField(max_length=100, default="anthropic/claude-3.5-haiku")
+    default_ai_model = models.CharField(max_length=100, default="anthropic/claude-haiku-4.5")
 
     class Meta:
         verbose_name = "App Settings"

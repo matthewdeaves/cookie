@@ -43,7 +43,10 @@ class ReadySchema(Schema):
 
 @router.get("/mode/", response={200: dict})
 def get_mode(request):
-    """Return the current operating mode."""
+    """Return the current operating mode. Also ensures CSRF cookie is set."""
+    from django.middleware.csrf import get_token
+
+    get_token(request)  # Forces Django to set the CSRF cookie
     result = {"mode": settings.AUTH_MODE}
     if settings.AUTH_MODE == "public":
         result["registration_enabled"] = True
@@ -53,6 +56,9 @@ def get_mode(request):
 @router.get("/health/", response=HealthSchema)
 def health_check(request):
     """Liveness probe — confirms the process is running. No dependency checks."""
+    from django.middleware.csrf import get_token
+
+    get_token(request)  # Ensures CSRF cookie is set for SPA
     return {"status": "healthy"}
 
 

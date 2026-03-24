@@ -71,7 +71,7 @@ class OpenRouterService:
         self,
         system_prompt: str,
         user_prompt: str,
-        model: str = "anthropic/claude-3.5-haiku",
+        model: str = "anthropic/claude-haiku-4.5",
         json_response: bool = True,
         timeout: int = 30,
     ) -> dict[str, Any]:
@@ -115,7 +115,7 @@ class OpenRouterService:
         self,
         system_prompt: str,
         user_prompt: str,
-        model: str = "anthropic/claude-3.5-haiku",
+        model: str = "anthropic/claude-haiku-4.5",
         json_response: bool = True,
         timeout: int = 30,
     ) -> dict[str, Any]:

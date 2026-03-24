@@ -30,6 +30,7 @@ python manage.py createcachetable
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
+
 # Clean up stale unverified accounts (public mode only)
 if [ "$AUTH_MODE" = "public" ]; then
   echo "Cleaning up unverified accounts..."

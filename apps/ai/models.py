@@ -55,7 +55,7 @@ class AIPrompt(models.Model):
 
     AVAILABLE_MODELS = [
         # Anthropic Claude
-        ("anthropic/claude-3.5-haiku", "Claude 3.5 Haiku (Fast)"),
+        ("anthropic/claude-haiku-4.5", "Claude Haiku 4.5 (Fast)"),
         ("anthropic/claude-sonnet-4", "Claude Sonnet 4"),
         ("anthropic/claude-opus-4", "Claude Opus 4"),
         ("anthropic/claude-opus-4.5", "Claude Opus 4.5"),
@@ -81,7 +81,7 @@ class AIPrompt(models.Model):
     model = models.CharField(
         max_length=100,
         choices=AVAILABLE_MODELS,
-        default="anthropic/claude-3.5-haiku",
+        default="anthropic/claude-haiku-4.5",
         help_text="AI model to use for this prompt",
     )
     is_active = models.BooleanField(default=True, help_text="Whether this prompt is enabled")
