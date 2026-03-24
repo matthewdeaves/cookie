@@ -161,7 +161,7 @@ def get_ai_status(request):
 
 
 @router.post("/test-api-key", response={200: TestApiKeyOut, 400: ErrorOut, 429: dict}, auth=AdminAuth())
-@ratelimit(key="ip", rate="5/h", method="POST", block=False)
+@ratelimit(key="ip", rate="20/h", method="POST", block=False)
 def test_api_key(request, data: TestApiKeyIn):
     """Test if an API key is valid."""
     if getattr(request, "limited", False):
@@ -180,7 +180,7 @@ def test_api_key(request, data: TestApiKeyIn):
 
 
 @router.post("/save-api-key", response={200: SaveApiKeyOut, 400: ErrorOut, 429: dict}, auth=AdminAuth())
-@ratelimit(key="ip", rate="3/h", method="POST", block=False)
+@ratelimit(key="ip", rate="20/h", method="POST", block=False)
 def save_api_key(request, data: SaveApiKeyIn):
     """Save the OpenRouter API key."""
     if getattr(request, "limited", False):
