@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -28,6 +29,13 @@ class Profile(models.Model):
         ("imperial", "Imperial"),
     ]
 
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="profile",
+    )
     name = models.CharField(max_length=100)
     avatar_color = models.CharField(max_length=7)  # Hex color
     theme = models.CharField(max_length=10, choices=THEME_CHOICES, default="light")

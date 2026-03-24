@@ -19,6 +19,8 @@ import {
 } from '../api/client'
 import { cn } from '../lib/utils'
 import { useProfile } from '../contexts/ProfileContext'
+import { useMode } from '../router'
+import { useAuth } from '../contexts/AuthContext'
 import NavHeader from '../components/NavHeader'
 import {
   SettingsGeneral,
@@ -29,11 +31,21 @@ import {
   SettingsDanger,
 } from '../components/settings'
 
-type Tab = 'general' | 'prompts' | 'sources' | 'selectors' | 'users' | 'danger'
+type Tab = 'general' | 'prompts' | 'sources' | 'selectors' | 'users' | 'danger' | 'account'
+
+function useIsAdmin(): boolean {
+  const mode = useMode()
+  if (mode === 'public') {
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- Safe: mode is stable after mount
+    return useAuth().isAdmin
+  }
+  return true
+}
 
 export default function Settings() {
   const { profile } = useProfile()
   const currentProfileId = profile?.id
+  const isAdmin = useIsAdmin()
 
   const [activeTab, setActiveTab] = useState<Tab>('general')
   const [aiStatus, setAiStatus] = useState<AIStatus | null>(null)
@@ -92,76 +104,86 @@ export default function Settings() {
                 General
               </span>
             </button>
-            <button
-              onClick={() => setActiveTab('prompts')}
-              className={cn(
-                'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
-                activeTab === 'prompts'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <span className="flex items-center gap-2">
-                <Bot className="h-4 w-4" />
-                AI Prompts
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('sources')}
-              className={cn(
-                'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
-                activeTab === 'sources'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <span className="flex items-center gap-2">
-                <Globe className="h-4 w-4" />
-                Sources
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('selectors')}
-              className={cn(
-                'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
-                activeTab === 'selectors'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <span className="flex items-center gap-2">
-                <Code className="h-4 w-4" />
-                Selectors
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('users')}
-              className={cn(
-                'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
-                activeTab === 'users'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <span className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Users
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('danger')}
-              className={cn(
-                'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
-                activeTab === 'danger'
-                  ? 'border-destructive text-destructive'
-                  : 'border-transparent text-muted-foreground hover:text-destructive'
-              )}
-            >
-              <span className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4" />
-                Danger Zone
-              </span>
-            </button>
+            {isAdmin && (
+              <button
+                onClick={() => setActiveTab('prompts')}
+                className={cn(
+                  'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
+                  activeTab === 'prompts'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <span className="flex items-center gap-2">
+                  <Bot className="h-4 w-4" />
+                  AI Prompts
+                </span>
+              </button>
+            )}
+            {isAdmin && (
+              <button
+                onClick={() => setActiveTab('sources')}
+                className={cn(
+                  'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
+                  activeTab === 'sources'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <span className="flex items-center gap-2">
+                  <Globe className="h-4 w-4" />
+                  Sources
+                </span>
+              </button>
+            )}
+            {isAdmin && (
+              <button
+                onClick={() => setActiveTab('selectors')}
+                className={cn(
+                  'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
+                  activeTab === 'selectors'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <span className="flex items-center gap-2">
+                  <Code className="h-4 w-4" />
+                  Selectors
+                </span>
+              </button>
+            )}
+            {isAdmin && (
+              <button
+                onClick={() => setActiveTab('users')}
+                className={cn(
+                  'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
+                  activeTab === 'users'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <span className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Users
+                </span>
+              </button>
+            )}
+            {isAdmin && (
+              <button
+                onClick={() => setActiveTab('danger')}
+                className={cn(
+                  'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
+                  activeTab === 'danger'
+                    ? 'border-destructive text-destructive'
+                    : 'border-transparent text-muted-foreground hover:text-destructive'
+                )}
+              >
+                <span className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  Danger Zone
+                </span>
+              </button>
+            )}
           </div>
         </div>
       </div>

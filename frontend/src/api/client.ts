@@ -1,4 +1,9 @@
 import type {
+  AuthResponse,
+  LoginRequest,
+  RegisterRequest,
+  ChangePasswordRequest,
+  ModeResponse,
   AIStatus,
   AIErrorResponse,
   AIModel,
@@ -43,6 +48,11 @@ import type {
 
 // Re-export all types for consumers
 export type {
+  AuthResponse,
+  LoginRequest,
+  RegisterRequest,
+  ChangePasswordRequest,
+  ModeResponse,
   AIStatus,
   AIErrorResponse,
   AIModel,
@@ -115,18 +125,23 @@ async function request<T>(
   const response = await fetch(url, config)
 
   if (!response.ok) {
-    // Read body as text first (can only be read once)
     const errorText = await response.text()
     let errorMessage = errorText || `Request failed with status ${response.status}`
+    let errorBody: Record<string, unknown> | null = null
 
-    // Try to parse as JSON to extract detail/message
     try {
-      const errorData = JSON.parse(errorText)
-      errorMessage = errorData.detail || errorData.message || errorMessage
+      errorBody = JSON.parse(errorText)
+      errorMessage = (errorBody as Record<string, string>).detail
+        || (errorBody as Record<string, string>).message
+        || errorMessage
     } catch {
       // Not JSON, use text as-is
     }
-    throw new Error(errorMessage)
+
+    const error = new Error(errorMessage) as Error & { status: number; body: Record<string, unknown> | null }
+    error.status = response.status
+    error.body = errorBody
+    throw error
   }
 
   // Handle 204 No Content
@@ -373,12 +388,41 @@ export const api = {
   },
 
   system: {
+    mode: () => request<ModeResponse>('/system/mode/'),
+
     resetPreview: () => request<ResetPreview>('/system/reset-preview/'),
 
     reset: (confirmationText: string) =>
       request<ResetResult>('/system/reset/', {
         method: 'POST',
         body: JSON.stringify({ confirmation_text: confirmationText }),
+      }),
+  },
+
+  auth: {
+    login: (data: LoginRequest) =>
+      request<AuthResponse>('/auth/login/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    logout: () =>
+      request<{ message: string }>('/auth/logout/', {
+        method: 'POST',
+      }),
+
+    register: (data: RegisterRequest) =>
+      request<{ message: string }>('/auth/register/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    me: () => request<AuthResponse>('/auth/me/'),
+
+    changePassword: (data: ChangePasswordRequest) =>
+      request<{ message: string }>('/auth/change-password/', {
+        method: 'POST',
+        body: JSON.stringify(data),
       }),
   },
 }

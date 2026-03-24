@@ -2,6 +2,7 @@
 
 from functools import wraps
 
+from django.conf import settings as django_settings
 from django.shortcuts import render, redirect, get_object_or_404
 
 from apps.core.models import AppSettings
@@ -19,29 +20,57 @@ from apps.recipes.models import (
 def require_profile(view_func):
     """Decorator to ensure a profile is selected and valid.
 
-    Gets profile_id from session, validates it exists, and adds
-    the Profile instance to request.profile.
-
-    Redirects to profile_selector if:
-    - No profile_id in session
-    - Profile doesn't exist (also clears session)
+    In public mode, redirects to login instead of profile_selector.
     """
 
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         profile_id = request.session.get("profile_id")
+        redirect_target = "legacy:login" if django_settings.AUTH_MODE == "public" else "legacy:profile_selector"
+
         if not profile_id:
-            return redirect("legacy:profile_selector")
+            return redirect(redirect_target)
 
         try:
             request.profile = Profile.objects.get(id=profile_id)
         except Profile.DoesNotExist:
-            del request.session["profile_id"]
-            return redirect("legacy:profile_selector")
+            request.session.pop("profile_id", None)
+            return redirect(redirect_target)
+
+        # In public mode, check that profile has a linked active user
+        if django_settings.AUTH_MODE == "public":
+            if not request.profile.user or not request.profile.user.is_active:
+                request.session.pop("profile_id", None)
+                return redirect(redirect_target)
+            request.is_admin = request.profile.user.is_staff
+        else:
+            request.is_admin = True
 
         return view_func(request, *args, **kwargs)
 
     return wrapper
+
+
+def require_admin(view_func):
+    """Decorator for admin-only legacy views (public mode)."""
+
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if django_settings.AUTH_MODE == "public" and not getattr(request, "is_admin", False):
+            return redirect("legacy:home")
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
+
+
+def login_view(request):
+    """Legacy login page."""
+    return render(request, "legacy/login.html", {"verified": request.GET.get("verified") == "true"})
+
+
+def register_view(request):
+    """Legacy registration page."""
+    return render(request, "legacy/register.html")
 
 
 def _is_ai_available() -> bool:
@@ -54,7 +83,9 @@ def _is_ai_available() -> bool:
 
 
 def profile_selector(request):
-    """Profile selector screen."""
+    """Profile selector screen. In public mode, redirects to login."""
+    if django_settings.AUTH_MODE == "public":
+        return redirect("legacy:login")
     profiles = list(Profile.objects.all().values("id", "name", "avatar_color", "theme", "unit_preference"))
     return render(
         request,

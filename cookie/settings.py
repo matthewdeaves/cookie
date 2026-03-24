@@ -41,7 +41,15 @@ USE_X_FORWARDED_HOST = True
 csrf_origins = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in csrf_origins.split(",") if o.strip()]
 
+# ===========================================
+# Authentication Mode
+# ===========================================
+# "home" (default): Profile-based sessions, no user accounts, no login required.
+# "public": Full authentication with username/password accounts and email verification.
+AUTH_MODE = os.environ.get("AUTH_MODE", "home")
+
 INSTALLED_APPS = [
+    "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.staticfiles",
@@ -59,8 +67,15 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.core.middleware.RequestIDMiddleware",
     "apps.core.middleware.DeviceDetectionMiddleware",
 ]
+
+# Conditionally add Django auth middleware in public mode
+if AUTH_MODE == "public":
+    # Insert AuthenticationMiddleware after SessionMiddleware
+    _session_idx = MIDDLEWARE.index("django.contrib.sessions.middleware.SessionMiddleware")
+    MIDDLEWARE.insert(_session_idx + 1, "django.contrib.auth.middleware.AuthenticationMiddleware")
 
 ROOT_URLCONF = "cookie.urls"
 
@@ -169,6 +184,11 @@ RATELIMIT_IP_META_KEY = os.environ.get(
 )
 
 # Logging configuration
+LOG_FORMAT = os.environ.get("LOG_FORMAT", "text")
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
+
+_log_formatter = "json" if LOG_FORMAT == "json" else "verbose"
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -181,11 +201,14 @@ LOGGING = {
             "format": "{levelname} {message}",
             "style": "{",
         },
+        "json": {
+            "()": "apps.core.logging.JSONFormatter",
+        },
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
+            "formatter": _log_formatter,
         },
     },
     "loggers": {
@@ -211,12 +234,41 @@ LOGGING = {
         },
         "security": {
             "handlers": ["console"],
-            "level": "WARNING",
+            "level": "INFO",
+            "propagate": False,
+        },
+        # Prevent email content from leaking into logs
+        "django.core.mail": {
+            "handlers": ["console"],
+            "level": "CRITICAL",
             "propagate": False,
         },
     },
     "root": {
         "handlers": ["console"],
-        "level": "WARNING",
+        "level": LOG_LEVEL,
     },
 }
+
+# ===========================================
+# Email Configuration (Public Mode)
+# ===========================================
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@cookie.local")
+AWS_SES_REGION_NAME = os.environ.get("AWS_SES_REGION_NAME", "eu-west-2")
+
+# Site URL for building verification links
+SITE_URL = os.environ.get("SITE_URL", "http://localhost:3000")
+
+# ===========================================
+# Password Validation
+# ===========================================
+# Always defined — only enforced when AUTH_MODE=public (via auth_api.py's validate_password calls)
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 8}},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]

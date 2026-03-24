@@ -14,7 +14,7 @@ from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from ninja import Router, Schema
 
-from apps.core.auth import SessionAuth
+from apps.core.auth import AdminAuth, SessionAuth
 from apps.profiles.utils import aget_current_profile_or_none, get_current_profile_or_none
 
 from .models import Recipe
@@ -324,7 +324,7 @@ async def search_recipes(
     return results
 
 
-@router.get("/cache/health/", response={200: dict})
+@router.get("/cache/health/", response={200: dict}, auth=AdminAuth())
 def cache_health(request):
     """
     Health check endpoint for image cache monitoring.

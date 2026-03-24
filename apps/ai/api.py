@@ -18,7 +18,7 @@ from .services.tips import generate_tips, clear_tips
 from .services.timer import generate_timer_name
 from .services.selector import repair_selector, get_sources_needing_attention
 from .services.validator import ValidationError
-from apps.core.auth import SessionAuth
+from apps.core.auth import AdminAuth, SessionAuth
 
 security_logger = logging.getLogger("security")
 
@@ -160,7 +160,7 @@ def get_ai_status(request):
     return status
 
 
-@router.post("/test-api-key", response={200: TestApiKeyOut, 400: ErrorOut, 429: dict}, auth=SessionAuth())
+@router.post("/test-api-key", response={200: TestApiKeyOut, 400: ErrorOut, 429: dict}, auth=AdminAuth())
 @ratelimit(key="ip", rate="5/h", method="POST", block=False)
 def test_api_key(request, data: TestApiKeyIn):
     """Test if an API key is valid."""
@@ -179,7 +179,7 @@ def test_api_key(request, data: TestApiKeyIn):
     }
 
 
-@router.post("/save-api-key", response={200: SaveApiKeyOut, 400: ErrorOut, 429: dict}, auth=SessionAuth())
+@router.post("/save-api-key", response={200: SaveApiKeyOut, 400: ErrorOut, 429: dict}, auth=AdminAuth())
 @ratelimit(key="ip", rate="3/h", method="POST", block=False)
 def save_api_key(request, data: SaveApiKeyIn):
     """Save the OpenRouter API key."""
@@ -218,7 +218,7 @@ def get_prompt(request, prompt_type: str):
         }
 
 
-@router.put("/prompts/{prompt_type}", response={200: PromptOut, 404: ErrorOut, 422: ErrorOut}, auth=SessionAuth())
+@router.put("/prompts/{prompt_type}", response={200: PromptOut, 404: ErrorOut, 422: ErrorOut}, auth=AdminAuth())
 def update_prompt(request, prompt_type: str, data: PromptUpdateIn):
     """Update a specific AI prompt."""
     try:
@@ -411,7 +411,7 @@ class SourceNeedingAttentionOut(Schema):
 @router.post(
     "/repair-selector",
     response={200: SelectorRepairOut, 400: ErrorOut, 404: ErrorOut, 429: dict, 503: ErrorOut},
-    auth=SessionAuth(),
+    auth=AdminAuth(),
 )
 @ratelimit(key="ip", rate="5/h", method="POST", block=False)
 @handle_ai_errors
@@ -458,7 +458,7 @@ def repair_selector_endpoint(request, data: SelectorRepairIn):
     }
 
 
-@router.get("/sources-needing-attention", response=List[SourceNeedingAttentionOut])
+@router.get("/sources-needing-attention", response=List[SourceNeedingAttentionOut], auth=AdminAuth())
 def sources_needing_attention_endpoint(request):
     """List all SearchSources that need attention (broken selectors).
 

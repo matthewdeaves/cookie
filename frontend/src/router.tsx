@@ -1,10 +1,14 @@
-import { lazy, Suspense } from 'react'
+import { createContext, lazy, Suspense, useContext, useState, useEffect } from 'react'
 import { createBrowserRouter, Outlet, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AIStatusProvider } from './contexts/AIStatusContext'
 import { ProfileProvider, useProfile } from './contexts/ProfileContext'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { api } from './api/client'
 
 const ProfileSelector = lazy(() => import('./screens/ProfileSelector'))
+const Login = lazy(() => import('./screens/Login'))
+const Register = lazy(() => import('./screens/Register'))
 const Home = lazy(() => import('./screens/Home'))
 const Search = lazy(() => import('./screens/Search'))
 const RecipeDetail = lazy(() => import('./screens/RecipeDetail'))
@@ -23,18 +27,68 @@ function LoadingFallback() {
   )
 }
 
+// Mode context — provides the operating mode to child components without hook violations
+const ModeContext = createContext<'home' | 'public'>('home')
+
+export function useMode() {
+  return useContext(ModeContext)
+}
+
 // eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function AppLayout() {
+  const [mode, setMode] = useState<'home' | 'public' | null>(null)
+
+  useEffect(() => {
+    api.system
+      .mode()
+      .then((data) => setMode(data.mode))
+      .catch(() => setMode('home'))
+  }, [])
+
+  if (mode === null) {
+    return <LoadingFallback />
+  }
+
+  if (mode === 'public') {
+    return (
+      <ModeContext.Provider value="public">
+        <AuthProvider>
+          <AIStatusProvider>
+            <AuthProfileBridge>
+              <Toaster position="top-center" richColors />
+              <Suspense fallback={<LoadingFallback />}>
+                <Outlet />
+              </Suspense>
+            </AuthProfileBridge>
+          </AIStatusProvider>
+        </AuthProvider>
+      </ModeContext.Provider>
+    )
+  }
+
   return (
-    <AIStatusProvider>
-      <ProfileProvider>
-        <Toaster position="top-center" richColors />
-        <Suspense fallback={<LoadingFallback />}>
-          <Outlet />
-        </Suspense>
-      </ProfileProvider>
-    </AIStatusProvider>
+    <ModeContext.Provider value="home">
+      <AIStatusProvider>
+        <ProfileProvider>
+          <Toaster position="top-center" richColors />
+          <Suspense fallback={<LoadingFallback />}>
+            <Outlet />
+          </Suspense>
+        </ProfileProvider>
+      </AIStatusProvider>
+    </ModeContext.Provider>
   )
+}
+
+// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
+function AuthProfileBridge({ children }: { children: React.ReactNode }) {
+  const { profile: authProfile, isLoading } = useAuth()
+
+  if (isLoading) {
+    return <LoadingFallback />
+  }
+
+  return <ProfileProvider authProfile={authProfile}>{children}</ProfileProvider>
 }
 
 // eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
@@ -68,6 +122,15 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
+function RootRoute() {
+  const mode = useMode()
+  if (mode === 'public') {
+    return <Login />
+  }
+  return <ProfileSelector />
+}
+
 export const router = createBrowserRouter([
   {
     element: <AppLayout />,
@@ -76,7 +139,23 @@ export const router = createBrowserRouter([
         path: '/',
         element: (
           <PublicRoute>
-            <ProfileSelector />
+            <RootRoute />
+          </PublicRoute>
+        ),
+      },
+      {
+        path: '/login',
+        element: (
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        ),
+      },
+      {
+        path: '/register',
+        element: (
+          <PublicRoute>
+            <Register />
           </PublicRoute>
         ),
       },
@@ -152,7 +231,6 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      // Catch-all redirect to home
       {
         path: '*',
         element: <Navigate to="/" replace />,

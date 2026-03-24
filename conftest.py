@@ -6,6 +6,9 @@ from django.conf import settings
 # and multiple requests in a single test would be incorrectly rate-limited.
 settings.RATELIMIT_ENABLE = False
 
+# Disable SSL redirect in tests — test client doesn't use HTTPS
+settings.SECURE_SSL_REDIRECT = False
+
 # Override STORAGES for tests - use simple storage that doesn't require manifest
 # The CompressedManifestStaticFilesStorage requires collectstatic to create a manifest
 settings.STORAGES = {

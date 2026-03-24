@@ -148,6 +148,18 @@ The Dockerfile uses a 3-stage build for minimal image size:
 
 AI features (OpenRouter API key) are configured through the Settings UI, not environment variables.
 
+### Authentication Variables (Public Mode)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AUTH_MODE` | `home` | `home` (no login) or `public` (user accounts) |
+| `SITE_URL` | `http://localhost` | Base URL for verification email links |
+| `EMAIL_BACKEND` | `console` | Email backend class (use `django_ses.SESBackend` for AWS SES) |
+| `DEFAULT_FROM_EMAIL` | `noreply@cookie.local` | Sender address for verification emails |
+| `AWS_SES_REGION_NAME` | `eu-west-2` | AWS region for SES (only if using SES backend) |
+| `LOG_FORMAT` | `text` | `text` (human-readable) or `json` (structured) |
+| `LOG_LEVEL` | `INFO` | Root log level |
+
 ### Docker Volumes
 
 | Volume | Purpose |

@@ -1,0 +1,80 @@
+#!/bin/bash
+# Database backup script for Cookie
+# Creates a compressed PostgreSQL dump and optionally uploads to S3.
+#
+# Usage:
+#   bin/backup-db                     # Local backup only
+#   bin/backup-db --s3 s3://bucket/   # Backup + upload to S3
+#
+# Environment variables:
+#   POSTGRES_HOST (default: db)
+#   POSTGRES_PORT (default: 5432)
+#   POSTGRES_DB   (default: cookie)
+#   POSTGRES_USER (default: cookie)
+#   BACKUP_DIR    (default: /tmp/backups)
+#   BACKUP_RETAIN_DAYS (default: 30)
+
+set -euo pipefail
+
+POSTGRES_HOST="${POSTGRES_HOST:-db}"
+POSTGRES_PORT="${POSTGRES_PORT:-5432}"
+POSTGRES_DB="${POSTGRES_DB:-cookie}"
+POSTGRES_USER="${POSTGRES_USER:-cookie}"
+BACKUP_DIR="${BACKUP_DIR:-/tmp/backups}"
+BACKUP_RETAIN_DAYS="${BACKUP_RETAIN_DAYS:-30}"
+
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+FILENAME="cookie_${TIMESTAMP}.sql.gz"
+FILEPATH="${BACKUP_DIR}/${FILENAME}"
+
+# Parse arguments
+S3_TARGET=""
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --s3)
+            S3_TARGET="$2"
+            shift 2
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+done
+
+# Create backup directory
+mkdir -p "${BACKUP_DIR}"
+
+echo "Starting backup: ${FILENAME}"
+echo "  Host: ${POSTGRES_HOST}:${POSTGRES_PORT}"
+echo "  Database: ${POSTGRES_DB}"
+
+# Create compressed dump
+pg_dump \
+    -h "${POSTGRES_HOST}" \
+    -p "${POSTGRES_PORT}" \
+    -U "${POSTGRES_USER}" \
+    -d "${POSTGRES_DB}" \
+    --no-owner \
+    --no-privileges \
+    | gzip > "${FILEPATH}"
+
+FILESIZE=$(du -h "${FILEPATH}" | cut -f1)
+echo "Backup created: ${FILEPATH} (${FILESIZE})"
+
+# Upload to S3 if configured
+if [ -n "${S3_TARGET}" ]; then
+    echo "Uploading to ${S3_TARGET}..."
+    aws s3 cp "${FILEPATH}" "${S3_TARGET}${FILENAME}"
+    echo "Upload complete."
+fi
+
+# Clean up old local backups
+if [ -d "${BACKUP_DIR}" ]; then
+    DELETED=$(find "${BACKUP_DIR}" -name "cookie_*.sql.gz" -mtime "+${BACKUP_RETAIN_DAYS}" -delete -print | wc -l)
+    if [ "${DELETED}" -gt 0 ]; then
+        echo "Cleaned up ${DELETED} backup(s) older than ${BACKUP_RETAIN_DAYS} days."
+    fi
+fi
+
+echo "Backup complete."

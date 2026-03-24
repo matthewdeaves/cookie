@@ -45,11 +45,20 @@ export function useProfile() {
   return context
 }
 
-interface ProfileProviderProps {
-  children: ReactNode
+interface AuthProfile {
+  id: number
+  name: string
+  avatar_color: string
+  theme: string
+  unit_preference: string
 }
 
-export function ProfileProvider({ children }: ProfileProviderProps) {
+interface ProfileProviderProps {
+  children: ReactNode
+  authProfile?: AuthProfile | null
+}
+
+export function ProfileProvider({ children, authProfile }: ProfileProviderProps) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [favoriteRecipeIds, setFavoriteRecipeIds] = useState<Set<number>>(new Set())
@@ -64,8 +73,20 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
     }
   }, [theme])
 
-  // Check for existing session on mount - restore from localStorage
+  // In public mode, profile comes from auth
   useEffect(() => {
+    if (authProfile !== undefined) {
+      if (authProfile) {
+        setProfile(authProfile as Profile)
+        setTheme(authProfile.theme as 'light' | 'dark')
+      } else {
+        setProfile(null)
+      }
+      setLoading(false)
+      return
+    }
+
+    // Home mode: restore from localStorage
     const restoreSession = async () => {
       try {
         const storedId = getStoredProfileId()
@@ -75,7 +96,6 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
             setProfile(restored)
             setTheme(restored.theme as 'light' | 'dark')
           } catch {
-            // Profile no longer exists - clear stored data
             clearProfileId()
           }
         }
@@ -86,7 +106,7 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
       }
     }
     restoreSession()
-  }, [])
+  }, [authProfile])
 
   // Load favorites when profile changes
   useEffect(() => {

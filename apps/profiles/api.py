@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from django.conf import settings
 from django.db.models import Count, Q
@@ -25,6 +25,7 @@ class ProfileOut(Schema):
     avatar_color: str
     theme: str
     unit_preference: str
+    is_admin: Optional[bool] = None
 
 
 class ProfileStatsSchema(Schema):
@@ -76,9 +77,48 @@ class ErrorSchema(Schema):
     message: str
 
 
+def _resolve_public_user(request):
+    """Resolve the authenticated user in public mode. Returns (user, profile) or (None, None)."""
+    user = getattr(request, "user", None)
+    if user and getattr(user, "is_authenticated", False):
+        try:
+            return user, user.profile
+        except Profile.DoesNotExist:
+            return None, None
+
+    # Fallback: resolve from session profile_id
+    profile_id = request.session.get("profile_id")
+    if profile_id:
+        try:
+            p = Profile.objects.select_related("user").get(id=profile_id)
+            if p.user and p.user.is_active:
+                return p.user, p
+        except Profile.DoesNotExist:
+            pass
+    return None, None
+
+
+def _check_profile_ownership(request, profile_id):
+    """In public mode, verify the user owns the profile (or is admin). Returns error tuple or None."""
+    if settings.AUTH_MODE != "public":
+        return None
+    user, own_profile = _resolve_public_user(request)
+    if not user:
+        return 404, {"error": "not_found", "message": "Profile not found"}
+    if user.is_staff:
+        return None  # Admin can access any profile
+    if not own_profile or own_profile.id != profile_id:
+        return 404, {"error": "not_found", "message": "Profile not found"}
+    return None
+
+
 @router.get("/", response=List[ProfileWithStatsSchema])
 def list_profiles(request):
-    """List all profiles with stats for user management."""
+    """List all profiles with stats.
+
+    Public mode: returns only current user's profile (admin sees all).
+    Home mode: returns all profiles.
+    """
     from apps.recipes.models import RecipeCollectionItem
 
     profiles = Profile.objects.annotate(
@@ -90,9 +130,15 @@ def list_profiles(request):
         discover_cache_count=Count("ai_discovery_suggestions", distinct=True),
     ).order_by("-created_at")
 
+    if settings.AUTH_MODE == "public":
+        user, _ = _resolve_public_user(request)
+        if not user:
+            return []
+        if not user.is_staff:
+            profiles = profiles.filter(user=user)
+
     result = []
     for p in profiles:
-        # Count collection items separately (requires join)
         collection_items_count = RecipeCollectionItem.objects.filter(collection__profile=p).count()
 
         result.append(
@@ -117,9 +163,11 @@ def list_profiles(request):
     return result
 
 
-@router.post("/", response={201: ProfileOut})
+@router.post("/", response={201: ProfileOut, 404: ErrorSchema})
 def create_profile(request, payload: ProfileIn):
-    """Create a new profile."""
+    """Create a new profile. Disabled in public mode (use /auth/register)."""
+    if settings.AUTH_MODE == "public":
+        return 404, {"error": "not_found", "message": "Not found"}
     data = payload.dict()
     if not data.get("avatar_color"):
         data["avatar_color"] = Profile.next_avatar_color()
@@ -127,16 +175,28 @@ def create_profile(request, payload: ProfileIn):
     return 201, profile
 
 
-@router.get("/{profile_id}/", response=ProfileOut)
+@router.get("/{profile_id}/", response={200: ProfileOut, 404: ErrorSchema})
 def get_profile(request, profile_id: int):
-    """Get a profile by ID."""
-    return Profile.objects.get(id=profile_id)
+    """Get a profile by ID. Public mode: own profile only (admin: any)."""
+    ownership_error = _check_profile_ownership(request, profile_id)
+    if ownership_error:
+        return ownership_error
+    try:
+        return Profile.objects.get(id=profile_id)
+    except Profile.DoesNotExist:
+        return 404, {"error": "not_found", "message": "Profile not found"}
 
 
-@router.put("/{profile_id}/", response=ProfileOut, auth=SessionAuth())
+@router.put("/{profile_id}/", response={200: ProfileOut, 404: ErrorSchema}, auth=SessionAuth())
 def update_profile(request, profile_id: int, payload: ProfileIn):
-    """Update a profile."""
-    profile = Profile.objects.get(id=profile_id)
+    """Update a profile. Public mode: own profile only (admin: any)."""
+    ownership_error = _check_profile_ownership(request, profile_id)
+    if ownership_error:
+        return ownership_error
+    try:
+        profile = Profile.objects.get(id=profile_id)
+    except Profile.DoesNotExist:
+        return 404, {"error": "not_found", "message": "Profile not found"}
     for key, value in payload.dict().items():
         setattr(profile, key, value)
     profile.save()
@@ -145,7 +205,7 @@ def update_profile(request, profile_id: int, payload: ProfileIn):
 
 @router.get("/{profile_id}/deletion-preview/", response={200: DeletionPreviewSchema, 404: ErrorSchema})
 def get_deletion_preview(request, profile_id: int):
-    """Get summary of data that will be deleted with this profile."""
+    """Get summary of data that will be deleted. Public mode: own profile only."""
     from apps.ai.models import AIDiscoverySuggestion
     from apps.recipes.models import (
         Recipe,
@@ -156,12 +216,15 @@ def get_deletion_preview(request, profile_id: int):
         ServingAdjustment,
     )
 
+    ownership_error = _check_profile_ownership(request, profile_id)
+    if ownership_error:
+        return ownership_error
+
     try:
         profile = Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
         return 404, {"error": "not_found", "message": "Profile not found"}
 
-    # Count related data
     remixes = Recipe.objects.filter(is_remix=True, remix_profile=profile)
     favorites = RecipeFavorite.objects.filter(profile=profile)
     collections = RecipeCollection.objects.filter(profile=profile)
@@ -169,8 +232,6 @@ def get_deletion_preview(request, profile_id: int):
     view_history = RecipeViewHistory.objects.filter(profile=profile)
     scaling_cache = ServingAdjustment.objects.filter(profile=profile)
     discover_cache = AIDiscoverySuggestion.objects.filter(profile=profile)
-
-    # Count images that will be deleted
     remix_images_count = remixes.exclude(image="").exclude(image__isnull=True).count()
 
     return {
@@ -200,32 +261,24 @@ def get_deletion_preview(request, profile_id: int):
 
 @router.delete("/{profile_id}/", response={204: None, 400: ErrorSchema, 404: ErrorSchema}, auth=SessionAuth())
 def delete_profile(request, profile_id: int):
-    """
-    Delete a profile and ALL associated data.
+    """Delete a profile and ALL associated data.
 
-    Cascade deletes:
-    - Recipe remixes (is_remix=True, remix_profile=this)
-    - Favorites
-    - Collections and collection items
-    - View history
-    - Serving adjustment cache
-    - AI discovery suggestions
-
-    Manual cleanup:
-    - Recipe images from deleted remixes
+    In public mode: own profile only, also cascades to delete the Django User.
     """
     from apps.recipes.models import Recipe
+
+    ownership_error = _check_profile_ownership(request, profile_id)
+    if ownership_error:
+        return ownership_error
 
     try:
         profile = Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
         return 404, {"error": "not_found", "message": "Profile not found"}
 
-    # Check if this is the current session profile
     current_profile_id = request.session.get("profile_id")
     if current_profile_id == profile_id:
-        # Clear session profile
-        del request.session["profile_id"]
+        request.session.pop("profile_id", None)
 
     # Collect image paths BEFORE cascade delete
     remix_images = list(
@@ -234,17 +287,18 @@ def delete_profile(request, profile_id: int):
         .values_list("image", flat=True)
     )
 
-    # Django CASCADE handles all related records
-    profile.delete()
+    if settings.AUTH_MODE == "public" and profile.user:
+        profile.user.delete()
+        request.session.flush()
+    else:
+        profile.delete()
 
-    # Clean up orphaned image files
     for image_path in remix_images:
         full_path = os.path.join(settings.MEDIA_ROOT, str(image_path))
         try:
             if os.path.exists(full_path):
                 os.remove(full_path)
         except OSError:
-            # Log but don't fail - orphaned files are non-critical
             pass
 
     return 204, None
@@ -252,7 +306,9 @@ def delete_profile(request, profile_id: int):
 
 @router.post("/{profile_id}/select/", response={200: ProfileOut, 404: dict})
 def select_profile(request, profile_id: int):
-    """Set a profile as the current profile (stored in session)."""
+    """Set a profile as the current profile. Disabled in public mode."""
+    if settings.AUTH_MODE == "public":
+        return 404, {"detail": "Not found"}
     try:
         profile = Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:

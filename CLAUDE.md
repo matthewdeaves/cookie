@@ -38,7 +38,43 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 
 Python 3.12, TypeScript 5.9, ES5 (legacy): Follow standard conventions
 
+## Authentication
+
+Cookie supports dual-mode authentication via `AUTH_MODE` environment variable:
+
+- **`home`** (default): Profile-based sessions, no login required. All settings accessible.
+- **`public`**: Full authentication with username/password, email verification, role-based access control.
+
+### Key Files
+- `apps/core/auth.py` — `SessionAuth` (mode-aware) and `AdminAuth` classes
+- `apps/core/auth_api.py` — Auth endpoints: register, login, logout, verify-email, me, change-password
+- `apps/core/email_service.py` — Transient email verification (email never stored)
+- `apps/core/management/commands/cookie_admin.py` — Admin CLI (list-users, promote, demote, reset-password, activate, deactivate, cleanup-unverified)
+
+### Auth Commands (Public Mode)
+```bash
+# Admin CLI
+docker compose exec web python manage.py cookie_admin list-users
+docker compose exec web python manage.py cookie_admin promote <username>
+docker compose exec web python manage.py cookie_admin demote <username>
+docker compose exec web python manage.py cookie_admin reset-password <username> --generate
+docker compose exec web python manage.py cookie_admin deactivate <username>
+docker compose exec web python manage.py cookie_admin activate <username>
+docker compose exec web python manage.py cookie_admin cleanup-unverified --dry-run
+```
+
+### Auth Environment Variables
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AUTH_MODE` | `home` | `home` or `public` |
+| `SITE_URL` | `http://localhost:3000` | Base URL for verification email links |
+| `EMAIL_BACKEND` | `django.core.mail.backends.console.EmailBackend` | Django email backend |
+| `DEFAULT_FROM_EMAIL` | `noreply@cookie.local` | Sender address for verification emails |
+| `LOG_FORMAT` | `text` | `text` (dev) or `json` (production) |
+| `LOG_LEVEL` | `INFO` | Root log level |
+
 ## Recent Changes
+- 011-dual-mode-auth: Added dual-mode authentication (home/public), admin CLI, email verification, privacy policy, structured JSON logging, request correlation IDs
 - 010-fix-qa-audit-issues: Added Python 3.12 + Django 5.0, Django Ninja 1.0+, curl_cffi (web scraping)
 - 009-production-hardening: Added Python 3.12 (backend), TypeScript 5.9 (frontend config only), Bash (entrypoint scripts) + Django 5.0, Django Ninja 1.0+, django-ratelimit 4.1, openrouter SDK, WhiteNoise, Gunicorn
 - 008-security-audit-remediation: Added Python 3.12 + Django 5.0, WhiteNoise, Gunicorn

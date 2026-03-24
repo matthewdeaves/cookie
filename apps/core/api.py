@@ -27,7 +27,7 @@ from apps.recipes.models import (
     CachedSearchImage,
 )
 from apps.ai.models import AIDiscoverySuggestion, AIPrompt
-from apps.core.auth import SessionAuth
+from apps.core.auth import AdminAuth, SessionAuth
 
 router = Router(tags=["system"])
 
@@ -39,6 +39,15 @@ class HealthSchema(Schema):
 class ReadySchema(Schema):
     status: str
     database: str
+
+
+@router.get("/mode/", response={200: dict})
+def get_mode(request):
+    """Return the current operating mode."""
+    result = {"mode": settings.AUTH_MODE}
+    if settings.AUTH_MODE == "public":
+        result["registration_enabled"] = True
+    return result
 
 
 @router.get("/health/", response=HealthSchema)
@@ -94,7 +103,7 @@ class ResetSuccessSchema(Schema):
     actions_performed: list[str]
 
 
-@router.get("/reset-preview/", response=ResetPreviewSchema, auth=SessionAuth())
+@router.get("/reset-preview/", response=ResetPreviewSchema, auth=AdminAuth())
 def get_reset_preview(request):
     """Get summary of data that will be deleted on reset."""
     return {
@@ -123,7 +132,7 @@ def get_reset_preview(request):
     }
 
 
-@router.post("/reset/", response={200: ResetSuccessSchema, 400: ErrorSchema, 429: dict}, auth=SessionAuth())
+@router.post("/reset/", response={200: ResetSuccessSchema, 400: ErrorSchema, 429: dict}, auth=AdminAuth())
 @ratelimit(key="ip", rate="1/m", method="POST", block=False)
 def reset_database(request, data: ResetConfirmSchema):
     """
@@ -156,6 +165,12 @@ def reset_database(request, data: ResetConfirmSchema):
 
         # Delete all profiles
         Profile.objects.all().delete()
+
+        # In public mode, also delete all user accounts
+        if settings.AUTH_MODE == "public":
+            from django.contrib.auth.models import User
+
+            User.objects.all().delete()
 
         # Reset SearchSource failure counters (keep selectors)
         SearchSource.objects.all().update(

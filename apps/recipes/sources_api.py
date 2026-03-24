@@ -8,7 +8,7 @@ from typing import List, Optional
 from django.utils import timezone
 from ninja import Router, Schema
 
-from apps.core.auth import SessionAuth
+from apps.core.auth import AdminAuth, SessionAuth
 
 from .models import SearchSource
 from .services.search import RecipeSearch
@@ -107,7 +107,7 @@ def get_source(request, source_id: int):
         }
 
 
-@router.post("/{source_id}/toggle/", response={200: SourceToggleOut, 404: ErrorOut}, auth=SessionAuth())
+@router.post("/{source_id}/toggle/", response={200: SourceToggleOut, 404: ErrorOut}, auth=AdminAuth())
 def toggle_source(request, source_id: int):
     """Toggle a source's enabled status."""
     try:
@@ -125,7 +125,7 @@ def toggle_source(request, source_id: int):
         }
 
 
-@router.post("/bulk-toggle/", response={200: BulkToggleOut}, auth=SessionAuth())
+@router.post("/bulk-toggle/", response={200: BulkToggleOut}, auth=AdminAuth())
 def bulk_toggle_sources(request, data: BulkToggleIn):
     """Enable or disable all sources at once."""
     updated = SearchSource.objects.all().update(is_enabled=data.enable)
@@ -135,7 +135,7 @@ def bulk_toggle_sources(request, data: BulkToggleIn):
     }
 
 
-@router.put("/{source_id}/selector/", response={200: SourceUpdateOut, 404: ErrorOut}, auth=SessionAuth())
+@router.put("/{source_id}/selector/", response={200: SourceUpdateOut, 404: ErrorOut}, auth=AdminAuth())
 def update_selector(request, source_id: int, data: SourceUpdateIn):
     """Update a source's CSS selector."""
     try:
@@ -153,7 +153,7 @@ def update_selector(request, source_id: int, data: SourceUpdateIn):
         }
 
 
-@router.post("/{source_id}/test/", response={200: SourceTestOut, 404: ErrorOut, 500: ErrorOut}, auth=SessionAuth())
+@router.post("/{source_id}/test/", response={200: SourceTestOut, 404: ErrorOut, 500: ErrorOut}, auth=AdminAuth())
 async def test_source(request, source_id: int):
     """Test a source by performing a sample search.
 
@@ -225,7 +225,7 @@ async def test_source(request, source_id: int):
         }
 
 
-@router.post("/test-all/", response={200: dict}, auth=SessionAuth())
+@router.post("/test-all/", response={200: dict}, auth=AdminAuth())
 async def test_all_sources(request):
     """Test all enabled sources and return summary.
 

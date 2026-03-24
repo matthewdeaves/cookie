@@ -1,5 +1,6 @@
 """URL configuration for cookie project."""
 
+from django.conf import settings
 from django.urls import path, include
 from ninja import NinjaAPI
 
@@ -30,8 +31,16 @@ api.add_router("/history", history_router)
 api.add_router("/sources", sources_router)
 api.add_router("/system", system_router)
 
+# Auth router is always mounted but endpoints check AUTH_MODE internally
+from apps.core.auth_api import router as auth_router
+
+api.add_router("/auth", auth_router)
+
+
+from apps.core.views import PrivacyPolicyView
 
 urlpatterns = [
     path("api/", api.urls),
+    path("privacy/", PrivacyPolicyView.as_view(), name="privacy-policy"),
     path("legacy/", include("apps.legacy.urls")),
 ]

@@ -30,5 +30,11 @@ python manage.py createcachetable
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
+# Clean up stale unverified accounts (public mode only)
+if [ "$AUTH_MODE" = "public" ]; then
+  echo "Cleaning up unverified accounts..."
+  python manage.py cleanup_unverified || true
+fi
+
 echo "Starting Gunicorn..."
 exec gunicorn --bind 0.0.0.0:8000 --reload --workers 2 --threads 2 cookie.wsgi:application
