@@ -21,11 +21,29 @@ Cookie.app = (function() {
         // Attach image error handlers to all recipe images on the page
         setupImageErrorHandlers();
 
+        // Make source links on recipe cards open the original recipe URL
+        setupSourceLinks();
+
         // Initialize page-specific modules if they exist
         var pageName = document.body.getAttribute('data-page');
         if (pageName && Cookie.pages && Cookie.pages[pageName]) {
             Cookie.pages[pageName].init();
         }
+    }
+
+    /**
+     * Intercept clicks on recipe card source labels that have a source URL.
+     * Opens the original recipe URL instead of navigating to the detail page.
+     */
+    function setupSourceLinks() {
+        document.addEventListener('click', function(e) {
+            var source = e.target.closest('.recipe-card-source[data-source-url]');
+            if (source) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.open(source.getAttribute('data-source-url'), '_blank', 'noopener');
+            }
+        });
     }
 
     /**

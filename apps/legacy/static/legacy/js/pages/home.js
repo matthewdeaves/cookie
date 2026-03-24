@@ -155,7 +155,8 @@ Cookie.pages.home = (function() {
             refreshIcon.classList.add('animate-spin');
         }
 
-        Cookie.ajax.get('/api/ai/discover/' + profileId + '/', function(err, data) {
+        var url = '/api/ai/discover/' + profileId + '/' + (forceRefresh ? '?refresh=true' : '');
+        Cookie.ajax.get(url, function(err, data) {
             discoverLoading = false;
 
             // Remove spinning animation

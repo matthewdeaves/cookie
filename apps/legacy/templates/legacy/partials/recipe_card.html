@@ -43,7 +43,11 @@ Expects: recipe (Recipe model), is_favorite (bool), show_favorite_btn (bool)
     <div class="recipe-card-content">
         <h3 class="recipe-card-title">{{ recipe.title }}</h3>
         <div class="recipe-card-meta">
+            {% if recipe.source_url %}
+            <span class="recipe-card-source" data-source-url="{{ recipe.source_url }}">{{ recipe.host }}</span>
+            {% else %}
             <span class="recipe-card-source">{{ recipe.host }}</span>
+            {% endif %}
             {% if recipe.total_time %}
             <span class="recipe-card-time">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

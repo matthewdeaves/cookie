@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 CACHE_DURATION_HOURS = 24
 
 
-def get_discover_suggestions(profile_id: int) -> dict:
+def get_discover_suggestions(profile_id: int, force_refresh: bool = False) -> dict:
     """Get AI discovery suggestions for a profile.
 
     Returns cached suggestions if still valid (within 24 hours),
@@ -29,6 +29,7 @@ def get_discover_suggestions(profile_id: int) -> dict:
 
     Args:
         profile_id: The ID of the profile to get suggestions for.
+        force_refresh: If True, bypass cache and regenerate suggestions.
 
     Returns:
         Dict with suggestions array and refresh timestamp.
@@ -39,13 +40,14 @@ def get_discover_suggestions(profile_id: int) -> dict:
     """
     profile = Profile.objects.get(id=profile_id)
 
-    # Check for cached suggestions (within 24 hours)
-    cache_cutoff = timezone.now() - timedelta(hours=CACHE_DURATION_HOURS)
-    cached = AIDiscoverySuggestion.objects.filter(profile=profile, created_at__gte=cache_cutoff)
+    # Check for cached suggestions (within 24 hours) unless force refresh
+    if not force_refresh:
+        cache_cutoff = timezone.now() - timedelta(hours=CACHE_DURATION_HOURS)
+        cached = AIDiscoverySuggestion.objects.filter(profile=profile, created_at__gte=cache_cutoff)
 
-    if cached.exists():
-        logger.info(f"Returning cached discover suggestions for profile {profile_id}")
-        return _format_suggestions(cached)
+        if cached.exists():
+            logger.info(f"Returning cached discover suggestions for profile {profile_id}")
+            return _format_suggestions(cached)
 
     # Clear old suggestions
     AIDiscoverySuggestion.objects.filter(profile=profile).delete()

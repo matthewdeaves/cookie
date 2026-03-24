@@ -232,6 +232,7 @@ export interface Collection {
   name: string
   description: string
   recipe_count: number
+  cover_image: string | null
   created_at: string
   updated_at: string
 }

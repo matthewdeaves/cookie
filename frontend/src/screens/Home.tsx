@@ -37,6 +37,7 @@ export default function Home() {
   const mountedRef = useRef(true)
 
   useEffect(() => {
+    mountedRef.current = true
     loadData()
     return () => {
       mountedRef.current = false
@@ -61,12 +62,12 @@ export default function Home() {
     }
   }
 
-  const loadDiscoverSuggestions = async () => {
+  const loadDiscoverSuggestions = async (refresh = false) => {
     if (!profile) return
     setDiscoverLoading(true)
     setDiscoverError(false)
     try {
-      const result = await api.ai.discover(profile.id)
+      const result = await api.ai.discover(profile.id, refresh)
       if (!mountedRef.current) return
       setDiscoverSuggestions(result.suggestions)
       setDiscoverRefreshedAt(result.refreshed_at)
@@ -286,7 +287,7 @@ export default function Home() {
                       Personalized For You
                     </h2>
                     <button
-                      onClick={loadDiscoverSuggestions}
+                      onClick={() => loadDiscoverSuggestions(true)}
                       className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
                       disabled={discoverLoading}
                     >

@@ -249,26 +249,7 @@ async def search_recipes(
     cached_all = await sync_to_async(cache.get)(cache_key)
 
     if cached_all is not None:
-        # Serve from cache: apply source filtering and pagination
-        filtered = cached_all
-        if source_list:
-            filtered = [r for r in filtered if r["host"] in source_list]
-
-        sites = {}
-        for r in filtered:
-            sites[r["host"]] = sites.get(r["host"], 0) + 1
-
-        total = len(filtered)
-        start = (page - 1) * per_page
-        end = start + per_page
-
-        results = {
-            "results": filtered[start:end],
-            "total": total,
-            "page": page,
-            "has_more": end < total,
-            "sites": sites,
-        }
+        all_result_dicts = cached_all
     else:
         # Cache miss: fetch all results (no source filter, no pagination)
         search = RecipeSearch()
@@ -281,26 +262,27 @@ async def search_recipes(
         all_result_dicts = full_results.get("results", [])
         await sync_to_async(cache.set)(cache_key, all_result_dicts, settings.SEARCH_CACHE_TIMEOUT)
 
-        # Apply source filtering and pagination for this request
-        filtered = all_result_dicts
-        if source_list:
-            filtered = [r for r in filtered if r["host"] in source_list]
+    # Always compute sites from full unfiltered results
+    sites = {}
+    for r in all_result_dicts:
+        sites[r["host"]] = sites.get(r["host"], 0) + 1
 
-        sites = {}
-        for r in filtered:
-            sites[r["host"]] = sites.get(r["host"], 0) + 1
+    # Apply source filtering and pagination for this request
+    filtered = all_result_dicts
+    if source_list:
+        filtered = [r for r in filtered if r["host"] in source_list]
 
-        total = len(filtered)
-        start = (page - 1) * per_page
-        end = start + per_page
+    total = len(filtered)
+    start = (page - 1) * per_page
+    end = start + per_page
 
-        results = {
-            "results": filtered[start:end],
-            "total": total,
-            "page": page,
-            "has_more": end < total,
-            "sites": sites,
-        }
+    results = {
+        "results": filtered[start:end],
+        "total": total,
+        "page": page,
+        "has_more": end < total,
+        "sites": sites,
+    }
 
     # Extract image URLs from search results
     image_urls = [r["image_url"] for r in results["results"] if r.get("image_url")]

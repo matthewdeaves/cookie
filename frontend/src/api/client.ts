@@ -217,8 +217,8 @@ export const api = {
         body: JSON.stringify({ recipe_id: recipeId, regenerate }),
       }),
 
-    discover: (profileId: number) =>
-      request<DiscoverResponse>(`/ai/discover/${profileId}/`),
+    discover: (profileId: number, refresh = false) =>
+      request<DiscoverResponse>(`/ai/discover/${profileId}/${refresh ? '?refresh=true' : ''}`),
 
     timerName: (stepText: string, durationMinutes: number) =>
       request<TimerNameResponse>('/ai/timer-name', {

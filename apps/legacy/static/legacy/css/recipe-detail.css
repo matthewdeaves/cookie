@@ -363,10 +363,12 @@
     color: #6b6560;
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
+    margin-right: 0.5rem;
 }
 
 .linked-recipes-label {
     color: #6b6560;
+    margin-right: 0.75rem;
 }
 
 .linked-recipes-list {
@@ -374,6 +376,7 @@
     display: flex;
     -webkit-flex-wrap: wrap;
     flex-wrap: wrap;
+    margin: -0.25rem;
 }
 
 .linked-recipe-chip {
@@ -381,10 +384,11 @@
     display: inline-flex;
     -webkit-align-items: center;
     align-items: center;
-    padding: 0.25rem 0.75rem;
+    margin: 0.25rem;
+    padding: 0.375rem 0.875rem;
     background-color: #e8e1d8;
     border-radius: 9999px;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 500;
     color: #2d2520;
     text-decoration: none;
@@ -397,9 +401,12 @@
 }
 
 .linked-recipe-dot {
-    width: 0.375rem;
-    height: 0.375rem;
+    width: 0.5rem;
+    height: 0.5rem;
     border-radius: 50%;
+    margin-right: 0.5rem;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
 }
 
 .linked-recipe-dot-original {
@@ -416,6 +423,7 @@
 
 .linked-recipe-type {
     color: #6b6560;
+    margin-left: 0.25rem;
 }
 
 /* Tabs Section */
@@ -841,10 +849,11 @@
     display: flex;
     -webkit-flex-wrap: wrap;
     flex-wrap: wrap;
+    margin: -0.25rem;
 }
 
-.remix-suggestions > * + * {
-    margin-left: 0.5rem;
+.remix-suggestions > * {
+    margin: 0.25rem;
 }
 
 .remix-loading {

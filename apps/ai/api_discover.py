@@ -37,19 +37,20 @@ class DiscoverOut(Schema):
 @router.get("/discover/{profile_id}/", response={200: DiscoverOut, 404: ErrorOut, 429: dict, 503: ErrorOut})
 @ratelimit(key="ip", rate="20/h", method="GET", block=False)
 @handle_ai_errors
-def discover_endpoint(request, profile_id: int):
+def discover_endpoint(request, profile_id: int, refresh: bool = False):
     """Get AI discovery suggestions for a profile.
 
     Returns cached suggestions if still valid (within 24 hours),
     otherwise generates new suggestions via AI.
 
     For new users (no favorites), only seasonal suggestions are returned.
+    Pass ?refresh=true to force regeneration.
     """
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /ai/discover from %s", request.META.get("REMOTE_ADDR"))
         return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
     try:
-        result = get_discover_suggestions(profile_id)
+        result = get_discover_suggestions(profile_id, force_refresh=refresh)
         return result
     except Profile.DoesNotExist:
         return 404, {

@@ -107,12 +107,24 @@ class CollectionOut(Schema):
     name: str
     description: str
     recipe_count: int
+    cover_image: Optional[str]
     created_at: str
     updated_at: str
 
     @staticmethod
     def resolve_recipe_count(obj):
         return obj.items.count()
+
+    @staticmethod
+    def resolve_cover_image(obj):
+        first_item = obj.items.select_related("recipe").first()
+        if first_item:
+            recipe = first_item.recipe
+            if recipe.image:
+                return recipe.image.url
+            if recipe.image_url:
+                return recipe.image_url
+        return None
 
     @staticmethod
     def resolve_created_at(obj):
