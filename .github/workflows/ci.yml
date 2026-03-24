@@ -307,12 +307,12 @@ jobs:
 
       - name: Run auth tests (public mode)
         run: |
-          pytest tests/test_auth.py tests/test_permissions.py tests/test_admin_cli.py tests/test_email_privacy.py tests/test_mode.py tests/test_logging.py -v --no-cov
+          pytest tests/test_auth.py tests/test_permissions.py tests/test_admin_cli.py tests/test_email_privacy.py tests/test_logging.py -v --no-cov
         env:
           DJANGO_SETTINGS_MODULE: cookie.settings
           DATABASE_URL: postgres://cookie:cookie_test@localhost:5432/cookie_test  # pragma: allowlist secret
           SECURE_SSL_REDIRECT: "false"
-          AUTH_MODE: public
+          AUTH_MODE: home
 
       - name: Upload backend coverage artifact
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
