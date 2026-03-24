@@ -1,19 +1,19 @@
 {
   "errors": [],
-  "generated_at": "2026-03-24T22:07:04Z",
+  "generated_at": "2026-03-24T23:08:53Z",
   "metrics": {
     "_totals": {
-      "CONFIDENCE.HIGH": 2,
+      "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
       "CONFIDENCE.UNDEFINED": 0,
       "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 2,
+      "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
       "loc": 6398,
       "nosec": 0,
-      "skipped_tests": 0
+      "skipped_tests": 2
     },
     "apps/__init__.py": {
       "CONFIDENCE.HIGH": 0,
@@ -718,17 +718,17 @@
       "skipped_tests": 0
     },
     "apps/recipes/services/fingerprint.py": {
-      "CONFIDENCE.HIGH": 2,
+      "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
       "CONFIDENCE.UNDEFINED": 0,
       "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 2,
+      "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
       "loc": 49,
       "nosec": 0,
-      "skipped_tests": 0
+      "skipped_tests": 2
     },
     "apps/recipes/services/image_cache.py": {
       "CONFIDENCE.HIGH": 0,
@@ -809,46 +809,5 @@
       "skipped_tests": 0
     }
   },
-  "results": [
-    {
-      "code": "45     weights = [45, 30, 15, 10]  # Chrome latest, Safari latest, Chrome 136, Safari 184\n46     return random.choices(BROWSER_PROFILES, weights=weights)[0]\n47 \n",
-      "col_offset": 11,
-      "end_col_offset": 60,
-      "filename": "apps/recipes/services/fingerprint.py",
-      "issue_confidence": "HIGH",
-      "issue_cwe": {
-        "id": 330,
-        "link": "https://cwe.mitre.org/data/definitions/330.html"
-      },
-      "issue_severity": "LOW",
-      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
-      "line_number": 46,
-      "line_range": [
-        46
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
-      "test_id": "B311",
-      "test_name": "blacklist"
-    },
-    {
-      "code": "55     \"\"\"\n56     return random.uniform(MIN_DELAY, MAX_DELAY)\n57 \n",
-      "col_offset": 11,
-      "end_col_offset": 47,
-      "filename": "apps/recipes/services/fingerprint.py",
-      "issue_confidence": "HIGH",
-      "issue_cwe": {
-        "id": 330,
-        "link": "https://cwe.mitre.org/data/definitions/330.html"
-      },
-      "issue_severity": "LOW",
-      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
-      "line_number": 56,
-      "line_range": [
-        56
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
-      "test_id": "B311",
-      "test_name": "blacklist"
-    }
-  ]
+  "results": []
 }

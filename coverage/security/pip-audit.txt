@@ -1,3 +1,0 @@
-Name     Version ID            Fix Versions
--------- ------- ------------- ------------
-pygments 2.19.2  CVE-2026-4539

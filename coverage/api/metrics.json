@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-24T22:09:21.248673+00:00",
+  "generated_at": "2026-03-24T23:11:06.315467+00:00",
   "repo": "matthewdeaves/cookie",
   "coverage": {
     "frontend": {
@@ -15,7 +15,7 @@
     "backend": {
       "cyclomatic_complexity": 2.77,
       "cyclomatic_rating": "A",
-      "maintainability_index": 83.87,
+      "maintainability_index": 83.84,
       "maintainability_rating": "A",
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/backend-complexity.svg"
     },
@@ -47,15 +47,15 @@
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/frontend-security.svg"
     },
     "backend": {
-      "pip_audit_vulns": 1,
-      "rating": "C",
+      "pip_audit_vulns": 0,
+      "rating": "A",
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/backend-security.svg"
     },
     "bandit": {
       "high": 0,
       "medium": 0,
-      "low": 2,
-      "total": 2,
+      "low": 0,
+      "total": 0,
       "rating": "A",
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/bandit-sast.svg"
     },

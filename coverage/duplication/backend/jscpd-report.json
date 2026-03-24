@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-24T22:06:47.997Z",
+    "detectionDate": "2026-03-24T23:08:17.429Z",
     "formats": {
       "python": {
         "sources": {
@@ -29,8 +29,8 @@
             "newClones": 0
           },
           "cookie/settings.py": {
-            "lines": 273,
-            "tokens": 1532,
+            "lines": 275,
+            "tokens": 1600,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -126,7 +126,7 @@
           },
           "apps/recipes/services/fingerprint.py": {
             "lines": 71,
-            "tokens": 241,
+            "tokens": 245,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -618,28 +618,28 @@
           }
         },
         "total": {
-          "lines": 8846,
-          "tokens": 58583,
+          "lines": 8848,
+          "tokens": 58655,
           "sources": 51,
           "clones": 6,
           "duplicatedLines": 123,
           "duplicatedTokens": 871,
           "percentage": 1.39,
-          "percentageTokens": 1.49,
+          "percentageTokens": 1.48,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 8846,
-      "tokens": 58583,
+      "lines": 8848,
+      "tokens": 58655,
       "sources": 51,
       "clones": 6,
       "duplicatedLines": 123,
       "duplicatedTokens": 871,
       "percentage": 1.39,
-      "percentageTokens": 1.49,
+      "percentageTokens": 1.48,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
