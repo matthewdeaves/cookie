@@ -165,8 +165,8 @@ def list_profiles(request):
 
 @router.post("/", response={201: ProfileOut, 404: ErrorSchema})
 def create_profile(request, payload: ProfileIn):
-    """Create a new profile. Disabled in public mode (use /auth/register)."""
-    if settings.AUTH_MODE == "public":
+    """Create a new profile. Only available in home mode."""
+    if settings.AUTH_MODE != "home":
         return 404, {"error": "not_found", "message": "Not found"}
     data = payload.dict()
     if not data.get("avatar_color"):
@@ -306,8 +306,8 @@ def delete_profile(request, profile_id: int):
 
 @router.post("/{profile_id}/select/", response={200: ProfileOut, 404: dict})
 def select_profile(request, profile_id: int):
-    """Set a profile as the current profile. Disabled in public mode."""
-    if settings.AUTH_MODE == "public":
+    """Set a profile as the current profile. Only available in home mode."""
+    if settings.AUTH_MODE != "home":
         return 404, {"detail": "Not found"}
     try:
         profile = Profile.objects.get(id=profile_id)

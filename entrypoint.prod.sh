@@ -13,6 +13,7 @@ if [ -z "$SECRET_KEY" ]; then
     if [ ! -f "$SECRET_KEY_FILE" ]; then
         echo "Generating new secret key..."
         python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())" > "$SECRET_KEY_FILE"
+        chmod 600 "$SECRET_KEY_FILE"
     fi
     export SECRET_KEY=$(cat "$SECRET_KEY_FILE")
 fi
@@ -44,6 +45,9 @@ python manage.py createcachetable
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
+# Ensure app user owns required directories
+chown -R app:app /app/staticfiles /app/data 2>/dev/null || true
+
 # Clean up stale unverified accounts (public mode only)
 if [ "$AUTH_MODE" = "public" ]; then
   echo "Cleaning up unverified accounts..."
@@ -59,9 +63,9 @@ cleanup() {
 }
 trap cleanup SIGTERM SIGINT
 
-# Start Gunicorn in background (binds to localhost only, nginx proxies to it)
+# Start Gunicorn as the non-root app user (binds to localhost only, nginx proxies to it)
 echo "Starting Gunicorn on 127.0.0.1:8000..."
-gunicorn \
+su -s /bin/bash app -c "gunicorn \
     --bind 127.0.0.1:8000 \
     --workers ${GUNICORN_WORKERS:-2} \
     --threads ${GUNICORN_THREADS:-4} \
@@ -71,10 +75,10 @@ gunicorn \
     --error-logfile - \
     --capture-output \
     --enable-stdio-inheritance \
-    cookie.wsgi:application &
+    cookie.wsgi:application" &
 GUNICORN_PID=$!
 
-# Start Nginx in background
+# Start Nginx in background (requires root for port 80)
 echo "Starting Nginx on 0.0.0.0:80..."
 nginx -g 'daemon off;' &
 NGINX_PID=$!

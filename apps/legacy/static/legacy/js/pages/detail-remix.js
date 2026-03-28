@@ -90,7 +90,7 @@
         Cookie.ajax.post('/api/ai/remix-suggestions', { recipe_id: state.recipeId }, function(err, response) {
             if (err) {
                 var errorInfo = Cookie.aiError.handleError(err, 'Failed to load suggestions');
-                suggestionsContainer.innerHTML = '<p class="remix-error">' + errorInfo.message + '</p>';
+                suggestionsContainer.innerHTML = '<p class="remix-error">' + Cookie.utils.escapeHtml(errorInfo.message) + '</p>';
                 Cookie.aiError.showError(err, 'Failed to load suggestions');
                 if (Cookie.aiError.shouldHideFeatures(err)) {
                     closeRemixModal();
