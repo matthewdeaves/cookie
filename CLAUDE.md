@@ -38,6 +38,20 @@ docker compose exec frontend npm run lint
 
 Python 3.14, TypeScript 5.9, ES5 (legacy): Follow standard conventions
 
+## Releases & Versioning
+
+Tags and releases use **semver** (`vMAJOR.MINOR.PATCH`). Versions MUST increase monotonically — never create a patch release after a higher minor/major has been tagged.
+
+- **MAJOR** — Breaking changes (API, data model, config).
+- **MINOR** — New features, security hardening, dependency upgrades.
+- **PATCH** — Bug fixes only.
+
+Rules:
+1. One release per deploy. Batch small fixes into a single release instead of tagging every commit.
+2. Before tagging, check the latest existing tag (`gh release list --limit 1`) and increment from there.
+3. Use `gh release create` with `--latest` so GitHub marks it correctly.
+4. Release notes must summarise what changed since the previous release, not per-commit.
+
 ## Authentication
 
 Cookie supports three authentication modes via `AUTH_MODE` environment variable:
