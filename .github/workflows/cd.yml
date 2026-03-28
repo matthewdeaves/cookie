@@ -62,8 +62,10 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=gha,scope=${{ matrix.platform }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
+          # SECURITY: Build cache intentionally disabled for supply chain integrity.
+          # CD builds run only on version tags, so slower builds are acceptable.
+          # GHA cache is content-addressed by Dockerfile instruction hash, but a
+          # compromised cache on master could theoretically affect release builds.
 
       - name: Export digest
         run: |

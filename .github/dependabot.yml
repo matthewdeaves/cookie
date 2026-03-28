@@ -58,7 +58,22 @@ updates:
           - "minor"
           - "patch"
 
-  # Docker base images
+  # Dockerfile base images (FROM statements)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Australia/Sydney"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "deps(docker):"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # Docker Compose images (image: directives)
   - package-ecosystem: "docker-compose"
     directory: "/"
     schedule:
