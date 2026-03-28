@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T19:55:08.152Z",
+    "detectionDate": "2026-03-28T20:08:29.460Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -705,14 +705,14 @@
             "newClones": 0
           },
           "src/screens/PasskeyLogin.tsx": {
-            "lines": 93,
-            "tokens": 740,
+            "lines": 99,
+            "tokens": 771,
             "sources": 1,
             "clones": 3,
             "duplicatedLines": 30,
             "duplicatedTokens": 278,
-            "percentage": 32.26,
-            "percentageTokens": 37.57,
+            "percentage": 30.3,
+            "percentageTokens": 36.06,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -970,8 +970,8 @@
           }
         },
         "total": {
-          "lines": 6499,
-          "tokens": 50430,
+          "lines": 6505,
+          "tokens": 50461,
           "sources": 40,
           "clones": 6,
           "duplicatedLines": 65,
@@ -1132,8 +1132,8 @@
       }
     },
     "total": {
-      "lines": 11218,
-      "tokens": 84925,
+      "lines": 11224,
+      "tokens": 84956,
       "sources": 90,
       "clones": 10,
       "duplicatedLines": 156,
@@ -1188,17 +1188,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "src/screens/PasskeyLogin.tsx",
-        "start": 45,
-        "end": 57,
+        "start": 51,
+        "end": 63,
         "startLoc": {
-          "line": 45,
+          "line": 51,
           "column": 17,
-          "position": 380
+          "position": 411
         },
         "endLoc": {
-          "line": 57,
+          "line": 63,
           "column": 5,
-          "position": 468
+          "position": 499
         }
       },
       "secondFile": {
@@ -1224,17 +1224,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "src/screens/PasskeyLogin.tsx",
-        "start": 75,
-        "end": 85,
+        "start": 81,
+        "end": 91,
         "startLoc": {
-          "line": 75,
+          "line": 81,
           "column": 11,
-          "position": 589
+          "position": 620
         },
         "endLoc": {
-          "line": 85,
+          "line": 91,
           "column": 4,
-          "position": 684
+          "position": 715
         }
       },
       "secondFile": {

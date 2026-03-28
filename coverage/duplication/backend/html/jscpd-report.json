@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T19:55:24.392Z",
+    "detectionDate": "2026-03-28T20:08:26.489Z",
     "formats": {
       "python": {
         "sources": {
@@ -438,7 +438,7 @@
           },
           "apps/core/passkey_api.py": {
             "lines": 423,
-            "tokens": 3192,
+            "tokens": 3168,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -643,7 +643,7 @@
         },
         "total": {
           "lines": 9236,
-          "tokens": 61550,
+          "tokens": 61526,
           "sources": 53,
           "clones": 6,
           "duplicatedLines": 123,
@@ -657,7 +657,7 @@
     },
     "total": {
       "lines": 9236,
-      "tokens": 61550,
+      "tokens": 61526,
       "sources": 53,
       "clones": 6,
       "duplicatedLines": 123,
