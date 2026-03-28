@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_6d8f981972b8e858_apps_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.13.5">coverage.py v7.13.5</a>,
-            created at 2026-03-28 14:51 +0000
+            created at 2026-03-28 15:11 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -247,8 +247,8 @@
     <p class="pln"><span class="n"><a id="t165" href="#t165">165</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t166" href="#t166">166</a></span><span class="t"><span class="op">@</span><span class="nam">router</span><span class="op">.</span><span class="nam">post</span><span class="op">(</span><span class="str">"/"</span><span class="op">,</span> <span class="nam">response</span><span class="op">=</span><span class="op">{</span><span class="num">201</span><span class="op">:</span> <span class="nam">ProfileOut</span><span class="op">,</span> <span class="num">404</span><span class="op">:</span> <span class="nam">ErrorSchema</span><span class="op">}</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t167" href="#t167">167</a></span><span class="t"><span class="key">def</span> <span class="nam">create_profile</span><span class="op">(</span><span class="nam">request</span><span class="op">,</span> <span class="nam">payload</span><span class="op">:</span> <span class="nam">ProfileIn</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t168" href="#t168">168</a></span><span class="t">    <span class="str">"""Create a new profile. Disabled in public mode (use /auth/register)."""</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t169" href="#t169">169</a></span><span class="t">    <span class="key">if</span> <span class="nam">settings</span><span class="op">.</span><span class="nam">AUTH_MODE</span> <span class="op">==</span> <span class="str">"public"</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t168" href="#t168">168</a></span><span class="t">    <span class="str">"""Create a new profile. Only available in home mode."""</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t169" href="#t169">169</a></span><span class="t">    <span class="key">if</span> <span class="nam">settings</span><span class="op">.</span><span class="nam">AUTH_MODE</span> <span class="op">!=</span> <span class="str">"home"</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t170" href="#t170">170</a></span><span class="t">        <span class="key">return</span> <span class="num">404</span><span class="op">,</span> <span class="op">{</span><span class="str">"error"</span><span class="op">:</span> <span class="str">"not_found"</span><span class="op">,</span> <span class="str">"message"</span><span class="op">:</span> <span class="str">"Not found"</span><span class="op">}</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t171" href="#t171">171</a></span><span class="t">    <span class="nam">data</span> <span class="op">=</span> <span class="nam">payload</span><span class="op">.</span><span class="nam">dict</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t172" href="#t172">172</a></span><span class="t">    <span class="key">if</span> <span class="key">not</span> <span class="nam">data</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">"avatar_color"</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -388,8 +388,8 @@
     <p class="pln"><span class="n"><a id="t306" href="#t306">306</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t307" href="#t307">307</a></span><span class="t"><span class="op">@</span><span class="nam">router</span><span class="op">.</span><span class="nam">post</span><span class="op">(</span><span class="str">"/{profile_id}/select/"</span><span class="op">,</span> <span class="nam">response</span><span class="op">=</span><span class="op">{</span><span class="num">200</span><span class="op">:</span> <span class="nam">ProfileOut</span><span class="op">,</span> <span class="num">404</span><span class="op">:</span> <span class="nam">dict</span><span class="op">}</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t308" href="#t308">308</a></span><span class="t"><span class="key">def</span> <span class="nam">select_profile</span><span class="op">(</span><span class="nam">request</span><span class="op">,</span> <span class="nam">profile_id</span><span class="op">:</span> <span class="nam">int</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t309" href="#t309">309</a></span><span class="t">    <span class="str">"""Set a profile as the current profile. Disabled in public mode."""</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t310" href="#t310">310</a></span><span class="t">    <span class="key">if</span> <span class="nam">settings</span><span class="op">.</span><span class="nam">AUTH_MODE</span> <span class="op">==</span> <span class="str">"public"</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t309" href="#t309">309</a></span><span class="t">    <span class="str">"""Set a profile as the current profile. Only available in home mode."""</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t310" href="#t310">310</a></span><span class="t">    <span class="key">if</span> <span class="nam">settings</span><span class="op">.</span><span class="nam">AUTH_MODE</span> <span class="op">!=</span> <span class="str">"home"</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t311" href="#t311">311</a></span><span class="t">        <span class="key">return</span> <span class="num">404</span><span class="op">,</span> <span class="op">{</span><span class="str">"detail"</span><span class="op">:</span> <span class="str">"Not found"</span><span class="op">}</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t312" href="#t312">312</a></span><span class="t">    <span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t313" href="#t313">313</a></span><span class="t">        <span class="nam">profile</span> <span class="op">=</span> <span class="nam">Profile</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="nam">id</span><span class="op">=</span><span class="nam">profile_id</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -407,7 +407,7 @@
             <a class="nav" href="z_6d8f981972b8e858_apps_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.13.5">coverage.py v7.13.5</a>,
-            created at 2026-03-28 14:51 +0000
+            created at 2026-03-28 15:11 +0000
         </p>
     </div>
 </footer>

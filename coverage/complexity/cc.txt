@@ -223,9 +223,9 @@ apps/ai/api.py
     C 392:0 SelectorRepairOut - A (1)
     C 400:0 SourceNeedingAttentionOut - A (1)
 apps/ai/api_discover.py
-    F 40:0 discover_endpoint - A (3)
-    C 22:0 DiscoverSuggestionOut - A (1)
-    C 29:0 DiscoverOut - A (1)
+    F 41:0 discover_endpoint - A (5)
+    C 23:0 DiscoverSuggestionOut - A (1)
+    C 30:0 DiscoverOut - A (1)
 apps/ai/fixtures.py
     F 301:0 get_fixture - A (2)
 apps/ai/api_remix.py
@@ -762,4 +762,4 @@ cookie/settings.py
     F 21:0 get_secret_key - A (3)
 
 678 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.7772861356932155)
+Average complexity: A (2.78023598820059)

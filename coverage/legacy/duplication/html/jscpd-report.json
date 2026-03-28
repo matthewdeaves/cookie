@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T14:49:31.875Z",
+    "detectionDate": "2026-03-28T15:10:15.981Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -126,13 +126,13 @@
           },
           "apps/legacy/static/legacy/js/pages/play.js": {
             "lines": 609,
-            "tokens": 4389,
+            "tokens": 4396,
             "sources": 1,
             "clones": 3,
             "duplicatedLines": 126,
             "duplicatedTokens": 969,
             "percentage": 20.69,
-            "percentageTokens": 22.08,
+            "percentageTokens": 22.04,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -198,13 +198,13 @@
           },
           "apps/legacy/static/legacy/js/pages/detail-remix.js": {
             "lines": 292,
-            "tokens": 2546,
+            "tokens": 2553,
             "sources": 1,
             "clones": 6,
             "duplicatedLines": 34,
             "duplicatedTokens": 312,
             "percentage": 11.64,
-            "percentageTokens": 12.25,
+            "percentageTokens": 12.22,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -415,7 +415,7 @@
         },
         "total": {
           "lines": 6655,
-          "tokens": 50782,
+          "tokens": 50796,
           "sources": 34,
           "clones": 31,
           "duplicatedLines": 314,
@@ -429,7 +429,7 @@
     },
     "total": {
       "lines": 6655,
-      "tokens": 50782,
+      "tokens": 50796,
       "sources": 34,
       "clones": 31,
       "duplicatedLines": 314,
@@ -705,12 +705,12 @@
         "startLoc": {
           "line": 411,
           "column": 20,
-          "position": 2972
+          "position": 2979
         },
         "endLoc": {
           "line": 470,
           "column": 8,
-          "position": 3428
+          "position": 3435
         }
       },
       "secondFile": {
@@ -720,12 +720,12 @@
         "startLoc": {
           "line": 350,
           "column": 17,
-          "position": 2510
+          "position": 2517
         },
         "endLoc": {
           "line": 410,
           "column": 8,
-          "position": 2966
+          "position": 2973
         }
       }
     },
@@ -741,12 +741,12 @@
         "startLoc": {
           "line": 598,
           "column": 5,
-          "position": 4300
+          "position": 4307
         },
         "endLoc": {
           "line": 606,
           "column": 5,
-          "position": 4357
+          "position": 4364
         }
       },
       "secondFile": {
@@ -1029,12 +1029,12 @@
         "startLoc": {
           "line": 107,
           "column": 23,
-          "position": 811
+          "position": 818
         },
         "endLoc": {
           "line": 112,
           "column": 3,
-          "position": 862
+          "position": 869
         }
       },
       "secondFile": {
@@ -1065,12 +1065,12 @@
         "startLoc": {
           "line": 188,
           "column": 21,
-          "position": 1563
+          "position": 1570
         },
         "endLoc": {
           "line": 192,
           "column": 7,
-          "position": 1621
+          "position": 1628
         }
       },
       "secondFile": {
@@ -1080,12 +1080,12 @@
         "startLoc": {
           "line": 173,
           "column": 23,
-          "position": 1409
+          "position": 1416
         },
         "endLoc": {
           "line": 177,
           "column": 59,
-          "position": 1467
+          "position": 1474
         }
       }
     },
@@ -1101,12 +1101,12 @@
         "startLoc": {
           "line": 274,
           "column": 25,
-          "position": 2409
+          "position": 2416
         },
         "endLoc": {
           "line": 282,
           "column": 7,
-          "position": 2456
+          "position": 2463
         }
       },
       "secondFile": {
@@ -1116,12 +1116,12 @@
         "startLoc": {
           "line": 94,
           "column": 29,
-          "position": 729
+          "position": 736
         },
         "endLoc": {
           "line": 102,
           "column": 6,
-          "position": 776
+          "position": 783
         }
       }
     },
