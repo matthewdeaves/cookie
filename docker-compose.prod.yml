@@ -40,6 +40,7 @@ services:
       - EMAIL_BACKEND=${EMAIL_BACKEND:-django.core.mail.backends.console.EmailBackend}
       - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-noreply@cookie.local}
       - AWS_SES_REGION_NAME=${AWS_SES_REGION_NAME:-eu-west-2}
+      - SECURE_SSL_REDIRECT=${SECURE_SSL_REDIRECT:-true}
       - LOG_FORMAT=${LOG_FORMAT:-json}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     # Uncomment for CloudWatch log shipping (requires IAM role with logs:* permissions)
