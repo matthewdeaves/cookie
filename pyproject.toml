@@ -6,6 +6,7 @@ omit = [
     "*_test.py",
     "tests/*",
     "*/migrations/*",
+    "*/fixtures.py",
 ]
 
 [tool.coverage.report]

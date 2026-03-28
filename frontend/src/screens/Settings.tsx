@@ -39,7 +39,7 @@ type Tab = 'general' | 'prompts' | 'sources' | 'selectors' | 'users' | 'danger' 
 function useIsAdmin(): boolean {
   const mode = useMode()
   const auth = useAuth()
-  if (mode === 'public' || mode === 'passkey') {
+  if (mode === 'passkey') {
     return auth.isAdmin
   }
   return true
