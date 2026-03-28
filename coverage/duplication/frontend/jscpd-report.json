@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T09:20:46.040Z",
+    "detectionDate": "2026-03-28T13:56:27.997Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -137,8 +137,8 @@
             "newClones": 0
           },
           "src/screens/Settings.tsx": {
-            "lines": 126,
-            "tokens": 809,
+            "lines": 148,
+            "tokens": 967,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -199,6 +199,54 @@
           "src/screens/PlayMode.tsx": {
             "lines": 126,
             "tokens": 776,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/PasskeyRegister.tsx": {
+            "lines": 1,
+            "tokens": 9,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/PasskeyManage.tsx": {
+            "lines": 36,
+            "tokens": 247,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/PasskeyLogin.tsx": {
+            "lines": 1,
+            "tokens": 9,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/PairDevice.tsx": {
+            "lines": 0,
+            "tokens": 12,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -293,8 +341,8 @@
             "newClones": 0
           },
           "src/contexts/AuthContext.tsx": {
-            "lines": 8,
-            "tokens": 28,
+            "lines": 9,
+            "tokens": 30,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -400,6 +448,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/components/DeviceCodeEntry.tsx": {
+            "lines": 26,
+            "tokens": 196,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/components/AddToCollectionDropdown.tsx": {
             "lines": 50,
             "tokens": 383,
@@ -413,8 +473,8 @@
             "newClones": 0
           },
           "src/router.tsx": {
-            "lines": 45,
-            "tokens": 334,
+            "lines": 50,
+            "tokens": 374,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -438,9 +498,9 @@
           }
         },
         "total": {
-          "lines": 2881,
-          "tokens": 20916,
-          "sources": 36,
+          "lines": 2973,
+          "tokens": 21589,
+          "sources": 41,
           "clones": 0,
           "duplicatedLines": 0,
           "duplicatedTokens": 0,
@@ -585,8 +645,8 @@
             "newClones": 0
           },
           "src/screens/Settings.tsx": {
-            "lines": 228,
-            "tokens": 1637,
+            "lines": 255,
+            "tokens": 1845,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -613,10 +673,10 @@
             "tokens": 1707,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 27,
-            "duplicatedTokens": 204,
-            "percentage": 13.78,
-            "percentageTokens": 11.95,
+            "duplicatedLines": 28,
+            "duplicatedTokens": 212,
+            "percentage": 14.29,
+            "percentageTokens": 12.42,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -656,15 +716,63 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/screens/PasskeyRegister.tsx": {
+            "lines": 102,
+            "tokens": 826,
+            "sources": 1,
+            "clones": 5,
+            "duplicatedLines": 48,
+            "duplicatedTokens": 438,
+            "percentage": 47.06,
+            "percentageTokens": 53.03,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/PasskeyManage.tsx": {
+            "lines": 157,
+            "tokens": 1222,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/PasskeyLogin.tsx": {
+            "lines": 93,
+            "tokens": 740,
+            "sources": 1,
+            "clones": 3,
+            "duplicatedLines": 30,
+            "duplicatedTokens": 278,
+            "percentage": 32.26,
+            "percentageTokens": 37.57,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/screens/PairDevice.tsx": {
+            "lines": 29,
+            "tokens": 220,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/screens/Login.tsx": {
             "lines": 102,
             "tokens": 806,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 27,
-            "duplicatedTokens": 204,
-            "percentage": 26.47,
-            "percentageTokens": 25.31,
+            "duplicatedLines": 30,
+            "duplicatedTokens": 224,
+            "percentage": 29.41,
+            "percentageTokens": 27.79,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -741,8 +849,8 @@
             "newClones": 0
           },
           "src/contexts/AuthContext.tsx": {
-            "lines": 95,
-            "tokens": 745,
+            "lines": 108,
+            "tokens": 863,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -848,6 +956,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/components/DeviceCodeEntry.tsx": {
+            "lines": 66,
+            "tokens": 520,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/components/AddToCollectionDropdown.tsx": {
             "lines": 144,
             "tokens": 1171,
@@ -861,8 +981,8 @@
             "newClones": 0
           },
           "src/router.tsx": {
-            "lines": 239,
-            "tokens": 1705,
+            "lines": 280,
+            "tokens": 2013,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -898,14 +1018,14 @@
           }
         },
         "total": {
-          "lines": 6327,
-          "tokens": 49246,
-          "sources": 37,
-          "clones": 5,
-          "duplicatedLines": 62,
-          "duplicatedTokens": 454,
-          "percentage": 0.98,
-          "percentageTokens": 0.92,
+          "lines": 6855,
+          "tokens": 53408,
+          "sources": 42,
+          "clones": 9,
+          "duplicatedLines": 103,
+          "duplicatedTokens": 826,
+          "percentage": 1.5,
+          "percentageTokens": 1.55,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -915,6 +1035,18 @@
           "src/components/settings/index.ts": {
             "lines": 5,
             "tokens": 94,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/lib/webauthn.ts": {
+            "lines": 109,
+            "tokens": 959,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1009,8 +1141,8 @@
             "newClones": 0
           },
           "src/api/types.ts": {
-            "lines": 378,
-            "tokens": 2159,
+            "lines": 416,
+            "tokens": 2358,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1021,41 +1153,41 @@
             "newClones": 0
           },
           "src/api/client.ts": {
-            "lines": 427,
-            "tokens": 3473,
+            "lines": 496,
+            "tokens": 4004,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 96,
-            "duplicatedTokens": 374,
-            "percentage": 22.48,
-            "percentageTokens": 10.77,
+            "duplicatedLines": 106,
+            "duplicatedTokens": 414,
+            "percentage": 21.37,
+            "percentageTokens": 10.34,
             "newDuplicatedLines": 0,
             "newClones": 0
           }
         },
         "total": {
-          "lines": 1719,
-          "tokens": 12618,
-          "sources": 10,
+          "lines": 1935,
+          "tokens": 14307,
+          "sources": 11,
           "clones": 4,
-          "duplicatedLines": 90,
-          "duplicatedTokens": 608,
-          "percentage": 5.24,
-          "percentageTokens": 4.82,
+          "duplicatedLines": 95,
+          "duplicatedTokens": 628,
+          "percentage": 4.91,
+          "percentageTokens": 4.39,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 10927,
-      "tokens": 82780,
-      "sources": 83,
-      "clones": 9,
-      "duplicatedLines": 152,
-      "duplicatedTokens": 1062,
-      "percentage": 1.39,
-      "percentageTokens": 1.28,
+      "lines": 11763,
+      "tokens": 89304,
+      "sources": 94,
+      "clones": 13,
+      "duplicatedLines": 198,
+      "duplicatedTokens": 1454,
+      "percentage": 1.68,
+      "percentageTokens": 1.63,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -1063,22 +1195,22 @@
   "duplicates": [
     {
       "format": "tsx",
-      "lines": 8,
-      "fragment": "}\n\n  return (\n    <div className=\"flex min-h-screen items-center justify-center bg-background p-4\">\n      <div className=\"w-full max-w-sm space-y-6\">\n        <div className=\"text-center\">\n          <h1 className=\"text-3xl font-bold text-foreground\">Cookie</h1>\n          <p className=\"mt-1 text-sm text-muted-foreground\">Sign",
+      "lines": 9,
+      "fragment": "}\n\n  return (\n    <div className=\"flex min-h-screen items-center justify-center bg-background p-4\">\n      <div className=\"w-full max-w-sm space-y-6\">\n        <div className=\"text-center\">\n          <h1 className=\"text-3xl font-bold text-foreground\">Cookie</h1>\n          <p className=\"mt-1 text-sm text-muted-foreground\">\n            Create your account with",
       "tokens": 0,
       "firstFile": {
-        "name": "src/screens/Login.tsx",
-        "start": 29,
-        "end": 36,
+        "name": "src/screens/PasskeyRegister.tsx",
+        "start": 50,
+        "end": 58,
         "startLoc": {
-          "line": 29,
+          "line": 50,
           "column": 3,
-          "position": 290
+          "position": 402
         },
         "endLoc": {
-          "line": 36,
+          "line": 58,
           "column": 5,
-          "position": 356
+          "position": 476
         }
       },
       "secondFile": {
@@ -1092,8 +1224,152 @@
         },
         "endLoc": {
           "line": 77,
+          "column": 3,
+          "position": 745
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 9,
+      "fragment": "() {\n  const navigate = useNavigate()\n  const { refreshSession } = useAuth()\n  const [error, setError] = useState('')\n  const [submitting, setSubmitting] = useState(false)\n\n  const webauthnSupported = typeof window !== 'undefined' && !!window.PublicKeyCredential\n\n  async function handleLogin",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/screens/PasskeyLogin.tsx",
+        "start": 10,
+        "end": 18,
+        "startLoc": {
+          "line": 10,
+          "column": 13,
+          "position": 77
+        },
+        "endLoc": {
+          "line": 18,
+          "column": 12,
+          "position": 172
+        }
+      },
+      "secondFile": {
+        "name": "src/screens/PasskeyRegister.tsx",
+        "start": 10,
+        "end": 18,
+        "startLoc": {
+          "line": 10,
+          "column": 16,
+          "position": 77
+        },
+        "endLoc": {
+          "line": 18,
+          "column": 15,
+          "position": 172
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 13,
+      "fragment": ")\n      }\n    } finally {\n      setSubmitting(false)\n    }\n  }\n\n  return (\n    <div className=\"flex min-h-screen items-center justify-center bg-background p-4\">\n      <div className=\"w-full max-w-sm space-y-6\">\n        <div className=\"text-center\">\n          <h1 className=\"text-3xl font-bold text-foreground\">Cookie</h1>\n          <p className=\"mt-1 text-sm text-muted-foreground\">Sign",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/screens/PasskeyLogin.tsx",
+        "start": 45,
+        "end": 57,
+        "startLoc": {
+          "line": 45,
+          "column": 17,
+          "position": 380
+        },
+        "endLoc": {
+          "line": 57,
+          "column": 5,
+          "position": 468
+        }
+      },
+      "secondFile": {
+        "name": "src/screens/PasskeyRegister.tsx",
+        "start": 45,
+        "end": 77,
+        "startLoc": {
+          "line": 45,
+          "column": 22,
+          "position": 380
+        },
+        "endLoc": {
+          "line": 77,
           "column": 7,
           "position": 740
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 11,
+      "fragment": ") : (\n            <p className=\"text-center text-sm text-muted-foreground\">\n              Your browser does not support passkeys. Please use a modern browser or pair this device\n              using a code from another device.\n            </p>\n          )}\n        </div>\n\n        <div className=\"text-center text-sm text-muted-foreground\">\n          <p>\n            Don",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/screens/PasskeyLogin.tsx",
+        "start": 75,
+        "end": 85,
+        "startLoc": {
+          "line": 75,
+          "column": 11,
+          "position": 589
+        },
+        "endLoc": {
+          "line": 85,
+          "column": 4,
+          "position": 684
+        }
+      },
+      "secondFile": {
+        "name": "src/screens/PasskeyRegister.tsx",
+        "start": 84,
+        "end": 94,
+        "startLoc": {
+          "line": 84,
+          "column": 11,
+          "position": 669
+        },
+        "endLoc": {
+          "line": 94,
+          "column": 8,
+          "position": 764
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 11,
+      "fragment": "} finally {\n      setSubmitting(false)\n    }\n  }\n\n  return (\n    <div className=\"flex min-h-screen items-center justify-center bg-background p-4\">\n      <div className=\"w-full max-w-sm space-y-6\">\n        <div className=\"text-center\">\n          <h1 className=\"text-3xl font-bold text-foreground\">Cookie</h1>\n          <p className=\"mt-1 text-sm text-muted-foreground\">Sign in to",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/screens/Login.tsx",
+        "start": 26,
+        "end": 36,
+        "startLoc": {
+          "line": 26,
+          "column": 5,
+          "position": 274
+        },
+        "endLoc": {
+          "line": 36,
+          "column": 3,
+          "position": 360
+        }
+      },
+      "secondFile": {
+        "name": "src/screens/PasskeyRegister.tsx",
+        "start": 47,
+        "end": 57,
+        "startLoc": {
+          "line": 47,
+          "column": 5,
+          "position": 386
+        },
+        "endLoc": {
+          "line": 57,
+          "column": 5,
+          "position": 472
         }
       }
     },
@@ -1351,37 +1627,37 @@
     },
     {
       "format": "typescript",
-      "lines": 49,
-      "fragment": "type {\n  AuthResponse,\n  LoginRequest,\n  RegisterRequest,\n  ChangePasswordRequest,\n  ModeResponse,\n  AIStatus,\n  AIErrorResponse,\n  AIModel,\n  AIPrompt,\n  AIPromptUpdate,\n  RemixSuggestionsResponse,\n  RemixResponse,\n  NutritionValues,\n  ScaleResponse,\n  TipsResponse,\n  DiscoverSuggestion,\n  DiscoverResponse,\n  TimerNameResponse,\n  TestApiKeyResponse,\n  SaveApiKeyResponse,\n  Profile,\n  ProfileStats,\n  ProfileWithStats,\n  DeletionData,\n  ProfileSummary,\n  DeletionPreview,\n  ProfileInput,\n  Recipe,\n  IngredientGroup,\n  LinkedRecipe,\n  RecipeDetail,\n  Favorite,\n  HistoryItem,\n  Collection,\n  CollectionItem,\n  CollectionDetail,\n  CollectionInput,\n  SearchResult,\n  SearchResponse,\n  Source,\n  SourceTestResult,\n  TestAllSourcesResult,\n  ResetDataCounts,\n  ResetPreview,\n  ResetResult,\n}\n\nconst",
+      "lines": 54,
+      "fragment": "type {\n  AuthResponse,\n  LoginRequest,\n  RegisterRequest,\n  ChangePasswordRequest,\n  ModeResponse,\n  AIStatus,\n  AIErrorResponse,\n  AIModel,\n  AIPrompt,\n  AIPromptUpdate,\n  RemixSuggestionsResponse,\n  RemixResponse,\n  NutritionValues,\n  ScaleResponse,\n  TipsResponse,\n  DiscoverSuggestion,\n  DiscoverResponse,\n  TimerNameResponse,\n  TestApiKeyResponse,\n  SaveApiKeyResponse,\n  Profile,\n  ProfileStats,\n  ProfileWithStats,\n  DeletionData,\n  ProfileSummary,\n  DeletionPreview,\n  ProfileInput,\n  Recipe,\n  IngredientGroup,\n  LinkedRecipe,\n  RecipeDetail,\n  Favorite,\n  HistoryItem,\n  Collection,\n  CollectionItem,\n  CollectionDetail,\n  CollectionInput,\n  SearchResult,\n  SearchResponse,\n  Source,\n  SourceTestResult,\n  TestAllSourcesResult,\n  ResetDataCounts,\n  ResetPreview,\n  ResetResult,\n  PasskeyAuthResponse,\n  PasskeyCredential,\n  PasskeyCredentialList,\n  DeviceCodeResponse,\n  DevicePollResponse,\n}\n\nconst",
       "tokens": 0,
       "firstFile": {
         "name": "src/api/client.ts",
-        "start": 50,
-        "end": 98,
+        "start": 55,
+        "end": 108,
         "startLoc": {
-          "line": 50,
+          "line": 55,
           "column": 2,
-          "position": 197
+          "position": 217
         },
         "endLoc": {
-          "line": 98,
+          "line": 108,
           "column": 6,
-          "position": 384
+          "position": 424
         }
       },
       "secondFile": {
         "name": "src/api/client.ts",
         "start": 1,
-        "end": 47,
+        "end": 52,
         "startLoc": {
           "line": 1,
           "column": 2,
           "position": 2
         },
         "endLoc": {
-          "line": 47,
+          "line": 52,
           "column": 5,
-          "position": 188
+          "position": 208
         }
       }
     }

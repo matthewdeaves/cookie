@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T09:20:40.543Z",
+    "detectionDate": "2026-03-28T13:56:28.526Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -157,6 +157,18 @@
             "duplicatedTokens": 345,
             "percentage": 52.48,
             "percentageTokens": 51.42,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/pages/device-pair.js": {
+            "lines": 138,
+            "tokens": 1156,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 4,
+            "duplicatedTokens": 72,
+            "percentage": 2.9,
+            "percentageTokens": 6.23,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -380,11 +392,11 @@
             "lines": 125,
             "tokens": 873,
             "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
+            "clones": 1,
+            "duplicatedLines": 4,
+            "duplicatedTokens": 72,
+            "percentage": 3.2,
+            "percentageTokens": 8.25,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -402,28 +414,28 @@
           }
         },
         "total": {
-          "lines": 6502,
-          "tokens": 49527,
-          "sources": 33,
-          "clones": 30,
-          "duplicatedLines": 310,
-          "duplicatedTokens": 2583,
-          "percentage": 4.77,
-          "percentageTokens": 5.22,
+          "lines": 6640,
+          "tokens": 50683,
+          "sources": 34,
+          "clones": 31,
+          "duplicatedLines": 314,
+          "duplicatedTokens": 2655,
+          "percentage": 4.73,
+          "percentageTokens": 5.24,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 6502,
-      "tokens": 49527,
-      "sources": 33,
-      "clones": 30,
-      "duplicatedLines": 310,
-      "duplicatedTokens": 2583,
-      "percentage": 4.77,
-      "percentageTokens": 5.22,
+      "lines": 6640,
+      "tokens": 50683,
+      "sources": 34,
+      "clones": 31,
+      "duplicatedLines": 314,
+      "duplicatedTokens": 2655,
+      "percentage": 4.73,
+      "percentageTokens": 5.24,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -1506,6 +1518,42 @@
           "line": 76,
           "column": 7,
           "position": 526
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 5,
+      "fragment": "function getCsrfToken() {\n        var value = '; ' + document.cookie;\n        var parts = value.split('; csrftoken=');\n        if (parts.length === 2) {\n            return parts.pop().split(';').shift() ||",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/ajax.js",
+        "start": 15,
+        "end": 19,
+        "startLoc": {
+          "line": 15,
+          "column": 5,
+          "position": 50
+        },
+        "endLoc": {
+          "line": 19,
+          "column": 3,
+          "position": 122
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/device-pair.js",
+        "start": 6,
+        "end": 10,
+        "startLoc": {
+          "line": 6,
+          "column": 1,
+          "position": 15
+        },
+        "endLoc": {
+          "line": 10,
+          "column": 2,
+          "position": 86
         }
       }
     }
