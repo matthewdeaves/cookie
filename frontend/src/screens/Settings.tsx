@@ -228,25 +228,26 @@ export default function Settings() {
               models={models}
               onAIStatusChange={setAiStatus}
               onModelsChange={setModels}
+              isAdmin={isAdmin}
             />
-          ) : activeTab === 'prompts' ? (
+          ) : activeTab === 'prompts' && isAdmin ? (
             <SettingsPrompts
               aiStatus={aiStatus}
               prompts={prompts}
               models={models}
               onPromptsChange={setPrompts}
             />
-          ) : activeTab === 'sources' ? (
+          ) : activeTab === 'sources' && isAdmin ? (
             <SettingsSources sources={sources} onSourcesChange={setSources} />
-          ) : activeTab === 'selectors' ? (
+          ) : activeTab === 'selectors' && isAdmin ? (
             <SettingsSelectors sources={sources} onSourcesChange={setSources} />
-          ) : activeTab === 'users' ? (
+          ) : activeTab === 'users' && isAdmin ? (
             <SettingsUsers
               profiles={profiles}
               currentProfileId={currentProfileId}
               onProfilesChange={setProfiles}
             />
-          ) : activeTab === 'danger' ? (
+          ) : activeTab === 'danger' && isAdmin ? (
             <SettingsDanger />
           ) : null}
         </div>

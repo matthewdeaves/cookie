@@ -11,6 +11,7 @@ interface SettingsGeneralProps {
   models: AIModel[]
   onAIStatusChange: (status: AIStatus) => void
   onModelsChange: (models: AIModel[]) => void
+  isAdmin: boolean
 }
 
 export default function SettingsGeneral({
@@ -18,6 +19,7 @@ export default function SettingsGeneral({
   models,
   onAIStatusChange,
   onModelsChange,
+  isAdmin,
 }: SettingsGeneralProps) {
   const globalAIStatus = useAIStatus()
   const [apiKey, setApiKey] = useState('')
@@ -121,8 +123,8 @@ export default function SettingsGeneral({
         {/* Unit preference hidden until fully implemented */}
       </div>
 
-      {/* OpenRouter API */}
-      <div className="rounded-lg border border-border bg-card p-4">
+      {/* OpenRouter API — admin only */}
+      {isAdmin && <div className="rounded-lg border border-border bg-card p-4">
         <h2 className="mb-4 text-lg font-medium text-foreground">OpenRouter API</h2>
 
         <div className="mb-4 flex items-center gap-2">
@@ -217,7 +219,7 @@ export default function SettingsGeneral({
             openrouter.ai/keys
           </a>
         </p>
-      </div>
+      </div>}
 
       {/* About */}
       <div className="rounded-lg border border-border bg-card p-4">
