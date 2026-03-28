@@ -445,15 +445,20 @@ apps/core/management/commands/cleanup_device_codes.py
     M 15:4 Command.handle - A (3)
     M 12:4 Command.add_arguments - A (1)
 apps/core/management/commands/cookie_admin.py
-    M 61:4 Command._handle_list_users - B (8)
-    C 9:0 Command - A (4)
-    M 37:4 Command.handle - A (4)
-    M 109:4 Command._handle_demote - A (3)
-    M 127:4 Command._handle_deactivate - A (3)
-    M 54:4 Command._get_user - A (2)
-    M 100:4 Command._handle_promote - A (2)
-    M 12:4 Command.add_arguments - A (1)
-    M 121:4 Command._handle_activate - A (1)
+    M 190:4 Command._handle_audit - C (13)
+    M 114:4 Command._handle_status - B (8)
+    M 265:4 Command._handle_list_users - B (8)
+    C 25:0 Command - A (5)
+    M 67:4 Command.handle - A (4)
+    M 81:4 Command._error - A (3)
+    M 88:4 Command._success - A (3)
+    M 311:4 Command._handle_demote - A (3)
+    M 328:4 Command._handle_deactivate - A (3)
+    M 97:4 Command._get_user - A (2)
+    M 302:4 Command._handle_promote - A (2)
+    M 28:4 Command.add_arguments - A (1)
+    M 103:4 Command._user_dict - A (1)
+    M 322:4 Command._handle_activate - A (1)
 apps/profiles/utils.py
     F 9:0 get_current_profile - A (3)
     F 25:0 get_current_profile_or_none - A (3)
@@ -733,5 +738,5 @@ apps/recipes/management/commands/cleanup_search_images.py
 cookie/settings.py
     F 21:0 get_secret_key - A (3)
 
-652 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.773006134969325)
+657 blocks (classes, functions, methods) analyzed.
+Average complexity: A (2.7960426179604263)
