@@ -346,6 +346,7 @@ export interface AuthProfile {
 
 export interface ModeResponse {
   mode: 'home' | 'passkey'
+  version: string
   registration_enabled?: boolean
 }
 

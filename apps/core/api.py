@@ -47,7 +47,7 @@ def get_mode(request):
     from django.middleware.csrf import get_token
 
     get_token(request)  # Forces Django to set the CSRF cookie
-    result = {"mode": settings.AUTH_MODE}
+    result = {"mode": settings.AUTH_MODE, "version": settings.COOKIE_VERSION}
     if settings.AUTH_MODE == "passkey":
         result["registration_enabled"] = True
     return result

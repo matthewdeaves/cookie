@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { api, type AIStatus, type AIModel } from '../../api/client'
 import { useAIStatus } from '../../contexts/AIStatusContext'
 import { useProfile } from '../../contexts/ProfileContext'
+import { useVersion } from '../../router'
 import { cn } from '../../lib/utils'
 
 interface SettingsGeneralProps {
@@ -82,6 +83,7 @@ export default function SettingsGeneral({
   }
 
   const { theme, toggleTheme } = useProfile()
+  const version = useVersion()
 
   return (
     <div className="space-y-6">
@@ -227,7 +229,7 @@ export default function SettingsGeneral({
         <div className="space-y-2 text-sm text-muted-foreground">
           <div className="flex items-center justify-between">
             <span>Version</span>
-            <span className="font-medium text-foreground">1.0.0</span>
+            <span className="font-medium text-foreground">{version}</span>
           </div>
           <div className="flex items-center justify-between">
             <span>Source Code</span>

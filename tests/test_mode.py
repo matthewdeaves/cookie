@@ -47,7 +47,9 @@ class TestHomeModeDefaults:
         """T018: GET /api/system/mode/ returns correct mode."""
         response = client.get("/api/system/mode/")
         assert response.status_code == 200
-        assert response.json() == {"mode": "home"}
+        data = response.json()
+        assert data["mode"] == "home"
+        assert "version" in data
 
     def test_session_cookie_age(self):
         """T062b: SESSION_COOKIE_AGE remains 43200 (12 hours)."""

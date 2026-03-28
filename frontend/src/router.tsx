@@ -31,19 +31,28 @@ function LoadingFallback() {
 
 // Mode context — provides the operating mode to child components without hook violations
 const ModeContext = createContext<'home' | 'passkey'>('home')
+const VersionContext = createContext<string>('dev')
 
 export function useMode() {
   return useContext(ModeContext)
 }
 
+export function useVersion() {
+  return useContext(VersionContext)
+}
+
 // eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function AppLayout() {
   const [mode, setMode] = useState<'home' | 'passkey' | null>(null)
+  const [version, setVersion] = useState('dev')
 
   useEffect(() => {
     api.system
       .mode()
-      .then((data) => setMode(data.mode === 'passkey' ? 'passkey' : 'home'))
+      .then((data) => {
+        setMode(data.mode === 'passkey' ? 'passkey' : 'home')
+        setVersion(data.version || 'dev')
+      })
       .catch(() => setMode('home'))
   }, [])
 
@@ -53,6 +62,7 @@ function AppLayout() {
 
   if (mode === 'passkey') {
     return (
+      <VersionContext.Provider value={version}>
       <ModeContext.Provider value="passkey">
         <AuthProvider>
           <AIStatusProvider>
@@ -65,10 +75,12 @@ function AppLayout() {
           </AIStatusProvider>
         </AuthProvider>
       </ModeContext.Provider>
+      </VersionContext.Provider>
     )
   }
 
   return (
+    <VersionContext.Provider value={version}>
     <ModeContext.Provider value="home">
       <AIStatusProvider>
         <ProfileProvider>
@@ -79,6 +91,7 @@ function AppLayout() {
         </ProfileProvider>
       </AIStatusProvider>
     </ModeContext.Provider>
+    </VersionContext.Provider>
   )
 }
 

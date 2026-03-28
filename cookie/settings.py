@@ -56,6 +56,7 @@ if _raw_auth_mode not in ("home", "passkey"):
     )
     _raw_auth_mode = "home"
 AUTH_MODE = _raw_auth_mode
+COOKIE_VERSION = os.environ.get("COOKIE_VERSION", "dev")
 
 # ===========================================
 # WebAuthn / Passkey Configuration (Passkey Mode)
