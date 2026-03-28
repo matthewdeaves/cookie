@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">55.55% </span>
+                <span class="strong">56.71% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>35/63</span>
+                <span class='fraction'>38/67</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">44.44% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>8/18</span>
+                <span class='fraction'>10/20</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.33% </span>
+                <span class="strong">32% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>8/24</span>
+                <span class='fraction'>8/25</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">69.38% </span>
+                <span class="strong">69.81% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>34/49</span>
+                <span class='fraction'>37/53</span>
             </div>
         
             
@@ -313,7 +313,20 @@
 <a name='L248'></a><a href='#L248'>248</a>
 <a name='L249'></a><a href='#L249'>249</a>
 <a name='L250'></a><a href='#L250'>250</a>
-<a name='L251'></a><a href='#L251'>251</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L251'></a><a href='#L251'>251</a>
+<a name='L252'></a><a href='#L252'>252</a>
+<a name='L253'></a><a href='#L253'>253</a>
+<a name='L254'></a><a href='#L254'>254</a>
+<a name='L255'></a><a href='#L255'>255</a>
+<a name='L256'></a><a href='#L256'>256</a>
+<a name='L257'></a><a href='#L257'>257</a>
+<a name='L258'></a><a href='#L258'>258</a>
+<a name='L259'></a><a href='#L259'>259</a>
+<a name='L260'></a><a href='#L260'>260</a>
+<a name='L261'></a><a href='#L261'>261</a>
+<a name='L262'></a><a href='#L262'>262</a>
+<a name='L263'></a><a href='#L263'>263</a>
+<a name='L264'></a><a href='#L264'>264</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -346,19 +359,28 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -383,7 +405,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -596,19 +622,28 @@ function LoadingFallback() {
 &nbsp;
 // Mode context — provides the operating mode to child components without hook violations
 const ModeContext = createContext&lt;'home' | 'passkey'&gt;('home')
+const VersionContext = createContext&lt;string&gt;('dev')
 &nbsp;
 export function useMode() {
   return useContext(ModeContext)
 }
 &nbsp;
+export function <span class="fstat-no" title="function not covered" >useVersion() {</span>
+<span class="cstat-no" title="statement not covered" >  return useContext(VersionContext)</span>
+}
+&nbsp;
 // eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function AppLayout() {
   const [mode, setMode] = useState&lt;'home' | 'passkey' | null&gt;(null)
+  const [version, setVersion] = useState('dev')
 &nbsp;
   useEffect(() =&gt; {
     api.system
       .mode()
-      .then((data) =&gt; setMode(data.mode === 'passkey' ? <span class="branch-0 cbranch-no" title="branch not covered" >'passkey' : '</span>home'))
+      .then((data) =&gt; {
+        setMode(data.mode === 'passkey' ? <span class="branch-0 cbranch-no" title="branch not covered" >'passkey' : '</span>home')
+        setVersion(data.version || 'dev')
+      })
       .catch(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etMode('home'))</span>
   }, [])
 &nbsp;
@@ -618,6 +653,7 @@ function AppLayout() {
 &nbsp;
   <span class="missing-if-branch" title="if path not taken" >I</span>if (mode === 'passkey') {
 <span class="cstat-no" title="statement not covered" >    return (</span>
+      &lt;VersionContext.Provider value={version}&gt;
       &lt;ModeContext.Provider value="passkey"&gt;
         &lt;AuthProvider&gt;
           &lt;AIStatusProvider&gt;
@@ -630,10 +666,12 @@ function AppLayout() {
           &lt;/AIStatusProvider&gt;
         &lt;/AuthProvider&gt;
       &lt;/ModeContext.Provider&gt;
+      &lt;/VersionContext.Provider&gt;
     )
   }
 &nbsp;
   return (
+    &lt;VersionContext.Provider value={version}&gt;
     &lt;ModeContext.Provider value="home"&gt;
       &lt;AIStatusProvider&gt;
         &lt;ProfileProvider&gt;
@@ -644,6 +682,7 @@ function AppLayout() {
         &lt;/ProfileProvider&gt;
       &lt;/AIStatusProvider&gt;
     &lt;/ModeContext.Provider&gt;
+    &lt;/VersionContext.Provider&gt;
   )
 }
 &nbsp;
@@ -820,7 +859,7 @@ export const router = createBrowserRouter([
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-28T20:54:11.562Z
+                at 2026-03-28T21:01:04.794Z
             </div>
         <script src="../prettify.js"></script>
         <script>
