@@ -866,8 +866,9 @@ class SelectorRepairServiceTests(TestCase):
         sources = get_sources_needing_attention()
         hosts = [s.host for s in sources]
 
-        assert "test.example.com" in hosts
-        assert "broken.example.com" in hosts
+        # List membership checks on test hostnames (not URL substring validation)
+        assert "test.example.com" in hosts  # noqa: DUO116
+        assert "broken.example.com" in hosts  # noqa: DUO116
         assert "healthy.example.com" not in hosts
         assert "disabled.example.com" not in hosts
 

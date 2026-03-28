@@ -387,7 +387,7 @@ def generate_badges(metrics: dict, ratings: dict, config: dict, output_dir: str)
         svg = generate_badge_svg(label, value, color)
         badge_path = badges_dir / f"{name}.svg"
         with open(badge_path, "w") as f:
-            f.write(svg)
+            f.write(svg)  # Badge SVG contains only public metric labels/ratings
         print(f"Generated {name} badge: {value}")
 
 
@@ -553,6 +553,7 @@ def update_history(metrics: dict, ratings: dict, output_dir: str):
     with open(history_file, "w") as f:
         json.dump(history, f, indent=2)
 
+    # Log aggregate metric counts (public CI dashboard data, not sensitive)
     print(f"\nHistory updated: {len(history['entries'])} entries")
     print(f"Latest entry: {entry['timestamp']}")
 
@@ -579,6 +580,7 @@ def print_summary(metrics: dict, ratings: dict):
     print(
         f"Bandit SAST: HIGH={metrics['bandit_high']}, MEDIUM={metrics['bandit_medium']}, LOW={metrics['bandit_low']} ({ratings['bandit']})"
     )
+    # Aggregate count of findings (not actual secret values)
     print(f"Secrets Detection: {metrics['secrets_found']} found ({ratings['secrets']})")
     print(
         f"Bundle Size: {metrics['bundle_size_kb']}KB raw, {metrics['bundle_gzip_kb']}KB gzipped ({ratings['bundle']})"

@@ -372,7 +372,7 @@ def get_url_signal(url: str, host: str) -> str:
             return "strong_exclude"
 
     # Site-specific: AllRecipes requires /recipe/ path
-    if "allrecipes.com" in host and "/recipe/" not in path:
+    if (host == "allrecipes.com" or host.endswith(".allrecipes.com")) and "/recipe/" not in path:
         return "reject"
 
     for pattern in _RECIPE_PATTERNS:
