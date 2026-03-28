@@ -1,3 +1,7 @@
+# Runtime dependencies -- human-editable source file.
+# Run `pip-compile --generate-hashes requirements.txt -o requirements.lock` to regenerate the lockfile.
+# Dockerfiles install from requirements.lock for supply chain integrity.
+#
 # Runtime dependencies
 Django>=5.0,<7.0
 dj-database-url>=2.1

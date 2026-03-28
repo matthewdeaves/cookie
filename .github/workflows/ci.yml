@@ -59,7 +59,7 @@ jobs:
           node-version: '20'
 
       - name: Install ESLint
-        run: npm install eslint@8 --no-save
+        run: npm install eslint@8.57.1 --no-save --ignore-scripts
 
       - name: Run ESLint on legacy JS
         run: |
@@ -138,7 +138,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install ruff
-        run: pip install ruff
+        run: pip install --require-hashes -r requirements-ci.txt
 
       - name: Run ruff check
         run: ruff check apps/ cookie/ --output-format=full
@@ -335,8 +335,8 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install radon
-        run: pip install radon
+      - name: Install CI tools
+        run: pip install --require-hashes -r requirements-ci.txt
 
       - name: Generate complexity reports
         run: |
@@ -552,7 +552,7 @@ jobs:
           mkdir -p complexity
 
           # Install escomplex for actual cyclomatic complexity calculation
-          npm install escomplex typhonjs-escomplex --no-save
+          npm install escomplex@2.0.0-alpha typhonjs-escomplex@0.1.0 --no-save --ignore-scripts
 
           # Run ESLint with complexity rules and JSON output
           npx eslint src/ \
@@ -817,7 +817,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pip-audit bandit
+          pip install --require-hashes -r requirements-ci.txt
 
       - name: Run pip-audit (dependency vulnerabilities)
         run: |
@@ -895,8 +895,8 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install detect-secrets
-        run: pip install detect-secrets
+      - name: Install CI tools
+        run: pip install --require-hashes -r requirements-ci.txt
 
       - name: Scan for secrets
         run: |
