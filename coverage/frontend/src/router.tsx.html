@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">56.71% </span>
+                <span class="strong">57.14% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>38/67</span>
+                <span class='fraction'>36/63</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">32% </span>
+                <span class="strong">34.78% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>8/25</span>
+                <span class='fraction'>8/23</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">69.81% </span>
+                <span class="strong">68.62% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>37/53</span>
+                <span class='fraction'>35/51</span>
             </div>
         
             
@@ -317,16 +317,7 @@
 <a name='L252'></a><a href='#L252'>252</a>
 <a name='L253'></a><a href='#L253'>253</a>
 <a name='L254'></a><a href='#L254'>254</a>
-<a name='L255'></a><a href='#L255'>255</a>
-<a name='L256'></a><a href='#L256'>256</a>
-<a name='L257'></a><a href='#L257'>257</a>
-<a name='L258'></a><a href='#L258'>258</a>
-<a name='L259'></a><a href='#L259'>259</a>
-<a name='L260'></a><a href='#L260'>260</a>
-<a name='L261'></a><a href='#L261'>261</a>
-<a name='L262'></a><a href='#L262'>262</a>
-<a name='L263'></a><a href='#L263'>263</a>
-<a name='L264'></a><a href='#L264'>264</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L255'></a><a href='#L255'>255</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -346,8 +337,7 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
@@ -475,14 +465,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -609,8 +591,7 @@ const AllRecipes = lazy(<span class="fstat-no" title="function not covered" >() 
 const Collections = lazy(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/Collections'))</span>
 const CollectionDetail = lazy(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/CollectionDetail'))</span>
 const Settings = lazy(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/Settings'))</span>
-const PairDevice = lazy(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/PairDevice'))</span>
-const PasskeyManage = lazy(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/PasskeyManage'))</span>
+// PairDevice and PasskeyManage are now inline tabs in Settings
 &nbsp;
 function LoadingFallback() {
   return (
@@ -831,19 +812,11 @@ export const router = createBrowserRouter([
       },
       {
         path: '/pair-device',
-        element: (
-          &lt;ProtectedRoute&gt;
-            &lt;PairDevice /&gt;
-          &lt;/ProtectedRoute&gt;
-        ),
+        element: &lt;Navigate to="/settings" replace /&gt;,
       },
       {
         path: '/passkeys',
-        element: (
-          &lt;ProtectedRoute&gt;
-            &lt;PasskeyManage /&gt;
-          &lt;/ProtectedRoute&gt;
-        ),
+        element: &lt;Navigate to="/settings" replace /&gt;,
       },
       {
         path: '*',
@@ -859,7 +832,7 @@ export const router = createBrowserRouter([
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-28T21:39:32.014Z
+                at 2026-03-28T21:55:23.097Z
             </div>
         <script src="../prettify.js"></script>
         <script>

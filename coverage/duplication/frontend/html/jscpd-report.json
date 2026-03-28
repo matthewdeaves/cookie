@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T21:39:15.203Z",
+    "detectionDate": "2026-03-28T21:54:57.079Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -112,6 +112,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/components/settings/SettingsPasskeys.tsx": {
+            "lines": 28,
+            "tokens": 190,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/components/settings/SettingsGeneral.tsx": {
             "lines": 101,
             "tokens": 671,
@@ -137,8 +149,8 @@
             "newClones": 0
           },
           "src/screens/Settings.tsx": {
-            "lines": 149,
-            "tokens": 989,
+            "lines": 171,
+            "tokens": 1157,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -474,9 +486,9 @@
           }
         },
         "total": {
-          "lines": 2848,
-          "tokens": 20622,
-          "sources": 39,
+          "lines": 2898,
+          "tokens": 20980,
+          "sources": 40,
           "clones": 0,
           "duplicatedLines": 0,
           "duplicatedTokens": 0,
@@ -596,6 +608,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/components/settings/SettingsPasskeys.tsx": {
+            "lines": 147,
+            "tokens": 1148,
+            "sources": 1,
+            "clones": 3,
+            "duplicatedLines": 114,
+            "duplicatedTokens": 875,
+            "percentage": 77.55,
+            "percentageTokens": 76.22,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/components/settings/SettingsGeneral.tsx": {
             "lines": 249,
             "tokens": 1878,
@@ -621,8 +645,8 @@
             "newClones": 0
           },
           "src/screens/Settings.tsx": {
-            "lines": 256,
-            "tokens": 1869,
+            "lines": 278,
+            "tokens": 2034,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -696,11 +720,11 @@
             "lines": 160,
             "tokens": 1243,
             "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
+            "clones": 3,
+            "duplicatedLines": 114,
+            "duplicatedTokens": 875,
+            "percentage": 71.25,
+            "percentageTokens": 70.39,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -933,8 +957,8 @@
             "newClones": 0
           },
           "src/router.tsx": {
-            "lines": 262,
-            "tokens": 1897,
+            "lines": 253,
+            "tokens": 1845,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -970,14 +994,14 @@
           }
         },
         "total": {
-          "lines": 6523,
-          "tokens": 50629,
-          "sources": 40,
-          "clones": 6,
-          "duplicatedLines": 65,
-          "duplicatedTokens": 528,
-          "percentage": 1,
-          "percentageTokens": 1.04,
+          "lines": 6683,
+          "tokens": 51890,
+          "sources": 41,
+          "clones": 9,
+          "duplicatedLines": 179,
+          "duplicatedTokens": 1403,
+          "percentage": 2.68,
+          "percentageTokens": 2.7,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -1132,19 +1156,127 @@
       }
     },
     "total": {
-      "lines": 11253,
-      "tokens": 85229,
-      "sources": 90,
-      "clones": 10,
-      "duplicatedLines": 156,
-      "duplicatedTokens": 1140,
-      "percentage": 1.39,
-      "percentageTokens": 1.34,
+      "lines": 11463,
+      "tokens": 86848,
+      "sources": 92,
+      "clones": 13,
+      "duplicatedLines": 270,
+      "duplicatedTokens": 2015,
+      "percentage": 2.36,
+      "percentageTokens": 2.32,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
   },
   "duplicates": [
+    {
+      "format": "tsx",
+      "lines": 67,
+      "fragment": "const [credentials, setCredentials] = useState<PasskeyCredential[]>([])\n  const [loading, setLoading] = useState(true)\n  const [error, setError] = useState('')\n  const [adding, setAdding] = useState(false)\n\n  const loadCredentials = useCallback(async () => {\n    try {\n      const data = await api.passkey.listCredentials()\n      setCredentials(data.credentials)\n    } catch (err) {\n      setError(err instanceof Error ? err.message : 'Failed to load passkeys')\n    } finally {\n      setLoading(false)\n    }\n  }, [])\n\n  useEffect(() => {\n    loadCredentials()\n  }, [loadCredentials])\n\n  async function handleAdd() {\n    setError('')\n    setAdding(true)\n\n    try {\n      const options = await api.passkey.addCredentialOptions()\n      const publicKeyOptions = prepareRegistrationOptions(options)\n\n      const credential = await navigator.credentials.create({\n        publicKey: publicKeyOptions,\n      })\n\n      if (!credential) {\n        setError('Adding passkey was cancelled.')\n        return\n      }\n\n      await api.passkey.addCredentialVerify(\n        serializeRegistrationCredential(credential as PublicKeyCredential)\n      )\n\n      await loadCredentials()\n    } catch (err) {\n      if (err instanceof DOMException && err.name === 'NotAllowedError') {\n        setError('Adding passkey was cancelled.')\n      } else {\n        setError(err instanceof Error ? err.message : 'Failed to add passkey')\n      }\n    } finally {\n      setAdding(false)\n    }\n  }\n\n  async function handleDelete(credentialId: number) {\n    if (!window.confirm('Are you sure you want to delete this passkey? This cannot be undone.')) {\n      return\n    }\n    setError('')\n    try {\n      await api.passkey.deleteCredential(credentialId)\n      await loadCredentials()\n    } catch (err) {\n      setError(err instanceof Error ? err.message : 'Failed to delete passkey')\n    }\n  }\n\n  function",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/screens/PasskeyManage.tsx",
+        "start": 12,
+        "end": 78,
+        "startLoc": {
+          "line": 12,
+          "column": 3,
+          "position": 99
+        },
+        "endLoc": {
+          "line": 78,
+          "column": 9,
+          "position": 639
+        }
+      },
+      "secondFile": {
+        "name": "src/components/settings/SettingsPasskeys.tsx",
+        "start": 21,
+        "end": 87,
+        "startLoc": {
+          "line": 21,
+          "column": 3,
+          "position": 166
+        },
+        "endLoc": {
+          "line": 87,
+          "column": 3,
+          "position": 706
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 12,
+      "fragment": "function formatDate(dateStr: string | null): string {\n    if (!dateStr) return 'Never'\n    return new Date(dateStr).toLocaleDateString(undefined, {\n      year: 'numeric',\n      month: 'short',\n      day: 'numeric',\n      hour: '2-digit',\n      minute: '2-digit',\n    })\n  }\n\n  if",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/screens/PasskeyManage.tsx",
+        "start": 78,
+        "end": 89,
+        "startLoc": {
+          "line": 78,
+          "column": 3,
+          "position": 639
+        },
+        "endLoc": {
+          "line": 89,
+          "column": 3,
+          "position": 731
+        }
+      },
+      "secondFile": {
+        "name": "src/components/settings/SettingsPasskeys.tsx",
+        "start": 9,
+        "end": 20,
+        "startLoc": {
+          "line": 9,
+          "column": 1,
+          "position": 63
+        },
+        "endLoc": {
+          "line": 20,
+          "column": 7,
+          "position": 153
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 38,
+      "fragment": "\">\n            {error}\n          </div>\n        )}\n\n        <div className=\"space-y-3\">\n          {credentials.map((cred) => (\n            <div\n              key={cred.id}\n              className=\"flex items-center justify-between rounded-lg border border-input bg-background p-4\"\n            >\n              <div>\n                <div className=\"text-sm font-medium text-foreground\">\n                  Passkey #{cred.id}\n                </div>\n                <div className=\"text-xs text-muted-foreground\">\n                  Added {formatDate(cred.created_at)}\n                </div>\n                <div className=\"text-xs text-muted-foreground\">\n                  Last used: {formatDate(cred.last_used_at)}\n                </div>\n              </div>\n              {cred.is_deletable && (\n                <button\n                  onClick={() => handleDelete(cred.id)}\n                  className=\"rounded-md px-3 py-1 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20\"\n                >\n                  Delete\n                </button>\n              )}\n            </div>\n          ))}\n        </div>\n\n        <button\n          onClick={handleAdd}\n          disabled={adding}\n          className=\"w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/screens/PasskeyManage.tsx",
+        "start": 108,
+        "end": 145,
+        "startLoc": {
+          "line": 108,
+          "column": 83,
+          "position": 910
+        },
+        "endLoc": {
+          "line": 145,
+          "column": 133,
+          "position": 1153
+        }
+      },
+      "secondFile": {
+        "name": "src/components/settings/SettingsPasskeys.tsx",
+        "start": 104,
+        "end": 141,
+        "startLoc": {
+          "line": 104,
+          "column": 88,
+          "position": 869
+        },
+        "endLoc": {
+          "line": 141,
+          "column": 138,
+          "position": 1112
+        }
+      }
+    },
     {
       "format": "tsx",
       "lines": 9,
