@@ -7,9 +7,7 @@ vi.mock('../api/client', () => ({
   api: {
     auth: {
       me: vi.fn(),
-      login: vi.fn(),
       logout: vi.fn(),
-      register: vi.fn(),
     },
   },
 }))
@@ -41,7 +39,7 @@ describe('AuthContext', () => {
 
   it('restores session from /api/auth/me/', async () => {
     vi.mocked(api.auth.me).mockResolvedValue({
-      user: { id: 1, username: 'matt', is_admin: true },
+      user: { id: 1, is_admin: true },
       profile: { id: 1, name: 'matt', avatar_color: '#d97850', theme: 'dark', unit_preference: 'metric' },
     })
 
@@ -51,33 +49,14 @@ describe('AuthContext', () => {
       expect(result.current.isLoading).toBe(false)
     })
 
-    expect(result.current.user?.username).toBe('matt')
+    expect(result.current.user?.is_admin).toBe(true)
     expect(result.current.isAdmin).toBe(true)
     expect(result.current.profile?.name).toBe('matt')
   })
 
-  it('login sets user and profile', async () => {
-    vi.mocked(api.auth.me).mockRejectedValue(new Error('Not logged in'))
-    vi.mocked(api.auth.login).mockResolvedValue({
-      user: { id: 1, username: 'alice', is_admin: false },
-      profile: { id: 2, name: 'alice', avatar_color: '#8fae6f', theme: 'light', unit_preference: 'imperial' },
-    })
-
-    const { result } = renderHook(() => useAuth(), { wrapper })
-
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
-
-    await act(async () => {
-      await result.current.login('alice', 'password123')
-    })
-
-    expect(result.current.user?.username).toBe('alice')
-    expect(result.current.profile?.name).toBe('alice')
-  })
-
   it('logout clears state', async () => {
     vi.mocked(api.auth.me).mockResolvedValue({
-      user: { id: 1, username: 'matt', is_admin: true },
+      user: { id: 1, is_admin: true },
       profile: { id: 1, name: 'matt', avatar_color: '#d97850', theme: 'dark', unit_preference: 'metric' },
     })
     vi.mocked(api.auth.logout).mockResolvedValue({ message: 'ok' })
@@ -92,27 +71,5 @@ describe('AuthContext', () => {
 
     expect(result.current.user).toBeNull()
     expect(result.current.profile).toBeNull()
-  })
-
-  it('register returns message', async () => {
-    vi.mocked(api.auth.me).mockRejectedValue(new Error('Not logged in'))
-    vi.mocked(api.auth.register).mockResolvedValue({ message: 'Check your email' })
-
-    const { result } = renderHook(() => useAuth(), { wrapper })
-
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
-
-    let message: string = ''
-    await act(async () => {
-      message = await result.current.register({
-        username: 'newuser',
-        password: 'StrongPass123!',
-        password_confirm: 'StrongPass123!',
-        email: 'test@example.com',
-        privacy_accepted: true,
-      })
-    })
-
-    expect(message).toBe('Check your email')
   })
 })

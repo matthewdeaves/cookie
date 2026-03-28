@@ -50,7 +50,7 @@ def discover_endpoint(request, profile_id: int, refresh: bool = False):
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /ai/discover from %s", request.META.get("REMOTE_ADDR"))
         return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
-    # In public/passkey mode, verify profile ownership
+    # In passkey mode, verify profile ownership
     if settings.AUTH_MODE != "home":
         session_profile_id = request.session.get("profile_id")
         if session_profile_id != profile_id:

@@ -20,7 +20,7 @@ from apps.recipes.models import (
 def require_profile(view_func):
     """Decorator to ensure a profile is selected and valid.
 
-    In public mode, redirects to login instead of profile_selector.
+    In passkey mode, redirects to device pairing instead of profile_selector.
     """
 
     @wraps(view_func)
@@ -28,8 +28,6 @@ def require_profile(view_func):
         profile_id = request.session.get("profile_id")
         if django_settings.AUTH_MODE == "passkey":
             redirect_target = "legacy:device_pair"
-        elif django_settings.AUTH_MODE == "public":
-            redirect_target = "legacy:login"
         else:
             redirect_target = "legacy:profile_selector"
 
@@ -42,8 +40,8 @@ def require_profile(view_func):
             request.session.pop("profile_id", None)
             return redirect(redirect_target)
 
-        # In public/passkey mode, check that profile has a linked active user
-        if django_settings.AUTH_MODE in ("public", "passkey"):
+        # In passkey mode, check that profile has a linked active user
+        if django_settings.AUTH_MODE == "passkey":
             if not request.profile.user or not request.profile.user.is_active:
                 request.session.pop("profile_id", None)
                 return redirect(redirect_target)
@@ -57,25 +55,15 @@ def require_profile(view_func):
 
 
 def require_admin(view_func):
-    """Decorator for admin-only legacy views (public/passkey mode)."""
+    """Decorator for admin-only legacy views (passkey mode)."""
 
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        if django_settings.AUTH_MODE in ("public", "passkey") and not getattr(request, "is_admin", False):
+        if django_settings.AUTH_MODE == "passkey" and not getattr(request, "is_admin", False):
             return redirect("legacy:home")
         return view_func(request, *args, **kwargs)
 
     return wrapper
-
-
-def login_view(request):
-    """Legacy login page."""
-    return render(request, "legacy/login.html", {"verified": request.GET.get("verified") == "true"})
-
-
-def register_view(request):
-    """Legacy registration page."""
-    return render(request, "legacy/register.html")
 
 
 def _is_ai_available() -> bool:
@@ -95,11 +83,9 @@ def device_pair(request):
 
 
 def profile_selector(request):
-    """Profile selector screen. In public/passkey mode, redirects appropriately."""
+    """Profile selector screen. In passkey mode, redirects to device pairing."""
     if django_settings.AUTH_MODE == "passkey":
         return redirect("legacy:device_pair")
-    if django_settings.AUTH_MODE == "public":
-        return redirect("legacy:login")
     profiles = list(Profile.objects.all().values("id", "name", "avatar_color", "theme", "unit_preference"))
     return render(
         request,

@@ -45,9 +45,17 @@ CSRF_TRUSTED_ORIGINS = [o.strip() for o in csrf_origins.split(",") if o.strip()]
 # Authentication Mode
 # ===========================================
 # "home" (default): Profile-based sessions, no user accounts, no login required.
-# "public": Full authentication with username/password accounts and email verification.
 # "passkey": WebAuthn passkey-only authentication with device code flow for legacy devices.
-AUTH_MODE = os.environ.get("AUTH_MODE", "home")
+_raw_auth_mode = os.environ.get("AUTH_MODE", "home")
+if _raw_auth_mode not in ("home", "passkey"):
+    import logging as _logging
+
+    _logging.getLogger("cookie.settings").warning(
+        "Unrecognised AUTH_MODE=%r — falling back to 'home'. Valid modes: 'home', 'passkey'.",
+        _raw_auth_mode,
+    )
+    _raw_auth_mode = "home"
+AUTH_MODE = _raw_auth_mode
 
 # ===========================================
 # WebAuthn / Passkey Configuration (Passkey Mode)
@@ -80,9 +88,8 @@ MIDDLEWARE = [
     "apps.core.middleware.DeviceDetectionMiddleware",
 ]
 
-# Conditionally add Django auth middleware in public and passkey modes
-if AUTH_MODE in ("public", "passkey"):
-    # Insert AuthenticationMiddleware after SessionMiddleware
+# Add Django auth middleware in passkey mode (user accounts required)
+if AUTH_MODE == "passkey":
     _session_idx = MIDDLEWARE.index("django.contrib.sessions.middleware.SessionMiddleware")
     MIDDLEWARE.insert(_session_idx + 1, "django.contrib.auth.middleware.AuthenticationMiddleware")
 
@@ -245,40 +252,9 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
-        # Prevent email content from leaking into logs
-        "django.core.mail": {
-            "handlers": ["console"],
-            "level": "CRITICAL",
-            "propagate": False,
-        },
     },
     "root": {
         "handlers": ["console"],
         "level": LOG_LEVEL,
     },
 }
-
-# ===========================================
-# Email Configuration (Public Mode)
-# ===========================================
-EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@cookie.local")
-EMAIL_HOST = os.environ.get("EMAIL_HOST", "localhost")
-EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "25"))
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
-EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "False") == "True"
-
-# Site URL for building verification links
-SITE_URL = os.environ.get("SITE_URL", "http://localhost:3000")
-
-# ===========================================
-# Password Validation
-# ===========================================
-# Always defined — only enforced when AUTH_MODE=public (via auth_api.py's validate_password calls)
-AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 8}},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
-]

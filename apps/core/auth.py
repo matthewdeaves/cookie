@@ -15,15 +15,15 @@ security_logger = logging.getLogger("security")
 class SessionAuth(APIKeyCookie):
     """Mode-aware authenticator.
 
-    Home mode: checks session["profile_id"] → Profile (unchanged behavior).
-    Public/Passkey mode: checks request.user.is_authenticated → request.user.profile.
+    Home mode: checks session["profile_id"] → Profile (no user accounts).
+    Passkey mode: checks request.user.is_authenticated → request.user.profile.
     """
 
     param_name: str = settings.SESSION_COOKIE_NAME
 
     def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:
-        if settings.AUTH_MODE in ("public", "passkey"):
-            return self._authenticate_public(request)
+        if settings.AUTH_MODE == "passkey":
+            return self._authenticate_passkey(request)
         return self._authenticate_home(request)
 
     def _authenticate_home(self, request: HttpRequest) -> Optional[Profile]:
@@ -46,16 +46,15 @@ class SessionAuth(APIKeyCookie):
             )
             return None
 
-    def _authenticate_public(self, request: HttpRequest) -> Optional[Profile]:
+    def _authenticate_passkey(self, request: HttpRequest) -> Optional[Profile]:
         user = getattr(request, "user", None)
         if not user or not getattr(user, "is_authenticated", False):
-            # Fallback: check session profile_id (set during login)
+            # Fallback: check session profile_id (set during passkey login)
             profile_id = request.session.get("profile_id")
             if profile_id:
                 try:
                     profile = Profile.objects.select_related("user").get(id=profile_id)
                     if profile.user and profile.user.is_active:
-                        # Attach user to request for downstream code
                         request.user = profile.user
                         return profile
                 except Profile.DoesNotExist:
@@ -83,12 +82,12 @@ class AdminAuth(SessionAuth):
     """Admin-only authenticator.
 
     Home mode: identical to SessionAuth (no admin distinction).
-    Public/Passkey mode: resolves user first, then checks is_staff.
+    Passkey mode: resolves user first, then checks is_staff.
     """
 
     def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:
-        if settings.AUTH_MODE in ("public", "passkey"):
-            profile = self._authenticate_public(request)
+        if settings.AUTH_MODE == "passkey":
+            profile = self._authenticate_passkey(request)
             if profile is None:
                 return None
             user = getattr(request, "user", None)

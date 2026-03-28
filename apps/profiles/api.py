@@ -77,8 +77,8 @@ class ErrorSchema(Schema):
     message: str
 
 
-def _resolve_public_user(request):
-    """Resolve the authenticated user in public mode. Returns (user, profile) or (None, None)."""
+def _resolve_authenticated_user(request):
+    """Resolve the authenticated user in passkey mode. Returns (user, profile) or (None, None)."""
     user = getattr(request, "user", None)
     if user and getattr(user, "is_authenticated", False):
         try:
@@ -99,10 +99,10 @@ def _resolve_public_user(request):
 
 
 def _check_profile_ownership(request, profile_id):
-    """In public mode, verify the user owns the profile (or is admin). Returns error tuple or None."""
-    if settings.AUTH_MODE != "public":
+    """In passkey mode, verify the user owns the profile (or is admin). Returns error tuple or None."""
+    if settings.AUTH_MODE != "passkey":
         return None
-    user, own_profile = _resolve_public_user(request)
+    user, own_profile = _resolve_authenticated_user(request)
     if not user:
         return 404, {"error": "not_found", "message": "Profile not found"}
     if user.is_staff:
@@ -116,7 +116,7 @@ def _check_profile_ownership(request, profile_id):
 def list_profiles(request):
     """List all profiles with stats.
 
-    Public mode: returns only current user's profile (admin sees all).
+    Passkey mode: returns only current user's profile (admin sees all).
     Home mode: returns all profiles.
     """
     from apps.recipes.models import RecipeCollectionItem
@@ -130,8 +130,8 @@ def list_profiles(request):
         discover_cache_count=Count("ai_discovery_suggestions", distinct=True),
     ).order_by("-created_at")
 
-    if settings.AUTH_MODE == "public":
-        user, _ = _resolve_public_user(request)
+    if settings.AUTH_MODE == "passkey":
+        user, _ = _resolve_authenticated_user(request)
         if not user:
             return []
         if not user.is_staff:
@@ -263,7 +263,7 @@ def get_deletion_preview(request, profile_id: int):
 def delete_profile(request, profile_id: int):
     """Delete a profile and ALL associated data.
 
-    In public mode: own profile only, also cascades to delete the Django User.
+    In passkey mode: own profile only, also cascades to delete the Django User.
     """
     from apps.recipes.models import Recipe
 
@@ -287,7 +287,7 @@ def delete_profile(request, profile_id: int):
         .values_list("image", flat=True)
     )
 
-    if settings.AUTH_MODE == "public" and profile.user:
+    if settings.AUTH_MODE == "passkey" and profile.user:
         profile.user.delete()
         request.session.flush()
     else:

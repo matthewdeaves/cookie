@@ -1,3 +1,4 @@
+import os
 import secrets
 
 from django.conf import settings
@@ -38,7 +39,10 @@ class AppSettings(models.Model):
 
     @property
     def openrouter_api_key(self) -> str:
-        """Get the decrypted API key."""
+        """Get the API key. Env var OPENROUTER_API_KEY takes precedence over DB."""
+        env_key = os.environ.get("OPENROUTER_API_KEY", "")
+        if env_key:
+            return env_key
         return decrypt_value(self._openrouter_api_key)
 
     @openrouter_api_key.setter
