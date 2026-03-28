@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T13:56:25.623Z",
+    "detectionDate": "2026-03-28T14:21:32.101Z",
     "formats": {
       "python": {
         "sources": {
@@ -90,7 +90,7 @@
           },
           "apps/recipes/services/search_parsers.py": {
             "lines": 471,
-            "tokens": 2838,
+            "tokens": 2849,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -667,7 +667,7 @@
         },
         "total": {
           "lines": 9686,
-          "tokens": 65191,
+          "tokens": 65202,
           "sources": 55,
           "clones": 7,
           "duplicatedLines": 133,
@@ -681,7 +681,7 @@
     },
     "total": {
       "lines": 9686,
-      "tokens": 65191,
+      "tokens": 65202,
       "sources": 55,
       "clones": 7,
       "duplicatedLines": 133,
