@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T21:00:40.188Z",
+    "detectionDate": "2026-03-28T21:39:20.443Z",
     "formats": {
       "python": {
         "sources": {
@@ -65,8 +65,8 @@
             "newClones": 0
           },
           "apps/core/management/commands/cleanup_device_codes.py": {
-            "lines": 39,
-            "tokens": 317,
+            "lines": 47,
+            "tokens": 371,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -245,8 +245,8 @@
             "newClones": 0
           },
           "apps/ai/services/discover.py": {
-            "lines": 277,
-            "tokens": 1830,
+            "lines": 289,
+            "tokens": 1950,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -508,6 +508,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/core/cache.py": {
+            "lines": 20,
+            "tokens": 122,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/core/auth_helpers.py": {
             "lines": 23,
             "tokens": 152,
@@ -642,28 +654,28 @@
           }
         },
         "total": {
-          "lines": 9444,
-          "tokens": 63525,
-          "sources": 53,
+          "lines": 9484,
+          "tokens": 63821,
+          "sources": 54,
           "clones": 6,
           "duplicatedLines": 123,
           "duplicatedTokens": 871,
           "percentage": 1.3,
-          "percentageTokens": 1.37,
+          "percentageTokens": 1.36,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 9444,
-      "tokens": 63525,
-      "sources": 53,
+      "lines": 9484,
+      "tokens": 63821,
+      "sources": 54,
       "clones": 6,
       "duplicatedLines": 123,
       "duplicatedTokens": 871,
       "percentage": 1.3,
-      "percentageTokens": 1.37,
+      "percentageTokens": 1.36,
       "newDuplicatedLines": 0,
       "newClones": 0
     }

@@ -327,12 +327,13 @@ apps/ai/services/tips.py
 apps/ai/services/timer.py
     F 14:0 generate_timer_name - B (8)
 apps/ai/services/discover.py
-    F 164:0 _generate_recommended_suggestions - B (8)
-    F 216:0 _generate_new_suggestions - B (8)
-    F 22:0 get_discover_suggestions - A (5)
-    F 85:0 _format_suggestions - A (5)
-    F 114:0 _generate_seasonal_suggestions - A (4)
-    F 268:0 _get_season - A (4)
+    F 176:0 _generate_recommended_suggestions - B (8)
+    F 228:0 _generate_new_suggestions - B (8)
+    F 23:0 get_discover_suggestions - A (5)
+    F 86:0 _format_suggestions - A (5)
+    F 126:0 _generate_seasonal_suggestions - A (4)
+    F 280:0 _get_season - A (4)
+    F 115:0 _generate_in_thread - A (1)
 apps/core/auth_helpers.py
     F 7:0 require_passkey_mode - A (2)
     F 13:0 passkey_user_profile_response - A (1)
@@ -387,6 +388,9 @@ apps/core/middleware.py
 apps/core/logging.py
     C 8:0 JSONFormatter - B (7)
     M 11:4 JSONFormatter.format - B (6)
+apps/core/cache.py
+    C 12:0 PostgreSafeDatabaseCache - A (3)
+    M 15:4 PostgreSafeDatabaseCache._base_set - A (2)
 apps/core/models.py
     C 14:0 AppSettings - A (3)
     M 25:4 AppSettings.save - A (3)
@@ -441,8 +445,8 @@ apps/core/migrations/0005_passkey_field_fixes.py
 apps/core/migrations/0003_passkey_webauthn_devicecode.py
     C 8:0 Migration - A (1)
 apps/core/management/commands/cleanup_device_codes.py
-    C 9:0 Command - A (3)
-    M 15:4 Command.handle - A (3)
+    C 9:0 Command - A (4)
+    M 15:4 Command.handle - A (4)
     M 12:4 Command.add_arguments - A (1)
 apps/core/management/commands/cookie_admin.py
     M 190:4 Command._handle_audit - C (13)
@@ -738,5 +742,5 @@ apps/recipes/management/commands/cleanup_search_images.py
 cookie/settings.py
     F 21:0 get_secret_key - A (3)
 
-657 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.7960426179604263)
+660 blocks (classes, functions, methods) analyzed.
+Average complexity: A (2.7954545454545454)
