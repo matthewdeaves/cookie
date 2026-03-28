@@ -552,7 +552,7 @@ jobs:
           mkdir -p complexity
 
           # Install escomplex for actual cyclomatic complexity calculation
-          npm install escomplex@2.0.0-alpha typhonjs-escomplex@0.2.0 --no-save --ignore-scripts
+          npm install escomplex@2.0.0-alpha typhonjs-escomplex@0.1.0 --no-save --ignore-scripts
 
           # Run ESLint with complexity rules and JSON output
           npx eslint src/ \
