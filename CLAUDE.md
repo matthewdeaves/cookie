@@ -96,6 +96,14 @@ docker compose exec web python manage.py cleanup_device_codes --dry-run
 | `LOG_FORMAT` | `text` | `text` (dev) or `json` (production) |
 | `LOG_LEVEL` | `INFO` | Root log level |
 
+## Developer Responsibility
+
+This project has a constitution at `.specify/memory/constitution.md` that defines immutable principles. All code changes MUST comply with these principles. When encountering pre-existing issues (broken linting, stale configs, tooling incompatibilities), fix them — do not work around them or skip hooks.
+
+- **Fix pre-existing issues**: If a pre-commit hook, CI job, or linter is broken, fix the root cause. Never skip hooks with `--no-verify` or `SKIP=` as a permanent solution.
+- **Respect the constitution**: Read `.specify/memory/constitution.md` before making architectural decisions. Every principle has a rationale — understand it before proposing exceptions.
+- **Speckit workflow**: Feature specifications, plans, and tasks live in `.specify/` (tracked in git). Use `/speckit.*` commands for structured feature development. The constitution is the source of truth for project values.
+
 ## Recent Changes
 - 013-passkey-auth: Added Python 3.12, TypeScript 5.9, ES5 (legacy) + Django 5.0, Django Ninja 1.0+, py-webauthn 2.x (new), React 19, Vite 7
 - 012-mailpit-email-config: Added Python 3.12 (backend settings only) + Django 5.0 (built-in email framework), Mailpit (external Docker service)
