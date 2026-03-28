@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T14:21:20.451Z",
+    "detectionDate": "2026-03-28T14:49:49.760Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -646,7 +646,7 @@
           },
           "src/screens/Settings.tsx": {
             "lines": 255,
-            "tokens": 1845,
+            "tokens": 1851,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -729,8 +729,8 @@
             "newClones": 0
           },
           "src/screens/PasskeyManage.tsx": {
-            "lines": 157,
-            "tokens": 1222,
+            "lines": 160,
+            "tokens": 1243,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1018,8 +1018,8 @@
           }
         },
         "total": {
-          "lines": 6855,
-          "tokens": 53408,
+          "lines": 6858,
+          "tokens": 53435,
           "sources": 42,
           "clones": 9,
           "duplicatedLines": 103,
@@ -1180,8 +1180,8 @@
       }
     },
     "total": {
-      "lines": 11763,
-      "tokens": 89304,
+      "lines": 11766,
+      "tokens": 89331,
       "sources": 94,
       "clones": 13,
       "duplicatedLines": 198,

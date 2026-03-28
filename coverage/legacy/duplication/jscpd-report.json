@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T14:21:17.068Z",
+    "detectionDate": "2026-03-28T14:49:31.875Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -161,14 +161,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/device-pair.js": {
-            "lines": 138,
-            "tokens": 1156,
+            "lines": 153,
+            "tokens": 1255,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 4,
             "duplicatedTokens": 72,
-            "percentage": 2.9,
-            "percentageTokens": 6.23,
+            "percentage": 2.61,
+            "percentageTokens": 5.74,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -414,28 +414,28 @@
           }
         },
         "total": {
-          "lines": 6640,
-          "tokens": 50683,
+          "lines": 6655,
+          "tokens": 50782,
           "sources": 34,
           "clones": 31,
           "duplicatedLines": 314,
           "duplicatedTokens": 2655,
-          "percentage": 4.73,
-          "percentageTokens": 5.24,
+          "percentage": 4.72,
+          "percentageTokens": 5.23,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 6640,
-      "tokens": 50683,
+      "lines": 6655,
+      "tokens": 50782,
       "sources": 34,
       "clones": 31,
       "duplicatedLines": 314,
       "duplicatedTokens": 2655,
-      "percentage": 4.73,
-      "percentageTokens": 5.24,
+      "percentage": 4.72,
+      "percentageTokens": 5.23,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -1543,17 +1543,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/device-pair.js",
-        "start": 6,
-        "end": 10,
+        "start": 7,
+        "end": 11,
         "startLoc": {
-          "line": 6,
+          "line": 7,
           "column": 1,
-          "position": 15
+          "position": 24
         },
         "endLoc": {
-          "line": 10,
+          "line": 11,
           "column": 2,
-          "position": 86
+          "position": 95
         }
       }
     }

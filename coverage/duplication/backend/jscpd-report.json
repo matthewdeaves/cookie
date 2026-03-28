@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T14:21:32.101Z",
+    "detectionDate": "2026-03-28T14:49:26.842Z",
     "formats": {
       "python": {
         "sources": {
@@ -449,8 +449,8 @@
             "newClones": 0
           },
           "apps/core/passkey_api.py": {
-            "lines": 411,
-            "tokens": 3114,
+            "lines": 423,
+            "tokens": 3192,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -521,8 +521,8 @@
             "newClones": 0
           },
           "apps/core/device_code_api.py": {
-            "lines": 175,
-            "tokens": 1387,
+            "lines": 187,
+            "tokens": 1478,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -581,8 +581,8 @@
             "newClones": 0
           },
           "apps/core/api.py": {
-            "lines": 244,
-            "tokens": 1703,
+            "lines": 245,
+            "tokens": 1719,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -666,8 +666,8 @@
           }
         },
         "total": {
-          "lines": 9686,
-          "tokens": 65202,
+          "lines": 9711,
+          "tokens": 65387,
           "sources": 55,
           "clones": 7,
           "duplicatedLines": 133,
@@ -680,8 +680,8 @@
       }
     },
     "total": {
-      "lines": 9686,
-      "tokens": 65202,
+      "lines": 9711,
+      "tokens": 65387,
       "sources": 55,
       "clones": 7,
       "duplicatedLines": 133,
