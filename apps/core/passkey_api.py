@@ -47,18 +47,13 @@ def _get_rp_id(request):
 def _get_origin(request):
     """Get the expected origin for WebAuthn verification.
 
-    Uses WEBAUTHN_RP_ID if set to ensure consistency with the RP ID.
-    Falls back to deriving from the request host.
+    Always derives origin from the actual request host, since the browser sends
+    the page's origin (scheme + host) regardless of RP ID configuration.
+    RP ID can be a parent domain (e.g. "matthewdeaves.com" for
+    "cookie.matthewdeaves.com") but the origin must match the actual hostname.
     """
-    rp_id = _get_rp_id(request)
     scheme = "https" if request.is_secure() else "http"
-    # If RP ID matches the request hostname (without port), use full request host
-    # to preserve port information. Otherwise use RP ID directly.
-    host = request.get_host()
-    hostname = host.split(":")[0]
-    if hostname == rp_id:
-        return f"{scheme}://{host}"
-    return f"{scheme}://{rp_id}"
+    return f"{scheme}://{request.get_host()}"
 
 
 # --- Registration ---
@@ -195,6 +190,11 @@ def login_options(request):
             request.META.get("REMOTE_ADDR"),
         )
         return 429, {"error": "Too many attempts. Please try again later."}
+
+    # If no credentials exist, don't issue a challenge — the browser would show
+    # confusing hardware-key / QR prompts with nothing to match against.
+    if not WebAuthnCredential.objects.exists():
+        return 200, {"no_credentials": True}
 
     options = generate_authentication_options(
         rp_id=_get_rp_id(request),

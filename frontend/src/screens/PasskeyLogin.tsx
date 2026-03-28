@@ -21,6 +21,12 @@ export default function PasskeyLogin() {
 
     try {
       const options = await api.passkey.loginOptions()
+
+      if (options && 'no_credentials' in options) {
+        setError('No accounts exist yet. Create an account first.')
+        return
+      }
+
       const publicKeyOptions = prepareAuthenticationOptions(options)
 
       const credential = await navigator.credentials.get({
