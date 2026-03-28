@@ -1,5 +1,7 @@
 """Tests for cookie_admin management command (T106-T114)."""
 
+import json
+
 import pytest
 from django.contrib.auth.models import User
 from django.core.management import call_command
@@ -66,6 +68,115 @@ class TestCookieAdmin:
         assert User.objects.get(username="alice").is_active is False
         call_command("cookie_admin", "activate", "alice", stdout=out)
         assert User.objects.get(username="alice").is_active is True
+
+    def test_list_users_json(self):
+        """list-users --json returns structured output."""
+        _create_user("alice", is_staff=True)
+        out = StringIO()
+        call_command("cookie_admin", "list-users", "--json", stdout=out)
+        data = json.loads(out.getvalue())
+        assert data["ok"] is True
+        assert len(data["users"]) == 1
+        assert data["users"][0]["username"] == "alice"
+        assert data["users"][0]["is_admin"] is True
+
+    def test_promote_json(self):
+        """promote --json returns structured output with user state."""
+        _create_user("alice")
+        out = StringIO()
+        call_command("cookie_admin", "promote", "alice", "--json", stdout=out)
+        data = json.loads(out.getvalue())
+        assert data["ok"] is True
+        assert data["user"]["is_admin"] is True
+
+    def test_demote_json(self):
+        """demote --json returns structured output."""
+        _create_user("alice", is_staff=True)
+        _create_user("bob", is_staff=True)
+        out = StringIO()
+        call_command("cookie_admin", "demote", "alice", "--json", stdout=out)
+        data = json.loads(out.getvalue())
+        assert data["ok"] is True
+        assert data["user"]["is_admin"] is False
+
+    def test_deactivate_json(self):
+        """deactivate --json returns structured output with session count."""
+        _create_user("alice")
+        out = StringIO()
+        call_command("cookie_admin", "deactivate", "alice", "--json", stdout=out)
+        data = json.loads(out.getvalue())
+        assert data["ok"] is True
+        assert data["user"]["is_active"] is False
+        assert "sessions_invalidated" in data
+
+    def test_error_json(self):
+        """Errors with --json return structured error."""
+        out = StringIO()
+        with pytest.raises(SystemExit):
+            call_command("cookie_admin", "promote", "nonexistent", "--json", stdout=out)
+        data = json.loads(out.getvalue())
+        assert data["ok"] is False
+        assert "not found" in data["error"]
+
+    def test_status_text(self):
+        """status shows app overview in text mode."""
+        _create_user("alice", is_staff=True)
+        out = StringIO()
+        call_command("cookie_admin", "status", stdout=out)
+        output = out.getvalue()
+        assert "Auth mode:" in output
+        assert "passkey" in output
+        assert "Database:" in output
+
+    def test_status_json(self):
+        """status --json returns structured app overview."""
+        _create_user("alice", is_staff=True)
+        out = StringIO()
+        call_command("cookie_admin", "status", "--json", stdout=out)
+        data = json.loads(out.getvalue())
+        assert data["ok"] is True
+        assert data["auth_mode"] == "passkey"
+        assert data["database"] == "ok"
+        assert data["users"]["admins"] == 1
+        assert "openrouter" in data
+        assert "webauthn" in data
+
+    def test_audit_empty(self):
+        """audit with no recent events returns empty list."""
+        out = StringIO()
+        call_command("cookie_admin", "audit", "--json", stdout=out)
+        data = json.loads(out.getvalue())
+        assert data["ok"] is True
+        assert data["events"] == []
+
+    def test_audit_shows_recent_registration(self):
+        """audit shows users registered in the last 24h."""
+        _create_user("alice", is_staff=True)
+        out = StringIO()
+        call_command("cookie_admin", "audit", "--json", stdout=out)
+        data = json.loads(out.getvalue())
+        assert data["ok"] is True
+        reg_events = [e for e in data["events"] if e["type"] == "registration"]
+        assert len(reg_events) == 1
+        assert reg_events[0]["username"] == "alice"
+
+    def test_audit_text(self):
+        """audit text mode shows events."""
+        _create_user("alice")
+        out = StringIO()
+        call_command("cookie_admin", "audit", stdout=out)
+        output = out.getvalue()
+        assert "registration" in output
+        assert "alice" in output
+
+    def test_audit_respects_lines_limit(self):
+        """audit --lines limits output."""
+        for i in range(5):
+            _create_user(f"user{i}")
+        out = StringIO()
+        call_command("cookie_admin", "audit", "--lines", "2", "--json", stdout=out)
+        data = json.loads(out.getvalue())
+        assert len(data["events"]) <= 2
 
 
 @pytest.mark.django_db

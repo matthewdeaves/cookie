@@ -37,7 +37,7 @@ def _sort_by_image(results: list[dict]) -> list[dict]:
     is unavailable or fails. Also filters out invalid results.
     """
     valid_results = _filter_valid(results)
-    return sorted(valid_results, key=lambda r: (0 if r.get("image_url") else 1))
+    return sorted(valid_results, key=lambda r: 0 if r.get("image_url") else 1)
 
 
 def rank_results(query: str, results: list[dict]) -> list[dict]:
@@ -116,7 +116,7 @@ def rank_results(query: str, results: list[dict]) -> list[dict]:
         if remaining:
             remaining_sorted = sorted(
                 remaining,
-                key=lambda r: (0 if r.get("image_url") else 1),
+                key=lambda r: 0 if r.get("image_url") else 1,
             )
             ranked_results.extend(remaining_sorted)
 
