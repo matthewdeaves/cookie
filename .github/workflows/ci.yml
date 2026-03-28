@@ -59,13 +59,12 @@ jobs:
           node-version: '20'
 
       - name: Install ESLint
-        run: npm install eslint@8.57.1 --no-save --ignore-scripts
+        run: npm install eslint@10.1.0 --no-save --ignore-scripts
 
       - name: Run ESLint on legacy JS
         run: |
           npx eslint apps/legacy/static/legacy/js/ \
-            --config apps/legacy/static/legacy/.eslintrc.json \
-            --ext .js \
+            --config apps/legacy/static/legacy/eslint.config.mjs \
             --max-warnings 0 \
             --format stylish
 
@@ -74,14 +73,12 @@ jobs:
           mkdir -p legacy-reports
           # Generate reports even if there are warnings (for dashboard)
           npx eslint apps/legacy/static/legacy/js/ \
-            --config apps/legacy/static/legacy/.eslintrc.json \
-            --ext .js \
+            --config apps/legacy/static/legacy/eslint.config.mjs \
             --format json > legacy-reports/eslint-report.json 2>/dev/null || true
 
           # Generate HTML report
           npx eslint apps/legacy/static/legacy/js/ \
-            --config apps/legacy/static/legacy/.eslintrc.json \
-            --ext .js \
+            --config apps/legacy/static/legacy/eslint.config.mjs \
             --format html > legacy-reports/eslint-report.html 2>/dev/null || true
 
           # Generate summary

@@ -38,7 +38,7 @@ repos:
       # Legacy JavaScript linting (ES5, iOS 9 compatible)
       - id: legacy-eslint
         name: Legacy Lint (ESLint ES5)
-        entry: npx eslint --config apps/legacy/static/legacy/.eslintrc.json --ext .js --max-warnings 0
+        entry: npx eslint --config apps/legacy/static/legacy/eslint.config.mjs --max-warnings 0
         language: system
         files: ^apps/legacy/static/legacy/js/.*\.js$
         pass_filenames: true
