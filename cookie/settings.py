@@ -183,14 +183,13 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true").lower() == "true"
+    SECURE_REDIRECT_EXEMPT = [r"^api/system/health/$", r"^api/system/ready/$"]
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Rate limiting (django-ratelimit)
-# In production behind nginx, use X-Forwarded-For. In dev/test, use REMOTE_ADDR.
-RATELIMIT_IP_META_KEY = os.environ.get(
-    "RATELIMIT_IP_META_KEY",
-    "HTTP_X_FORWARDED_FOR" if not DEBUG else "REMOTE_ADDR",
-)
+# Use a callable that safely extracts the first IP from X-Forwarded-For,
+# handling multi-proxy chains (Cloudflare → Traefik → nginx → Django).
+RATELIMIT_IP_META_KEY = "apps.core.middleware.get_client_ip"
 
 # Logging configuration
 LOG_FORMAT = os.environ.get("LOG_FORMAT", "text")

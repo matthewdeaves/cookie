@@ -136,16 +136,18 @@ async function request<T>(
 
   if (!response.ok) {
     const errorText = await response.text()
-    let errorMessage = errorText || `Request failed with status ${response.status}`
     let errorBody: Record<string, unknown> | null = null
+    let errorMessage: string
 
     try {
       errorBody = JSON.parse(errorText)
       errorMessage = (errorBody as Record<string, string>).detail
         || (errorBody as Record<string, string>).message
-        || errorMessage
+        || `Request failed (${response.status})`
     } catch {
-      // Not JSON, use text as-is
+      // Non-JSON response (e.g. HTML error page) — never expose raw server
+      // output to the user as it may leak internal details.
+      errorMessage = `Request failed (${response.status})`
     }
 
     const error = new Error(errorMessage) as Error & { status: number; body: Record<string, unknown> | null }

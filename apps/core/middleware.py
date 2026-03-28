@@ -1,5 +1,28 @@
+import ipaddress
 import re
 import uuid
+
+
+def get_client_ip(request):
+    """Extract the real client IP from X-Forwarded-For for django-ratelimit.
+
+    X-Forwarded-For may contain multiple IPs: "client, proxy1, proxy2".
+    We take the leftmost entry (the original client), validate it as a
+    real IP address, and return it.  Falls back to REMOTE_ADDR if the
+    header is missing or every entry is malformed.
+
+    Used via RATELIMIT_IP_META_KEY = "apps.core.middleware.get_client_ip"
+    """
+    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    if forwarded_for:
+        # Take the leftmost (client) IP, strip whitespace
+        candidate = forwarded_for.split(",")[0].strip()
+        try:
+            ipaddress.ip_address(candidate)
+            return candidate
+        except ValueError:
+            pass
+    return request.META.get("REMOTE_ADDR", "127.0.0.1")
 
 
 class RequestIDMiddleware:

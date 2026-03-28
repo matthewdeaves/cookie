@@ -520,14 +520,24 @@ describe('API Client', () => {
   })
 
   describe('error handling', () => {
-    it('throws on API error', async () => {
+    it('throws on API error with JSON body', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 404,
-        text: () => Promise.resolve('Not found'),
+        text: () => Promise.resolve(JSON.stringify({ detail: 'Not found' })),
       })
 
       await expect(api.profiles.get(999)).rejects.toThrow('Not found')
+    })
+
+    it('throws generic message for non-JSON error body', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        text: () => Promise.resolve('<html>Server Error</html>'),
+      })
+
+      await expect(api.profiles.get(999)).rejects.toThrow('Request failed (500)')
     })
 
     it('throws on network error', async () => {
