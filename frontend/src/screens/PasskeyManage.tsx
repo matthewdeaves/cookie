@@ -63,6 +63,9 @@ export default function PasskeyManage() {
   }
 
   async function handleDelete(credentialId: number) {
+    if (!window.confirm('Are you sure you want to delete this passkey? This cannot be undone.')) {
+      return
+    }
     setError('')
     try {
       await api.passkey.deleteCredential(credentialId)

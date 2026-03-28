@@ -147,7 +147,8 @@ describe('PasskeyManage', () => {
     expect(deleteButtons.length).toBe(1)
   })
 
-  it('calls deleteCredential and reloads on delete', async () => {
+  it('calls deleteCredential and reloads on delete after confirmation', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
     vi.mocked(api.passkey.listCredentials).mockResolvedValue({
       credentials: [
         { id: 1, created_at: '2026-01-01T00:00:00Z', last_used_at: null, is_deletable: true },
@@ -164,6 +165,23 @@ describe('PasskeyManage', () => {
     await waitFor(() => {
       expect(api.passkey.deleteCredential).toHaveBeenCalledWith(1)
     })
+  })
+
+  it('does not delete when confirmation is cancelled', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(false)
+    vi.mocked(api.passkey.listCredentials).mockResolvedValue({
+      credentials: [
+        { id: 1, created_at: '2026-01-01T00:00:00Z', last_used_at: null, is_deletable: true },
+        { id: 2, created_at: '2026-01-02T00:00:00Z', last_used_at: null, is_deletable: true },
+      ],
+    })
+    renderWithRouter(<PasskeyManage />)
+    await waitFor(() => {
+      expect(screen.getByText('Passkey #1')).toBeDefined()
+    })
+    const deleteButtons = screen.getAllByText('Delete')
+    fireEvent.click(deleteButtons[0])
+    expect(api.passkey.deleteCredential).not.toHaveBeenCalled()
   })
 
   it('shows "Never" for null last_used_at', async () => {
