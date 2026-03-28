@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T19:00:45.191Z",
+    "detectionDate": "2026-03-28T19:55:08.152Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -160,18 +160,6 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
-          "src/screens/Register.tsx": {
-            "lines": 95,
-            "tokens": 810,
-            "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
           "src/screens/RecipeDetail.tsx": {
             "lines": 52,
             "tokens": 287,
@@ -256,18 +244,6 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
-          "src/screens/Login.tsx": {
-            "lines": 33,
-            "tokens": 212,
-            "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
           "src/screens/Home.tsx": {
             "lines": 235,
             "tokens": 1823,
@@ -341,8 +317,8 @@
             "newClones": 0
           },
           "src/contexts/AuthContext.tsx": {
-            "lines": 9,
-            "tokens": 30,
+            "lines": 7,
+            "tokens": 26,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -473,8 +449,8 @@
             "newClones": 0
           },
           "src/router.tsx": {
-            "lines": 50,
-            "tokens": 374,
+            "lines": 45,
+            "tokens": 334,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -498,9 +474,9 @@
           }
         },
         "total": {
-          "lines": 2973,
-          "tokens": 21589,
-          "sources": 41,
+          "lines": 2838,
+          "tokens": 20523,
+          "sources": 39,
           "clones": 0,
           "duplicatedLines": 0,
           "duplicatedTokens": 0,
@@ -646,7 +622,7 @@
           },
           "src/screens/Settings.tsx": {
             "lines": 255,
-            "tokens": 1851,
+            "tokens": 1843,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -665,18 +641,6 @@
             "duplicatedTokens": 89,
             "percentage": 3.85,
             "percentageTokens": 3.21,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
-          "src/screens/Register.tsx": {
-            "lines": 196,
-            "tokens": 1707,
-            "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 28,
-            "duplicatedTokens": 212,
-            "percentage": 14.29,
-            "percentageTokens": 12.42,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -720,11 +684,11 @@
             "lines": 102,
             "tokens": 826,
             "sources": 1,
-            "clones": 5,
-            "duplicatedLines": 48,
-            "duplicatedTokens": 438,
-            "percentage": 47.06,
-            "percentageTokens": 53.03,
+            "clones": 3,
+            "duplicatedLines": 30,
+            "duplicatedTokens": 278,
+            "percentage": 29.41,
+            "percentageTokens": 33.66,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -761,18 +725,6 @@
             "duplicatedTokens": 0,
             "percentage": 0,
             "percentageTokens": 0,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
-          "src/screens/Login.tsx": {
-            "lines": 102,
-            "tokens": 806,
-            "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 30,
-            "duplicatedTokens": 224,
-            "percentage": 29.41,
-            "percentageTokens": 27.79,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -849,8 +801,8 @@
             "newClones": 0
           },
           "src/contexts/AuthContext.tsx": {
-            "lines": 108,
-            "tokens": 863,
+            "lines": 78,
+            "tokens": 597,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -981,8 +933,8 @@
             "newClones": 0
           },
           "src/router.tsx": {
-            "lines": 280,
-            "tokens": 2013,
+            "lines": 249,
+            "tokens": 1795,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1018,14 +970,14 @@
           }
         },
         "total": {
-          "lines": 6858,
-          "tokens": 53435,
-          "sources": 42,
-          "clones": 9,
-          "duplicatedLines": 103,
-          "duplicatedTokens": 826,
-          "percentage": 1.5,
-          "percentageTokens": 1.55,
+          "lines": 6499,
+          "tokens": 50430,
+          "sources": 40,
+          "clones": 6,
+          "duplicatedLines": 65,
+          "duplicatedTokens": 528,
+          "percentage": 1,
+          "percentageTokens": 1.05,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -1141,8 +1093,8 @@
             "newClones": 0
           },
           "src/api/types.ts": {
-            "lines": 416,
-            "tokens": 2358,
+            "lines": 386,
+            "tokens": 2209,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1153,82 +1105,46 @@
             "newClones": 0
           },
           "src/api/client.ts": {
-            "lines": 498,
-            "tokens": 4015,
+            "lines": 472,
+            "tokens": 3818,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 106,
-            "duplicatedTokens": 414,
-            "percentage": 21.29,
-            "percentageTokens": 10.31,
+            "duplicatedLines": 98,
+            "duplicatedTokens": 382,
+            "percentage": 20.76,
+            "percentageTokens": 10.01,
             "newDuplicatedLines": 0,
             "newClones": 0
           }
         },
         "total": {
-          "lines": 1937,
-          "tokens": 14318,
+          "lines": 1881,
+          "tokens": 13972,
           "sources": 11,
           "clones": 4,
-          "duplicatedLines": 95,
-          "duplicatedTokens": 628,
-          "percentage": 4.9,
-          "percentageTokens": 4.39,
+          "duplicatedLines": 91,
+          "duplicatedTokens": 612,
+          "percentage": 4.84,
+          "percentageTokens": 4.38,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 11768,
-      "tokens": 89342,
-      "sources": 94,
-      "clones": 13,
-      "duplicatedLines": 198,
-      "duplicatedTokens": 1454,
-      "percentage": 1.68,
-      "percentageTokens": 1.63,
+      "lines": 11218,
+      "tokens": 84925,
+      "sources": 90,
+      "clones": 10,
+      "duplicatedLines": 156,
+      "duplicatedTokens": 1140,
+      "percentage": 1.39,
+      "percentageTokens": 1.34,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
   },
   "duplicates": [
-    {
-      "format": "tsx",
-      "lines": 9,
-      "fragment": "}\n\n  return (\n    <div className=\"flex min-h-screen items-center justify-center bg-background p-4\">\n      <div className=\"w-full max-w-sm space-y-6\">\n        <div className=\"text-center\">\n          <h1 className=\"text-3xl font-bold text-foreground\">Cookie</h1>\n          <p className=\"mt-1 text-sm text-muted-foreground\">\n            Create your account with",
-      "tokens": 0,
-      "firstFile": {
-        "name": "src/screens/PasskeyRegister.tsx",
-        "start": 50,
-        "end": 58,
-        "startLoc": {
-          "line": 50,
-          "column": 3,
-          "position": 402
-        },
-        "endLoc": {
-          "line": 58,
-          "column": 5,
-          "position": 476
-        }
-      },
-      "secondFile": {
-        "name": "src/screens/Register.tsx",
-        "start": 70,
-        "end": 77,
-        "startLoc": {
-          "line": 70,
-          "column": 3,
-          "position": 674
-        },
-        "endLoc": {
-          "line": 77,
-          "column": 3,
-          "position": 745
-        }
-      }
-    },
     {
       "format": "tsx",
       "lines": 9,
@@ -1288,16 +1204,16 @@
       "secondFile": {
         "name": "src/screens/PasskeyRegister.tsx",
         "start": 45,
-        "end": 77,
+        "end": 58,
         "startLoc": {
           "line": 45,
           "column": 22,
           "position": 380
         },
         "endLoc": {
-          "line": 77,
+          "line": 58,
           "column": 7,
-          "position": 740
+          "position": 470
         }
       }
     },
@@ -1334,78 +1250,6 @@
           "line": 94,
           "column": 8,
           "position": 764
-        }
-      }
-    },
-    {
-      "format": "tsx",
-      "lines": 11,
-      "fragment": "} finally {\n      setSubmitting(false)\n    }\n  }\n\n  return (\n    <div className=\"flex min-h-screen items-center justify-center bg-background p-4\">\n      <div className=\"w-full max-w-sm space-y-6\">\n        <div className=\"text-center\">\n          <h1 className=\"text-3xl font-bold text-foreground\">Cookie</h1>\n          <p className=\"mt-1 text-sm text-muted-foreground\">Sign in to",
-      "tokens": 0,
-      "firstFile": {
-        "name": "src/screens/Login.tsx",
-        "start": 26,
-        "end": 36,
-        "startLoc": {
-          "line": 26,
-          "column": 5,
-          "position": 274
-        },
-        "endLoc": {
-          "line": 36,
-          "column": 3,
-          "position": 360
-        }
-      },
-      "secondFile": {
-        "name": "src/screens/PasskeyRegister.tsx",
-        "start": 47,
-        "end": 57,
-        "startLoc": {
-          "line": 47,
-          "column": 5,
-          "position": 386
-        },
-        "endLoc": {
-          "line": 57,
-          "column": 5,
-          "position": 472
-        }
-      }
-    },
-    {
-      "format": "tsx",
-      "lines": 21,
-      "fragment": "{error && (\n          <div className=\"rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-300\">\n            {error}\n          </div>\n        )}\n\n        <form onSubmit={handleSubmit} className=\"space-y-4\">\n          <div>\n            <label htmlFor=\"username\" className=\"block text-sm font-medium text-foreground\">\n              Username\n            </label>\n            <input\n              id=\"username\"\n              type=\"text\"\n              autoComplete=\"username\"\n              required\n              value={username}\n              onChange={(e) => setUsername(e.target.value)}\n              className=\"mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary\"\n            />\n          </",
-      "tokens": 0,
-      "firstFile": {
-        "name": "src/screens/Login.tsx",
-        "start": 45,
-        "end": 65,
-        "startLoc": {
-          "line": 45,
-          "column": 9,
-          "position": 428
-        },
-        "endLoc": {
-          "line": 65,
-          "column": 3,
-          "position": 566
-        }
-      },
-      "secondFile": {
-        "name": "src/screens/Register.tsx",
-        "start": 80,
-        "end": 100,
-        "startLoc": {
-          "line": 80,
-          "column": 9,
-          "position": 756
-        },
-        "endLoc": {
-          "line": 100,
-          "column": 2,
-          "position": 894
         }
       }
     },
@@ -1627,37 +1471,37 @@
     },
     {
       "format": "typescript",
-      "lines": 54,
-      "fragment": "type {\n  AuthResponse,\n  LoginRequest,\n  RegisterRequest,\n  ChangePasswordRequest,\n  ModeResponse,\n  AIStatus,\n  AIErrorResponse,\n  AIModel,\n  AIPrompt,\n  AIPromptUpdate,\n  RemixSuggestionsResponse,\n  RemixResponse,\n  NutritionValues,\n  ScaleResponse,\n  TipsResponse,\n  DiscoverSuggestion,\n  DiscoverResponse,\n  TimerNameResponse,\n  TestApiKeyResponse,\n  SaveApiKeyResponse,\n  Profile,\n  ProfileStats,\n  ProfileWithStats,\n  DeletionData,\n  ProfileSummary,\n  DeletionPreview,\n  ProfileInput,\n  Recipe,\n  IngredientGroup,\n  LinkedRecipe,\n  RecipeDetail,\n  Favorite,\n  HistoryItem,\n  Collection,\n  CollectionItem,\n  CollectionDetail,\n  CollectionInput,\n  SearchResult,\n  SearchResponse,\n  Source,\n  SourceTestResult,\n  TestAllSourcesResult,\n  ResetDataCounts,\n  ResetPreview,\n  ResetResult,\n  PasskeyAuthResponse,\n  PasskeyCredential,\n  PasskeyCredentialList,\n  DeviceCodeResponse,\n  DevicePollResponse,\n}\n\nconst",
+      "lines": 50,
+      "fragment": "type {\n  ModeResponse,\n  AIStatus,\n  AIErrorResponse,\n  AIModel,\n  AIPrompt,\n  AIPromptUpdate,\n  RemixSuggestionsResponse,\n  RemixResponse,\n  NutritionValues,\n  ScaleResponse,\n  TipsResponse,\n  DiscoverSuggestion,\n  DiscoverResponse,\n  TimerNameResponse,\n  TestApiKeyResponse,\n  SaveApiKeyResponse,\n  Profile,\n  ProfileStats,\n  ProfileWithStats,\n  DeletionData,\n  ProfileSummary,\n  DeletionPreview,\n  ProfileInput,\n  Recipe,\n  IngredientGroup,\n  LinkedRecipe,\n  RecipeDetail,\n  Favorite,\n  HistoryItem,\n  Collection,\n  CollectionItem,\n  CollectionDetail,\n  CollectionInput,\n  SearchResult,\n  SearchResponse,\n  Source,\n  SourceTestResult,\n  TestAllSourcesResult,\n  ResetDataCounts,\n  ResetPreview,\n  ResetResult,\n  PasskeyAuthResponse,\n  PasskeyCredential,\n  PasskeyCredentialList,\n  DeviceCodeResponse,\n  DevicePollResponse,\n}\n\nconst",
       "tokens": 0,
       "firstFile": {
         "name": "src/api/client.ts",
-        "start": 55,
-        "end": 108,
+        "start": 51,
+        "end": 100,
         "startLoc": {
-          "line": 55,
+          "line": 51,
           "column": 2,
-          "position": 217
+          "position": 201
         },
         "endLoc": {
-          "line": 108,
+          "line": 100,
           "column": 6,
-          "position": 424
+          "position": 392
         }
       },
       "secondFile": {
         "name": "src/api/client.ts",
         "start": 1,
-        "end": 52,
+        "end": 48,
         "startLoc": {
           "line": 1,
           "column": 2,
           "position": 2
         },
         "endLoc": {
-          "line": 52,
+          "line": 48,
           "column": 5,
-          "position": 208
+          "position": 192
         }
       }
     }

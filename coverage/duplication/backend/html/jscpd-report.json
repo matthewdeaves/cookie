@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T19:00:36.961Z",
+    "detectionDate": "2026-03-28T19:55:24.392Z",
     "formats": {
       "python": {
         "sources": {
@@ -29,8 +29,8 @@
             "newClones": 0
           },
           "cookie/settings.py": {
-            "lines": 283,
-            "tokens": 1677,
+            "lines": 259,
+            "tokens": 1483,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -53,20 +53,8 @@
             "newClones": 0
           },
           "apps/core/management/commands/cookie_admin.py": {
-            "lines": 237,
-            "tokens": 2065,
-            "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 20,
-            "duplicatedTokens": 162,
-            "percentage": 8.44,
-            "percentageTokens": 7.85,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
-          "apps/core/management/commands/cleanup_unverified.py": {
-            "lines": 35,
-            "tokens": 306,
+            "lines": 138,
+            "tokens": 1233,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -389,8 +377,8 @@
             "newClones": 0
           },
           "apps/legacy/views.py": {
-            "lines": 447,
-            "tokens": 2903,
+            "lines": 433,
+            "tokens": 2787,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -401,8 +389,8 @@
             "newClones": 0
           },
           "apps/legacy/urls.py": {
-            "lines": 22,
-            "tokens": 257,
+            "lines": 20,
+            "tokens": 223,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -461,8 +449,8 @@
             "newClones": 0
           },
           "apps/core/models.py": {
-            "lines": 121,
-            "tokens": 955,
+            "lines": 125,
+            "tokens": 987,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -508,18 +496,6 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
-          "apps/core/email_service.py": {
-            "lines": 61,
-            "tokens": 351,
-            "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
           "apps/core/device_code_api.py": {
             "lines": 187,
             "tokens": 1478,
@@ -545,8 +521,8 @@
             "newClones": 0
           },
           "apps/core/auth_api.py": {
-            "lines": 316,
-            "tokens": 2539,
+            "lines": 49,
+            "tokens": 394,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -557,8 +533,8 @@
             "newClones": 0
           },
           "apps/core/auth.py": {
-            "lines": 102,
-            "tokens": 742,
+            "lines": 101,
+            "tokens": 729,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -581,8 +557,8 @@
             "newClones": 0
           },
           "apps/core/api.py": {
-            "lines": 245,
-            "tokens": 1719,
+            "lines": 241,
+            "tokens": 1679,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -666,69 +642,33 @@
           }
         },
         "total": {
-          "lines": 9739,
-          "tokens": 65549,
-          "sources": 55,
-          "clones": 7,
-          "duplicatedLines": 133,
-          "duplicatedTokens": 952,
-          "percentage": 1.37,
-          "percentageTokens": 1.45,
+          "lines": 9236,
+          "tokens": 61550,
+          "sources": 53,
+          "clones": 6,
+          "duplicatedLines": 123,
+          "duplicatedTokens": 871,
+          "percentage": 1.33,
+          "percentageTokens": 1.42,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 9739,
-      "tokens": 65549,
-      "sources": 55,
-      "clones": 7,
-      "duplicatedLines": 133,
-      "duplicatedTokens": 952,
-      "percentage": 1.37,
-      "percentageTokens": 1.45,
+      "lines": 9236,
+      "tokens": 61550,
+      "sources": 53,
+      "clones": 6,
+      "duplicatedLines": 123,
+      "duplicatedTokens": 871,
+      "percentage": 1.33,
+      "percentageTokens": 1.42,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
   },
   "duplicates": [
-    {
-      "format": "python",
-      "lines": 11,
-      "fragment": ",\n                    \"is_admin\": u.is_staff,\n                    \"is_active\": u.is_active,\n                    \"date_joined\": u.date_joined.strftime(\"%Y-%m-%d\"),\n                }\n                for u in users\n            ]\n            self.stdout.write(json.dumps(data, indent=2))\n            return\n\n        self.stdout.write(f\"{'USERNAME':<15} {'ID':<6} {'PASSKEYS':<10} {'ADMIN':<7} {'ACTIVE':<8} {'JOINED'}\"",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/core/management/commands/cookie_admin.py",
-        "start": 129,
-        "end": 139,
-        "startLoc": {
-          "line": 129,
-          "column": 14,
-          "position": 1057
-        },
-        "endLoc": {
-          "line": 139,
-          "column": 84,
-          "position": 1138
-        }
-      },
-      "secondFile": {
-        "name": "apps/core/management/commands/cookie_admin.py",
-        "start": 96,
-        "end": 106,
-        "startLoc": {
-          "line": 96,
-          "column": 9,
-          "position": 776
-        },
-        "endLoc": {
-          "line": 106,
-          "column": 57,
-          "position": 857
-        }
-      }
-    },
     {
       "format": "python",
       "lines": 15,

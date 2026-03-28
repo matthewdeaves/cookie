@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_86c5069d846b035e_api_remix_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.13.5">coverage.py v7.13.5</a>,
-            created at 2026-03-28 19:02 +0000
+            created at 2026-03-28 19:56 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -132,7 +132,7 @@
     <p class="run"><span class="n"><a id="t50" href="#t50">50</a></span><span class="t">    <span class="key">if</span> <span class="nam">getattr</span><span class="op">(</span><span class="nam">request</span><span class="op">,</span> <span class="str">"limited"</span><span class="op">,</span> <span class="key">False</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t51" href="#t51">51</a></span><span class="t">        <span class="nam">security_logger</span><span class="op">.</span><span class="nam">warning</span><span class="op">(</span><span class="str">"Rate limit hit: /ai/discover from %s"</span><span class="op">,</span> <span class="nam">request</span><span class="op">.</span><span class="nam">META</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">"REMOTE_ADDR"</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t52" href="#t52">52</a></span><span class="t">        <span class="key">return</span> <span class="num">429</span><span class="op">,</span> <span class="op">{</span><span class="str">"error"</span><span class="op">:</span> <span class="str">"rate_limited"</span><span class="op">,</span> <span class="str">"message"</span><span class="op">:</span> <span class="str">"Too many requests. Please try again later."</span><span class="op">}</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t53" href="#t53">53</a></span><span class="t">    <span class="com"># In public/passkey mode, verify profile ownership</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t53" href="#t53">53</a></span><span class="t">    <span class="com"># In passkey mode, verify profile ownership</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t54" href="#t54">54</a></span><span class="t">    <span class="key">if</span> <span class="nam">settings</span><span class="op">.</span><span class="nam">AUTH_MODE</span> <span class="op">!=</span> <span class="str">"home"</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t55" href="#t55">55</a></span><span class="t">        <span class="nam">session_profile_id</span> <span class="op">=</span> <span class="nam">request</span><span class="op">.</span><span class="nam">session</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">"profile_id"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t56" href="#t56">56</a></span><span class="t">        <span class="key">if</span> <span class="nam">session_profile_id</span> <span class="op">!=</span> <span class="nam">profile_id</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -154,7 +154,7 @@
             <a class="nav" href="z_86c5069d846b035e_api_remix_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.13.5">coverage.py v7.13.5</a>,
-            created at 2026-03-28 19:02 +0000
+            created at 2026-03-28 19:56 +0000
         </p>
     </div>
 </footer>
