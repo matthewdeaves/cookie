@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T20:39:50.602Z",
+    "detectionDate": "2026-03-28T20:53:55.606Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -114,7 +114,7 @@
           },
           "src/components/settings/SettingsGeneral.tsx": {
             "lines": 101,
-            "tokens": 666,
+            "tokens": 671,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -137,8 +137,8 @@
             "newClones": 0
           },
           "src/screens/Settings.tsx": {
-            "lines": 148,
-            "tokens": 967,
+            "lines": 149,
+            "tokens": 989,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -474,8 +474,8 @@
           }
         },
         "total": {
-          "lines": 2838,
-          "tokens": 20523,
+          "lines": 2839,
+          "tokens": 20550,
           "sources": 39,
           "clones": 0,
           "duplicatedLines": 0,
@@ -597,8 +597,8 @@
             "newClones": 0
           },
           "src/components/settings/SettingsGeneral.tsx": {
-            "lines": 245,
-            "tokens": 1838,
+            "lines": 247,
+            "tokens": 1854,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -621,8 +621,8 @@
             "newClones": 0
           },
           "src/screens/Settings.tsx": {
-            "lines": 255,
-            "tokens": 1843,
+            "lines": 256,
+            "tokens": 1869,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -970,8 +970,8 @@
           }
         },
         "total": {
-          "lines": 6505,
-          "tokens": 50461,
+          "lines": 6508,
+          "tokens": 50503,
           "sources": 40,
           "clones": 6,
           "duplicatedLines": 65,
@@ -1132,8 +1132,8 @@
       }
     },
     "total": {
-      "lines": 11224,
-      "tokens": 84956,
+      "lines": 11228,
+      "tokens": 85025,
       "sources": 90,
       "clones": 10,
       "duplicatedLines": 156,
