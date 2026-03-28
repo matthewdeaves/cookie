@@ -18,8 +18,7 @@ const AllRecipes = lazy(() => import('./screens/AllRecipes'))
 const Collections = lazy(() => import('./screens/Collections'))
 const CollectionDetail = lazy(() => import('./screens/CollectionDetail'))
 const Settings = lazy(() => import('./screens/Settings'))
-const PairDevice = lazy(() => import('./screens/PairDevice'))
-const PasskeyManage = lazy(() => import('./screens/PasskeyManage'))
+// PairDevice and PasskeyManage are now inline tabs in Settings
 
 function LoadingFallback() {
   return (
@@ -240,19 +239,11 @@ export const router = createBrowserRouter([
       },
       {
         path: '/pair-device',
-        element: (
-          <ProtectedRoute>
-            <PairDevice />
-          </ProtectedRoute>
-        ),
+        element: <Navigate to="/settings" replace />,
       },
       {
         path: '/passkeys',
-        element: (
-          <ProtectedRoute>
-            <PasskeyManage />
-          </ProtectedRoute>
-        ),
+        element: <Navigate to="/settings" replace />,
       },
       {
         path: '*',

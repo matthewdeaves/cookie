@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
   Bot,
   AlertTriangle,
@@ -25,6 +24,8 @@ import { useProfile } from '../contexts/ProfileContext'
 import { useMode } from '../router'
 import { useAuth } from '../contexts/AuthContext'
 import NavHeader from '../components/NavHeader'
+import DeviceCodeEntry from '../components/DeviceCodeEntry'
+import SettingsPasskeys from '../components/settings/SettingsPasskeys'
 import {
   SettingsGeneral,
   SettingsPrompts,
@@ -34,7 +35,7 @@ import {
   SettingsDanger,
 } from '../components/settings'
 
-type Tab = 'general' | 'prompts' | 'sources' | 'selectors' | 'users' | 'danger' | 'account'
+type Tab = 'general' | 'passkeys' | 'pair-device' | 'prompts' | 'sources' | 'selectors' | 'users' | 'danger'
 
 function useIsAdmin(): boolean {
   const mode = useMode()
@@ -50,7 +51,6 @@ export default function Settings() {
   const currentProfileId = profile?.id
   const isAdmin = useIsAdmin()
   const mode = useMode()
-  const navigate = useNavigate()
 
   const [activeTab, setActiveTab] = useState<Tab>('general')
   const [aiStatus, setAiStatus] = useState<AIStatus | null>(null)
@@ -111,8 +111,13 @@ export default function Settings() {
             </button>
             {mode === 'passkey' && (
               <button
-                onClick={() => navigate('/passkeys')}
-                className="border-b-2 border-transparent py-3 text-sm font-medium transition-colors whitespace-nowrap text-muted-foreground hover:text-foreground"
+                onClick={() => setActiveTab('passkeys')}
+                className={cn(
+                  'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
+                  activeTab === 'passkeys'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                )}
               >
                 <span className="flex items-center gap-2">
                   <Key className="h-4 w-4" />
@@ -122,8 +127,13 @@ export default function Settings() {
             )}
             {mode === 'passkey' && (
               <button
-                onClick={() => navigate('/pair-device')}
-                className="border-b-2 border-transparent py-3 text-sm font-medium transition-colors whitespace-nowrap text-muted-foreground hover:text-foreground"
+                onClick={() => setActiveTab('pair-device')}
+                className={cn(
+                  'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
+                  activeTab === 'pair-device'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                )}
               >
                 <span className="flex items-center gap-2">
                   <Smartphone className="h-4 w-4" />
@@ -230,6 +240,18 @@ export default function Settings() {
               onModelsChange={setModels}
               isAdmin={isAdmin}
             />
+          ) : activeTab === 'passkeys' ? (
+            <SettingsPasskeys />
+          ) : activeTab === 'pair-device' ? (
+            <div className="space-y-6">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h2 className="mb-4 text-lg font-medium text-foreground">Pair a Device</h2>
+                <p className="mb-4 text-sm text-muted-foreground">
+                  Enter the code shown on the device you want to pair
+                </p>
+                <DeviceCodeEntry />
+              </div>
+            </div>
           ) : activeTab === 'prompts' && isAdmin ? (
             <SettingsPrompts
               aiStatus={aiStatus}
