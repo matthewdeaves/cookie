@@ -78,6 +78,7 @@ RUN mkdir -p /app/staticfiles /app/data/media && \
 
 # Copy nginx config
 COPY nginx/nginx.prod.conf /etc/nginx/nginx.conf
+COPY nginx/security-headers.conf /etc/nginx/security-headers.conf
 
 # Copy and setup entrypoint
 COPY entrypoint.prod.sh /entrypoint.sh
@@ -87,7 +88,7 @@ RUN chmod +x /entrypoint.sh
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     DEBUG=false \
-    ALLOWED_HOSTS=* \
+    ALLOWED_HOSTS=localhost \
     GUNICORN_WORKERS=2 \
     GUNICORN_THREADS=4
 
