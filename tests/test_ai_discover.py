@@ -253,19 +253,21 @@ def test_new_user_gets_only_seasonal(profile, seasonal_prompt):
 # --- User with history ---
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_user_with_history_gets_all_types(profile, all_prompts, recipe_with_history):
     """User with view history gets seasonal, favorites, and new suggestions."""
     mock_service_instance = MagicMock()
     mock_service_instance.complete.return_value = "mocked"
 
-    call_count = {"n": 0}
-    types_in_order = ["seasonal", "favorites", "new"]
+    # Map prompt_type to suggestion type — thread-safe since each thread calls with a different prompt_type
+    prompt_to_type = {
+        "discover_seasonal": "seasonal",
+        "discover_favorites": "favorites",
+        "discover_new": "new",
+    }
 
     def mock_validate(prompt_type, response):
-        idx = call_count["n"]
-        call_count["n"] += 1
-        stype = types_in_order[idx] if idx < len(types_in_order) else "seasonal"
+        stype = prompt_to_type.get(prompt_type, "seasonal")
         return _mock_ai_suggestions(stype)
 
     mock_validator_instance = MagicMock()

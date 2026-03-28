@@ -163,7 +163,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Cache configuration — database-backed for sharing across Gunicorn workers
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "BACKEND": "apps.core.cache.PostgreSafeDatabaseCache",
         "LOCATION": "django_cache",
     }
 }

@@ -1,8 +1,9 @@
 """AI discovery suggestions service."""
 
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
-from typing import Optional, List
+from typing import List
 
 from django.utils import timezone
 
@@ -55,22 +56,22 @@ def get_discover_suggestions(profile_id: int, force_refresh: bool = False) -> di
     # Check if user has viewing history
     has_history = RecipeViewHistory.objects.filter(profile=profile).exists()
 
-    # Generate new suggestions
+    # Generate new suggestions — parallelize LLM calls to avoid sequential latency
     suggestions = []
 
-    # Always generate seasonal suggestions
-    seasonal_suggestions = _generate_seasonal_suggestions(profile)
-    suggestions.extend(seasonal_suggestions)
-
-    # Only generate personalized suggestions if user has history
     if has_history:
-        # Recommended based on what they've viewed
-        recommended_suggestions = _generate_recommended_suggestions(profile)
-        suggestions.extend(recommended_suggestions)
+        # Run all 3 suggestion types in parallel to reduce wall-clock time (~16s → ~5s)
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            seasonal_future = executor.submit(_generate_in_thread, _generate_seasonal_suggestions, profile)
+            recommended_future = executor.submit(_generate_in_thread, _generate_recommended_suggestions, profile)
+            new_future = executor.submit(_generate_in_thread, _generate_new_suggestions, profile)
 
-        # Try something new/different
-        new_suggestions = _generate_new_suggestions(profile)
-        suggestions.extend(new_suggestions)
+            suggestions.extend(seasonal_future.result())
+            suggestions.extend(recommended_future.result())
+            suggestions.extend(new_future.result())
+    else:
+        # New user — only seasonal, no need for threads
+        suggestions.extend(_generate_seasonal_suggestions(profile))
 
     if not suggestions:
         # If no suggestions generated, return empty
@@ -109,6 +110,17 @@ def _format_suggestions(suggestions) -> dict:
         "suggestions": result,
         "refreshed_at": refreshed_at,
     }
+
+
+def _generate_in_thread(func, profile):
+    """Run a generation function in a thread with proper DB connection handling."""
+    from django.db import close_old_connections
+
+    close_old_connections()
+    try:
+        return func(profile)
+    finally:
+        close_old_connections()
 
 
 def _generate_seasonal_suggestions(profile: Profile) -> List[AIDiscoverySuggestion]:

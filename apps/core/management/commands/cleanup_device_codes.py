@@ -13,6 +13,14 @@ class Command(BaseCommand):
         parser.add_argument("--dry-run", action="store_true")
 
     def handle(self, *args, **options):
+        from django.db import connection
+
+        # Guard against running before migrations have created the table
+        table_names = connection.introspection.table_names()
+        if "core_devicecode" not in table_names:
+            self.stdout.write("DeviceCode table does not exist yet — skipping cleanup.")
+            return
+
         now = timezone.now()
         expired = DeviceCode.objects.filter(expires_at__lt=now, status__in=["pending", "expired"])
         invalidated = DeviceCode.objects.filter(status="invalidated")
