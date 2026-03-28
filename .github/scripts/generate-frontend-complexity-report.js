@@ -54,15 +54,20 @@ for (const file of files) {
   try {
     let code = fs.readFileSync(file, 'utf8');
 
-    // Strip TypeScript-specific syntax for escomplex compatibility
-    code = code
-      .replace(/:\s*[A-Za-z<>\[\]|&\s,{}()=>?."']+(?=[,\)\s=;{])/g, '')  // Type annotations
-      .replace(/\binterface\s+\w+[^{]*\{[^}]*\}/g, '')  // Interfaces
-      .replace(/\btype\s+\w+[^=]*=[^;]+;/g, '')  // Type aliases
-      .replace(/<[A-Za-z,\s]+>/g, '')  // Generics
-      .replace(/\bas\s+\w+/g, '')  // Type assertions
-      .replace(/\bexport\s+type\b/g, 'export')  // Export type
-      .replace(/\bimport\s+type\b/g, 'import');  // Import type
+    // Strip TypeScript-specific syntax for escomplex compatibility.
+    // Loop until stable since removals can expose new matches.
+    let prev;
+    do {
+      prev = code;
+      code = code
+        .replace(/:\s*[A-Za-z<>\[\]|&\s,{}()=>?."']+(?=[,)\s=;{])/g, '')  // Type annotations
+        .replace(/\binterface\s+\w+[^{]*\{[^}]*\}/g, '')  // Interfaces
+        .replace(/\btype\s+\w+[^=]*=[^;]+;/g, '')  // Type aliases
+        .replace(/<[A-Za-z,\s]+>/g, '')  // Generics
+        .replace(/\bas\s+\w+/g, '')  // Type assertions
+        .replace(/\bexport\s+type\b/g, 'export')  // Export type
+        .replace(/\bimport\s+type\b/g, 'import');  // Import type
+    } while (code !== prev);
 
     const result = escomplex.analyse(code, { sourceType: 'module' });
 

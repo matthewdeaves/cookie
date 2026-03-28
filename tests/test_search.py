@@ -85,10 +85,16 @@ class TestGetUrlSignal:
 
     def test_neutral_multi_segment_path(self):
         # This path ends with "-recipe" which matches _RECIPE_PATTERNS
-        assert get_url_signal("https://example.com/food-section/desserts/chocolate-cake-recipe", "example.com") == "strong_include"
+        assert (
+            get_url_signal("https://example.com/food-section/desserts/chocolate-cake-recipe", "example.com")
+            == "strong_include"
+        )
 
     def test_neutral_multi_segment_no_recipe_pattern(self):
-        assert get_url_signal("https://example.com/food-section/desserts/chocolate-cake-delight", "example.com") == "neutral"
+        assert (
+            get_url_signal("https://example.com/food-section/desserts/chocolate-cake-delight", "example.com")
+            == "neutral"
+        )
 
     def test_reject_wrong_host(self):
         assert get_url_signal("https://other.com/recipe/123", "example.com") == "reject"
@@ -139,7 +145,10 @@ class TestLooksLikeRecipeTitle:
     # --- Strong include URL signal overrides title concerns ---
 
     def test_strong_include_overrides_editorial_title(self):
-        assert looks_like_recipe_title("Google's Top Trending Recipe of 2024 Deserves a Gold Medal", "strong_include") is True
+        assert (
+            looks_like_recipe_title("Google's Top Trending Recipe of 2024 Deserves a Gold Medal", "strong_include")
+            is True
+        )
 
     def test_strong_include_overrides_listicle_title(self):
         assert looks_like_recipe_title("Top 10 Things to Do in Paris", "strong_include") is True
@@ -183,7 +192,10 @@ class TestLooksLikeRecipeTitle:
 
     def test_mixed_signal_travel_recipe_with_recipe_url(self):
         """Recipe URL + travel-ish title with recipe context = PASS."""
-        assert looks_like_recipe_title("The Best Chicken Recipe I Found While Traveling in Morocco", "strong_include") is True
+        assert (
+            looks_like_recipe_title("The Best Chicken Recipe I Found While Traveling in Morocco", "strong_include")
+            is True
+        )
 
     def test_empty_title_rejected(self):
         assert looks_like_recipe_title("", "neutral") is False
@@ -452,7 +464,7 @@ class TestSearchService:
             sources=["allrecipes.com"],
         )
 
-        # Should only search allrecipes.com
+        # Dict key membership check on test data (not URL substring validation)
         assert "allrecipes.com" in results["sites"] or results["total"] >= 0
 
     @patch("apps.recipes.services.search.AsyncSession")

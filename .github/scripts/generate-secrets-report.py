@@ -123,9 +123,11 @@ def main():
 </html>"""
 
     with open(security_dir / "secrets-report.html", "w") as f:
+        # Report contains file paths, line numbers, and detection types
+        # (not actual secret values) for CI dashboard review
         f.write(html)
 
-    # Print results
+    # Print results -- locations and detection types only, never actual secret values
     if total_secrets > 0:
         print(f"WARNING: Found {total_secrets} potential secret(s)")
         for s in secrets_found_list:
