@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T22:11:51.148Z",
+    "detectionDate": "2026-03-28T22:15:00.163Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -461,8 +461,8 @@
             "newClones": 0
           },
           "src/router.tsx": {
-            "lines": 54,
-            "tokens": 406,
+            "lines": 52,
+            "tokens": 402,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -486,8 +486,8 @@
           }
         },
         "total": {
-          "lines": 2916,
-          "tokens": 21100,
+          "lines": 2914,
+          "tokens": 21096,
           "sources": 40,
           "clones": 0,
           "duplicatedLines": 0,
@@ -693,8 +693,8 @@
             "newClones": 0
           },
           "src/screens/PlayMode.tsx": {
-            "lines": 281,
-            "tokens": 2051,
+            "lines": 280,
+            "tokens": 2048,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -957,8 +957,8 @@
             "newClones": 0
           },
           "src/router.tsx": {
-            "lines": 253,
-            "tokens": 1845,
+            "lines": 248,
+            "tokens": 1835,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -994,8 +994,8 @@
           }
         },
         "total": {
-          "lines": 6704,
-          "tokens": 52040,
+          "lines": 6698,
+          "tokens": 52027,
           "sources": 41,
           "clones": 9,
           "duplicatedLines": 179,
@@ -1156,8 +1156,8 @@
       }
     },
     "total": {
-      "lines": 11502,
-      "tokens": 87118,
+      "lines": 11494,
+      "tokens": 87101,
       "sources": 92,
       "clones": 13,
       "duplicatedLines": 270,

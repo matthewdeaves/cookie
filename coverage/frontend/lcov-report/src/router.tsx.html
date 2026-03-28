@@ -312,12 +312,7 @@
 <a name='L247'></a><a href='#L247'>247</a>
 <a name='L248'></a><a href='#L248'>248</a>
 <a name='L249'></a><a href='#L249'>249</a>
-<a name='L250'></a><a href='#L250'>250</a>
-<a name='L251'></a><a href='#L251'>251</a>
-<a name='L252'></a><a href='#L252'>252</a>
-<a name='L253'></a><a href='#L253'>253</a>
-<a name='L254'></a><a href='#L254'>254</a>
-<a name='L255'></a><a href='#L255'>255</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L250'></a><a href='#L250'>250</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -360,7 +355,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -414,7 +408,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -422,7 +415,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -438,7 +430,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -453,7 +444,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -613,7 +603,6 @@ export function <span class="fstat-no" title="function not covered" >useVersion(
 <span class="cstat-no" title="statement not covered" >  return useContext(VersionContext)</span>
 }
 &nbsp;
-// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function AppLayout() {
   const [mode, setMode] = useState&lt;'home' | 'passkey' | null&gt;(null)
   const [version, setVersion] = useState('dev')
@@ -667,7 +656,6 @@ function AppLayout() {
   )
 }
 &nbsp;
-// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function <span class="fstat-no" title="function not covered" >AuthProfileBridge({</span> children }: { children: React.ReactNode }) {
   const { profile: authProfile, isLoading <span class="cstat-no" title="statement not covered" >} = useAuth()</span>
 &nbsp;
@@ -678,7 +666,6 @@ function <span class="fstat-no" title="function not covered" >AuthProfileBridge(
 <span class="cstat-no" title="statement not covered" >  return &lt;ProfileProvider authProfile={authProfile}&gt;{children}&lt;/ProfileProvider&gt;</span>
 }
 &nbsp;
-// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function <span class="fstat-no" title="function not covered" >ProtectedRoute({</span> children }: { children: React.ReactNode }) {
   const { profile, loading <span class="cstat-no" title="statement not covered" >} = useProfile()</span>
   const <span class="cstat-no" title="statement not covered" >location = useLocation()</span>
@@ -694,7 +681,6 @@ function <span class="fstat-no" title="function not covered" >ProtectedRoute({</
 <span class="cstat-no" title="statement not covered" >  return &lt;&gt;{children}&lt;/&gt;</span>
 }
 &nbsp;
-// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { profile, loading } = useProfile()
 &nbsp;
@@ -709,7 +695,6 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return &lt;&gt;{children}&lt;/&gt;
 }
 &nbsp;
-// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function RootRoute() {
   const mode = useMode()
   <span class="missing-if-branch" title="if path not taken" >I</span>if (mode === 'passkey') {
@@ -832,7 +817,7 @@ export const router = createBrowserRouter([
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-28T22:12:06.186Z
+                at 2026-03-28T22:15:00.247Z
             </div>
         <script src="../prettify.js"></script>
         <script>
