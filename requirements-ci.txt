@@ -181,9 +181,9 @@ license-expression==30.4.4 \
     --hash=sha256:421788fdcadb41f049d2dc934ce666626265aeccefddd25e162a26f23bcbf8a4 \
     --hash=sha256:73448f0aacd8d0808895bdc4b2c8e01a8d67646e4188f887375398c761f340fd
     # via cyclonedx-python-lib
-mando==0.7.1 \
-    --hash=sha256:18baa999b4b613faefb00eac4efadcf14f510b59b924b66e08289aa1de8c3500 \
-    --hash=sha256:26ef1d70928b6057ee3ca12583d73c63e05c49de8972d620c278a7b206581a8a
+mando==0.8.2 \
+    --hash=sha256:539659d9a2fdc6c9a188211c58f381e0dafe9597085174c5472eb1ed0224b6b5 \
+    --hash=sha256:bad558078031366ee3bed2f290449be6788d8beaddcd20751105d30550534319
     # via radon
 markdown-it-py==4.0.0 \
     --hash=sha256:87327c59b172c5011896038353a81343b6754500a08cd7a4973bb48c6d578147 \
