@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T18:40:34.581Z",
+    "detectionDate": "2026-03-28T19:00:45.191Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -1153,26 +1153,26 @@
             "newClones": 0
           },
           "src/api/client.ts": {
-            "lines": 496,
-            "tokens": 4004,
+            "lines": 498,
+            "tokens": 4015,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 106,
             "duplicatedTokens": 414,
-            "percentage": 21.37,
-            "percentageTokens": 10.34,
+            "percentage": 21.29,
+            "percentageTokens": 10.31,
             "newDuplicatedLines": 0,
             "newClones": 0
           }
         },
         "total": {
-          "lines": 1935,
-          "tokens": 14307,
+          "lines": 1937,
+          "tokens": 14318,
           "sources": 11,
           "clones": 4,
           "duplicatedLines": 95,
           "duplicatedTokens": 628,
-          "percentage": 4.91,
+          "percentage": 4.9,
           "percentageTokens": 4.39,
           "newDuplicatedLines": 0,
           "newClones": 0
@@ -1180,8 +1180,8 @@
       }
     },
     "total": {
-      "lines": 11766,
-      "tokens": 89331,
+      "lines": 11768,
+      "tokens": 89342,
       "sources": 94,
       "clones": 13,
       "duplicatedLines": 198,

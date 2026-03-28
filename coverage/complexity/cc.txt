@@ -378,13 +378,14 @@ apps/core/api.py
     C 103:0 ErrorSchema - A (1)
     C 108:0 ResetSuccessSchema - A (1)
 apps/core/middleware.py
-    M 48:4 DeviceDetectionMiddleware._is_legacy_device - C (14)
-    C 18:0 DeviceDetectionMiddleware - B (6)
-    C 5:0 RequestIDMiddleware - A (2)
-    M 8:4 RequestIDMiddleware.__init__ - A (1)
-    M 11:4 RequestIDMiddleware.__call__ - A (1)
-    M 41:4 DeviceDetectionMiddleware.__init__ - A (1)
-    M 44:4 DeviceDetectionMiddleware.__call__ - A (1)
+    M 71:4 DeviceDetectionMiddleware._is_legacy_device - C (14)
+    C 41:0 DeviceDetectionMiddleware - B (6)
+    F 6:0 get_client_ip - A (3)
+    C 28:0 RequestIDMiddleware - A (2)
+    M 31:4 RequestIDMiddleware.__init__ - A (1)
+    M 34:4 RequestIDMiddleware.__call__ - A (1)
+    M 64:4 DeviceDetectionMiddleware.__init__ - A (1)
+    M 67:4 DeviceDetectionMiddleware.__call__ - A (1)
 apps/core/logging.py
     C 8:0 JSONFormatter - B (7)
     M 11:4 JSONFormatter.format - B (6)
@@ -761,5 +762,5 @@ apps/recipes/management/commands/cleanup_search_images.py
 cookie/settings.py
     F 21:0 get_secret_key - A (3)
 
-678 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.78023598820059)
+679 blocks (classes, functions, methods) analyzed.
+Average complexity: A (2.780559646539028)
