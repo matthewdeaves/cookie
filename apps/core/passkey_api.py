@@ -34,6 +34,8 @@ security_logger = logging.getLogger("security")
 
 router = Router(tags=["passkey"])
 
+_AUTH_BACKEND = "django.contrib.auth.backends.ModelBackend"
+
 
 def _get_rp_id(request):
     """Get the Relying Party ID from settings or request hostname."""
@@ -43,10 +45,20 @@ def _get_rp_id(request):
 
 
 def _get_origin(request):
-    """Get the expected origin for WebAuthn verification."""
-    if request.is_secure():
-        return f"https://{request.get_host()}"
-    return f"http://{request.get_host()}"
+    """Get the expected origin for WebAuthn verification.
+
+    Uses WEBAUTHN_RP_ID if set to ensure consistency with the RP ID.
+    Falls back to deriving from the request host.
+    """
+    rp_id = _get_rp_id(request)
+    scheme = "https" if request.is_secure() else "http"
+    # If RP ID matches the request hostname (without port), use full request host
+    # to preserve port information. Otherwise use RP ID directly.
+    host = request.get_host()
+    hostname = host.split(":")[0]
+    if hostname == rp_id:
+        return f"{scheme}://{host}"
+    return f"{scheme}://{rp_id}"
 
 
 # --- Registration ---
@@ -123,7 +135,7 @@ def register_verify(request):
         return 400, {"error": "Registration failed: verification error"}
 
     user, profile = _create_passkey_user_and_profile(verification, body.get("transports"))
-    login(request, user)
+    login(request, user, backend=_AUTH_BACKEND)
     request.session["profile_id"] = profile.id
 
     security_logger.info(
@@ -269,7 +281,7 @@ def login_verify(request):
     credential.last_used_at = timezone.now()
     credential.save(update_fields=["sign_count", "last_used_at"])
 
-    login(request, credential.user)
+    login(request, credential.user, backend=_AUTH_BACKEND)
     request.session["profile_id"] = credential.user.profile.id
 
     security_logger.info(

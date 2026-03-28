@@ -38,9 +38,9 @@ type Tab = 'general' | 'prompts' | 'sources' | 'selectors' | 'users' | 'danger' 
 
 function useIsAdmin(): boolean {
   const mode = useMode()
+  const auth = useAuth()
   if (mode === 'public' || mode === 'passkey') {
-    // eslint-disable-next-line react-hooks/rules-of-hooks -- Safe: mode is stable after mount
-    return useAuth().isAdmin
+    return auth.isAdmin
   }
   return true
 }

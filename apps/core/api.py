@@ -242,4 +242,5 @@ def reset_database(request, data: ResetConfirmSchema):
         }
 
     except Exception as e:
-        return 400, {"error": "reset_failed", "message": str(e)}
+        logger.error("Database reset failed: %s", str(e), exc_info=True)
+        return 400, {"error": "reset_failed", "message": "Database reset failed. Check server logs."}

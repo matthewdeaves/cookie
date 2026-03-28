@@ -58,8 +58,8 @@ class WebAuthnCredential(models.Model):
         on_delete=models.CASCADE,
         related_name="webauthn_credentials",
     )
-    credential_id = models.BinaryField(max_length=256, unique=True)
-    public_key = models.BinaryField(max_length=256)
+    credential_id = models.BinaryField(max_length=1024, unique=True)
+    public_key = models.BinaryField(max_length=1024)
     sign_count = models.PositiveIntegerField(default=0)
     transports = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -89,7 +89,7 @@ class DeviceCode(models.Model):
         ("invalidated", "Invalidated"),
     ]
 
-    code = models.CharField(max_length=6, db_index=True)
+    code = models.CharField(max_length=6, unique=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     session_key = models.CharField(max_length=40)
     authorizing_user = models.ForeignKey(

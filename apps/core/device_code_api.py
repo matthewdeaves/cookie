@@ -4,7 +4,7 @@ import logging
 
 from django.conf import settings
 from django.contrib.auth import login
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema
@@ -16,6 +16,8 @@ from apps.core.models import DeviceCode, generate_device_code
 security_logger = logging.getLogger("security")
 
 router = Router(tags=["device"])
+
+_AUTH_BACKEND = "django.contrib.auth.backends.ModelBackend"
 
 
 class AuthorizeIn(Schema):
@@ -82,6 +84,7 @@ def request_code(request):
 
 @router.get("/poll/", response={200: dict, 202: dict, 410: dict})
 @ratelimit(key="ip", rate="180/h", method="GET", block=False)
+@transaction.atomic
 def poll_status(request):
     """Poll for device code authorization status."""
     require_passkey_mode(request)
@@ -93,8 +96,10 @@ def poll_status(request):
         return 410, {"status": "expired", "error": "No active code. Please request a new one."}
 
     try:
-        device_code = DeviceCode.objects.select_related("authorizing_user").get(
-            session_key=session_key, status__in=["pending", "authorized"]
+        device_code = (
+            DeviceCode.objects.select_for_update()
+            .select_related("authorizing_user")
+            .get(session_key=session_key, status__in=["pending", "authorized"])
         )
     except DeviceCode.DoesNotExist:
         return 410, {"status": "expired", "error": "No active code. Please request a new one."}
@@ -111,9 +116,15 @@ def poll_status(request):
     if device_code.status == "pending":
         return 202, {"status": "pending"}
 
-    # Authorized — establish session for this device
+    # Authorized — verify authorizing_user exists
     user = device_code.authorizing_user
-    login(request, user)
+    if user is None:
+        device_code.status = "invalidated"
+        device_code.save(update_fields=["status"])
+        return 410, {"status": "expired", "error": "Authorization invalid. Please request a new code."}
+
+    # Establish session for this device
+    login(request, user, backend=_AUTH_BACKEND)
     request.session["profile_id"] = user.profile.id
 
     security_logger.info(
@@ -134,6 +145,7 @@ def poll_status(request):
 
 @router.post("/authorize/", response={200: dict, 400: dict, 429: dict}, auth=SessionAuth())
 @ratelimit(key="ip", rate="20/h", method="POST", block=False)
+@transaction.atomic
 def authorize_code(request, data: AuthorizeIn):
     """Authorize a pending device code (called by authenticated modern device)."""
     require_passkey_mode(request)
@@ -147,7 +159,7 @@ def authorize_code(request, data: AuthorizeIn):
     normalized_code = data.code.strip().upper()
 
     try:
-        device_code = DeviceCode.objects.get(code=normalized_code, status="pending")
+        device_code = DeviceCode.objects.select_for_update().get(code=normalized_code, status="pending")
     except DeviceCode.DoesNotExist:
         security_logger.warning(
             "Device code authorize: invalid code from user_id=%s, ip=%s",

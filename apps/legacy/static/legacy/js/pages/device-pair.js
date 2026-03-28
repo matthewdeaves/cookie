@@ -2,6 +2,7 @@
 /* global XMLHttpRequest, document, window */
 
 var pollTimer = null;
+var countdownTimer = null;
 
 function getCsrfToken() {
   var value = '; ' + document.cookie;
@@ -75,12 +76,19 @@ function showCode(code, expiresIn, pollInterval) {
   var expiresAt = Date.now() + (expiresIn * 1000);
   updateExpiry(expiresAt);
 
-  // Start polling
+  // Countdown timer updates every second for smooth display
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
+  }
+  countdownTimer = setInterval(function() {
+    updateExpiry(expiresAt);
+  }, 1000);
+
+  // Poll timer fires at the server-specified interval
   if (pollTimer) {
     clearInterval(pollTimer);
   }
   pollTimer = setInterval(function() {
-    updateExpiry(expiresAt);
     pollStatus(expiresAt);
   }, (pollInterval || 5) * 1000);
 }
@@ -113,6 +121,9 @@ function pollStatus(expiresAt) {
       if (pollTimer) {
         clearInterval(pollTimer);
       }
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+      }
       document.getElementById('status-msg').textContent = 'Paired! Redirecting...';
       window.location.href = '/legacy/home/';
     } else if (xhr.status === 410) {
@@ -132,6 +143,10 @@ function onExpired() {
   if (pollTimer) {
     clearInterval(pollTimer);
     pollTimer = null;
+  }
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
   }
   document.getElementById('code-display').style.display = 'none';
   document.getElementById('request-section').style.display = 'block';
