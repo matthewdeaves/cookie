@@ -1,21 +1,13 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 import { api } from '../api/client'
-import type { AuthUser, AuthProfile, PasskeyUser } from '../api/types'
+import type { AuthProfile, PasskeyUser } from '../api/types'
 
 interface AuthContextType {
-  user: (AuthUser | PasskeyUser) | null
+  user: PasskeyUser | null
   profile: AuthProfile | null
   isAdmin: boolean
   isLoading: boolean
-  login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
-  register: (data: {
-    username: string
-    password: string
-    password_confirm: string
-    email: string
-    privacy_accepted: boolean
-  }) => Promise<string>
   refreshSession: () => Promise<void>
 }
 
@@ -31,7 +23,7 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<(AuthUser | PasskeyUser) | null>(null)
+  const [user, setUser] = useState<PasskeyUser | null>(null)
   const [profile, setProfile] = useState<AuthProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -60,12 +52,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const login = useCallback(async (username: string, password: string) => {
-    const data = await api.auth.login({ username, password })
-    setUser(data.user)
-    setProfile(data.profile)
-  }, [])
-
   const logout = useCallback(async () => {
     try {
       await api.auth.logout()
@@ -76,20 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null)
   }, [])
 
-  const register = useCallback(
-    async (data: {
-      username: string
-      password: string
-      password_confirm: string
-      email: string
-      privacy_accepted: boolean
-    }) => {
-      const result = await api.auth.register(data)
-      return result.message
-    },
-    []
-  )
-
   return (
     <AuthContext.Provider
       value={{
@@ -97,9 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profile,
         isAdmin: user?.is_admin ?? false,
         isLoading,
-        login,
         logout,
-        register,
         refreshSession,
       }}
     >

@@ -8,9 +8,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-28
 - **Legacy Frontend**: ES5 (iOS 9.3 Safari compatible)
 - **Database**: PostgreSQL 16+ (all environments, no SQLite fallback), Django database cache (`django_cache` table)
 - **Testing**: pytest, Vitest 4
-- **Email**: Django built-in SMTP backend, Mailpit (dev via `docker-compose.mailpit.yml`)
-- Python 3.14, TypeScript 5.9, ES5 (legacy) + Django 5.0, Django Ninja 1.0+, py-webauthn 2.x (new), React 19, Vite 7 (013-passkey-auth)
-- PostgreSQL 16+ (2 new tables: WebAuthnCredential, DeviceCode) (013-passkey-auth)
+- Python 3.14, TypeScript 5.9, ES5 (legacy) + Django 5.0, Django Ninja 1.0+, py-webauthn 2.x, React 19, Vite 7
+- PostgreSQL 16+ (tables: WebAuthnCredential, DeviceCode for passkey mode)
 
 ## Project Structure
 
@@ -54,32 +53,18 @@ Rules:
 
 ## Authentication
 
-Cookie supports three authentication modes via `AUTH_MODE` environment variable:
+Cookie supports two authentication modes via `AUTH_MODE` environment variable:
 
 - **`home`** (default): Profile-based sessions, no login required. All settings accessible.
-- **`public`**: Full authentication with username/password, email verification, role-based access control.
 - **`passkey`**: WebAuthn passkey-only authentication. No username, email, or password. Device code flow for legacy devices.
 
 ### Key Files
-- `apps/core/auth.py` — `SessionAuth` (mode-aware: home/public/passkey) and `AdminAuth` classes
-- `apps/core/auth_api.py` — Auth endpoints: register, login, logout, verify-email, me, change-password (public mode)
+- `apps/core/auth.py` — `SessionAuth` (mode-aware: home/passkey) and `AdminAuth` classes
+- `apps/core/auth_api.py` — Shared auth endpoints: logout, me (passkey mode)
 - `apps/core/passkey_api.py` — Passkey endpoints: register, login, credential management (passkey mode)
 - `apps/core/device_code_api.py` — Device code flow: code generation, polling, authorization (passkey mode)
-- `apps/core/email_service.py` — Transient email verification (email never stored, public mode only)
-- `apps/core/management/commands/cookie_admin.py` — Admin CLI (public + passkey modes)
+- `apps/core/management/commands/cookie_admin.py` — Admin CLI (passkey mode only)
 - `apps/core/management/commands/cleanup_device_codes.py` — Clean up expired device codes
-
-### Auth Commands (Public Mode)
-```bash
-# Admin CLI
-docker compose exec web python manage.py cookie_admin list-users
-docker compose exec web python manage.py cookie_admin promote <username>
-docker compose exec web python manage.py cookie_admin demote <username>
-docker compose exec web python manage.py cookie_admin reset-password <username> --generate
-docker compose exec web python manage.py cookie_admin deactivate <username>
-docker compose exec web python manage.py cookie_admin activate <username>
-docker compose exec web python manage.py cookie_admin cleanup-unverified --dry-run
-```
 
 ### Auth Commands (Passkey Mode)
 ```bash
@@ -94,19 +79,12 @@ docker compose exec web python manage.py cleanup_device_codes --dry-run
 ### Auth Environment Variables
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `AUTH_MODE` | `home` | `home`, `public`, or `passkey` |
+| `AUTH_MODE` | `home` | `home` or `passkey` |
+| `OPENROUTER_API_KEY` | `""` | OpenRouter API key (overrides database value) |
 | `WEBAUTHN_RP_ID` | Request hostname | WebAuthn Relying Party ID (domain, passkey mode) |
 | `WEBAUTHN_RP_NAME` | `Cookie` | Name shown in passkey prompts |
 | `DEVICE_CODE_EXPIRY_SECONDS` | `600` | Device code lifetime (10 min default) |
 | `DEVICE_CODE_MAX_ATTEMPTS` | `5` | Failed authorization attempts before code invalidation |
-| `SITE_URL` | `http://localhost:3000` | Base URL for verification email links |
-| `EMAIL_BACKEND` | `django.core.mail.backends.console.EmailBackend` | Django email backend |
-| `DEFAULT_FROM_EMAIL` | `noreply@cookie.local` | Sender address for verification emails |
-| `EMAIL_HOST` | `localhost` | SMTP server hostname (e.g., `email-smtp.eu-west-2.amazonaws.com` for AWS SES) |
-| `EMAIL_PORT` | `25` | SMTP server port (e.g., `587` for TLS, `1025` for Mailpit) |
-| `EMAIL_HOST_USER` | `""` | SMTP authentication username (e.g., AWS SES SMTP credentials) |
-| `EMAIL_HOST_PASSWORD` | `""` | SMTP authentication password |
-| `EMAIL_USE_TLS` | `False` | Enable TLS for SMTP connection (`True` for production) |
 | `LOG_FORMAT` | `text` | `text` (dev) or `json` (production) |
 | `LOG_LEVEL` | `INFO` | Root log level |
 
@@ -119,9 +97,8 @@ This project has a constitution at `.specify/memory/constitution.md` that define
 - **Speckit workflow**: Feature specifications, plans, and tasks live in `.specify/` (tracked in git). Use `/speckit.*` commands for structured feature development. The constitution is the source of truth for project values.
 
 ## Recent Changes
-- 013-passkey-auth: Added Python 3.14, TypeScript 5.9, ES5 (legacy) + Django 5.0, Django Ninja 1.0+, py-webauthn 2.x (new), React 19, Vite 7
-- 012-mailpit-email-config: Added Python 3.14 (backend settings only) + Django 5.0 (built-in email framework), Mailpit (external Docker service)
-- 012-filter-search-results: Added Python 3.14 + Django 5.0, Django Ninja 1.0+, BeautifulSoup4, curl_cffi
+- 014-remove-public-auth: Removed public auth mode. Only home and passkey modes remain. Added OPENROUTER_API_KEY env var.
+- 013-passkey-auth: Added passkey authentication mode with WebAuthn and device code pairing
 
 
 <!-- MANUAL ADDITIONS START -->

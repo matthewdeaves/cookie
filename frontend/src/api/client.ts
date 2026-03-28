@@ -1,8 +1,4 @@
 import type {
-  AuthResponse,
-  LoginRequest,
-  RegisterRequest,
-  ChangePasswordRequest,
   ModeResponse,
   AIStatus,
   AIErrorResponse,
@@ -53,10 +49,6 @@ import type {
 
 // Re-export all types for consumers
 export type {
-  AuthResponse,
-  LoginRequest,
-  RegisterRequest,
-  ChangePasswordRequest,
   ModeResponse,
   AIStatus,
   AIErrorResponse,
@@ -412,30 +404,12 @@ export const api = {
   },
 
   auth: {
-    login: (data: LoginRequest) =>
-      request<AuthResponse>('/auth/login/', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
-
     logout: () =>
       request<{ message: string }>('/auth/logout/', {
         method: 'POST',
       }),
 
-    register: (data: RegisterRequest) =>
-      request<{ message: string }>('/auth/register/', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
-
-    me: () => request<AuthResponse | PasskeyAuthResponse>('/auth/me/'),
-
-    changePassword: (data: ChangePasswordRequest) =>
-      request<{ message: string }>('/auth/change-password/', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+    me: () => request<PasskeyAuthResponse>('/auth/me/'),
   },
 
   passkey: {

@@ -334,13 +334,7 @@ export interface ResetResult {
   actions_performed: string[]
 }
 
-// Auth types (public mode)
-
-export interface AuthUser {
-  id: number
-  username: string
-  is_admin: boolean
-}
+// Auth types
 
 export interface AuthProfile {
   id: number
@@ -350,32 +344,8 @@ export interface AuthProfile {
   unit_preference: string
 }
 
-export interface AuthResponse {
-  user: AuthUser
-  profile: AuthProfile
-}
-
-export interface LoginRequest {
-  username: string
-  password: string
-}
-
-export interface RegisterRequest {
-  username: string
-  password: string
-  password_confirm: string
-  email: string
-  privacy_accepted: boolean
-}
-
-export interface ChangePasswordRequest {
-  current_password: string
-  new_password: string
-  new_password_confirm: string
-}
-
 export interface ModeResponse {
-  mode: 'home' | 'public' | 'passkey'
+  mode: 'home' | 'passkey'
   registration_enabled?: boolean
 }
 

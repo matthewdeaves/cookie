@@ -48,8 +48,6 @@ def get_mode(request):
 
     get_token(request)  # Forces Django to set the CSRF cookie
     result = {"mode": settings.AUTH_MODE}
-    if settings.AUTH_MODE == "public":
-        result["registration_enabled"] = True
     if settings.AUTH_MODE == "passkey":
         result["registration_enabled"] = True
     return result
@@ -174,14 +172,12 @@ def reset_database(request, data: ResetConfirmSchema):
         # Delete all profiles
         Profile.objects.all().delete()
 
-        # In public/passkey mode, also delete all user accounts and device codes
-        if settings.AUTH_MODE in ("public", "passkey"):
+        # In passkey mode, also delete all user accounts and device codes
+        if settings.AUTH_MODE == "passkey":
             from django.contrib.auth.models import User
+            from apps.core.models import DeviceCode
 
-            if settings.AUTH_MODE == "passkey":
-                from apps.core.models import DeviceCode
-
-                DeviceCode.objects.all().delete()
+            DeviceCode.objects.all().delete()
             User.objects.all().delete()
 
         # Reset SearchSource failure counters (keep selectors)

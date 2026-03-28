@@ -9,17 +9,22 @@ from apps.profiles.models import Profile
 
 
 def _create_user(username, is_staff=False, is_active=True):
-    user = User.objects.create_user(username=username, password="TestPass123!", email="", is_active=is_active, is_staff=is_staff)
+    user = User.objects.create_user(
+        username=username,
+        password="TestPass123!",  # pragma: allowlist secret
+        email="",
+        is_active=is_active,
+        is_staff=is_staff,
+    )
     Profile.objects.create(user=user, name=username, avatar_color="#d97850")
     return user
 
 
 @pytest.mark.django_db
 class TestCookieAdmin:
-
     @pytest.fixture(autouse=True)
-    def _public_mode(self, settings):
-        settings.AUTH_MODE = "public"
+    def _passkey_mode(self, settings):
+        settings.AUTH_MODE = "passkey"
 
     def test_list_users(self):
         """T106: list-users shows users."""
@@ -53,16 +58,6 @@ class TestCookieAdmin:
             call_command("cookie_admin", "demote", "alice", stderr=StringIO())
         assert exc_info.value.code == 1
 
-    def test_reset_password_generate(self):
-        """T110: reset-password --generate changes password."""
-        user = _create_user("alice")
-        old_password = user.password
-        out = StringIO()
-        call_command("cookie_admin", "reset-password", "alice", "--generate", stdout=out)
-        user.refresh_from_db()
-        assert user.password != old_password
-        assert "New password:" in out.getvalue()
-
     def test_deactivate_activate(self):
         """T111: deactivate/activate toggle is_active."""
         _create_user("alice")
@@ -72,33 +67,9 @@ class TestCookieAdmin:
         call_command("cookie_admin", "activate", "alice", stdout=out)
         assert User.objects.get(username="alice").is_active is True
 
-    def test_cleanup_unverified(self):
-        """T112: cleanup-unverified deletes old inactive users."""
-        from django.utils import timezone
-        import datetime
-
-        user = _create_user("stale", is_active=False)
-        User.objects.filter(pk=user.pk).update(date_joined=timezone.now() - datetime.timedelta(hours=25))
-        out = StringIO()
-        call_command("cookie_admin", "cleanup-unverified", "--older-than", "24", stdout=out)
-        assert not User.objects.filter(username="stale").exists()
-
-    def test_cleanup_unverified_dry_run(self):
-        """T113: cleanup-unverified --dry-run shows count without deleting."""
-        from django.utils import timezone
-        import datetime
-
-        user = _create_user("stale", is_active=False)
-        User.objects.filter(pk=user.pk).update(date_joined=timezone.now() - datetime.timedelta(hours=25))
-        out = StringIO()
-        call_command("cookie_admin", "cleanup-unverified", "--dry-run", "--older-than", "24", stdout=out)
-        assert User.objects.filter(username="stale").exists()
-        assert "Dry run" in out.getvalue()
-
 
 @pytest.mark.django_db
 class TestCookieAdminHomeMode:
-
     @pytest.fixture(autouse=True)
     def _home_mode(self, settings):
         settings.AUTH_MODE = "home"

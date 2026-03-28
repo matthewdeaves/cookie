@@ -1,14 +1,14 @@
 <!--
 Sync Impact Report
-Version: 1.0.0 → 1.2.0
-Changed principles: III renamed "Dual-Mode Operation" → "Multi-Mode Operation", added passkey mode rules
+Version: 1.0.0 → 1.3.0
+Changed principles: III narrowed from 3 modes to 2 modes (removed public mode)
 Added: mode-specific endpoint/UI hiding rule, Responsible Development governance section
 Follow-up TODOs: none
 -->
 
 # Cookie Project Constitution
 
-**Version**: 1.2.0
+**Version**: 1.3.0
 **Ratified**: 2026-03-24
 **Last Amended**: 2026-03-28
 
@@ -58,9 +58,8 @@ is not collected cannot be leaked.
 
 **Rules:**
 - Email addresses MUST NEVER be stored in the database, log files, temporary
-  files, or any persistent storage — not even as a hash. During registration
-  (public mode), email exists only in memory for the duration of the HTTP
-  request that sends the verification link.
+  files, or any persistent storage — not even as a hash. No authentication mode
+  collects or processes email addresses.
 - No telemetry, analytics, or tracking of any kind. No third-party scripts.
 - Only functional session cookies are used. No tracking cookies. No cookie
   consent banner is needed under UK PECR because no non-essential cookies exist.
@@ -78,38 +77,41 @@ prohibited by policy.
 
 ---
 
-## Principle III: Multi-Mode Operation
+## Principle III: Dual-Mode Operation
 
-Cookie MUST support multiple operating modes, controlled by a single environment
-variable (`AUTH_MODE`), with clean separation between them.
+Cookie MUST support exactly two operating modes, controlled by a single
+environment variable (`AUTH_MODE`), with clean separation between them.
 
 **Rules:**
 - **Home mode** (`AUTH_MODE=home`, default): Profile-only, no credentials
   required. Anyone on the network can create and select profiles. All settings
   are accessible to all users. Zero authentication code executes — no Django
   auth middleware, no User model queries.
-- **Public mode** (`AUTH_MODE=public`): Full username/password authentication
-  with email verification. Users can only access their own data. Site-wide
-  settings (API keys, AI prompts, search sources, database reset) are restricted
-  to administrators. Admin promotion is done exclusively via CLI.
 - **Passkey mode** (`AUTH_MODE=passkey`): WebAuthn passkey-only authentication.
   No username, email, or password. Users authenticate via biometrics (Face ID,
   Touch ID, Windows Hello). Legacy devices that lack WebAuthn support pair via
   a temporary device authorization code entered on an authenticated modern
   device. Zero personal information is stored — only a random UUID and public
-  keys. Admin promotion is done exclusively via CLI.
+  keys. Site-wide settings (API keys, AI prompts, search sources, database
+  reset) are restricted to administrators. Admin promotion is done exclusively
+  via CLI.
+- No password-based or email-based authentication mode exists. This is a
+  deliberate security decision to eliminate password storage, brute-force
+  vectors, and email verification attack surface.
 - Switching modes requires only an environment variable change and restart —
   no database migration, no data loss.
-- All existing home-mode functionality MUST remain unchanged when new mode
+- If AUTH_MODE is set to an unrecognised value, the system MUST fall back to
+  home mode and log a warning.
+- All existing home-mode functionality MUST remain unchanged when passkey mode
   code is added. Existing tests MUST pass without modification in home mode.
 - Mode-specific endpoints MUST return 404 when accessed in the wrong mode.
   Mode-specific UI MUST be hidden entirely in other modes.
 
-**Rationale:** Cookie serves multiple audiences: families on a home server (where
-authentication adds friction without security value), individuals on the public
-internet (where traditional authentication is essential), and privacy-conscious
-users who want the strongest possible authentication with zero personal data
-disclosure. One codebase, multiple modes, zero compromise.
+**Rationale:** Cookie serves two audiences: families on a home server (where
+authentication adds friction without security value) and privacy-conscious users
+who want the strongest possible authentication with zero personal data
+disclosure. Passkey-only authentication eliminates password-related attack
+surface entirely. One codebase, two modes, zero compromise.
 
 ---
 
@@ -231,7 +233,7 @@ omission.
   table showing compliance status per principle.
 - CI pipelines enforce Principles V (code quality), VI (Docker runtime), and
   VII (security) automatically.
-- Principles I (device access), II (privacy), III (multi-mode), and IV (AI
+- Principles I (device access), II (privacy), III (dual-mode), and IV (AI
   enhancement) are validated during code review and QA.
 
 ### Responsible Development
@@ -261,6 +263,7 @@ keeps CI green for everyone.
 
 | Version | Date | Change | Type |
 |---------|------|--------|------|
+| 1.3.0 | 2026-03-28 | Principle III narrowed from 3 modes (home, public, passkey) to 2 modes (home, passkey). Public mode (username/password/email) removed to reduce attack surface. | MINOR |
 | 1.2.0 | 2026-03-28 | Added Responsible Development section to Governance — developers must fix pre-existing issues as they work. | MINOR |
 | 1.1.0 | 2026-03-28 | Principle III expanded from "Dual-Mode" to "Multi-Mode" to add passkey authentication mode. | MINOR |
 | 1.0.0 | 2026-03-24 | Initial constitution. 7 principles codified from existing project rules and codebase analysis. | MAJOR |
