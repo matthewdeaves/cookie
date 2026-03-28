@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+export DJANGO_SETTINGS_MODULE=cookie.settings
+
 # Data directory for persistent storage
 DATA_DIR="/app/data"
 mkdir -p "$DATA_DIR/media" 2>/dev/null || {
@@ -33,6 +35,10 @@ connection.ensure_connection()
         fi
         echo "Waiting for database... ($i/30)"
         sleep 2
+        if [ "$i" -eq 30 ]; then
+            echo "Database not available after 60s, exiting."
+            exit 1
+        fi
     done
 fi
 
