@@ -50,6 +50,8 @@ def get_mode(request):
     result = {"mode": settings.AUTH_MODE}
     if settings.AUTH_MODE == "public":
         result["registration_enabled"] = True
+    if settings.AUTH_MODE == "passkey":
+        result["registration_enabled"] = True
     return result
 
 
@@ -172,10 +174,14 @@ def reset_database(request, data: ResetConfirmSchema):
         # Delete all profiles
         Profile.objects.all().delete()
 
-        # In public mode, also delete all user accounts
-        if settings.AUTH_MODE == "public":
+        # In public/passkey mode, also delete all user accounts and device codes
+        if settings.AUTH_MODE in ("public", "passkey"):
             from django.contrib.auth.models import User
 
+            if settings.AUTH_MODE == "passkey":
+                from apps.core.models import DeviceCode
+
+                DeviceCode.objects.all().delete()
             User.objects.all().delete()
 
         # Reset SearchSource failure counters (keep selectors)

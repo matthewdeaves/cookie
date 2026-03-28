@@ -46,7 +46,16 @@ CSRF_TRUSTED_ORIGINS = [o.strip() for o in csrf_origins.split(",") if o.strip()]
 # ===========================================
 # "home" (default): Profile-based sessions, no user accounts, no login required.
 # "public": Full authentication with username/password accounts and email verification.
+# "passkey": WebAuthn passkey-only authentication with device code flow for legacy devices.
 AUTH_MODE = os.environ.get("AUTH_MODE", "home")
+
+# ===========================================
+# WebAuthn / Passkey Configuration (Passkey Mode)
+# ===========================================
+WEBAUTHN_RP_ID = os.environ.get("WEBAUTHN_RP_ID", "")  # Derived from request hostname if empty
+WEBAUTHN_RP_NAME = os.environ.get("WEBAUTHN_RP_NAME", "Cookie")
+DEVICE_CODE_EXPIRY_SECONDS = int(os.environ.get("DEVICE_CODE_EXPIRY_SECONDS", "600"))
+DEVICE_CODE_MAX_ATTEMPTS = int(os.environ.get("DEVICE_CODE_MAX_ATTEMPTS", "5"))
 
 INSTALLED_APPS = [
     "django.contrib.auth",
@@ -71,8 +80,8 @@ MIDDLEWARE = [
     "apps.core.middleware.DeviceDetectionMiddleware",
 ]
 
-# Conditionally add Django auth middleware in public mode
-if AUTH_MODE == "public":
+# Conditionally add Django auth middleware in public and passkey modes
+if AUTH_MODE in ("public", "passkey"):
     # Insert AuthenticationMiddleware after SessionMiddleware
     _session_idx = MIDDLEWARE.index("django.contrib.sessions.middleware.SessionMiddleware")
     MIDDLEWARE.insert(_session_idx + 1, "django.contrib.auth.middleware.AuthenticationMiddleware")

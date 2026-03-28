@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import Settings from '../screens/Settings'
 
 // Mock sonner
@@ -19,6 +20,25 @@ vi.mock('../contexts/ProfileContext', () => ({
     toggleTheme: vi.fn(),
     toggleFavorite: vi.fn(),
     isFavorite: () => false,
+  }),
+}))
+
+// Mock router (useMode)
+vi.mock('../router', () => ({
+  useMode: () => 'home',
+}))
+
+// Mock auth context
+vi.mock('../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: null,
+    profile: null,
+    isAdmin: false,
+    isLoading: false,
+    login: vi.fn(),
+    logout: vi.fn(),
+    register: vi.fn(),
+    refreshSession: vi.fn(),
   }),
 }))
 
@@ -70,14 +90,14 @@ describe('Settings', () => {
   })
 
   it('renders without crashing', async () => {
-    render(<Settings />)
+    render(<MemoryRouter><Settings /></MemoryRouter>)
     await waitFor(() => {
       expect(screen.getByTestId('nav-header')).toBeInTheDocument()
     })
   })
 
   it('shows all tab buttons', () => {
-    render(<Settings />)
+    render(<MemoryRouter><Settings /></MemoryRouter>)
     expect(screen.getByText('General')).toBeInTheDocument()
     expect(screen.getByText('AI Prompts')).toBeInTheDocument()
     expect(screen.getByText('Sources')).toBeInTheDocument()
@@ -87,21 +107,21 @@ describe('Settings', () => {
   })
 
   it('shows loading spinner initially', () => {
-    render(<Settings />)
+    render(<MemoryRouter><Settings /></MemoryRouter>)
     // Loader2 renders as an svg with animate-spin class; check it is in DOM
     const spinner = document.querySelector('.animate-spin')
     expect(spinner).toBeTruthy()
   })
 
   it('shows General settings tab content after loading', async () => {
-    render(<Settings />)
+    render(<MemoryRouter><Settings /></MemoryRouter>)
     await waitFor(() => {
       expect(screen.getByTestId('settings-general')).toBeInTheDocument()
     })
   })
 
   it('switches to AI Prompts tab when clicked', async () => {
-    render(<Settings />)
+    render(<MemoryRouter><Settings /></MemoryRouter>)
     await waitFor(() => {
       expect(screen.getByTestId('settings-general')).toBeInTheDocument()
     })
@@ -111,7 +131,7 @@ describe('Settings', () => {
   })
 
   it('switches to Sources tab when clicked', async () => {
-    render(<Settings />)
+    render(<MemoryRouter><Settings /></MemoryRouter>)
     await waitFor(() => {
       expect(screen.getByTestId('settings-general')).toBeInTheDocument()
     })
@@ -121,7 +141,7 @@ describe('Settings', () => {
   })
 
   it('switches to Danger Zone tab when clicked', async () => {
-    render(<Settings />)
+    render(<MemoryRouter><Settings /></MemoryRouter>)
     await waitFor(() => {
       expect(screen.getByTestId('settings-general')).toBeInTheDocument()
     })
@@ -133,7 +153,7 @@ describe('Settings', () => {
   it('calls all API endpoints on mount', async () => {
     const { api } = await import('../api/client')
 
-    render(<Settings />)
+    render(<MemoryRouter><Settings /></MemoryRouter>)
     await waitFor(() => {
       expect(api.ai.status).toHaveBeenCalled()
       expect(api.ai.prompts.list).toHaveBeenCalled()

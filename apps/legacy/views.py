@@ -26,7 +26,12 @@ def require_profile(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         profile_id = request.session.get("profile_id")
-        redirect_target = "legacy:login" if django_settings.AUTH_MODE == "public" else "legacy:profile_selector"
+        if django_settings.AUTH_MODE == "passkey":
+            redirect_target = "legacy:device_pair"
+        elif django_settings.AUTH_MODE == "public":
+            redirect_target = "legacy:login"
+        else:
+            redirect_target = "legacy:profile_selector"
 
         if not profile_id:
             return redirect(redirect_target)
@@ -37,8 +42,8 @@ def require_profile(view_func):
             request.session.pop("profile_id", None)
             return redirect(redirect_target)
 
-        # In public mode, check that profile has a linked active user
-        if django_settings.AUTH_MODE == "public":
+        # In public/passkey mode, check that profile has a linked active user
+        if django_settings.AUTH_MODE in ("public", "passkey"):
             if not request.profile.user or not request.profile.user.is_active:
                 request.session.pop("profile_id", None)
                 return redirect(redirect_target)
@@ -52,11 +57,11 @@ def require_profile(view_func):
 
 
 def require_admin(view_func):
-    """Decorator for admin-only legacy views (public mode)."""
+    """Decorator for admin-only legacy views (public/passkey mode)."""
 
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        if django_settings.AUTH_MODE == "public" and not getattr(request, "is_admin", False):
+        if django_settings.AUTH_MODE in ("public", "passkey") and not getattr(request, "is_admin", False):
             return redirect("legacy:home")
         return view_func(request, *args, **kwargs)
 
@@ -82,8 +87,17 @@ def _is_ai_available() -> bool:
     return is_valid
 
 
+def device_pair(request):
+    """Device pairing screen for passkey mode."""
+    if django_settings.AUTH_MODE != "passkey":
+        return redirect("legacy:profile_selector")
+    return render(request, "legacy/device_pair.html")
+
+
 def profile_selector(request):
-    """Profile selector screen. In public mode, redirects to login."""
+    """Profile selector screen. In public/passkey mode, redirects appropriately."""
+    if django_settings.AUTH_MODE == "passkey":
+        return redirect("legacy:device_pair")
     if django_settings.AUTH_MODE == "public":
         return redirect("legacy:login")
     profiles = list(Profile.objects.all().values("id", "name", "avatar_color", "theme", "unit_preference"))

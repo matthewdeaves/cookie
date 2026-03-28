@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Bot,
   AlertTriangle,
@@ -7,6 +8,8 @@ import {
   Code,
   Settings as SettingsIcon,
   Users,
+  Key,
+  Smartphone,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -35,7 +38,7 @@ type Tab = 'general' | 'prompts' | 'sources' | 'selectors' | 'users' | 'danger' 
 
 function useIsAdmin(): boolean {
   const mode = useMode()
-  if (mode === 'public') {
+  if (mode === 'public' || mode === 'passkey') {
     // eslint-disable-next-line react-hooks/rules-of-hooks -- Safe: mode is stable after mount
     return useAuth().isAdmin
   }
@@ -46,6 +49,8 @@ export default function Settings() {
   const { profile } = useProfile()
   const currentProfileId = profile?.id
   const isAdmin = useIsAdmin()
+  const mode = useMode()
+  const navigate = useNavigate()
 
   const [activeTab, setActiveTab] = useState<Tab>('general')
   const [aiStatus, setAiStatus] = useState<AIStatus | null>(null)
@@ -104,6 +109,28 @@ export default function Settings() {
                 General
               </span>
             </button>
+            {mode === 'passkey' && (
+              <button
+                onClick={() => navigate('/passkeys')}
+                className="border-b-2 border-transparent py-3 text-sm font-medium transition-colors whitespace-nowrap text-muted-foreground hover:text-foreground"
+              >
+                <span className="flex items-center gap-2">
+                  <Key className="h-4 w-4" />
+                  Passkeys
+                </span>
+              </button>
+            )}
+            {mode === 'passkey' && (
+              <button
+                onClick={() => navigate('/pair-device')}
+                className="border-b-2 border-transparent py-3 text-sm font-medium transition-colors whitespace-nowrap text-muted-foreground hover:text-foreground"
+              >
+                <span className="flex items-center gap-2">
+                  <Smartphone className="h-4 w-4" />
+                  Pair Device
+                </span>
+              </button>
+            )}
             {isAdmin && (
               <button
                 onClick={() => setActiveTab('prompts')}

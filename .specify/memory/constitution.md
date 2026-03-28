@@ -1,17 +1,16 @@
 <!--
 Sync Impact Report
-Version: 0.0.0 → 1.0.0 (MAJOR: initial constitution creation)
-Added principles: I through VII (all new)
-Added sections: Preamble, Principles I-VII, Governance, Amendment History
-Templates requiring updates: ⚠ no .specify/templates/ exist yet (speckit not fully initialized)
+Version: 1.0.0 → 1.2.0
+Changed principles: III renamed "Dual-Mode Operation" → "Multi-Mode Operation", added passkey mode rules
+Added: mode-specific endpoint/UI hiding rule, Responsible Development governance section
 Follow-up TODOs: none
 -->
 
 # Cookie Project Constitution
 
-**Version**: 1.0.0
+**Version**: 1.2.0
 **Ratified**: 2026-03-24
-**Last Amended**: 2026-03-24
+**Last Amended**: 2026-03-28
 
 ## Preamble
 
@@ -79,9 +78,9 @@ prohibited by policy.
 
 ---
 
-## Principle III: Dual-Mode Operation
+## Principle III: Multi-Mode Operation
 
-Cookie MUST support two operating modes, controlled by a single environment
+Cookie MUST support multiple operating modes, controlled by a single environment
 variable (`AUTH_MODE`), with clean separation between them.
 
 **Rules:**
@@ -93,15 +92,24 @@ variable (`AUTH_MODE`), with clean separation between them.
   with email verification. Users can only access their own data. Site-wide
   settings (API keys, AI prompts, search sources, database reset) are restricted
   to administrators. Admin promotion is done exclusively via CLI.
+- **Passkey mode** (`AUTH_MODE=passkey`): WebAuthn passkey-only authentication.
+  No username, email, or password. Users authenticate via biometrics (Face ID,
+  Touch ID, Windows Hello). Legacy devices that lack WebAuthn support pair via
+  a temporary device authorization code entered on an authenticated modern
+  device. Zero personal information is stored — only a random UUID and public
+  keys. Admin promotion is done exclusively via CLI.
 - Switching modes requires only an environment variable change and restart —
   no database migration, no data loss.
-- All existing home-mode functionality MUST remain unchanged when public mode
+- All existing home-mode functionality MUST remain unchanged when new mode
   code is added. Existing tests MUST pass without modification in home mode.
+- Mode-specific endpoints MUST return 404 when accessed in the wrong mode.
+  Mode-specific UI MUST be hidden entirely in other modes.
 
-**Rationale:** Cookie serves two audiences: families on a home server (where
-authentication adds friction without security value) and individuals on the
-public internet (where authentication is essential). One codebase, two modes,
-zero compromise.
+**Rationale:** Cookie serves multiple audiences: families on a home server (where
+authentication adds friction without security value), individuals on the public
+internet (where traditional authentication is essential), and privacy-conscious
+users who want the strongest possible authentication with zero personal data
+disclosure. One codebase, multiple modes, zero compromise.
 
 ---
 
@@ -223,8 +231,29 @@ omission.
   table showing compliance status per principle.
 - CI pipelines enforce Principles V (code quality), VI (Docker runtime), and
   VII (security) automatically.
-- Principles I (device access), II (privacy), III (dual-mode), and IV (AI
+- Principles I (device access), II (privacy), III (multi-mode), and IV (AI
   enhancement) are validated during code review and QA.
+
+### Responsible Development
+
+Developers (human and AI) working on this project MUST fix pre-existing issues
+as they encounter them. Ignoring broken linting, failing hooks, stale configs,
+or tooling incompatibilities is not acceptable.
+
+**Rules:**
+- When a pre-commit hook, CI job, or linter fails on pre-existing code, fix the
+  root cause before proceeding. Never skip hooks or suppress errors as a
+  workaround.
+- When running tests reveals pre-existing warnings or failures unrelated to your
+  change, investigate and fix them if the fix is safe and bounded.
+- When encountering stale dependencies, outdated configs, or broken tooling,
+  update them as part of the current work — do not defer to a separate ticket.
+- Leave the codebase healthier than you found it. Every change is an opportunity
+  to improve quality, not just add features.
+
+**Rationale:** Technical debt compounds. Small issues left unfixed become large
+issues that block progress. A culture of "fix what you see" prevents decay and
+keeps CI green for everyone.
 
 ---
 
@@ -232,4 +261,6 @@ omission.
 
 | Version | Date | Change | Type |
 |---------|------|--------|------|
+| 1.2.0 | 2026-03-28 | Added Responsible Development section to Governance — developers must fix pre-existing issues as they work. | MINOR |
+| 1.1.0 | 2026-03-28 | Principle III expanded from "Dual-Mode" to "Multi-Mode" to add passkey authentication mode. | MINOR |
 | 1.0.0 | 2026-03-24 | Initial constitution. 7 principles codified from existing project rules and codebase analysis. | MAJOR |
