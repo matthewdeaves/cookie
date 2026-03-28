@@ -3,13 +3,13 @@
 Auto-generated from all feature plans. Last updated: 2026-03-28
 
 ## Active Technologies
-- **Backend**: Python 3.12, Django 5.0, Django Ninja 1.0+, Gunicorn, WhiteNoise, curl_cffi, BeautifulSoup4, django-ratelimit 4.1, openrouter SDK
+- **Backend**: Python 3.14, Django 5.0, Django Ninja 1.0+, Gunicorn, WhiteNoise, curl_cffi, BeautifulSoup4, django-ratelimit 4.1, openrouter SDK
 - **Frontend**: TypeScript 5.9, React 19, Vite 7
 - **Legacy Frontend**: ES5 (iOS 9.3 Safari compatible)
 - **Database**: PostgreSQL 16+ (all environments, no SQLite fallback), Django database cache (`django_cache` table)
 - **Testing**: pytest, Vitest 4
 - **Email**: Django built-in SMTP backend, Mailpit (dev via `docker-compose.mailpit.yml`)
-- Python 3.12, TypeScript 5.9, ES5 (legacy) + Django 5.0, Django Ninja 1.0+, py-webauthn 2.x (new), React 19, Vite 7 (013-passkey-auth)
+- Python 3.14, TypeScript 5.9, ES5 (legacy) + Django 5.0, Django Ninja 1.0+, py-webauthn 2.x (new), React 19, Vite 7 (013-passkey-auth)
 - PostgreSQL 16+ (2 new tables: WebAuthnCredential, DeviceCode) (013-passkey-auth)
 
 ## Project Structure
@@ -36,7 +36,7 @@ docker compose exec frontend npm run lint
 
 ## Code Style
 
-Python 3.12, TypeScript 5.9, ES5 (legacy): Follow standard conventions
+Python 3.14, TypeScript 5.9, ES5 (legacy): Follow standard conventions
 
 ## Authentication
 
@@ -105,9 +105,9 @@ This project has a constitution at `.specify/memory/constitution.md` that define
 - **Speckit workflow**: Feature specifications, plans, and tasks live in `.specify/` (tracked in git). Use `/speckit.*` commands for structured feature development. The constitution is the source of truth for project values.
 
 ## Recent Changes
-- 013-passkey-auth: Added Python 3.12, TypeScript 5.9, ES5 (legacy) + Django 5.0, Django Ninja 1.0+, py-webauthn 2.x (new), React 19, Vite 7
-- 012-mailpit-email-config: Added Python 3.12 (backend settings only) + Django 5.0 (built-in email framework), Mailpit (external Docker service)
-- 012-filter-search-results: Added Python 3.12 + Django 5.0, Django Ninja 1.0+, BeautifulSoup4, curl_cffi
+- 013-passkey-auth: Added Python 3.14, TypeScript 5.9, ES5 (legacy) + Django 5.0, Django Ninja 1.0+, py-webauthn 2.x (new), React 19, Vite 7
+- 012-mailpit-email-config: Added Python 3.14 (backend settings only) + Django 5.0 (built-in email framework), Mailpit (external Docker service)
+- 012-filter-search-results: Added Python 3.14 + Django 5.0, Django Ninja 1.0+, BeautifulSoup4, curl_cffi
 
 
 <!-- MANUAL ADDITIONS START -->
