@@ -30,9 +30,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">58.13% </span>
+                <span class="strong">57.77% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>25/43</span>
+                <span class='fraction'>26/45</span>
             </div>
         
             
@@ -309,7 +309,23 @@
 <a name='L244'></a><a href='#L244'>244</a>
 <a name='L245'></a><a href='#L245'>245</a>
 <a name='L246'></a><a href='#L246'>246</a>
-<a name='L247'></a><a href='#L247'>247</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L247'></a><a href='#L247'>247</a>
+<a name='L248'></a><a href='#L248'>248</a>
+<a name='L249'></a><a href='#L249'>249</a>
+<a name='L250'></a><a href='#L250'>250</a>
+<a name='L251'></a><a href='#L251'>251</a>
+<a name='L252'></a><a href='#L252'>252</a>
+<a name='L253'></a><a href='#L253'>253</a>
+<a name='L254'></a><a href='#L254'>254</a>
+<a name='L255'></a><a href='#L255'>255</a>
+<a name='L256'></a><a href='#L256'>256</a>
+<a name='L257'></a><a href='#L257'>257</a>
+<a name='L258'></a><a href='#L258'>258</a>
+<a name='L259'></a><a href='#L259'>259</a>
+<a name='L260'></a><a href='#L260'>260</a>
+<a name='L261'></a><a href='#L261'>261</a>
+<a name='L262'></a><a href='#L262'>262</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -357,6 +373,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -564,6 +594,7 @@ import {
   Minus,
   Plus,
   GitCompareArrows,
+  ExternalLink,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { type RecipeDetail, type ScaleResponse } from '../../api/client'
@@ -625,29 +656,43 @@ export default function RecipeHeader({
         {/* Gradient overlay */}
         &lt;div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" /&gt;
 &nbsp;
-        {/* Title and rating overlay */}
-        &lt;div className="absolute bottom-4 left-4 right-4"&gt;
-          &lt;h1 className="mb-2 text-xl font-medium text-white drop-shadow-lg sm:text-2xl"&gt;
-            {recipe.title}
-          &lt;/h1&gt;
-          &lt;div className="flex items-center gap-3 text-sm text-white/90"&gt;
-            {recipe.rating &amp;&amp; (
-              &lt;span className="flex items-center gap-1"&gt;
-                &lt;Star className="h-4 w-4 fill-star text-star" /&gt;
-                {recipe.rating.toFixed(1)}
-                {recipe.rating_count &amp;&amp; (
-                  &lt;span className="text-white/70"&gt;
-                    ({recipe.rating_count})
-                  &lt;/span&gt;
-                )}
-              &lt;/span&gt;
+        {/* Title, meta, and actions overlay */}
+        &lt;div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 px-4 pb-4"&gt;
+          &lt;div&gt;
+            &lt;h1 className="text-xl font-medium text-white drop-shadow-lg sm:text-2xl"&gt;
+              {recipe.title}
+            &lt;/h1&gt;
+            &lt;div className="mt-1 flex items-center gap-3 text-sm text-white/90"&gt;
+              {recipe.rating &amp;&amp; (
+                &lt;span className="flex items-center gap-1"&gt;
+                  &lt;Star className="h-4 w-4 fill-star text-star" /&gt;
+                  {recipe.rating.toFixed(1)}
+                  {recipe.rating_count &amp;&amp; (
+                    &lt;span className="text-white/70"&gt;
+                      ({recipe.rating_count})
+                    &lt;/span&gt;
+                  )}
+                &lt;/span&gt;
+              )}
+              {recipe.canonical_url ? (
+              &lt;a
+                href={recipe.canonical_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 underline decoration-white/40 underline-offset-2"
+              &gt;
+                {recipe.host}
+                &lt;ExternalLink className="h-3 w-3" /&gt;
+              &lt;/a&gt;
+            ) : (
+<span class="branch-1 cbranch-no" title="branch not covered" >              &lt;span&gt;{recipe.host}&lt;/span&gt;</span>
             )}
-            &lt;span&gt;{recipe.host}&lt;/span&gt;
+            &lt;/div&gt;
           &lt;/div&gt;
-        &lt;/div&gt;
 &nbsp;
-        {/* Action buttons overlay */}
-        {children}
+          {/* Action buttons row */}
+          {children}
+        &lt;/div&gt;
       &lt;/div&gt;
 &nbsp;
       {/* Meta info (collapsible) */}
@@ -808,7 +853,7 @@ function TimeDisplay({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-28T21:55:23.097Z
+                at 2026-03-28T22:12:06.221Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

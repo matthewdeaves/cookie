@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-28T21:54:57.079Z",
+    "detectionDate": "2026-03-28T22:11:51.148Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -41,8 +41,8 @@
             "newClones": 0
           },
           "src/screens/components/RecipeHeader.tsx": {
-            "lines": 147,
-            "tokens": 1116,
+            "lines": 161,
+            "tokens": 1203,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -413,8 +413,8 @@
             "newClones": 0
           },
           "src/components/NavHeader.tsx": {
-            "lines": 86,
-            "tokens": 595,
+            "lines": 90,
+            "tokens": 628,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -486,8 +486,8 @@
           }
         },
         "total": {
-          "lines": 2898,
-          "tokens": 20980,
+          "lines": 2916,
+          "tokens": 21100,
           "sources": 40,
           "clones": 0,
           "duplicatedLines": 0,
@@ -537,8 +537,8 @@
             "newClones": 0
           },
           "src/screens/components/RecipeHeader.tsx": {
-            "lines": 245,
-            "tokens": 1795,
+            "lines": 260,
+            "tokens": 1886,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -909,8 +909,8 @@
             "newClones": 0
           },
           "src/components/NavHeader.tsx": {
-            "lines": 135,
-            "tokens": 1033,
+            "lines": 141,
+            "tokens": 1092,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -994,13 +994,13 @@
           }
         },
         "total": {
-          "lines": 6683,
-          "tokens": 51890,
+          "lines": 6704,
+          "tokens": 52040,
           "sources": 41,
           "clones": 9,
           "duplicatedLines": 179,
           "duplicatedTokens": 1403,
-          "percentage": 2.68,
+          "percentage": 2.67,
           "percentageTokens": 2.7,
           "newDuplicatedLines": 0,
           "newClones": 0
@@ -1156,14 +1156,14 @@
       }
     },
     "total": {
-      "lines": 11463,
-      "tokens": 86848,
+      "lines": 11502,
+      "tokens": 87118,
       "sources": 92,
       "clones": 13,
       "duplicatedLines": 270,
       "duplicatedTokens": 2015,
-      "percentage": 2.36,
-      "percentageTokens": 2.32,
+      "percentage": 2.35,
+      "percentageTokens": 2.31,
       "newDuplicatedLines": 0,
       "newClones": 0
     }

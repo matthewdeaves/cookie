@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">56.25% </span>
+                <span class="strong">57.57% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>18/32</span>
+                <span class='fraction'>19/33</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">42.85% </span>
+                <span class="strong">43.75% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>6/14</span>
+                <span class='fraction'>7/16</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">59.25% </span>
+                <span class="strong">60.71% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>16/27</span>
+                <span class='fraction'>17/28</span>
             </div>
         
             
@@ -199,28 +199,36 @@
 <a name='L134'></a><a href='#L134'>134</a>
 <a name='L135'></a><a href='#L135'>135</a>
 <a name='L136'></a><a href='#L136'>136</a>
-<a name='L137'></a><a href='#L137'>137</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">67x</span>
-<span class="cline-any cline-yes">67x</span>
-<span class="cline-any cline-yes">67x</span>
-<span class="cline-any cline-yes">67x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">67x</span>
+<span class="cline-any cline-yes">69x</span>
+<span class="cline-any cline-yes">69x</span>
+<span class="cline-any cline-yes">69x</span>
+<span class="cline-any cline-yes">69x</span>
+<span class="cline-any cline-yes">69x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">69x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">67x</span>
+<span class="cline-any cline-yes">69x</span>
 <span class="cline-any cline-yes">37x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">67x</span>
+<span class="cline-any cline-yes">69x</span>
 <span class="cline-any cline-yes">30x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -231,7 +239,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">67x</span>
+<span class="cline-any cline-yes">69x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">37x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -305,6 +313,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -337,11 +349,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Moon, Sun, Home, Heart, BookOpen, FolderOpen, Settings, LogOut, Users } from 'lucide-react'
+import { Moon, Sun, Home, Heart, BookOpen, FolderOpen, Settings, LogOut, Users, User } from 'lucide-react'
 import { useProfile } from '../contexts/ProfileContext'
+import { useMode } from '../router'
 &nbsp;
 export default function NavHeader() {
   const navigate = useNavigate()
+  const mode = useMode()
   const { profile, theme, toggleTheme, logout } = useProfile()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef&lt;HTMLDivElement&gt;(null)
@@ -378,11 +392,11 @@ export default function NavHeader() {
         Cookie
       &lt;/button&gt;
 &nbsp;
-      &lt;div className="flex items-center gap-3"&gt;
+      &lt;div className="flex items-center gap-1"&gt;
         {/* Home */}
         &lt;button
           onClick={() =&gt; navigate('/home')}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
+          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
           aria-label="Home"
         &gt;
           &lt;Home className="h-5 w-5" /&gt;
@@ -391,7 +405,7 @@ export default function NavHeader() {
         {/* All Recipes */}
         &lt;button
           onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >n</span>avigate('/all-recipes')}</span>
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
+          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
           aria-label="All recipes"
         &gt;
           &lt;BookOpen className="h-5 w-5" /&gt;
@@ -400,7 +414,7 @@ export default function NavHeader() {
         {/* Favorites */}
         &lt;button
           onClick={() =&gt; navigate('/favorites')}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-accent"
+          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-accent"
           aria-label="View favorites"
         &gt;
           &lt;Heart className="h-5 w-5" /&gt;
@@ -409,7 +423,7 @@ export default function NavHeader() {
         {/* Collections */}
         &lt;button
           onClick={() =&gt; navigate('/collections')}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
+          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
           aria-label="View collections"
         &gt;
           &lt;FolderOpen className="h-5 w-5" /&gt;
@@ -418,7 +432,7 @@ export default function NavHeader() {
         {/* Theme toggle */}
         &lt;button
           onClick={toggleTheme}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           aria-label={theme === 'light' ? 'Switch to dark mode' : <span class="branch-1 cbranch-no" title="branch not covered" >'Switch to light mode'}</span>
         &gt;
           {theme === 'light' ? (
@@ -431,7 +445,7 @@ export default function NavHeader() {
         {/* Settings */}
         &lt;button
           onClick={() =&gt; navigate('/settings')}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           aria-label="Settings"
         &gt;
           &lt;Settings className="h-5 w-5" /&gt;
@@ -441,11 +455,15 @@ export default function NavHeader() {
         &lt;div className="relative" ref={dropdownRef}&gt;
           &lt;button
             onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etDropdownOpen(!dropdownOpen)}</span>
-            className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium text-white"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium text-white"
             style={{ backgroundColor: profile.avatar_color }}
             aria-label={profile.name}
           &gt;
-            {getInitial(profile.name)}
+            {mode === 'passkey' ? (
+<span class="branch-0 cbranch-no" title="branch not covered" >              &lt;User className="h-4 w-4" /&gt;</span>
+            ) : (
+              getInitial(profile.name)
+            )}
           &lt;/button&gt;
 &nbsp;
           {dropdownOpen &amp;&amp; (
@@ -478,7 +496,7 @@ export default function NavHeader() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-28T21:55:23.097Z
+                at 2026-03-28T22:12:06.221Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
