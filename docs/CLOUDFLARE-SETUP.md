@@ -19,43 +19,12 @@
 
 ### SSL Mode
 
-Set SSL/TLS encryption mode to **Full (Strict)**:
+Set SSL/TLS encryption mode to **Full**:
 
 1. Go to **SSL/TLS** > **Overview**
-2. Select **Full (strict)**
+2. Select **Full**
 
-This requires an Origin Certificate on your server (see below).
-
-### Origin Certificate
-
-Generate a Cloudflare Origin Certificate for your server:
-
-1. Go to **SSL/TLS** > **Origin Server**
-2. Click **Create Certificate**
-3. Select **Let Cloudflare generate a private key and a CSR**
-4. Hostnames: `cookie.matthewdeaves.com`, `*.cookie.matthewdeaves.com`
-5. Certificate validity: 15 years
-6. Click **Create**
-
-Save the certificate and key:
-
-```bash
-# On your server
-sudo mkdir -p /etc/nginx/ssl
-sudo nano /etc/nginx/ssl/origin.pem       # Paste certificate
-sudo nano /etc/nginx/ssl/origin-key.pem   # Paste private key
-sudo chmod 600 /etc/nginx/ssl/origin-key.pem
-```
-
-Mount into Docker:
-
-```yaml
-# docker-compose.prod.yml
-services:
-  web:
-    volumes:
-      - /etc/nginx/ssl:/etc/nginx/ssl:ro
-```
+TLS is terminated at Cloudflare. The Cookie container serves HTTP only (port 80) — no origin certificates are needed. Cloudflare encrypts the connection between the client and its edge; the tunnel or reverse proxy forwards plain HTTP to the container.
 
 ## Cache Rules
 
