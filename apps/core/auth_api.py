@@ -1,4 +1,4 @@
-"""Authentication API endpoints — only active in public mode."""
+"""Authentication API endpoints — public and passkey mode shared endpoints."""
 
 import logging
 import re
@@ -30,6 +30,14 @@ USERNAME_PATTERN = re.compile(r"^[a-zA-Z0-9_]+$")
 def _require_public_mode(request):
     """Raise 404 if not in public mode."""
     if settings.AUTH_MODE != "public":
+        from django.http import Http404
+
+        raise Http404
+
+
+def _require_public_or_passkey_mode(request):
+    """Raise 404 if not in public or passkey mode."""
+    if settings.AUTH_MODE not in ("public", "passkey"):
         from django.http import Http404
 
         raise Http404
@@ -90,6 +98,9 @@ def _user_profile_response(user, profile):
             "unit_preference": profile.unit_preference,
         },
     }
+
+
+from apps.core.auth_helpers import passkey_user_profile_response as _passkey_user_profile_response
 
 
 def _validate_username(username):
@@ -251,7 +262,7 @@ def login_view(request, data: LoginIn):
 
 @router.post("/logout/", response={200: dict}, auth=SessionAuth())
 def logout_view(request):
-    _require_public_mode(request)
+    _require_public_or_passkey_mode(request)
     username = getattr(request, "user", None)
     username = username.username if username and hasattr(username, "username") else "unknown"
     logout(request)
@@ -259,9 +270,9 @@ def logout_view(request):
     return {"message": "Logged out successfully"}
 
 
-@router.get("/me/", response={200: AuthResponse, 401: dict}, auth=SessionAuth())
+@router.get("/me/", response={200: dict, 401: dict}, auth=SessionAuth())
 def get_me(request):
-    _require_public_mode(request)
+    _require_public_or_passkey_mode(request)
     user = request.user
     if not user or not getattr(user, "is_authenticated", False):
         return 401, {"error": "Authentication required"}
@@ -271,6 +282,8 @@ def get_me(request):
     except Profile.DoesNotExist:
         return 401, {"error": "Authentication required"}
 
+    if settings.AUTH_MODE == "passkey":
+        return 200, _passkey_user_profile_response(user, profile)
     return 200, _user_profile_response(user, profile)
 
 

@@ -44,6 +44,11 @@ import type {
   ResetDataCounts,
   ResetPreview,
   ResetResult,
+  PasskeyAuthResponse,
+  PasskeyCredential,
+  PasskeyCredentialList,
+  DeviceCodeResponse,
+  DevicePollResponse,
 } from './types'
 
 // Re-export all types for consumers
@@ -93,6 +98,11 @@ export type {
   ResetDataCounts,
   ResetPreview,
   ResetResult,
+  PasskeyAuthResponse,
+  PasskeyCredential,
+  PasskeyCredentialList,
+  DeviceCodeResponse,
+  DevicePollResponse,
 }
 
 const API_BASE = '/api'
@@ -417,12 +427,71 @@ export const api = {
         body: JSON.stringify(data),
       }),
 
-    me: () => request<AuthResponse>('/auth/me/'),
+    me: () => request<AuthResponse | PasskeyAuthResponse>('/auth/me/'),
 
     changePassword: (data: ChangePasswordRequest) =>
       request<{ message: string }>('/auth/change-password/', {
         method: 'POST',
         body: JSON.stringify(data),
+      }),
+  },
+
+  passkey: {
+    registerOptions: () =>
+      request<Record<string, unknown>>('/auth/passkey/register/options/', {
+        method: 'POST',
+      }),
+
+    registerVerify: (credential: Record<string, unknown>) =>
+      request<PasskeyAuthResponse>('/auth/passkey/register/verify/', {
+        method: 'POST',
+        body: JSON.stringify(credential),
+      }),
+
+    loginOptions: () =>
+      request<Record<string, unknown>>('/auth/passkey/login/options/', {
+        method: 'POST',
+      }),
+
+    loginVerify: (credential: Record<string, unknown>) =>
+      request<PasskeyAuthResponse>('/auth/passkey/login/verify/', {
+        method: 'POST',
+        body: JSON.stringify(credential),
+      }),
+
+    listCredentials: () =>
+      request<PasskeyCredentialList>('/auth/passkey/credentials/'),
+
+    addCredentialOptions: () =>
+      request<Record<string, unknown>>('/auth/passkey/credentials/add/options/', {
+        method: 'POST',
+      }),
+
+    addCredentialVerify: (credential: Record<string, unknown>) =>
+      request<{ credential: PasskeyCredential }>('/auth/passkey/credentials/add/verify/', {
+        method: 'POST',
+        body: JSON.stringify(credential),
+      }),
+
+    deleteCredential: (credentialId: number) =>
+      request<{ message: string }>(`/auth/passkey/credentials/${credentialId}/`, {
+        method: 'DELETE',
+      }),
+  },
+
+  device: {
+    requestCode: () =>
+      request<DeviceCodeResponse>('/auth/device/code/', {
+        method: 'POST',
+      }),
+
+    poll: () =>
+      request<DevicePollResponse>('/auth/device/poll/'),
+
+    authorize: (code: string) =>
+      request<{ message: string }>('/auth/device/authorize/', {
+        method: 'POST',
+        body: JSON.stringify({ code }),
       }),
   },
 }

@@ -1,4 +1,4 @@
-"""Admin CLI tool for managing users in public mode."""
+"""Admin CLI tool for managing users in public and passkey modes."""
 
 import secrets
 import string
@@ -6,10 +6,11 @@ import string
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
+from django.db.models import Count
 
 
 class Command(BaseCommand):
-    help = "Manage Cookie user accounts (public mode only)"
+    help = "Manage Cookie user accounts (public or passkey mode)"
 
     def add_arguments(self, parser):
         sub = parser.add_subparsers(dest="subcommand")
@@ -48,8 +49,11 @@ class Command(BaseCommand):
         cu.add_argument("--dry-run", action="store_true")
 
     def handle(self, *args, **options):
-        if settings.AUTH_MODE != "public":
-            self.stderr.write("Error: cookie_admin is only available in public mode (AUTH_MODE=public).")
+        if settings.AUTH_MODE not in ("public", "passkey"):
+            self.stderr.write(
+                "Error: cookie_admin is only available in public or passkey mode "
+                "(AUTH_MODE=public or AUTH_MODE=passkey)."
+            )
             raise SystemExit(2)
 
         subcommand = options.get("subcommand")
@@ -78,6 +82,12 @@ class Command(BaseCommand):
         if options.get("admins_only"):
             users = users.filter(is_staff=True)
 
+        if settings.AUTH_MODE == "passkey":
+            self._list_users_passkey(users, options)
+        else:
+            self._list_users_public(users, options)
+
+    def _list_users_public(self, users, options):
         if options.get("as_json"):
             import json
 
@@ -106,6 +116,39 @@ class Command(BaseCommand):
         admins = users.filter(is_staff=True).count()
         self.stdout.write(f"\nTotal: {users.count()} users ({active} active, {admins} admin)")
 
+    def _list_users_passkey(self, users, options):
+        users = users.annotate(passkey_count=Count("webauthn_credentials"))
+
+        if options.get("as_json"):
+            import json
+
+            data = [
+                {
+                    "username": u.username,
+                    "user_id": u.pk,
+                    "passkeys": u.passkey_count,
+                    "is_admin": u.is_staff,
+                    "is_active": u.is_active,
+                    "date_joined": u.date_joined.strftime("%Y-%m-%d"),
+                }
+                for u in users
+            ]
+            self.stdout.write(json.dumps(data, indent=2))
+            return
+
+        self.stdout.write(f"{'USERNAME':<15} {'ID':<6} {'PASSKEYS':<10} {'ADMIN':<7} {'ACTIVE':<8} {'JOINED'}")
+        self.stdout.write("-" * 65)
+        for u in users:
+            self.stdout.write(
+                f"{u.username:<15} {u.pk:<6} {u.passkey_count:<10} "
+                f"{'yes' if u.is_staff else 'no':<7} "
+                f"{'yes' if u.is_active else 'no':<8} "
+                f"{u.date_joined.strftime('%Y-%m-%d')}"
+            )
+        active = users.filter(is_active=True).count()
+        admins = users.filter(is_staff=True).count()
+        self.stdout.write(f"\nTotal: {users.count()} users ({active} active, {admins} admin)")
+
     def _handle_promote(self, options):
         user = self._get_user(options["username"])
         if user.is_staff:
@@ -128,6 +171,13 @@ class Command(BaseCommand):
         self.stdout.write(f"'{user.username}' is no longer an admin.")
 
     def _handle_reset_password(self, options):
+        if settings.AUTH_MODE == "passkey":
+            self.stderr.write(
+                "Error: Password reset is not applicable in passkey mode. "
+                "Users authenticate via passkeys, not passwords."
+            )
+            raise SystemExit(1)
+
         user = self._get_user(options["username"])
         if options.get("generate"):
             pw = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
@@ -153,9 +203,22 @@ class Command(BaseCommand):
         user = self._get_user(options["username"])
         user.is_active = False
         user.save(update_fields=["is_active"])
-        self.stdout.write(f"'{user.username}' has been deactivated.")
+        # Invalidate sessions for deactivated user
+        from django.contrib.sessions.models import Session
+        from django.utils import timezone
+
+        sessions = Session.objects.filter(expire_date__gte=timezone.now())
+        for session in sessions:
+            data = session.get_decoded()
+            if str(data.get("_auth_user_id")) == str(user.pk):
+                session.delete()
+        self.stdout.write(f"'{user.username}' has been deactivated and sessions invalidated.")
 
     def _handle_cleanup_unverified(self, options):
+        if settings.AUTH_MODE == "passkey":
+            self.stdout.write("No unverified accounts in passkey mode (users are active immediately).")
+            return
+
         from django.utils import timezone
 
         threshold = timezone.now() - timezone.timedelta(hours=options["older_than"])

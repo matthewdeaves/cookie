@@ -16,13 +16,13 @@ class SessionAuth(APIKeyCookie):
     """Mode-aware authenticator.
 
     Home mode: checks session["profile_id"] → Profile (unchanged behavior).
-    Public mode: checks request.user.is_authenticated → request.user.profile.
+    Public/Passkey mode: checks request.user.is_authenticated → request.user.profile.
     """
 
     param_name: str = settings.SESSION_COOKIE_NAME
 
     def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:
-        if settings.AUTH_MODE == "public":
+        if settings.AUTH_MODE in ("public", "passkey"):
             return self._authenticate_public(request)
         return self._authenticate_home(request)
 
@@ -73,7 +73,7 @@ class SessionAuth(APIKeyCookie):
         except Profile.DoesNotExist:
             security_logger.warning(
                 "Auth failure: no profile for user %s at %s",
-                user.username,
+                user.pk,
                 request.path,
             )
             return None
@@ -83,16 +83,14 @@ class AdminAuth(SessionAuth):
     """Admin-only authenticator.
 
     Home mode: identical to SessionAuth (no admin distinction).
-    Public mode: resolves user first, then checks is_staff.
+    Public/Passkey mode: resolves user first, then checks is_staff.
     """
 
     def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:
-        if settings.AUTH_MODE == "public":
-            # Resolve profile (and request.user) first via parent
+        if settings.AUTH_MODE in ("public", "passkey"):
             profile = self._authenticate_public(request)
             if profile is None:
                 return None
-            # Now check admin status on the resolved user
             user = getattr(request, "user", None)
             if not user or not user.is_staff:
                 security_logger.warning(

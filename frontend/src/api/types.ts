@@ -375,5 +375,43 @@ export interface ChangePasswordRequest {
 }
 
 export interface ModeResponse {
-  mode: 'home' | 'public'
+  mode: 'home' | 'public' | 'passkey'
+  registration_enabled?: boolean
+}
+
+// Passkey types
+
+export interface PasskeyUser {
+  id: number
+  is_admin: boolean
+}
+
+export interface PasskeyAuthResponse {
+  user: PasskeyUser
+  profile: AuthProfile
+}
+
+export interface PasskeyCredential {
+  id: number
+  created_at: string
+  last_used_at: string | null
+  is_deletable: boolean
+}
+
+export interface PasskeyCredentialList {
+  credentials: PasskeyCredential[]
+}
+
+export interface DeviceCodeResponse {
+  code: string
+  expires_in: number
+  poll_interval: number
+  poll_url: string
+}
+
+export interface DevicePollResponse {
+  status: 'pending' | 'authorized' | 'expired'
+  user?: PasskeyUser
+  profile?: AuthProfile
+  error?: string
 }

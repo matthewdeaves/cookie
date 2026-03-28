@@ -1,9 +1,9 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 import { api } from '../api/client'
-import type { AuthUser, AuthProfile } from '../api/types'
+import type { AuthUser, AuthProfile, PasskeyUser } from '../api/types'
 
 interface AuthContextType {
-  user: AuthUser | null
+  user: (AuthUser | PasskeyUser) | null
   profile: AuthProfile | null
   isAdmin: boolean
   isLoading: boolean
@@ -16,6 +16,7 @@ interface AuthContextType {
     email: string
     privacy_accepted: boolean
   }) => Promise<string>
+  refreshSession: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -30,7 +31,7 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null)
+  const [user, setUser] = useState<(AuthUser | PasskeyUser) | null>(null)
   const [profile, setProfile] = useState<AuthProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -46,6 +47,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Not logged in
       })
       .finally(() => setIsLoading(false))
+  }, [])
+
+  const refreshSession = useCallback(async () => {
+    try {
+      const data = await api.auth.me()
+      setUser(data.user)
+      setProfile(data.profile)
+    } catch {
+      setUser(null)
+      setProfile(null)
+    }
   }, [])
 
   const login = useCallback(async (username: string, password: string) => {
@@ -88,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         register,
+        refreshSession,
       }}
     >
       {children}

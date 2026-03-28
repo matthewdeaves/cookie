@@ -18,6 +18,7 @@ cryptography>=42.0
 jsonschema>=4.0
 django-ratelimit>=4.1
 django-ses>=4.0
+webauthn>=2.0,<3.0
 
 # Testing (needed for CI, optional for container)
 pytest>=8.0

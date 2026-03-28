@@ -36,6 +36,13 @@ from apps.core.auth_api import router as auth_router
 
 api.add_router("/auth", auth_router)
 
+# Passkey and device code routers — endpoints check AUTH_MODE internally
+from apps.core.passkey_api import router as passkey_router
+from apps.core.device_code_api import router as device_code_router
+
+api.add_router("/auth/passkey", passkey_router)
+api.add_router("/auth/device", device_code_router)
+
 
 from apps.core.views import PrivacyPolicyView
 
