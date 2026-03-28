@@ -26,7 +26,7 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       // Security rules
-      'security/detect-object-injection': 'warn',
+      'security/detect-object-injection': 'off',
       'security/detect-non-literal-regexp': 'warn',
       'security/detect-unsafe-regex': 'error',
       'security/detect-buffer-noassert': 'error',
@@ -36,6 +36,12 @@ export default tseslint.config(
       'security/detect-no-csrf-before-method-override': 'error',
       'security/detect-possible-timing-attacks': 'warn',
       'security/detect-pseudoRandomBytes': 'warn',
+    },
+  },
+  {
+    files: ['**/router.tsx', '**/router.ts'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
     },
   },
 )

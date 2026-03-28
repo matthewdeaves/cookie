@@ -97,7 +97,6 @@ export default function PlayMode() {
     unlockAudio()
   }, [])
 
-  // eslint-disable-next-line security/detect-object-injection -- currentStep is controlled state (number), not user input
   const currentInstruction = instructions[currentStep] || ''
   const progress = totalSteps > 0 ? ((currentStep + 1) / totalSteps) * 100 : 0
 

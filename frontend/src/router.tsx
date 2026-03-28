@@ -40,7 +40,6 @@ export function useVersion() {
   return useContext(VersionContext)
 }
 
-// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function AppLayout() {
   const [mode, setMode] = useState<'home' | 'passkey' | null>(null)
   const [version, setVersion] = useState('dev')
@@ -94,7 +93,6 @@ function AppLayout() {
   )
 }
 
-// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function AuthProfileBridge({ children }: { children: React.ReactNode }) {
   const { profile: authProfile, isLoading } = useAuth()
 
@@ -105,7 +103,6 @@ function AuthProfileBridge({ children }: { children: React.ReactNode }) {
   return <ProfileProvider authProfile={authProfile}>{children}</ProfileProvider>
 }
 
-// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { profile, loading } = useProfile()
   const location = useLocation()
@@ -121,7 +118,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { profile, loading } = useProfile()
 
@@ -136,7 +132,6 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-// eslint-disable-next-line react-refresh/only-export-components -- Internal router component, not exported for reuse
 function RootRoute() {
   const mode = useMode()
   if (mode === 'passkey') {
