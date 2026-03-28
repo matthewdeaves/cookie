@@ -63,16 +63,26 @@ Cookie supports two authentication modes via `AUTH_MODE` environment variable:
 - `apps/core/auth_api.py` — Shared auth endpoints: logout, me (passkey mode)
 - `apps/core/passkey_api.py` — Passkey endpoints: register, login, credential management (passkey mode)
 - `apps/core/device_code_api.py` — Device code flow: code generation, polling, authorization (passkey mode)
-- `apps/core/management/commands/cookie_admin.py` — Admin CLI (passkey mode only)
+- `apps/core/management/commands/cookie_admin.py` — Admin CLI: user management, status, audit (passkey mode only)
 - `apps/core/management/commands/cleanup_device_codes.py` — Clean up expired device codes
 
-### Auth Commands (Passkey Mode)
+### Admin CLI (Passkey Mode)
+All subcommands support `--json` for structured output (automation-friendly).
 ```bash
-docker compose exec web python manage.py cookie_admin list-users
-docker compose exec web python manage.py cookie_admin promote <pk_username>
-docker compose exec web python manage.py cookie_admin demote <pk_username>
-docker compose exec web python manage.py cookie_admin deactivate <pk_username>
-docker compose exec web python manage.py cookie_admin activate <pk_username>
+# App status (post-deploy verification)
+docker compose exec web python manage.py cookie_admin status --json
+
+# Security audit (last 24h events)
+docker compose exec web python manage.py cookie_admin audit --json
+
+# User management
+docker compose exec web python manage.py cookie_admin list-users --json
+docker compose exec web python manage.py cookie_admin promote <pk_username> --json
+docker compose exec web python manage.py cookie_admin demote <pk_username> --json
+docker compose exec web python manage.py cookie_admin deactivate <pk_username> --json
+docker compose exec web python manage.py cookie_admin activate <pk_username> --json
+
+# Device code cleanup
 docker compose exec web python manage.py cleanup_device_codes --dry-run
 ```
 
