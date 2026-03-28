@@ -22,7 +22,7 @@ export default function RecipeActions({
   onStartCooking,
 }: RecipeActionsProps) {
   return (
-    <div className="absolute bottom-4 right-4 flex gap-2">
+    <div className="flex items-center justify-end gap-2">
       <button
         onClick={onFavoriteToggle}
         className={cn(

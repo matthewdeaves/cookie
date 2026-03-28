@@ -309,7 +309,7 @@ function SearchResultCard({
           {result.title}
         </h3>
         <p className="mb-2 text-xs text-muted-foreground">
-          <a href={result.url} target="_blank" rel="noopener noreferrer" className="hover:underline">{result.host}</a>
+          <a href={result.url} target="_blank" rel="noopener noreferrer" className="underline decoration-muted-foreground/50 underline-offset-2">{result.host}</a>
           {result.rating_count && (
             <span> · {result.rating_count.toLocaleString()} Ratings</span>
           )}

@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Moon, Sun, Home, Heart, BookOpen, FolderOpen, Settings, LogOut, Users } from 'lucide-react'
+import { Moon, Sun, Home, Heart, BookOpen, FolderOpen, Settings, LogOut, Users, User } from 'lucide-react'
 import { useProfile } from '../contexts/ProfileContext'
+import { useMode } from '../router'
 
 export default function NavHeader() {
   const navigate = useNavigate()
+  const mode = useMode()
   const { profile, theme, toggleTheme, logout } = useProfile()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -41,11 +43,11 @@ export default function NavHeader() {
         Cookie
       </button>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1">
         {/* Home */}
         <button
           onClick={() => navigate('/home')}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
+          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
           aria-label="Home"
         >
           <Home className="h-5 w-5" />
@@ -54,7 +56,7 @@ export default function NavHeader() {
         {/* All Recipes */}
         <button
           onClick={() => navigate('/all-recipes')}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
+          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
           aria-label="All recipes"
         >
           <BookOpen className="h-5 w-5" />
@@ -63,7 +65,7 @@ export default function NavHeader() {
         {/* Favorites */}
         <button
           onClick={() => navigate('/favorites')}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-accent"
+          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-accent"
           aria-label="View favorites"
         >
           <Heart className="h-5 w-5" />
@@ -72,7 +74,7 @@ export default function NavHeader() {
         {/* Collections */}
         <button
           onClick={() => navigate('/collections')}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
+          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
           aria-label="View collections"
         >
           <FolderOpen className="h-5 w-5" />
@@ -81,7 +83,7 @@ export default function NavHeader() {
         {/* Theme toggle */}
         <button
           onClick={toggleTheme}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
         >
           {theme === 'light' ? (
@@ -94,7 +96,7 @@ export default function NavHeader() {
         {/* Settings */}
         <button
           onClick={() => navigate('/settings')}
-          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           aria-label="Settings"
         >
           <Settings className="h-5 w-5" />
@@ -104,11 +106,15 @@ export default function NavHeader() {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium text-white"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium text-white"
             style={{ backgroundColor: profile.avatar_color }}
             aria-label={profile.name}
           >
-            {getInitial(profile.name)}
+            {mode === 'passkey' ? (
+              <User className="h-4 w-4" />
+            ) : (
+              getInitial(profile.name)
+            )}
           </button>
 
           {dropdownOpen && (

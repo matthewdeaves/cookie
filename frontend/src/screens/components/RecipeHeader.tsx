@@ -7,6 +7,7 @@ import {
   Minus,
   Plus,
   GitCompareArrows,
+  ExternalLink,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { type RecipeDetail, type ScaleResponse } from '../../api/client'
@@ -68,29 +69,43 @@ export default function RecipeHeader({
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
-        {/* Title and rating overlay */}
-        <div className="absolute bottom-4 left-4 right-4">
-          <h1 className="mb-2 text-xl font-medium text-white drop-shadow-lg sm:text-2xl">
-            {recipe.title}
-          </h1>
-          <div className="flex items-center gap-3 text-sm text-white/90">
-            {recipe.rating && (
-              <span className="flex items-center gap-1">
-                <Star className="h-4 w-4 fill-star text-star" />
-                {recipe.rating.toFixed(1)}
-                {recipe.rating_count && (
-                  <span className="text-white/70">
-                    ({recipe.rating_count})
-                  </span>
-                )}
-              </span>
+        {/* Title, meta, and actions overlay */}
+        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 px-4 pb-4">
+          <div>
+            <h1 className="text-xl font-medium text-white drop-shadow-lg sm:text-2xl">
+              {recipe.title}
+            </h1>
+            <div className="mt-1 flex items-center gap-3 text-sm text-white/90">
+              {recipe.rating && (
+                <span className="flex items-center gap-1">
+                  <Star className="h-4 w-4 fill-star text-star" />
+                  {recipe.rating.toFixed(1)}
+                  {recipe.rating_count && (
+                    <span className="text-white/70">
+                      ({recipe.rating_count})
+                    </span>
+                  )}
+                </span>
+              )}
+              {recipe.canonical_url ? (
+              <a
+                href={recipe.canonical_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 underline decoration-white/40 underline-offset-2"
+              >
+                {recipe.host}
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            ) : (
+              <span>{recipe.host}</span>
             )}
-            <span>{recipe.host}</span>
+            </div>
           </div>
-        </div>
 
-        {/* Action buttons overlay */}
-        {children}
+          {/* Action buttons row */}
+          {children}
+        </div>
       </div>
 
       {/* Meta info (collapsible) */}
