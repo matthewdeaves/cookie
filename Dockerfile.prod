@@ -2,7 +2,7 @@
 # Stage 1: Build Frontend Assets
 # ===========================================
 # node:20-alpine - update digest when upgrading
-FROM node:20-alpine@sha256:f598378b5240225e6beab68fa9f356db1fb8efe55173e6d4d8153113bb8f333c AS frontend-builder
+FROM node:25-alpine@sha256:cf38e1f3c28ac9d81cdc0c51d8220320b3b618780e44ef96a39f76f7dbfef023 AS frontend-builder
 
 WORKDIR /frontend
 
