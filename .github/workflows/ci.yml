@@ -305,9 +305,9 @@ jobs:
           SECURE_SSL_REDIRECT: "false"
           AUTH_MODE: home
 
-      - name: Run auth tests (public mode)
+      - name: Run auth tests (passkey mode)
         run: |
-          pytest tests/test_auth.py tests/test_permissions.py tests/test_admin_cli.py tests/test_email_privacy.py tests/test_logging.py -v --no-cov
+          pytest tests/test_auth.py tests/test_permissions.py tests/test_admin_cli.py tests/test_middleware.py tests/test_logging.py -v --no-cov
         env:
           DJANGO_SETTINGS_MODULE: cookie.settings
           DATABASE_URL: postgres://cookie:cookie_test@localhost:5432/cookie_test  # pragma: allowlist secret
