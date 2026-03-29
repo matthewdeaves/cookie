@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-29T13:42:31.178Z",
+    "detectionDate": "2026-03-29T15:40:09.137Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -101,14 +101,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/search.js": {
-            "lines": 624,
-            "tokens": 5038,
+            "lines": 626,
+            "tokens": 5054,
             "sources": 1,
             "clones": 5,
             "duplicatedLines": 43,
             "duplicatedTokens": 318,
-            "percentage": 6.89,
-            "percentageTokens": 6.31,
+            "percentage": 6.87,
+            "percentageTokens": 6.29,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -426,8 +426,8 @@
           }
         },
         "total": {
-          "lines": 6746,
-          "tokens": 51627,
+          "lines": 6748,
+          "tokens": 51643,
           "sources": 35,
           "clones": 31,
           "duplicatedLines": 314,
@@ -440,8 +440,8 @@
       }
     },
     "total": {
-      "lines": 6746,
-      "tokens": 51627,
+      "lines": 6748,
+      "tokens": 51643,
       "sources": 35,
       "clones": 31,
       "duplicatedLines": 314,
@@ -604,32 +604,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 487,
-        "end": 494,
+        "start": 489,
+        "end": 496,
         "startLoc": {
-          "line": 487,
+          "line": 489,
           "column": 13,
-          "position": 3960
+          "position": 3976
         },
         "endLoc": {
-          "line": 494,
+          "line": 496,
           "column": 3,
-          "position": 4028
+          "position": 4044
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 143,
-        "end": 150,
+        "start": 145,
+        "end": 152,
         "startLoc": {
-          "line": 143,
+          "line": 145,
           "column": 6,
-          "position": 1111
+          "position": 1127
         },
         "endLoc": {
-          "line": 150,
+          "line": 152,
           "column": 6,
-          "position": 1179
+          "position": 1195
         }
       }
     },
@@ -691,17 +691,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 611,
-        "end": 621,
+        "start": 613,
+        "end": 623,
         "startLoc": {
-          "line": 611,
+          "line": 613,
           "column": 5,
-          "position": 4945
+          "position": 4961
         },
         "endLoc": {
-          "line": 621,
+          "line": 623,
           "column": 7,
-          "position": 5006
+          "position": 5022
         }
       }
     },
@@ -763,17 +763,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 613,
-        "end": 621,
+        "start": 615,
+        "end": 623,
         "startLoc": {
-          "line": 613,
+          "line": 615,
           "column": 5,
-          "position": 4949
+          "position": 4965
         },
         "endLoc": {
-          "line": 621,
+          "line": 623,
           "column": 7,
-          "position": 5006
+          "position": 5022
         }
       }
     },
@@ -799,17 +799,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 610,
-        "end": 621,
+        "start": 612,
+        "end": 623,
         "startLoc": {
-          "line": 610,
+          "line": 612,
           "column": 9,
-          "position": 4942
+          "position": 4958
         },
         "endLoc": {
-          "line": 621,
+          "line": 623,
           "column": 7,
-          "position": 5006
+          "position": 5022
         }
       }
     },
@@ -908,16 +908,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
         "start": 424,
-        "end": 621,
+        "end": 623,
         "startLoc": {
           "line": 424,
           "column": 13,
           "position": 3272
         },
         "endLoc": {
-          "line": 621,
+          "line": 623,
           "column": 7,
-          "position": 5006
+          "position": 5022
         }
       }
     },
@@ -1196,16 +1196,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
         "start": 238,
-        "end": 621,
+        "end": 623,
         "startLoc": {
           "line": 238,
           "column": 7,
           "position": 1652
         },
         "endLoc": {
-          "line": 621,
+          "line": 623,
           "column": 7,
-          "position": 5006
+          "position": 5022
         }
       }
     },
@@ -1304,16 +1304,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/favorites.js",
         "start": 85,
-        "end": 621,
+        "end": 623,
         "startLoc": {
           "line": 85,
           "column": 6,
           "position": 554
         },
         "endLoc": {
-          "line": 621,
+          "line": 623,
           "column": 7,
-          "position": 5006
+          "position": 5022
         }
       }
     },
