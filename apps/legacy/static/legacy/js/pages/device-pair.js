@@ -152,3 +152,9 @@ function onExpired() {
   document.getElementById('request-section').style.display = 'block';
   showError('Code expired. Please request a new one.');
 }
+
+// Attach click handler (CSP blocks inline onclick attributes)
+var pairBtn = document.getElementById('pair-btn');
+if (pairBtn) {
+  pairBtn.addEventListener('click', requestCode);
+}

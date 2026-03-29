@@ -319,7 +319,7 @@
                     <p class="preserved-note">
                         Search source configurations and AI prompts will be preserved.
                     </p>
-                    <button type="button" class="btn btn-danger" onclick="showResetModal()">
+                    <button type="button" class="btn btn-danger" id="show-reset-btn">
                         Reset Database
                     </button>
                 </div>
@@ -328,8 +328,8 @@
     </div>
 
     <!-- Delete Profile Modal -->
-    <div id="delete-profile-modal" class="modal-overlay hidden" onclick="closeDeleteModal()">
-        <div class="modal" onclick="event.stopPropagation()">
+    <div id="delete-profile-modal" class="modal-overlay hidden">
+        <div class="modal">
             <div class="modal-header modal-header-danger">
                 <svg class="modal-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
@@ -350,10 +350,10 @@
                 </p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                <button type="button" class="btn btn-secondary" id="cancel-delete-btn">
                     Cancel
                 </button>
-                <button type="button" class="btn btn-danger" id="confirm-delete-btn" onclick="executeDeleteProfile()">
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn">
                     <span class="btn-icon-wrapper">
                         <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M3 6h18"></path>
@@ -368,8 +368,8 @@
     </div>
 
     <!-- Reset Database Modal - Step 1 -->
-    <div id="reset-modal-step1" class="modal-overlay hidden" onclick="closeResetModal()">
-        <div class="modal" onclick="event.stopPropagation()">
+    <div id="reset-modal-step1" class="modal-overlay hidden">
+        <div class="modal">
             <div class="modal-header modal-header-danger">
                 <svg class="modal-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
@@ -389,10 +389,10 @@
                 </p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeResetModal()">
+                <button type="button" class="btn btn-secondary" id="cancel-reset-step1-btn">
                     Cancel
                 </button>
-                <button type="button" class="btn btn-danger" onclick="showResetStep2()">
+                <button type="button" class="btn btn-danger" id="continue-reset-btn">
                     I understand, continue
                 </button>
             </div>
@@ -400,8 +400,8 @@
     </div>
 
     <!-- Reset Database Modal - Step 2 -->
-    <div id="reset-modal-step2" class="modal-overlay hidden" onclick="closeResetModal()">
-        <div class="modal" onclick="event.stopPropagation()">
+    <div id="reset-modal-step2" class="modal-overlay hidden">
+        <div class="modal">
             <div class="modal-header modal-header-danger">
                 <svg class="modal-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
@@ -415,10 +415,10 @@
                 <input type="text" id="reset-confirm-input" class="input reset-input" placeholder="Type RESET" autocomplete="off">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="showResetStep1()">
+                <button type="button" class="btn btn-secondary" id="back-reset-btn">
                     Back
                 </button>
-                <button type="button" class="btn btn-danger" id="confirm-reset-btn" onclick="executeReset()" disabled>
+                <button type="button" class="btn btn-danger" id="confirm-reset-btn" disabled>
                     <span class="btn-icon-wrapper">
                         <span id="reset-btn-text">Reset Database</span>
                     </span>

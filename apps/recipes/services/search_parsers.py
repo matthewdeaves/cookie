@@ -98,43 +98,28 @@ def parse_srcset(srcset: str) -> list[tuple[str, int]]:
     return results
 
 
-def best_url_from_srcset(element, base_url: str) -> str:
-    """Extract the largest non-WebP image URL from srcset attributes.
-
-    Checks <picture><source srcset> and <img srcset>.
-    """
-    srcset_candidates = []
-
-    # Check <picture><source srcset> (prefer non-WebP sources)
+def _collect_srcset_strings(element) -> list[str]:
+    """Collect non-WebP srcset strings from <picture><source> and <img>."""
+    srcsets = []
     picture = element.find("picture")
     if picture:
-        for source in picture.find_all("source"):
-            source_type = (source.get("type") or "").lower()
-            if "webp" in source_type:
-                continue
-            srcset = source.get("srcset", "")
-            if srcset:
-                srcset_candidates.append(srcset)
-
-    # Check <img srcset>
+        for src in picture.find_all("source"):
+            srcset = src.get("srcset", "")
+            if srcset and "webp" not in (src.get("type") or "").lower():
+                srcsets.append(srcset)
     img = element.find("img")
-    if img:
-        srcset = img.get("srcset", "")
-        if srcset:
-            srcset_candidates.append(srcset)
+    if img and img.get("srcset", ""):
+        srcsets.append(img["srcset"])
+    return srcsets
 
-    # Parse srcset entries and pick the largest
-    best_url = ""
-    best_width = 0
-    for srcset in srcset_candidates:
-        for url, width in parse_srcset(srcset):
-            if width > best_width:
-                best_width = width
-                best_url = url
 
-    if best_url:
-        return urljoin(base_url, best_url)
-    return ""
+def best_url_from_srcset(element, base_url: str) -> str:
+    """Extract the largest non-WebP image URL from srcset attributes."""
+    entries = [e for s in _collect_srcset_strings(element) for e in parse_srcset(s)]
+    if not entries:
+        return ""
+    best_url, _ = max(entries, key=lambda e: e[1])
+    return urljoin(base_url, best_url)
 
 
 def extract_image(element, base_url: str) -> str:
@@ -214,58 +199,62 @@ def extract_result_from_element(
     )
 
 
+def _parse_articles(
+    soup: BeautifulSoup,
+    host: str,
+    base_url: str,
+) -> list[SearchResult]:
+    """Strategy: extract results from <article> elements."""
+    _ext = extract_result_from_element
+    return [r for el in soup.find_all("article")[:30] if (r := _ext(el, host, base_url))]
+
+
+def _parse_cards(
+    soup: BeautifulSoup,
+    host: str,
+    base_url: str,
+) -> list[SearchResult]:
+    """Strategy: extract results from card-like div elements."""
+    _ext = extract_result_from_element
+    for sel in ('[class*="recipe-card"]', '[class*="card"]', '[class*="result"]', '[class*="item"]'):
+        results = [r for el in soup.select(sel)[:30] if (r := _ext(el, host, base_url))]
+        if results:
+            return results
+    return []
+
+
+def _parse_links(
+    soup: BeautifulSoup,
+    host: str,
+    base_url: str,
+) -> list[SearchResult]:
+    """Strategy: extract results from links that look like recipe URLs."""
+    results = []
+    for link in soup.find_all("a", href=True)[:100]:
+        url = urljoin(base_url, link.get("href", ""))
+        url_signal = get_url_signal(url, host)
+        if url_signal not in ("strong_include", "neutral"):
+            continue
+        title = link.get_text(strip=True)
+        if title and len(title) > 5 and looks_like_recipe_title(title, url_signal):
+            results.append(SearchResult(url=url, title=title[:200], host=host))
+    return results
+
+
 def fallback_parse(
     soup: BeautifulSoup,
     host: str,
     base_url: str,
 ) -> list[SearchResult]:
+    """Fallback parser for sites without a specific selector.
+
+    Tries article elements, card-like divs, then bare recipe links.
     """
-    Fallback parser for sites without a specific selector.
-
-    Looks for common patterns in recipe search results.
-    """
-    results = []
-
-    # Strategy 1: Look for article elements with links
-    for article in soup.find_all("article")[:30]:
-        result = extract_result_from_element(article, host, base_url)
-        if result:
-            results.append(result)
-
-    if results:
-        return results
-
-    # Strategy 2: Look for card-like divs
-    card_selectors = [
-        '[class*="recipe-card"]',
-        '[class*="card"]',
-        '[class*="result"]',
-        '[class*="item"]',
-    ]
-    for selector in card_selectors:
-        for card in soup.select(selector)[:30]:
-            result = extract_result_from_element(card, host, base_url)
-            if result:
-                results.append(result)
+    for strategy in (_parse_articles, _parse_cards, _parse_links):
+        results = strategy(soup, host, base_url)
         if results:
             return results
-
-    # Strategy 3: Look for links that look like recipe URLs
-    for link in soup.find_all("a", href=True)[:100]:
-        url = urljoin(base_url, link.get("href", ""))
-        url_signal = get_url_signal(url, host)
-        if url_signal in ("strong_include", "neutral"):
-            title = link.get_text(strip=True)
-            if title and len(title) > 5 and looks_like_recipe_title(title, url_signal):
-                results.append(
-                    SearchResult(
-                        url=url,
-                        title=title[:200],
-                        host=host,
-                    )
-                )
-
-    return results
+    return []
 
 
 # Compiled patterns for looks_like_recipe_url (avoid recompiling per call)
@@ -351,6 +340,43 @@ _EXCLUDE_PATTERNS = [
 ]
 
 
+def _check_exclusion_patterns(path: str) -> bool:
+    """Return True if path matches any exclusion pattern."""
+    return any(pattern.search(path) for pattern in _EXCLUDE_PATTERNS)
+
+
+def _check_recipe_patterns(path: str) -> bool:
+    """Return True if path matches any recipe pattern."""
+    return any(pattern.search(path) for pattern in _RECIPE_PATTERNS)
+
+
+# Site-specific rules: host → callable returning signal or None
+_SITE_RULES: dict[str, callable] = {
+    "allrecipes.com": lambda path: "reject" if "/recipe/" not in path else None,
+}
+
+
+def _check_site_rules(host: str, path: str) -> Optional[str]:
+    """Apply site-specific rules. Returns a signal string or None."""
+    for domain, rule in _SITE_RULES.items():
+        if host == domain or host.endswith(f".{domain}"):
+            return rule(path)
+    return None
+
+
+def _check_path_heuristics(path: str) -> str:
+    """Apply heuristic fallbacks for paths with no strong signal.
+
+    Returns "neutral" or "reject".
+    """
+    segments = [s for s in path.split("/") if s]
+    if len(segments) >= 2 and len(path) > 20:
+        return "neutral"
+    if len(segments) == 1 and len(path) > 15 and path.count("-") >= 2:
+        return "neutral"
+    return "reject"
+
+
 def get_url_signal(url: str, host: str) -> str:
     """Determine URL signal strength for recipe filtering.
 
@@ -367,27 +393,17 @@ def get_url_signal(url: str, host: str) -> str:
 
     path = parsed.path.lower()
 
-    for pattern in _EXCLUDE_PATTERNS:
-        if pattern.search(path):
-            return "strong_exclude"
+    if _check_exclusion_patterns(path):
+        return "strong_exclude"
 
-    # Site-specific: AllRecipes requires /recipe/ path
-    if (host == "allrecipes.com" or host.endswith(".allrecipes.com")) and "/recipe/" not in path:
-        return "reject"
+    site_signal = _check_site_rules(host, path)
+    if site_signal is not None:
+        return site_signal
 
-    for pattern in _RECIPE_PATTERNS:
-        if pattern.search(path):
-            return "strong_include"
+    if _check_recipe_patterns(path):
+        return "strong_include"
 
-    # Heuristic fallbacks → neutral signal
-    segments = [s for s in path.split("/") if s]
-    if len(segments) >= 2 and len(path) > 20:
-        return "neutral"
-
-    if len(segments) == 1 and len(path) > 15 and path.count("-") >= 2:
-        return "neutral"
-
-    return "reject"
+    return _check_path_heuristics(path)
 
 
 def looks_like_recipe_url(url: str, host: str) -> bool:

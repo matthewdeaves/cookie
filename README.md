@@ -146,12 +146,14 @@ See [WORKFLOW.md](WORKFLOW.md) for development commands and testing with Claude 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `AUTH_MODE` | No | `home` (default, no login) or `passkey` (WebAuthn authentication) |
 | `DEBUG` | No | Set to `false` in production (default) |
 | `ALLOWED_HOSTS` | No | Comma-separated hostnames (default: `*`) |
 | `CSRF_TRUSTED_ORIGINS` | No | Full URLs for CSRF protection |
 | `SECRET_KEY` | No | Auto-generated if not set |
+| `OPENROUTER_API_KEY` | No | OpenRouter API key (can also be set via Settings UI) |
 
-AI features are configured through the Settings UI, not environment variables.
+See [CLAUDE.md](CLAUDE.md) for the full list of environment variables including passkey and logging configuration.
 
 ### Data Persistence
 
@@ -161,10 +163,14 @@ Data is stored in two Docker volumes:
 
 ## Data Privacy
 
-- Fully self-hosted - all data stays on your server (apart from when using OpenRouter)
-- PostgreSQL database stored locally
-- No telemetry or external tracking
-- AI requests go to OpenRouter only if configured
+- Fully self-hosted — all data stays on your server
+- No email addresses stored — no authentication mode collects email
+- No analytics, tracking, or third-party scripts
+- No advertising identifiers or device fingerprints
+- Only functional cookies (session + CSRF) — no cookie consent banner needed under UK PECR
+- AI requests go to OpenRouter only if an API key is configured; recipe text only, no personal data
+- Privacy policy available at `/privacy/` with links to source code as proof
+- See the [project constitution](.specify/memory/constitution.md) for privacy-by-architecture principles
 
 ## Basic Usage
 

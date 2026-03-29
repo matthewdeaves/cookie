@@ -1,267 +1,107 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Link as LinkIcon, Loader2, Search as SearchIcon } from 'lucide-react'
-import { toast } from 'sonner'
-import { api, type SearchResult } from '../api/client'
-import { cn } from '../lib/utils'
+import { useState, useCallback } from 'react'
+import { Loader2, Search as SearchIcon } from 'lucide-react'
+import { type SearchResult } from '../api/client'
 import NavHeader from '../components/NavHeader'
+import SourceFilterChips from '../components/SourceFilterChips'
+import URLImportCard from '../components/URLImportCard'
+import { useSearch } from '../hooks/useSearch'
 
 export default function Search() {
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const query = searchParams.get('q') || ''
-
-  const [searchInput, setSearchInput] = useState(query)
-  const [results, setResults] = useState<SearchResult[]>([])
-  const [, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(false)
-  const [sites, setSites] = useState<Record<string, number>>({})
-  const [selectedSource, setSelectedSource] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
-  const [importing, setImporting] = useState<string | null>(null)
-
-  // Detect if query is a URL
-  const isUrl = /^https?:\/\//i.test(query.trim())
-
-  // Update search input when query changes
-  useEffect(() => {
-    setSearchInput(query)
-  }, [query])
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const trimmed = searchInput.trim()
-    if (trimmed && trimmed !== query) {
-      navigate(`/search?q=${encodeURIComponent(trimmed)}`)
-    }
-  }
-
-  useEffect(() => {
-    if (!query) {
-      navigate('/home')
-      return
-    }
-    const abortController = new AbortController()
-    // Reset state when query or source filter changes
-    setResults([])
-    setPage(1)
-    setLoading(true)
-    searchRecipes(1, true, abortController.signal)
-    return () => { abortController.abort() }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate and searchRecipes are stable, only re-run when query or filter changes
-  }, [query, selectedSource])
-
-  const searchRecipes = async (pageNum: number, reset: boolean = false, signal?: AbortSignal) => {
-    try {
-      const sources = selectedSource || undefined
-      const response = await api.recipes.search(query, sources, pageNum, signal)
-
-      if (signal?.aborted) return
-
-      if (reset) {
-        setResults(response.results)
-        setSites(response.sites)
-      } else {
-        setResults((prev) => [...prev, ...response.results])
-      }
-
-      setTotal(response.total)
-      setHasMore(response.has_more)
-      setPage(pageNum)
-    } catch (error) {
-      if (signal?.aborted || (error instanceof DOMException && error.name === 'AbortError')) return
-      console.error('Search failed:', error)
-      toast.error('Search failed. Please try again.')
-    } finally {
-      if (!signal?.aborted) {
-        setLoading(false)
-        setLoadingMore(false)
-      }
-    }
-  }
-
-  const handleLoadMore = () => {
-    setLoadingMore(true)
-    searchRecipes(page + 1, false)
-  }
-
-  const handleSourceFilter = (source: string | null) => {
-    setSelectedSource(source)
-  }
-
-  const handleImport = async (url: string) => {
-    setImporting(url)
-    try {
-      const recipe = await api.recipes.scrape(url)
-      toast.success(`Imported: ${recipe.title}`)
-      // Record in history
-      await api.history.record(recipe.id)
-      // Navigate to recipe detail
-      navigate(`/recipe/${recipe.id}`)
-    } catch (error) {
-      console.error('Failed to import recipe:', error)
-      const message = error instanceof Error ? error.message : 'Failed to import recipe'
-      toast.error(message)
-    } finally {
-      setImporting(null)
-    }
-  }
-
-  // Sort sites by count descending for filter chips
-  const sortedSites = Object.entries(sites).sort(([, a], [, b]) => b - a)
-  const allSourcesCount = Object.values(sites).reduce((sum, n) => sum + n, 0)
+  const search = useSearch()
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <NavHeader />
-
       <main className="flex-1 px-4 py-6">
         <div className="mx-auto max-w-4xl">
-          {/* Search bar */}
-          <form onSubmit={handleSearchSubmit} className="mb-6">
-            <div className="relative">
-              <SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search recipes or paste a URL..."
-                className="w-full rounded-xl border border-border bg-input-background py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-          </form>
-
-          {/* Result count */}
-          {!isUrl && !loading && (
-            <p className="mb-4 text-sm text-muted-foreground">
-              {allSourcesCount} {allSourcesCount === 1 ? 'result' : 'results'} found
-            </p>
-          )}
-
-          {/* URL Import Card */}
-          {isUrl && (
-            <div className="mb-8 rounded-xl border border-border bg-card p-6">
-              <div className="flex items-start gap-4">
-                <div className="rounded-full bg-primary/10 p-3">
-                  <LinkIcon className="h-6 w-6 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h2 className="mb-1 font-medium text-card-foreground">
-                    Import Recipe from URL
-                  </h2>
-                  <p className="mb-4 text-sm text-muted-foreground line-clamp-1">
-                    {query}
-                  </p>
-                  <button
-                    onClick={() => handleImport(query)}
-                    disabled={!!importing}
-                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
-                  >
-                    {importing === query ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Importing...
-                      </>
-                    ) : (
-                      'Import Recipe'
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Source filter chips */}
-          {!isUrl && sortedSites.length > 0 && (
-            <div className="mb-6 flex flex-wrap gap-2">
-              <button
-                onClick={() => handleSourceFilter(null)}
-                className={cn(
-                  'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
-                  selectedSource === null
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                )}
-              >
-                All Sources ({allSourcesCount})
-              </button>
-              {sortedSites.map(([site, count]) => (
-                <button
-                  key={site}
-                  onClick={() => handleSourceFilter(site)}
-                  className={cn(
-                    'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
-                    selectedSource === site
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  )}
-                >
-                  {site} ({count})
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Loading state */}
-          {loading && (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          )}
-
-          {/* Results grid */}
-          {!loading && !isUrl && results.length > 0 && (
-            <>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                {results.map((result, index) => (
-                  <SearchResultCard
-                    key={`${result.url}-${index}`}
-                    result={result}
-                    onImport={handleImport}
-                    importing={importing === result.url}
-                  />
-                ))}
-              </div>
-
-              {/* Load more / End of results */}
-              <div className="mt-8 flex justify-center">
-                {hasMore ? (
-                  <button
-                    onClick={handleLoadMore}
-                    disabled={loadingMore}
-                    className="inline-flex items-center gap-2 rounded-lg bg-muted px-6 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80 disabled:opacity-50"
-                  >
-                    {loadingMore ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Loading...
-                      </>
-                    ) : (
-                      'Load More'
-                    )}
-                  </button>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    End of results
-                  </p>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* Empty state */}
-          {!loading && !isUrl && results.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground">
-                No recipes found for "{query}"
-              </p>
-            </div>
-          )}
+          <SearchForm
+            searchInput={search.searchInput}
+            setSearchInput={search.setSearchInput}
+            onSubmit={search.handleSearchSubmit}
+          />
+          <SearchContent {...search} />
         </div>
       </main>
     </div>
+  )
+}
+
+function SearchForm({ searchInput, setSearchInput, onSubmit }: {
+  searchInput: string
+  setSearchInput: (v: string) => void
+  onSubmit: (e: React.FormEvent) => void
+}) {
+  return (
+    <form onSubmit={onSubmit} className="mb-6">
+      <div className="relative">
+        <SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder="Search recipes or paste a URL..."
+          className="w-full rounded-xl border border-border bg-input-background py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+      </div>
+    </form>
+  )
+}
+
+function SearchContent({ query, results, hasMore, sites, selectedSource, setSelectedSource, loading, loadingMore, importing, isUrl, handleLoadMore, handleImport }: ReturnType<typeof useSearch>) {
+  if (isUrl) {
+    return <URLImportCard url={query} importing={importing === query} onImport={handleImport} />
+  }
+
+  const allSourcesCount = Object.values(sites).reduce((sum, n) => sum + n, 0)
+
+  return (
+    <>
+      {!loading && (
+        <p className="mb-4 text-sm text-muted-foreground">
+          {allSourcesCount} {allSourcesCount === 1 ? 'result' : 'results'} found
+        </p>
+      )}
+      <SourceFilterChips sites={sites} selectedSource={selectedSource} onSelectSource={setSelectedSource} />
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : results.length > 0 ? (
+        <SearchResults results={results} hasMore={hasMore} loadingMore={loadingMore} importing={importing} onLoadMore={handleLoadMore} onImport={handleImport} />
+      ) : (
+        <div className="flex flex-col items-center justify-center py-12">
+          <p className="text-muted-foreground">No recipes found for "{query}"</p>
+        </div>
+      )}
+    </>
+  )
+}
+
+function SearchResults({ results, hasMore, loadingMore, importing, onLoadMore, onImport }: {
+  results: SearchResult[]
+  hasMore: boolean
+  loadingMore: boolean
+  importing: string | null
+  onLoadMore: () => void
+  onImport: (url: string) => void
+}) {
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        {results.map((result, index) => (
+          <SearchResultCard key={`${result.url}-${index}`} result={result} onImport={onImport} importing={importing === result.url} />
+        ))}
+      </div>
+      <div className="mt-8 flex justify-center">
+        {hasMore ? (
+          <button onClick={onLoadMore} disabled={loadingMore} className="inline-flex items-center gap-2 rounded-lg bg-muted px-6 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80 disabled:opacity-50">
+            {loadingMore ? (<><Loader2 className="h-4 w-4 animate-spin" />Loading...</>) : 'Load More'}
+          </button>
+        ) : (
+          <p className="text-sm text-muted-foreground">End of results</p>
+        )}
+      </div>
+    </>
   )
 }
 
@@ -276,7 +116,6 @@ function SearchResultCard({
   onImport,
   importing,
 }: SearchResultCardProps) {
-  // Prefer cached image, fallback to external
   const imageUrl = result.cached_image_url || result.image_url
   const [imgError, setImgError] = useState(false)
 

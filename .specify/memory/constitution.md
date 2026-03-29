@@ -124,7 +124,7 @@ functionality. The application MUST be fully usable without any AI configuration
 - When the OpenRouter API key is not configured or API calls fail, AI-dependent
   UI elements MUST be hidden completely — never shown as disabled, greyed out,
   or with error banners.
-- AI prompts are user-customizable via the Settings UI (admin-only in public
+- AI prompts are user-customizable via the Settings UI (admin-only in passkey
   mode). Default prompts are seeded via database migrations.
 - Serving adjustment is AI-only because ingredient parsing is genuinely hard
   (ambiguous quantities, non-scalable instructions). Do not attempt frontend

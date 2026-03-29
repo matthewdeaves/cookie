@@ -10,6 +10,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-28
 - **Testing**: pytest, Vitest 4
 - Python 3.14, TypeScript 5.9, ES5 (legacy) + Django 5.0, Django Ninja 1.0+, py-webauthn 2.x, React 19, Vite 7
 - PostgreSQL 16+ (tables: WebAuthnCredential, DeviceCode for passkey mode)
+- Python 3.14, TypeScript 5.9 + Django 5.0, Django Ninja 1.0+, React 19, Vite 7 (015-reduce-complexity)
+- PostgreSQL 16+ (no changes) (015-reduce-complexity)
 
 ## Project Structure
 
@@ -107,6 +109,7 @@ This project has a constitution at `.specify/memory/constitution.md` that define
 - **Speckit workflow**: Feature specifications, plans, and tasks live in `.specify/` (tracked in git). Use `/speckit.*` commands for structured feature development. The constitution is the source of truth for project values.
 
 ## Recent Changes
+- 015-reduce-complexity: Reduced all backend functions to Radon B rating (CC ≤ 10), all frontend components to ESLint CC ≤ 10 and ≤ 100 lines. Updated privacy policy for passkey mode with source code links. Fixed CSP-blocked inline onclick handlers in legacy frontend.
 - 014-remove-public-auth: Removed public auth mode. Only home and passkey modes remain. Added OPENROUTER_API_KEY env var.
 - 013-passkey-auth: Added passkey authentication mode with WebAuthn and device code pairing
 

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
-import { X, Sparkles, Loader2, Check } from 'lucide-react'
+import { X, Sparkles, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type RecipeDetail } from '../api/client'
 import { cn } from '../lib/utils'
+import SuggestionSelector from './SuggestionSelector'
+import CustomRemixInput from './CustomRemixInput'
 
 interface RemixModalProps {
   recipe: RecipeDetail
@@ -10,6 +12,85 @@ interface RemixModalProps {
   isOpen: boolean
   onClose: () => void
   onRemixCreated: (recipeId: number) => void
+}
+
+interface RemixHeaderProps {
+  onClose: () => void
+  disabled: boolean
+}
+
+function RemixHeader({ onClose, disabled }: RemixHeaderProps) {
+  return (
+    <div className="flex items-center justify-between border-b border-border px-6 py-4">
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-5 w-5 text-primary" />
+        <h2 className="text-lg font-semibold text-foreground">Remix This Recipe</h2>
+      </div>
+      <button
+        onClick={onClose}
+        disabled={disabled}
+        className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      >
+        <X className="h-5 w-5" />
+      </button>
+    </div>
+  )
+}
+
+interface RemixCreateButtonProps {
+  creating: boolean
+  enabled: boolean
+  onClick: () => void
+}
+
+function RemixCreateButton({ creating, enabled, onClick }: RemixCreateButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={!enabled}
+      className={cn(
+        'flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition-colors',
+        enabled
+          ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+          : 'bg-muted text-muted-foreground cursor-not-allowed'
+      )}
+    >
+      {creating ? (
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Creating Remix...
+        </>
+      ) : (
+        <>
+          <Sparkles className="h-4 w-4" />
+          Create Remix
+        </>
+      )}
+    </button>
+  )
+}
+
+function toggleSuggestion(
+  prev: string[],
+  suggestion: string,
+  clearCustom: () => void
+): string[] {
+  if (prev.includes(suggestion)) {
+    return prev.filter((s) => s !== suggestion)
+  }
+  if (prev.length >= 4) {
+    toast.info('You can select up to 4 modifications')
+    return prev
+  }
+  clearCustom()
+  return [...prev, suggestion]
+}
+
+function getModification(customInput: string, selectedSuggestions: string[]): string | null {
+  if (customInput.trim()) return customInput.trim()
+  if (selectedSuggestions.length === 1) return selectedSuggestions[0]
+  if (selectedSuggestions.length > 1) return selectedSuggestions.join(' AND ')
+  return null
 }
 
 export default function RemixModal({
@@ -30,7 +111,6 @@ export default function RemixModal({
     if (isOpen) {
       loadSuggestions()
     } else {
-      // Reset state when modal closes
       setSuggestions([])
       setSelectedSuggestions([])
       setCustomInput('')
@@ -52,53 +132,21 @@ export default function RemixModal({
   }
 
   const handleSuggestionClick = (suggestion: string) => {
-    setSelectedSuggestions((prev) => {
-      if (prev.includes(suggestion)) {
-        // Remove if already selected
-        return prev.filter((s) => s !== suggestion)
-      } else {
-        // Add to selection (limit to 4 to keep remixes focused)
-        if (prev.length >= 4) {
-          toast.info('You can select up to 4 modifications')
-          return prev
-        }
-        // Clear custom input when selecting suggestions
-        setCustomInput('')
-        return [...prev, suggestion]
-      }
-    })
+    setSelectedSuggestions((prev) =>
+      toggleSuggestion(prev, suggestion, () => setCustomInput(''))
+    )
   }
 
   const handleCustomInputChange = (value: string) => {
     setCustomInput(value)
-    if (value.trim()) {
-      // Clear suggestions when typing custom input
-      setSelectedSuggestions([])
-    }
+    if (value.trim()) setSelectedSuggestions([])
   }
 
-  const getModification = () => {
-    if (customInput.trim()) {
-      return customInput.trim()
-    }
-    if (selectedSuggestions.length === 1) {
-      return selectedSuggestions[0]
-    }
-    if (selectedSuggestions.length > 1) {
-      // Combine multiple suggestions into a natural sentence
-      return selectedSuggestions.join(' AND ')
-    }
-    return null
-  }
-
-  const canSubmit = () => {
-    return !creating && (selectedSuggestions.length > 0 || customInput.trim() !== '')
-  }
+  const canSubmit = !creating && (selectedSuggestions.length > 0 || customInput.trim() !== '')
 
   const handleCreateRemix = async () => {
-    const modification = getModification()
+    const modification = getModification(customInput, selectedSuggestions)
     if (!modification) return
-
     setCreating(true)
     try {
       const remix = await api.ai.remix.create(recipe.id, modification, profileId)
@@ -118,111 +166,24 @@ export default function RemixModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="relative w-full max-w-md rounded-xl bg-card shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold text-foreground">Remix This Recipe</h2>
-          </div>
-          <button
-            onClick={onClose}
-            disabled={creating}
-            className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Content */}
+        <RemixHeader onClose={onClose} disabled={creating} />
         <div className="px-6 py-5">
           <p className="mb-4 text-sm text-muted-foreground">
             Choose one or more modifications, or describe your own remix of "{recipe.title}"
           </p>
-
-          {/* AI Suggestions */}
-          <div className="mb-5">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-medium text-foreground">Suggestions</h3>
-              {selectedSuggestions.length > 0 && (
-                <span className="text-xs text-muted-foreground">
-                  {selectedSuggestions.length} selected
-                </span>
-              )}
-            </div>
-            {loadingSuggestions ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                <span className="ml-2 text-sm text-muted-foreground">
-                  Generating suggestions...
-                </span>
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {suggestions.map((suggestion, index) => {
-                  const isSelected = selectedSuggestions.includes(suggestion)
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      disabled={creating}
-                      className={cn(
-                        'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-colors',
-                        isSelected
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-foreground hover:bg-muted/80'
-                      )}
-                    >
-                      {isSelected && <Check className="h-3.5 w-3.5" />}
-                      {suggestion}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Custom Input */}
-          <div className="mb-5">
-            <label
-              htmlFor="custom-remix"
-              className="mb-2 block text-sm font-medium text-foreground"
-            >
-              Or describe your own remix
-            </label>
-            <input
-              id="custom-remix"
-              type="text"
-              value={customInput}
-              onChange={(e) => handleCustomInputChange(e.target.value)}
-              disabled={creating}
-              placeholder="e.g., Make it gluten-free"
-              className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
-            />
-          </div>
-
-          {/* Create Button */}
-          <button
-            onClick={handleCreateRemix}
-            disabled={!canSubmit()}
-            className={cn(
-              'flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition-colors',
-              canSubmit()
-                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                : 'bg-muted text-muted-foreground cursor-not-allowed'
-            )}
-          >
-            {creating ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Creating Remix...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4" />
-                Create Remix
-              </>
-            )}
-          </button>
+          <SuggestionSelector
+            suggestions={suggestions}
+            selectedSuggestions={selectedSuggestions}
+            loadingSuggestions={loadingSuggestions}
+            disabled={creating}
+            onSuggestionClick={handleSuggestionClick}
+          />
+          <CustomRemixInput
+            value={customInput}
+            onChange={handleCustomInputChange}
+            disabled={creating}
+          />
+          <RemixCreateButton creating={creating} enabled={canSubmit} onClick={handleCreateRemix} />
         </div>
       </div>
     </div>

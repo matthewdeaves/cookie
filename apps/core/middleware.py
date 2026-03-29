@@ -74,28 +74,36 @@ class DeviceDetectionMiddleware:
         if not user_agent:
             return False
 
-        # iOS < 11
-        match = self.IOS_PATTERN.search(user_agent)
-        if match:
-            return int(match.group(1)) < 11
+        detectors = [
+            self._is_legacy_ios,
+            self._is_internet_explorer,
+            self._is_edge_legacy,
+            self._is_old_chrome,
+            self._is_old_firefox,
+        ]
+        return any(detect(user_agent) for detect in detectors)
 
-        # Internet Explorer
-        if "MSIE " in user_agent or "Trident/" in user_agent:
-            return True
+    def _is_legacy_ios(self, ua):
+        """iOS < 11 (Safari lacks ES6 module support)."""
+        match = self.IOS_PATTERN.search(ua)
+        return match is not None and int(match.group(1)) < 11
 
-        # Edge Legacy (non-Chromium)
-        if "Edge/" in user_agent and "Edg/" not in user_agent:
-            return True
+    def _is_internet_explorer(self, ua):
+        """Internet Explorer (all versions)."""
+        return "MSIE " in ua or "Trident/" in ua
 
-        # Chrome < 60
-        if "Chrome/" in user_agent and "Edg" not in user_agent and "OPR/" not in user_agent:
-            match = self.CHROME_PATTERN.search(user_agent)
-            if match and int(match.group(1)) < 60:
-                return True
+    def _is_edge_legacy(self, ua):
+        """Edge Legacy (non-Chromium, pre-2020)."""
+        return "Edge/" in ua and "Edg/" not in ua
 
-        # Firefox < 55
-        match = self.FIREFOX_PATTERN.search(user_agent)
-        if match and int(match.group(1)) < 55:
-            return True
+    def _is_old_chrome(self, ua):
+        """Chrome < 60 (excluding Edge and Opera)."""
+        if "Chrome/" not in ua or "Edg" in ua or "OPR/" in ua:
+            return False
+        match = self.CHROME_PATTERN.search(ua)
+        return match is not None and int(match.group(1)) < 60
 
-        return False
+    def _is_old_firefox(self, ua):
+        """Firefox < 55."""
+        match = self.FIREFOX_PATTERN.search(ua)
+        return match is not None and int(match.group(1)) < 55

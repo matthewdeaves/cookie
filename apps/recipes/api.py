@@ -3,6 +3,7 @@ Recipe API endpoints.
 """
 
 import asyncio
+import hashlib
 import logging
 from typing import List, Optional
 
@@ -216,6 +217,73 @@ async def scrape_recipe(request, payload: ScrapeIn):
         return 400, {"detail": str(e)}
 
 
+async def _get_or_fetch_results(query: str) -> list:
+    """Return cached search results, or fetch and cache them."""
+    normalized_query = query.lower().strip()
+    query_hash = hashlib.sha256(normalized_query.encode()).hexdigest()[:16]
+    cache_key = f"search_{query_hash}"
+    cached_all = await sync_to_async(cache.get)(cache_key)
+
+    if cached_all is not None:
+        return cached_all
+
+    search = RecipeSearch()
+    full_results = await search.search(query=query, per_page=10000)
+    all_result_dicts = full_results.get("results", [])
+    await sync_to_async(cache.set)(cache_key, all_result_dicts, settings.SEARCH_CACHE_TIMEOUT)
+    return all_result_dicts
+
+
+def _aggregate_sites(result_dicts: list) -> dict:
+    """Count results per host from the full unfiltered result list."""
+    sites: dict[str, int] = {}
+    for r in result_dicts:
+        sites[r["host"]] = sites.get(r["host"], 0) + 1
+    return sites
+
+
+def _paginate_results(
+    all_results: list,
+    source_list: Optional[list],
+    sites: dict,
+    page: int,
+    per_page: int,
+) -> dict:
+    """Filter by sources, paginate, and return a SearchOut-shaped dict."""
+    filtered = all_results
+    if source_list:
+        filtered = [r for r in filtered if r["host"] in source_list]
+
+    total = len(filtered)
+    start = (page - 1) * per_page
+    end = start + per_page
+
+    return {
+        "results": filtered[start:end],
+        "total": total,
+        "page": page,
+        "has_more": end < total,
+        "sites": sites,
+    }
+
+
+async def _cache_and_map_images(results: list) -> None:
+    """Populate cached_image_url on each result dict, caching as needed."""
+    image_urls = [r["image_url"] for r in results if r.get("image_url")]
+    image_cache = SearchImageCache()
+    cached_urls = await image_cache.get_cached_urls_batch(image_urls)
+
+    uncached_urls = [url for url in image_urls if url not in cached_urls]
+    if uncached_urls:
+        await image_cache.cache_images(uncached_urls)
+        new_cached = await image_cache.get_cached_urls_batch(uncached_urls)
+        cached_urls.update(new_cached)
+
+    for result in results:
+        external_url = result.get("image_url", "")
+        result["cached_image_url"] = cached_urls.get(external_url)
+
+
 @router.get("/search/", response=SearchOut)
 async def search_recipes(
     request,
@@ -240,69 +308,10 @@ async def search_recipes(
     if sources:
         source_list = [s.strip() for s in sources.split(",") if s.strip()]
 
-    # Check global search cache (shared across all profiles)
-    import hashlib
-
-    normalized_query = q.lower().strip()
-    query_hash = hashlib.sha256(normalized_query.encode()).hexdigest()[:16]
-    cache_key = f"search_{query_hash}"
-    cached_all = await sync_to_async(cache.get)(cache_key)
-
-    if cached_all is not None:
-        all_result_dicts = cached_all
-    else:
-        # Cache miss: fetch all results (no source filter, no pagination)
-        search = RecipeSearch()
-        full_results = await search.search(
-            query=q,
-            per_page=10000,
-        )
-
-        # Cache the full unfiltered result list
-        all_result_dicts = full_results.get("results", [])
-        await sync_to_async(cache.set)(cache_key, all_result_dicts, settings.SEARCH_CACHE_TIMEOUT)
-
-    # Always compute sites from full unfiltered results
-    sites = {}
-    for r in all_result_dicts:
-        sites[r["host"]] = sites.get(r["host"], 0) + 1
-
-    # Apply source filtering and pagination for this request
-    filtered = all_result_dicts
-    if source_list:
-        filtered = [r for r in filtered if r["host"] in source_list]
-
-    total = len(filtered)
-    start = (page - 1) * per_page
-    end = start + per_page
-
-    results = {
-        "results": filtered[start:end],
-        "total": total,
-        "page": page,
-        "has_more": end < total,
-        "sites": sites,
-    }
-
-    # Extract image URLs from search results
-    image_urls = [r["image_url"] for r in results["results"] if r.get("image_url")]
-
-    # Look up already-cached images
-    image_cache = SearchImageCache()
-    cached_urls = await image_cache.get_cached_urls_batch(image_urls)
-
-    # Cache uncached images before responding (ensures cached_image_url is populated)
-    uncached_urls = [url for url in image_urls if url not in cached_urls]
-    if uncached_urls:
-        await image_cache.cache_images(uncached_urls)
-        new_cached = await image_cache.get_cached_urls_batch(uncached_urls)
-        cached_urls.update(new_cached)
-
-    # Add cached_image_url to results
-    for result in results["results"]:
-        external_url = result.get("image_url", "")
-        result["cached_image_url"] = cached_urls.get(external_url)
-
+    all_result_dicts = await _get_or_fetch_results(q)
+    sites = _aggregate_sites(all_result_dicts)
+    results = _paginate_results(all_result_dicts, source_list, sites, page, per_page)
+    await _cache_and_map_images(results["results"])
     return results
 
 

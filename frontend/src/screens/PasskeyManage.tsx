@@ -7,6 +7,101 @@ import {
   serializeRegistrationCredential,
 } from '../lib/webauthn'
 
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return 'Never'
+  return new Date(dateStr).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+interface PasskeyCardProps {
+  credential: PasskeyCredential
+  onDelete: (id: number) => void
+}
+
+interface PasskeyListProps {
+  credentials: PasskeyCredential[]
+  error: string
+  adding: boolean
+  onAdd: () => void
+  onDelete: (id: number) => void
+  onBack: () => void
+}
+
+function PasskeyList({ credentials, error, adding, onAdd, onDelete, onBack }: PasskeyListProps) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-foreground">Manage Passkeys</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {credentials.length} passkey{credentials.length !== 1 ? 's' : ''} registered
+          </p>
+        </div>
+
+        {error && (
+          <div role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-300">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {credentials.map((cred) => (
+            <PasskeyCard key={cred.id} credential={cred} onDelete={onDelete} />
+          ))}
+        </div>
+
+        <button
+          onClick={onAdd}
+          disabled={adding}
+          className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50"
+        >
+          {adding ? 'Adding passkey...' : 'Add Passkey'}
+        </button>
+
+        <div className="text-center">
+          <button
+            onClick={onBack}
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Go back
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PasskeyCard({ credential, onDelete }: PasskeyCardProps) {
+  return (
+    <div className="flex items-center justify-between rounded-lg border border-input bg-background p-4">
+      <div>
+        <div className="text-sm font-medium text-foreground">
+          Passkey #{credential.id}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          Added {formatDate(credential.created_at)}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          Last used: {formatDate(credential.last_used_at)}
+        </div>
+      </div>
+      {credential.is_deletable && (
+        <button
+          onClick={() => onDelete(credential.id)}
+          className="rounded-md px-3 py-1 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+        >
+          Delete
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function PasskeyManage() {
   const navigate = useNavigate()
   const [credentials, setCredentials] = useState<PasskeyCredential[]>([])
@@ -75,17 +170,6 @@ export default function PasskeyManage() {
     }
   }
 
-  function formatDate(dateStr: string | null): string {
-    if (!dateStr) return 'Never'
-    return new Date(dateStr).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -95,67 +179,13 @@ export default function PasskeyManage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground">Manage Passkeys</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {credentials.length} passkey{credentials.length !== 1 ? 's' : ''} registered
-          </p>
-        </div>
-
-        {error && (
-          <div role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-300">
-            {error}
-          </div>
-        )}
-
-        <div className="space-y-3">
-          {credentials.map((cred) => (
-            <div
-              key={cred.id}
-              className="flex items-center justify-between rounded-lg border border-input bg-background p-4"
-            >
-              <div>
-                <div className="text-sm font-medium text-foreground">
-                  Passkey #{cred.id}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Added {formatDate(cred.created_at)}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Last used: {formatDate(cred.last_used_at)}
-                </div>
-              </div>
-              {cred.is_deletable && (
-                <button
-                  onClick={() => handleDelete(cred.id)}
-                  className="rounded-md px-3 py-1 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                >
-                  Delete
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <button
-          onClick={handleAdd}
-          disabled={adding}
-          className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50"
-        >
-          {adding ? 'Adding passkey...' : 'Add Passkey'}
-        </button>
-
-        <div className="text-center">
-          <button
-            onClick={() => navigate(-1)}
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            Go back
-          </button>
-        </div>
-      </div>
-    </div>
+    <PasskeyList
+      credentials={credentials}
+      error={error}
+      adding={adding}
+      onAdd={handleAdd}
+      onDelete={handleDelete}
+      onBack={() => navigate(-1)}
+    />
   )
 }

@@ -89,6 +89,48 @@ FRACTION_MAP = [
 ]
 
 
+def _split_whole_and_fraction(value: float, tolerance: float) -> tuple[int, float] | None:
+    """Split value into whole and fractional parts, handling edge cases.
+
+    Returns None if the value resolves to a whole number (or rounds up to one).
+    Otherwise returns (whole_part, fractional_part).
+    """
+    whole = int(value)
+    frac = value - whole
+    if frac < tolerance:
+        return None  # essentially whole
+    if frac > (1 - tolerance):
+        return None  # rounds up to next whole
+    return whole, frac
+
+
+def _find_closest_fraction(frac: float, tolerance: float) -> str | None:
+    """Find the closest common fraction string within tolerance.
+
+    Falls back to Python's Fraction with denominator limit if no map entry
+    matches.
+    """
+    candidates = [(abs(frac - target), string) for target, string in FRACTION_MAP]
+    best_diff, best_str = min(candidates, key=lambda c: c[0])
+    if best_diff < tolerance:
+        return best_str
+
+    try:
+        f = Fraction(frac).limit_denominator(8)
+        if f.numerator > 0 and f.denominator <= 8:
+            return f"{f.numerator}/{f.denominator}"
+    except (ValueError, ZeroDivisionError):
+        pass
+    return None
+
+
+def _format_fraction_result(whole: int, frac_str: str | None, value: float) -> str:
+    """Combine whole number and fraction string into final display value."""
+    if frac_str:
+        return f"{whole} {frac_str}" if whole > 0 else frac_str
+    return f"{value:.2f}".rstrip("0").rstrip(".")
+
+
 def decimal_to_fraction(value: float, tolerance: float = 0.05) -> str:
     """Convert a decimal to a common fraction string.
 
@@ -102,46 +144,14 @@ def decimal_to_fraction(value: float, tolerance: float = 0.05) -> str:
     if value <= 0:
         return str(value)
 
-    # Split into whole and fractional parts
-    whole = int(value)
-    frac = value - whole
+    parts = _split_whole_and_fraction(value, tolerance)
+    if parts is None:
+        whole_rounded = int(value) if (value - int(value)) < tolerance else int(value) + 1
+        return str(whole_rounded) if whole_rounded > 0 else "0"
 
-    # If it's essentially a whole number, return it
-    if frac < tolerance:
-        return str(whole) if whole > 0 else "0"
-
-    # If fractional part is close to 1, round up
-    if frac > (1 - tolerance):
-        return str(whole + 1)
-
-    # Find the CLOSEST matching fraction (not just first within tolerance)
-    frac_str = None
-    best_diff = tolerance
-    for target, string in FRACTION_MAP:
-        diff = abs(frac - target)
-        if diff < best_diff:
-            best_diff = diff
-            frac_str = string
-
-    # If no match found, try Python's Fraction with limit
-    if frac_str is None:
-        try:
-            f = Fraction(frac).limit_denominator(8)
-            if f.numerator > 0 and f.denominator <= 8:
-                frac_str = f"{f.numerator}/{f.denominator}"
-        except (ValueError, ZeroDivisionError):
-            pass
-
-    # Build the result
-    if frac_str:
-        if whole > 0:
-            return f"{whole} {frac_str}"
-        return frac_str
-
-    # No fraction match - return rounded decimal
-    if whole > 0:
-        return f"{value:.2f}".rstrip("0").rstrip(".")
-    return f"{value:.2f}".rstrip("0").rstrip(".")
+    whole, frac = parts
+    frac_str = _find_closest_fraction(frac, tolerance)
+    return _format_fraction_result(whole, frac_str, value)
 
 
 def tidy_ingredient(ingredient: str) -> str:

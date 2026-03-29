@@ -53,6 +53,101 @@ def _format_time(minutes: int | None) -> str:
     return f"{minutes} minutes"
 
 
+def _build_result(recipe, target_servings, adjustment, cached: bool) -> dict:
+    """Build the standard result dict from a ServingAdjustment-like object."""
+    return {
+        "target_servings": target_servings,
+        "original_servings": recipe.servings,
+        "ingredients": adjustment["ingredients"],
+        "instructions": adjustment["instructions"],
+        "notes": adjustment["notes"],
+        "prep_time_adjusted": adjustment["prep_time_adjusted"],
+        "cook_time_adjusted": adjustment["cook_time_adjusted"],
+        "total_time_adjusted": adjustment["total_time_adjusted"],
+        "cached": cached,
+    }
+
+
+def _get_cached(recipe, profile, target_servings, unit_system) -> dict | None:
+    """Return cached adjustment as a dict, or None if not cached."""
+    try:
+        cached = ServingAdjustment.objects.get(
+            recipe=recipe,
+            profile=profile,
+            target_servings=target_servings,
+            unit_system=unit_system,
+        )
+        return {
+            "ingredients": cached.ingredients,
+            "instructions": cached.instructions,
+            "notes": cached.notes,
+            "prep_time_adjusted": cached.prep_time_adjusted,
+            "cook_time_adjusted": cached.cook_time_adjusted,
+            "total_time_adjusted": cached.total_time_adjusted,
+        }
+    except ServingAdjustment.DoesNotExist:
+        return None
+
+
+def _get_instructions_list(recipe) -> list[str]:
+    """Extract instructions as a list of steps from recipe fields (QA-031)."""
+    if recipe.instructions:
+        return recipe.instructions
+    if recipe.instructions_text:
+        return [s.strip() for s in recipe.instructions_text.split("\n") if s.strip()]
+    return []
+
+
+def _format_recipe_data(recipe) -> tuple[str, str]:
+    """Format recipe ingredients and instructions as prompt strings."""
+    ingredients_str = "\n".join(f"- {ing}" for ing in recipe.ingredients)
+
+    steps = _get_instructions_list(recipe)
+    instructions_str = "\n".join(f"{i + 1}. {step}" for i, step in enumerate(steps))
+    if not instructions_str:
+        instructions_str = "No instructions available"
+
+    return ingredients_str, instructions_str
+
+
+def _call_ai_and_validate(recipe, target_servings, ingredients_str, instructions_str) -> dict:
+    """Call AI service, validate response, and return parsed adjustment data."""
+    prompt = AIPrompt.get_prompt("serving_adjustment")
+
+    # Format the user prompt (QA-031 + QA-032)
+    user_prompt = prompt.format_user_prompt(
+        title=recipe.title,
+        original_servings=recipe.servings,
+        ingredients=ingredients_str,
+        instructions=instructions_str,
+        prep_time=_format_time(recipe.prep_time),
+        cook_time=_format_time(recipe.cook_time),
+        total_time=_format_time(recipe.total_time),
+        new_servings=target_servings,
+    )
+
+    service = OpenRouterService()
+    response = service.complete(
+        system_prompt=prompt.system_prompt,
+        user_prompt=user_prompt,
+        model=prompt.model,
+        json_response=True,
+    )
+
+    validator = AIResponseValidator()
+    validated = validator.validate("serving_adjustment", response)
+
+    # Tidy ingredient quantities (convert decimals to fractions) - QA-029
+    return {
+        "ingredients": tidy_quantities(validated["ingredients"]),
+        "instructions": validated.get("instructions", []),
+        "notes": validated.get("notes", []),
+        "prep_time_adjusted": _parse_time(validated.get("prep_time")),
+        "cook_time_adjusted": _parse_time(validated.get("cook_time")),
+        "total_time_adjusted": _parse_time(validated.get("total_time")),
+    }
+
+
 def scale_recipe(
     recipe_id: int,
     target_servings: int,
@@ -85,77 +180,15 @@ def scale_recipe(
     if target_servings < 1:
         raise ValueError("Target servings must be at least 1")
 
-    # Check for cached adjustment
-    try:
-        cached = ServingAdjustment.objects.get(
-            recipe=recipe,
-            profile=profile,
-            target_servings=target_servings,
-            unit_system=unit_system,
-        )
+    # Return cached result if available
+    cached = _get_cached(recipe, profile, target_servings, unit_system)
+    if cached is not None:
         logger.info(f"Returning cached adjustment for recipe {recipe_id}")
-        return {
-            "target_servings": target_servings,
-            "original_servings": recipe.servings,
-            "ingredients": cached.ingredients,
-            "instructions": cached.instructions,  # QA-031
-            "notes": cached.notes,
-            "prep_time_adjusted": cached.prep_time_adjusted,  # QA-032
-            "cook_time_adjusted": cached.cook_time_adjusted,  # QA-032
-            "total_time_adjusted": cached.total_time_adjusted,  # QA-032
-            "cached": True,
-        }
-    except ServingAdjustment.DoesNotExist:
-        pass
+        return _build_result(recipe, target_servings, cached, cached=True)
 
-    # Get the serving_adjustment prompt
-    prompt = AIPrompt.get_prompt("serving_adjustment")
-
-    # Format ingredients as a string
-    ingredients_str = "\n".join(f"- {ing}" for ing in recipe.ingredients)
-
-    # Format instructions as a string (QA-031)
-    instructions = recipe.instructions or []
-    if not instructions and recipe.instructions_text:
-        instructions = [s.strip() for s in recipe.instructions_text.split("\n") if s.strip()]
-    instructions_str = "\n".join(f"{i + 1}. {step}" for i, step in enumerate(instructions))
-    if not instructions_str:
-        instructions_str = "No instructions available"
-
-    # Format the user prompt with new fields (QA-031 + QA-032)
-    user_prompt = prompt.format_user_prompt(
-        title=recipe.title,
-        original_servings=recipe.servings,
-        ingredients=ingredients_str,
-        instructions=instructions_str,
-        prep_time=_format_time(recipe.prep_time),
-        cook_time=_format_time(recipe.cook_time),
-        total_time=_format_time(recipe.total_time),
-        new_servings=target_servings,
-    )
-
-    # Call AI service
-    service = OpenRouterService()
-    response = service.complete(
-        system_prompt=prompt.system_prompt,
-        user_prompt=user_prompt,
-        model=prompt.model,
-        json_response=True,
-    )
-
-    # Validate response
-    validator = AIResponseValidator()
-    validated = validator.validate("serving_adjustment", response)
-
-    # Tidy ingredient quantities (convert decimals to fractions) - QA-029
-    ingredients = tidy_quantities(validated["ingredients"])
-    scaled_instructions = validated.get("instructions", [])  # QA-031
-    notes = validated.get("notes", [])
-
-    # Parse time adjustments (QA-032)
-    prep_time_adjusted = _parse_time(validated.get("prep_time"))
-    cook_time_adjusted = _parse_time(validated.get("cook_time"))
-    total_time_adjusted = _parse_time(validated.get("total_time"))
+    # Generate new adjustment via AI
+    ingredients_str, instructions_str = _format_recipe_data(recipe)
+    adjustment = _call_ai_and_validate(recipe, target_servings, ingredients_str, instructions_str)
 
     # Cache the result
     ServingAdjustment.objects.create(
@@ -163,27 +196,12 @@ def scale_recipe(
         profile=profile,
         target_servings=target_servings,
         unit_system=unit_system,
-        ingredients=ingredients,
-        instructions=scaled_instructions,  # QA-031
-        notes=notes,
-        prep_time_adjusted=prep_time_adjusted,  # QA-032
-        cook_time_adjusted=cook_time_adjusted,  # QA-032
-        total_time_adjusted=total_time_adjusted,  # QA-032
+        **adjustment,
     )
 
     logger.info(f"Created serving adjustment for recipe {recipe_id} to {target_servings} servings")
 
-    return {
-        "target_servings": target_servings,
-        "original_servings": recipe.servings,
-        "ingredients": ingredients,
-        "instructions": scaled_instructions,  # QA-031
-        "notes": notes,
-        "prep_time_adjusted": prep_time_adjusted,  # QA-032
-        "cook_time_adjusted": cook_time_adjusted,  # QA-032
-        "total_time_adjusted": total_time_adjusted,  # QA-032
-        "cached": False,
-    }
+    return _build_result(recipe, target_servings, adjustment, cached=False)
 
 
 def calculate_nutrition(

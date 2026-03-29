@@ -118,6 +118,63 @@ function NutritionTab({ recipe }: { recipe: RecipeDetail }) {
   )
 }
 
+function TipsLoadingState({ subtitle }: { subtitle?: string }) {
+  return (
+    <div className="text-center">
+      <Sparkles className="mx-auto mb-3 h-8 w-8 animate-pulse text-primary" />
+      <p className="text-foreground">Generating cooking tips...</p>
+      {subtitle && (
+        <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
+      )}
+    </div>
+  )
+}
+
+function TipsEmptyState({
+  aiAvailable,
+  onGenerateTips,
+}: {
+  aiAvailable?: boolean
+  onGenerateTips: (regenerate: boolean) => void
+}) {
+  return (
+    <div className="text-center">
+      <Sparkles className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+      <p className="mb-2 text-foreground">No cooking tips yet</p>
+      {aiAvailable ? (
+        <button
+          onClick={() => onGenerateTips(false)}
+          className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          Generate Tips
+        </button>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Configure an API key in settings to enable AI-generated tips
+        </p>
+      )}
+    </div>
+  )
+}
+
+function ScalingNotesSection({ notes }: { notes: string[] }) {
+  if (notes.length === 0) return null
+
+  return (
+    <div className="rounded-lg bg-accent/10 p-3">
+      <h4 className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
+        <Sparkles className="h-4 w-4 text-accent" />
+        Scaling Notes
+      </h4>
+      <ul className="space-y-1 text-sm text-muted-foreground">
+        {notes.map((note, index) => (
+          <li key={index}>• {note}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 function TipsTab({
   tips,
   scalingNotes,
@@ -133,66 +190,22 @@ function TipsTab({
   polling: boolean
   onGenerateTips: (regenerate: boolean) => void
 }) {
-  if (loading) {
-    return (
-      <div className="text-center">
-        <Sparkles className="mx-auto mb-3 h-8 w-8 animate-pulse text-primary" />
-        <p className="text-foreground">Generating cooking tips...</p>
-      </div>
-    )
-  }
+  if (loading) return <TipsLoadingState />
 
   const hasTips = tips.length > 0
   const hasContent = hasTips || scalingNotes.length > 0
 
   if (!hasContent && polling) {
-    return (
-      <div className="text-center">
-        <Sparkles className="mx-auto mb-3 h-8 w-8 animate-pulse text-primary" />
-        <p className="text-foreground">Generating cooking tips...</p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Tips are being generated in the background
-        </p>
-      </div>
-    )
+    return <TipsLoadingState subtitle="Tips are being generated in the background" />
   }
 
   if (!hasContent) {
-    return (
-      <div className="text-center">
-        <Sparkles className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-        <p className="mb-2 text-foreground">No cooking tips yet</p>
-        {aiAvailable ? (
-          <button
-            onClick={() => onGenerateTips(false)}
-            className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Generate Tips
-          </button>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            Configure an API key in settings to enable AI-generated tips
-          </p>
-        )}
-      </div>
-    )
+    return <TipsEmptyState aiAvailable={aiAvailable} onGenerateTips={onGenerateTips} />
   }
 
   return (
     <div className="space-y-4">
-      {scalingNotes.length > 0 && (
-        <div className="rounded-lg bg-accent/10 p-3">
-          <h4 className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
-            <Sparkles className="h-4 w-4 text-accent" />
-            Scaling Notes
-          </h4>
-          <ul className="space-y-1 text-sm text-muted-foreground">
-            {scalingNotes.map((note, index) => (
-              <li key={index}>• {note}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <ScalingNotesSection notes={scalingNotes} />
 
       {hasTips && (
         <ol className="space-y-3">

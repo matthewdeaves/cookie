@@ -75,37 +75,60 @@ class RecipeSearch:
                 - has_more: Whether more results exist
                 - sites: Dict mapping host to result count
         """
-        from apps.recipes.models import SearchSource
-
-        # Get enabled sources
-        get_sources = sync_to_async(lambda: list(SearchSource.objects.filter(is_enabled=True)))
-        enabled_sources = await get_sources()
-
-        # Filter by requested sources if specified
-        if sources:
-            enabled_sources = [s for s in enabled_sources if s.host in sources]
+        enabled_sources = await self._get_enabled_sources(sources)
 
         if not enabled_sources:
-            return {
-                "results": [],
-                "total": 0,
-                "page": page,
-                "has_more": False,
-                "sites": {},
-            }
+            return self._empty_response(page)
 
-        # Create semaphore for concurrency control
+        results_by_source = await self._fetch_all_sources(enabled_sources, query)
+        all_results, site_counts = await self._aggregate_results(
+            enabled_sources,
+            results_by_source,
+        )
+
+        result_dicts = self._deduplicate_and_convert(all_results)
+        result_dicts = self._filter_relevant(query, result_dicts)
+        if result_dicts:
+            result_dicts = await self._apply_ai_ranking(query, result_dicts)
+
+        return self._paginate(result_dicts, page, per_page, site_counts)
+
+    async def _get_enabled_sources(self, sources: Optional[list[str]] = None) -> list:
+        """Load enabled search sources, optionally filtered by host name."""
+        from apps.recipes.models import SearchSource
+
+        get_sources = sync_to_async(lambda: list(SearchSource.objects.filter(is_enabled=True)))
+        enabled = await get_sources()
+        if sources:
+            enabled = [s for s in enabled if s.host in sources]
+        return enabled
+
+    @staticmethod
+    def _empty_response(page: int) -> dict:
+        """Return an empty search response."""
+        return {
+            "results": [],
+            "total": 0,
+            "page": page,
+            "has_more": False,
+            "sites": {},
+        }
+
+    async def _fetch_all_sources(self, enabled_sources: list, query: str) -> list:
+        """Search all sources concurrently and return raw results."""
         semaphore = asyncio.Semaphore(self.MAX_CONCURRENT)
-
-        # Search all sources concurrently with a random browser profile
-        # Individual sources will retry with fallback profiles if needed
         primary_profile = get_random_profile()
 
         async with AsyncSession(impersonate=primary_profile) as session:
             tasks = [self._search_source(session, semaphore, source, query) for source in enabled_sources]
-            results_by_source = await asyncio.gather(*tasks, return_exceptions=True)
+            return await asyncio.gather(*tasks, return_exceptions=True)
 
-        # Aggregate results
+    async def _aggregate_results(
+        self,
+        enabled_sources: list,
+        results_by_source: list,
+    ) -> tuple[list["SearchResult"], dict[str, int]]:
+        """Aggregate per-source results, recording successes and failures."""
         all_results: list[SearchResult] = []
         site_counts: dict[str, int] = {}
 
@@ -119,44 +142,41 @@ class RecipeSearch:
             all_results.extend(result)
             await self._record_success(source)
 
-        # Deduplicate by URL
-        seen_urls = set()
-        unique_results = []
-        for r in all_results:
+        return all_results, site_counts
+
+    @staticmethod
+    def _deduplicate_and_convert(results: list["SearchResult"]) -> list[dict]:
+        """Deduplicate results by URL and convert to dict format for ranking."""
+        seen_urls: set[str] = set()
+        unique: list[dict] = []
+        for r in results:
             if r.url not in seen_urls:
                 seen_urls.add(r.url)
-                unique_results.append(r)
+                unique.append(
+                    {
+                        "url": r.url,
+                        "title": r.title,
+                        "host": r.host,
+                        "image_url": r.image_url,
+                        "description": r.description,
+                        "rating_count": r.rating_count,
+                    }
+                )
+        return unique
 
-        # Convert to dict format for ranking
-        result_dicts = [
-            {
-                "url": r.url,
-                "title": r.title,
-                "host": r.host,
-                "image_url": r.image_url,
-                "description": r.description,
-                "rating_count": r.rating_count,
-            }
-            for r in unique_results
-        ]
-
-        # Filter out irrelevant results — if no query terms appear in a
-        # result's title, it's not relevant. This prevents nonsensical
-        # queries from returning unrelated results.
-        result_dicts = self._filter_relevant(query, result_dicts)
-
-        # Apply AI ranking (optional, skips if unavailable)
-        if result_dicts:
-            result_dicts = await self._apply_ai_ranking(query, result_dicts)
-
-        # Paginate
+    @staticmethod
+    def _paginate(
+        result_dicts: list[dict],
+        page: int,
+        per_page: int,
+        site_counts: dict[str, int],
+    ) -> dict:
+        """Paginate results and build the final response dict."""
         total = len(result_dicts)
         start = (page - 1) * per_page
         end = start + per_page
-        paginated = result_dicts[start:end]
-
         return {
-            "results": paginated,
+            "results": result_dicts[start:end],
             "total": total,
             "page": page,
             "has_more": end < total,
@@ -209,55 +229,75 @@ class RecipeSearch:
         to avoid bot detection patterns.
         """
         async with semaphore:
-            # Add randomized delay to avoid pattern detection
             await asyncio.sleep(get_random_delay())
-
             search_url = source.search_url_template.replace("{query}", quote_plus(query))
+            profiles_to_try = self._build_profile_list(session)
 
-            # Try with current session first, then retry with fallback profiles
             last_error = None
-            profiles_to_try = [None]  # None = use session's existing profile
-            profiles_to_try.extend(
-                get_fallback_profiles(exclude=session._impersonate if hasattr(session, "_impersonate") else None)
-            )
-
-            for i, profile in enumerate(profiles_to_try[:3]):  # Max 3 attempts
+            for i, profile in enumerate(profiles_to_try[:3]):
                 if i > 0:
-                    # Backoff delay between retries
                     await asyncio.sleep(get_random_delay() * (i + 1))
-
-                try:
-                    if profile:
-                        async with AsyncSession(impersonate=profile) as retry_session:
-                            response = await self._fetch_url(retry_session, search_url)
-                    else:
-                        response = await self._fetch_url(session, search_url)
-
-                    if response.status_code == 200:
-                        return self._parse_search_results(
-                            response.text,
-                            source.host,
-                            source.result_selector,
-                            search_url,
-                        )
-
-                    last_error = Exception(f"HTTP {response.status_code}")
-                    # Only retry on potentially transient errors (403, 404, 429, 5xx)
-                    if response.status_code not in (403, 404, 429) and response.status_code < 500:
-                        raise last_error
-
-                except asyncio.TimeoutError:
-                    last_error = Exception("Request timed out")
-                except Exception as e:
-                    if last_error is None:
-                        last_error = e
-                    # Don't retry non-transient errors
-                    if "HTTP" in str(e) and not any(
-                        code in str(e) for code in ("403", "404", "429", "500", "502", "503")
-                    ):
-                        raise
+                result, error = await self._try_fetch_and_parse(
+                    session,
+                    search_url,
+                    profile,
+                    source,
+                )
+                if result is not None:
+                    return result
+                last_error = error or last_error
 
             raise last_error or Exception("All retry attempts failed")
+
+    async def _try_fetch_and_parse(self, session, url, profile, source):
+        """Attempt a single fetch+parse. Returns (results, None) or (None, error)."""
+        try:
+            response = await self._fetch_with_profile(session, url, profile)
+            if response.status_code == 200:
+                return self._parse_search_results(
+                    response.text,
+                    source.host,
+                    source.result_selector,
+                    url,
+                ), None
+            error = Exception(f"HTTP {response.status_code}")
+            if not self._should_retry_status(response.status_code):
+                raise error
+            return None, error
+        except asyncio.TimeoutError:
+            return None, Exception("Request timed out")
+        except Exception as e:
+            if not self._should_retry_error(e):
+                raise
+            return None, e
+
+    @staticmethod
+    def _build_profile_list(session):
+        """Build ordered list of browser profiles to try."""
+        current = session._impersonate if hasattr(session, "_impersonate") else None
+        profiles = [None]  # None = use session's existing profile
+        profiles.extend(get_fallback_profiles(exclude=current))
+        return profiles
+
+    async def _fetch_with_profile(self, session: AsyncSession, url: str, profile):
+        """Fetch a URL, using a new session with the given profile or the existing session."""
+        if profile:
+            async with AsyncSession(impersonate=profile) as retry_session:
+                return await self._fetch_url(retry_session, url)
+        return await self._fetch_url(session, url)
+
+    @staticmethod
+    def _should_retry_status(status_code: int) -> bool:
+        """Return True if the HTTP status code is transient and worth retrying."""
+        return status_code in (403, 404, 429) or status_code >= 500
+
+    @staticmethod
+    def _should_retry_error(error: Exception) -> bool:
+        """Return True if the exception represents a transient error worth retrying."""
+        error_str = str(error)
+        if "HTTP" not in error_str:
+            return True
+        return any(code in error_str for code in ("403", "404", "429", "500", "502", "503"))
 
     async def _fetch_url(self, session: AsyncSession, url: str):
         """Fetch a URL with timeout handling."""

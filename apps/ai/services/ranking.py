@@ -40,6 +40,67 @@ def _sort_by_image(results: list[dict]) -> list[dict]:
     return sorted(valid_results, key=lambda r: 0 if r.get("image_url") else 1)
 
 
+def _prepare_results(results: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Split results into a rankable batch and remainder.
+
+    Limits the AI ranking prompt to 40 results for manageable prompt size.
+    """
+    results_to_rank = results[:40]
+    remaining = results[40:]
+    return results_to_rank, remaining
+
+
+def _build_ranking_prompt(query: str, results_to_rank: list[dict]) -> tuple[Any, str]:
+    """Build the AI ranking prompt from results.
+
+    Returns:
+        Tuple of (AIPrompt, formatted user prompt string).
+
+    Raises:
+        AIPrompt.DoesNotExist: If search_ranking prompt is not configured.
+    """
+    prompt = AIPrompt.get_prompt("search_ranking")
+
+    results_text = "\n".join(
+        f'{i}. "{r.get("title", "Unknown")}" from {r.get("host", "unknown")} '
+        f"- {r.get('description', 'No description')[:100]}"
+        f"{' [has image]' if r.get('image_url') else ''}"
+        for i, r in enumerate(results_to_rank)
+    )
+
+    user_prompt = prompt.format_user_prompt(
+        query=query,
+        results=results_text,
+        count=len(results_to_rank),
+    )
+    return prompt, user_prompt
+
+
+def _rank_with_ai(prompt: Any, user_prompt: str, results_to_rank: list[dict], remaining: list[dict]) -> list[dict]:
+    """Call OpenRouter to rank results and merge with remainder.
+
+    Raises:
+        AIUnavailableError, AIResponseError, ValidationError: On AI failures.
+    """
+    service = OpenRouterService()
+    response = service.complete(
+        system_prompt=prompt.system_prompt,
+        user_prompt=user_prompt,
+        model=prompt.model,
+        json_response=True,
+    )
+
+    validator = AIResponseValidator()
+    ranking = validator.validate("search_ranking", response)
+    ranked_results = _apply_ranking(results_to_rank, ranking)
+
+    if remaining:
+        remaining_sorted = sorted(remaining, key=lambda r: 0 if r.get("image_url") else 1)
+        ranked_results.extend(remaining_sorted)
+
+    return ranked_results
+
+
 def rank_results(query: str, results: list[dict]) -> list[dict]:
     """Rank search results using AI.
 
@@ -61,68 +122,24 @@ def rank_results(query: str, results: list[dict]) -> list[dict]:
         This function is non-blocking and will gracefully fall back
         to the original order if AI is unavailable or errors occur.
     """
-    # Filter out results without titles first (QA-053)
     results = _filter_valid(results)
 
     if not results or len(results) <= 1:
         return results
 
-    # Check if ranking is available
     if not is_ranking_available():
         logger.debug("AI ranking skipped: No API key configured, using image-first sorting")
         return _sort_by_image(results)
 
     try:
-        prompt = AIPrompt.get_prompt("search_ranking")
+        results_to_rank, remaining = _prepare_results(results)
+        prompt, user_prompt = _build_ranking_prompt(query, results_to_rank)
+        ranked_results = _rank_with_ai(prompt, user_prompt, results_to_rank, remaining)
+        logger.info(f'AI ranked {len(results_to_rank)} results for query "{query}"')
+        return ranked_results
     except AIPrompt.DoesNotExist:
         logger.warning("search_ranking prompt not found, using image-first sorting")
         return _sort_by_image(results)
-
-    # Format results for the AI
-    # Limit to first 40 results to keep prompt size manageable
-    results_to_rank = results[:40]
-    remaining = results[40:] if len(results) > 40 else []
-
-    results_text = "\n".join(
-        f'{i}. "{r.get("title", "Unknown")}" from {r.get("host", "unknown")} '
-        f"- {r.get('description', 'No description')[:100]}"
-        f"{' [has image]' if r.get('image_url') else ''}"
-        for i, r in enumerate(results_to_rank)
-    )
-
-    user_prompt = prompt.format_user_prompt(
-        query=query,
-        results=results_text,
-        count=len(results_to_rank),
-    )
-
-    try:
-        service = OpenRouterService()
-        response = service.complete(
-            system_prompt=prompt.system_prompt,
-            user_prompt=user_prompt,
-            model=prompt.model,
-            json_response=True,
-        )
-
-        # Validate response - expects array of integers (indices)
-        validator = AIResponseValidator()
-        ranking = validator.validate("search_ranking", response)
-
-        # Apply ranking
-        ranked_results = _apply_ranking(results_to_rank, ranking)
-
-        # Sort remaining results to prioritize those with images
-        if remaining:
-            remaining_sorted = sorted(
-                remaining,
-                key=lambda r: 0 if r.get("image_url") else 1,
-            )
-            ranked_results.extend(remaining_sorted)
-
-        logger.info(f'AI ranked {len(results_to_rank)} results for query "{query}"')
-        return ranked_results
-
     except (AIUnavailableError, AIResponseError, ValidationError) as e:
         logger.warning(f'AI ranking failed for query "{query}": {e}, using image-first sorting')
         return _sort_by_image(results)

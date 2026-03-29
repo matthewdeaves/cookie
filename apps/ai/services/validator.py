@@ -1,5 +1,6 @@
 """AI response schema validation using jsonschema library."""
 
+import re
 from typing import Any
 
 import jsonschema
@@ -166,36 +167,49 @@ class AIResponseValidator:
         """Convert a jsonschema ValidationError to a human-readable message."""
         path = "response" + "".join(f"[{p}]" if isinstance(p, int) else f".{p}" for p in error.absolute_path)
 
-        # Handle different error types with user-friendly messages
-        if error.validator == "required":
-            # error.message is like "'ingredients' is a required property"
-            # Extract the field name from the message
-            import re
+        formatters = {
+            "required": self._format_required,
+            "type": self._format_type,
+            "minItems": self._format_min_items,
+            "maxItems": self._format_max_items,
+        }
 
-            match = re.search(r"'([^']+)' is a required property", error.message)
-            if match:
-                return f'{path}: missing required field "{match.group(1)}"'
-            # Fallback: find which field is actually missing
-            for field in error.validator_value:
-                if field not in error.instance:
-                    return f'{path}: missing required field "{field}"'
-            return f"{path}: {error.message}"
-
-        elif error.validator == "type":
-            expected = error.validator_value
-            if isinstance(expected, list):
-                expected = " or ".join(expected)
-            actual = type(error.instance).__name__
-            return f"{path}: expected {expected}, got {actual}"
-
-        elif error.validator == "minItems":
-            return f"{path}: expected at least {error.validator_value} items, got {len(error.instance)}"
-
-        elif error.validator == "maxItems":
-            return f"{path}: expected at most {error.validator_value} items, got {len(error.instance)}"
-
+        formatter = formatters.get(error.validator)
+        if formatter:
+            return formatter(path, error)
         # Fallback to the default jsonschema message
         return f"{path}: {error.message}"
+
+    @staticmethod
+    def _format_required(path: str, error: jsonschema.ValidationError) -> str:
+        """Format a 'required' validation error."""
+        match = re.search(r"'([^']+)' is a required property", error.message)
+        if match:
+            return f'{path}: missing required field "{match.group(1)}"'
+        # Fallback: find which field is actually missing
+        for field in error.validator_value:
+            if field not in error.instance:
+                return f'{path}: missing required field "{field}"'
+        return f"{path}: {error.message}"
+
+    @staticmethod
+    def _format_type(path: str, error: jsonschema.ValidationError) -> str:
+        """Format a 'type' validation error."""
+        expected = error.validator_value
+        if isinstance(expected, list):
+            expected = " or ".join(expected)
+        actual = type(error.instance).__name__
+        return f"{path}: expected {expected}, got {actual}"
+
+    @staticmethod
+    def _format_min_items(path: str, error: jsonschema.ValidationError) -> str:
+        """Format a 'minItems' validation error."""
+        return f"{path}: expected at least {error.validator_value} items, got {len(error.instance)}"
+
+    @staticmethod
+    def _format_max_items(path: str, error: jsonschema.ValidationError) -> str:
+        """Format a 'maxItems' validation error."""
+        return f"{path}: expected at most {error.validator_value} items, got {len(error.instance)}"
 
     def get_schema(self, prompt_type: str) -> dict | None:
         """Get the schema for a prompt type."""

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, type ReactNode } from 'react'
 import {
   Bot,
   AlertTriangle,
@@ -10,19 +10,10 @@ import {
   Key,
   Smartphone,
 } from 'lucide-react'
-import { toast } from 'sonner'
-import {
-  api,
-  type AIPrompt,
-  type AIModel,
-  type AIStatus,
-  type Source,
-  type ProfileWithStats,
-} from '../api/client'
-import { cn } from '../lib/utils'
 import { useProfile } from '../contexts/ProfileContext'
 import { useMode } from '../router'
 import { useAuth } from '../contexts/AuthContext'
+import { useSettingsData } from '../hooks/useSettingsData'
 import NavHeader from '../components/NavHeader'
 import DeviceCodeEntry from '../components/DeviceCodeEntry'
 import SettingsPasskeys from '../components/settings/SettingsPasskeys'
@@ -34,6 +25,7 @@ import {
   SettingsUsers,
   SettingsDanger,
 } from '../components/settings'
+import SettingsTabNav, { type TabConfig } from './components/SettingsTabNav'
 
 type Tab = 'general' | 'passkeys' | 'pair-device' | 'prompts' | 'sources' | 'selectors' | 'users' | 'danger'
 
@@ -46,232 +38,93 @@ function useIsAdmin(): boolean {
   return true
 }
 
+function buildTabConfig(mode: string, isAdmin: boolean): TabConfig<Tab>[] {
+  return [
+    { id: 'general', label: 'General', icon: SettingsIcon, visible: true },
+    { id: 'passkeys', label: 'Passkeys', icon: Key, visible: mode === 'passkey' },
+    { id: 'pair-device', label: 'Pair Device', icon: Smartphone, visible: mode === 'passkey' },
+    { id: 'prompts', label: 'AI Prompts', icon: Bot, visible: isAdmin },
+    { id: 'sources', label: 'Sources', icon: Globe, visible: isAdmin },
+    { id: 'selectors', label: 'Selectors', icon: Code, visible: isAdmin },
+    { id: 'users', label: 'Users', icon: Users, visible: isAdmin },
+    { id: 'danger', label: 'Danger Zone', icon: AlertTriangle, visible: isAdmin, variant: 'destructive' as const },
+  ]
+}
+
+function PairDeviceContent() {
+  return (
+    <div className="space-y-6">
+      <div className="rounded-lg border border-border bg-card p-4">
+        <h2 className="mb-4 text-lg font-medium text-foreground">Pair a Device</h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Enter the code shown on the device you want to pair
+        </p>
+        <DeviceCodeEntry />
+      </div>
+    </div>
+  )
+}
+
 export default function Settings() {
   const { profile } = useProfile()
   const currentProfileId = profile?.id
   const isAdmin = useIsAdmin()
   const mode = useMode()
+  const data = useSettingsData()
 
   const [activeTab, setActiveTab] = useState<Tab>('general')
-  const [aiStatus, setAiStatus] = useState<AIStatus | null>(null)
-  const [prompts, setPrompts] = useState<AIPrompt[]>([])
-  const [models, setModels] = useState<AIModel[]>([])
-  const [sources, setSources] = useState<Source[]>([])
-  const [profiles, setProfiles] = useState<ProfileWithStats[]>([])
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadData()
-  }, [])
+  const tabs = buildTabConfig(mode, isAdmin)
 
-  const loadData = async () => {
-    try {
-      const [statusData, promptsData, modelsData, sourcesData, profilesData] =
-        await Promise.all([
-          api.ai.status(),
-          api.ai.prompts.list(),
-          api.ai.models(),
-          api.sources.list(),
-          api.profiles.list(),
-        ])
-      setAiStatus(statusData)
-      setPrompts(promptsData)
-      setModels(modelsData)
-      setSources(sourcesData)
-      setProfiles(profilesData)
-    } catch (error) {
-      console.error('Failed to load settings:', error)
-      toast.error('Failed to load settings')
-    } finally {
-      setLoading(false)
-    }
+  const tabContent: Record<Tab, () => ReactNode> = {
+    general: () => (
+      <SettingsGeneral
+        aiStatus={data.aiStatus}
+        models={data.models}
+        onAIStatusChange={data.setAiStatus}
+        onModelsChange={data.setModels}
+        isAdmin={isAdmin}
+      />
+    ),
+    passkeys: () => <SettingsPasskeys />,
+    'pair-device': () => <PairDeviceContent />,
+    prompts: () => (
+      <SettingsPrompts
+        aiStatus={data.aiStatus}
+        prompts={data.prompts}
+        models={data.models}
+        onPromptsChange={data.setPrompts}
+      />
+    ),
+    sources: () => <SettingsSources sources={data.sources} onSourcesChange={data.setSources} />,
+    selectors: () => <SettingsSelectors sources={data.sources} onSourcesChange={data.setSources} />,
+    users: () => (
+      <SettingsUsers
+        profiles={data.profiles}
+        currentProfileId={currentProfileId}
+        onProfilesChange={data.setProfiles}
+      />
+    ),
+    danger: () => <SettingsDanger />,
   }
+
+  const renderContent = tabContent[activeTab]
+  const isAdminTab = ['prompts', 'sources', 'selectors', 'users', 'danger'].includes(activeTab)
+  const content = (!isAdminTab || isAdmin) ? renderContent() : null
 
   return (
     <div className="min-h-screen bg-background">
       <NavHeader />
 
-      {/* Tab navigation */}
-      <div className="border-b border-border px-4">
-        <div className="mx-auto max-w-4xl">
-          <div className="flex gap-4 overflow-x-auto">
-            <button
-              onClick={() => setActiveTab('general')}
-              className={cn(
-                'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
-                activeTab === 'general'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <span className="flex items-center gap-2">
-                <SettingsIcon className="h-4 w-4" />
-                General
-              </span>
-            </button>
-            {mode === 'passkey' && (
-              <button
-                onClick={() => setActiveTab('passkeys')}
-                className={cn(
-                  'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
-                  activeTab === 'passkeys'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
-                )}
-              >
-                <span className="flex items-center gap-2">
-                  <Key className="h-4 w-4" />
-                  Passkeys
-                </span>
-              </button>
-            )}
-            {mode === 'passkey' && (
-              <button
-                onClick={() => setActiveTab('pair-device')}
-                className={cn(
-                  'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
-                  activeTab === 'pair-device'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
-                )}
-              >
-                <span className="flex items-center gap-2">
-                  <Smartphone className="h-4 w-4" />
-                  Pair Device
-                </span>
-              </button>
-            )}
-            {isAdmin && (
-              <button
-                onClick={() => setActiveTab('prompts')}
-                className={cn(
-                  'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
-                  activeTab === 'prompts'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
-                )}
-              >
-                <span className="flex items-center gap-2">
-                  <Bot className="h-4 w-4" />
-                  AI Prompts
-                </span>
-              </button>
-            )}
-            {isAdmin && (
-              <button
-                onClick={() => setActiveTab('sources')}
-                className={cn(
-                  'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
-                  activeTab === 'sources'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
-                )}
-              >
-                <span className="flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  Sources
-                </span>
-              </button>
-            )}
-            {isAdmin && (
-              <button
-                onClick={() => setActiveTab('selectors')}
-                className={cn(
-                  'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
-                  activeTab === 'selectors'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
-                )}
-              >
-                <span className="flex items-center gap-2">
-                  <Code className="h-4 w-4" />
-                  Selectors
-                </span>
-              </button>
-            )}
-            {isAdmin && (
-              <button
-                onClick={() => setActiveTab('users')}
-                className={cn(
-                  'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
-                  activeTab === 'users'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
-                )}
-              >
-                <span className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Users
-                </span>
-              </button>
-            )}
-            {isAdmin && (
-              <button
-                onClick={() => setActiveTab('danger')}
-                className={cn(
-                  'border-b-2 py-3 text-sm font-medium transition-colors whitespace-nowrap',
-                  activeTab === 'danger'
-                    ? 'border-destructive text-destructive'
-                    : 'border-transparent text-muted-foreground hover:text-destructive'
-                )}
-              >
-                <span className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  Danger Zone
-                </span>
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+      <SettingsTabNav tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {/* Content */}
       <main className="px-4 py-6">
         <div className="mx-auto max-w-4xl">
-          {loading ? (
+          {data.loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
-          ) : activeTab === 'general' ? (
-            <SettingsGeneral
-              aiStatus={aiStatus}
-              models={models}
-              onAIStatusChange={setAiStatus}
-              onModelsChange={setModels}
-              isAdmin={isAdmin}
-            />
-          ) : activeTab === 'passkeys' ? (
-            <SettingsPasskeys />
-          ) : activeTab === 'pair-device' ? (
-            <div className="space-y-6">
-              <div className="rounded-lg border border-border bg-card p-4">
-                <h2 className="mb-4 text-lg font-medium text-foreground">Pair a Device</h2>
-                <p className="mb-4 text-sm text-muted-foreground">
-                  Enter the code shown on the device you want to pair
-                </p>
-                <DeviceCodeEntry />
-              </div>
-            </div>
-          ) : activeTab === 'prompts' && isAdmin ? (
-            <SettingsPrompts
-              aiStatus={aiStatus}
-              prompts={prompts}
-              models={models}
-              onPromptsChange={setPrompts}
-            />
-          ) : activeTab === 'sources' && isAdmin ? (
-            <SettingsSources sources={sources} onSourcesChange={setSources} />
-          ) : activeTab === 'selectors' && isAdmin ? (
-            <SettingsSelectors sources={sources} onSourcesChange={setSources} />
-          ) : activeTab === 'users' && isAdmin ? (
-            <SettingsUsers
-              profiles={profiles}
-              currentProfileId={currentProfileId}
-              onProfilesChange={setProfiles}
-            />
-          ) : activeTab === 'danger' && isAdmin ? (
-            <SettingsDanger />
-          ) : null}
+          ) : content}
         </div>
       </main>
     </div>

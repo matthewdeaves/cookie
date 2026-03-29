@@ -205,48 +205,47 @@ def list_prompts(request):
     return list(prompts)
 
 
+def _get_prompt_or_error(prompt_type: str):
+    """Return an AIPrompt or a (404, error dict) tuple."""
+    try:
+        return AIPrompt.objects.get(prompt_type=prompt_type)
+    except AIPrompt.DoesNotExist:
+        return 404, {"error": "not_found", "message": f'Prompt type "{prompt_type}" not found'}
+
+
+def _validate_model(model_id: str):
+    """Return a (422, error dict) tuple if model is invalid, else None."""
+    try:
+        valid_ids = {m["id"] for m in OpenRouterService().get_available_models()}
+        if model_id not in valid_ids:
+            return 422, {
+                "error": "invalid_model",
+                "message": f'Model "{model_id}" is not available. Please select a valid model.',
+            }
+    except (AIUnavailableError, AIResponseError):
+        # Can't validate — allow the change; it may fail later
+        pass
+    return None
+
+
 @router.get("/prompts/{prompt_type}", response={200: PromptOut, 404: ErrorOut})
 def get_prompt(request, prompt_type: str):
     """Get a specific AI prompt by type."""
-    try:
-        prompt = AIPrompt.objects.get(prompt_type=prompt_type)
-        return prompt
-    except AIPrompt.DoesNotExist:
-        return 404, {
-            "error": "not_found",
-            "message": f'Prompt type "{prompt_type}" not found',
-        }
+    return _get_prompt_or_error(prompt_type)
 
 
 @router.put("/prompts/{prompt_type}", response={200: PromptOut, 404: ErrorOut, 422: ErrorOut}, auth=AdminAuth())
 def update_prompt(request, prompt_type: str, data: PromptUpdateIn):
     """Update a specific AI prompt."""
-    try:
-        prompt = AIPrompt.objects.get(prompt_type=prompt_type)
-    except AIPrompt.DoesNotExist:
-        return 404, {
-            "error": "not_found",
-            "message": f'Prompt type "{prompt_type}" not found',
-        }
+    result = _get_prompt_or_error(prompt_type)
+    if not isinstance(result, AIPrompt):
+        return result
+    prompt = result
 
-    # Validate model if provided
     if data.model is not None:
-        try:
-            service = OpenRouterService()
-            available_models = service.get_available_models()
-            valid_model_ids = {m["id"] for m in available_models}
-
-            if data.model not in valid_model_ids:
-                return 422, {
-                    "error": "invalid_model",
-                    "message": f'Model "{data.model}" is not available. Please select a valid model.',
-                }
-        except AIUnavailableError:
-            # If we can't validate (no API key), allow the change but it may fail later
-            pass
-        except AIResponseError:
-            # If model list fetch fails, allow the change but it may fail later
-            pass
+        error = _validate_model(data.model)
+        if error:
+            return error
 
     # Update only provided fields
     if data.system_prompt is not None:

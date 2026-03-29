@@ -740,6 +740,26 @@ Cookie.pages.settings = (function() {
         Cookie.utils.delegate(profilesList, 'click', {
             'delete-profile': handleDeleteProfileClick
         });
+
+        // Delete modal event listeners (CSP blocks inline onclick)
+        if (deleteModal) {
+            deleteModal.addEventListener('click', function(e) {
+                if (e.target === deleteModal) closeDeleteModal();
+            });
+            var modalInner = deleteModal.querySelector('.modal');
+            if (modalInner) {
+                modalInner.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+        }
+        var cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        if (cancelDeleteBtn) {
+            cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+        }
+        if (confirmDeleteBtn) {
+            confirmDeleteBtn.addEventListener('click', executeDeleteProfile);
+        }
     }
 
     /**
@@ -926,10 +946,6 @@ Cookie.pages.settings = (function() {
         });
     }
 
-    // Expose modal functions globally for onclick handlers
-    window.closeDeleteModal = closeDeleteModal;
-    window.executeDeleteProfile = executeDeleteProfile;
-
     // ============================================
     // DATABASE RESET FUNCTIONS (DANGER ZONE)
     // ============================================
@@ -943,6 +959,49 @@ Cookie.pages.settings = (function() {
             resetConfirmInput.addEventListener('input', function() {
                 confirmResetBtn.disabled = resetConfirmInput.value !== 'RESET';
             });
+        }
+
+        // Reset modal event listeners (CSP blocks inline onclick)
+        var showResetBtn = document.getElementById('show-reset-btn');
+        if (showResetBtn) {
+            showResetBtn.addEventListener('click', showResetModal);
+        }
+        if (resetModalStep1) {
+            resetModalStep1.addEventListener('click', function(e) {
+                if (e.target === resetModalStep1) closeResetModal();
+            });
+            var step1Inner = resetModalStep1.querySelector('.modal');
+            if (step1Inner) {
+                step1Inner.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+        }
+        var cancelResetStep1Btn = document.getElementById('cancel-reset-step1-btn');
+        if (cancelResetStep1Btn) {
+            cancelResetStep1Btn.addEventListener('click', closeResetModal);
+        }
+        var continueResetBtn = document.getElementById('continue-reset-btn');
+        if (continueResetBtn) {
+            continueResetBtn.addEventListener('click', showResetStep2);
+        }
+        if (resetModalStep2) {
+            resetModalStep2.addEventListener('click', function(e) {
+                if (e.target === resetModalStep2) closeResetModal();
+            });
+            var step2Inner = resetModalStep2.querySelector('.modal');
+            if (step2Inner) {
+                step2Inner.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+        }
+        var backResetBtn = document.getElementById('back-reset-btn');
+        if (backResetBtn) {
+            backResetBtn.addEventListener('click', showResetStep1);
+        }
+        if (confirmResetBtn) {
+            confirmResetBtn.addEventListener('click', executeReset);
         }
     }
 
@@ -1034,13 +1093,6 @@ Cookie.pages.settings = (function() {
             }, 1000);
         });
     }
-
-    // Expose reset modal functions globally for onclick handlers
-    window.showResetModal = showResetModal;
-    window.showResetStep1 = showResetStep1;
-    window.showResetStep2 = showResetStep2;
-    window.closeResetModal = closeResetModal;
-    window.executeReset = executeReset;
 
     return {
         init: init

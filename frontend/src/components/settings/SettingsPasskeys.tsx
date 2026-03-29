@@ -1,88 +1,8 @@
-import { useState, useEffect, useCallback } from 'react'
-import { api } from '../../api/client'
-import type { PasskeyCredential } from '../../api/types'
-import {
-  prepareRegistrationOptions,
-  serializeRegistrationCredential,
-} from '../../lib/webauthn'
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return 'Never'
-  return new Date(dateStr).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
+import usePasskeys from '../../hooks/usePasskeys'
+import PasskeyItem from './PasskeyItem'
 
 export default function SettingsPasskeys() {
-  const [credentials, setCredentials] = useState<PasskeyCredential[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [adding, setAdding] = useState(false)
-
-  const loadCredentials = useCallback(async () => {
-    try {
-      const data = await api.passkey.listCredentials()
-      setCredentials(data.credentials)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load passkeys')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    loadCredentials()
-  }, [loadCredentials])
-
-  async function handleAdd() {
-    setError('')
-    setAdding(true)
-
-    try {
-      const options = await api.passkey.addCredentialOptions()
-      const publicKeyOptions = prepareRegistrationOptions(options)
-
-      const credential = await navigator.credentials.create({
-        publicKey: publicKeyOptions,
-      })
-
-      if (!credential) {
-        setError('Adding passkey was cancelled.')
-        return
-      }
-
-      await api.passkey.addCredentialVerify(
-        serializeRegistrationCredential(credential as PublicKeyCredential)
-      )
-
-      await loadCredentials()
-    } catch (err) {
-      if (err instanceof DOMException && err.name === 'NotAllowedError') {
-        setError('Adding passkey was cancelled.')
-      } else {
-        setError(err instanceof Error ? err.message : 'Failed to add passkey')
-      }
-    } finally {
-      setAdding(false)
-    }
-  }
-
-  async function handleDelete(credentialId: number) {
-    if (!window.confirm('Are you sure you want to delete this passkey? This cannot be undone.')) {
-      return
-    }
-    setError('')
-    try {
-      await api.passkey.deleteCredential(credentialId)
-      await loadCredentials()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete passkey')
-    }
-  }
+  const { credentials, loading, error, adding, handleAdd, handleDelete } = usePasskeys()
 
   if (loading) {
     return (
@@ -108,30 +28,14 @@ export default function SettingsPasskeys() {
 
         <div className="space-y-3">
           {credentials.map((cred) => (
-            <div
+            <PasskeyItem
               key={cred.id}
-              className="flex items-center justify-between rounded-lg border border-input bg-background p-4"
-            >
-              <div>
-                <div className="text-sm font-medium text-foreground">
-                  Passkey #{cred.id}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Added {formatDate(cred.created_at)}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Last used: {formatDate(cred.last_used_at)}
-                </div>
-              </div>
-              {cred.is_deletable && (
-                <button
-                  onClick={() => handleDelete(cred.id)}
-                  className="rounded-md px-3 py-1 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                >
-                  Delete
-                </button>
-              )}
-            </div>
+              id={cred.id}
+              createdAt={cred.created_at}
+              lastUsedAt={cred.last_used_at}
+              isDeletable={cred.is_deletable}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
 

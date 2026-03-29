@@ -192,53 +192,14 @@ class Command(BaseCommand):
 
         from django.utils import timezone
 
-        from apps.core.models import DeviceCode, WebAuthnCredential
-
         now = timezone.now()
         since = now - timezone.timedelta(hours=24)
-        events = []
 
-        # Recent registrations (users created in last 24h)
-        recent_users = User.objects.filter(date_joined__gte=since).order_by("-date_joined")[:max_lines]
-        for u in recent_users:
-            events.append(
-                {
-                    "time": u.date_joined.isoformat(),
-                    "type": "registration",
-                    "username": u.username,
-                    "is_admin": u.is_staff,
-                }
-            )
-
-        # Recent passkey usage (last_used_at in last 24h)
-        recent_logins = (
-            WebAuthnCredential.objects.filter(last_used_at__gte=since)
-            .select_related("user")
-            .order_by("-last_used_at")[:max_lines]
+        events = (
+            self._collect_registration_events(since, max_lines)
+            + self._collect_login_events(since, max_lines)
+            + self._collect_device_code_events(since, max_lines)
         )
-        for c in recent_logins:
-            events.append(
-                {
-                    "time": c.last_used_at.isoformat(),
-                    "type": "passkey_login",
-                    "username": c.user.username,
-                    "credential_id": c.pk,
-                }
-            )
-
-        # Recent device code activity
-        recent_codes = DeviceCode.objects.filter(created_at__gte=since).order_by("-created_at")[:max_lines]
-        for dc in recent_codes:
-            events.append(
-                {
-                    "time": dc.created_at.isoformat(),
-                    "type": f"device_code_{dc.status}",
-                    "code": dc.code,
-                    "authorizer": dc.authorizing_user.username if dc.authorizing_user else None,
-                }
-            )
-
-        # Sort all events by time descending
         events.sort(key=lambda e: e["time"], reverse=True)
         events = events[:max_lines]
 
@@ -252,15 +213,67 @@ class Command(BaseCommand):
             self.stdout.write("No events found.")
             return
         for e in events:
-            ts = e["time"][:19].replace("T", " ")
-            etype = e["type"]
-            detail = e.get("username") or e.get("code") or ""
-            extra = ""
-            if etype == "passkey_login":
-                extra = f" (credential #{e['credential_id']})"
-            elif etype.startswith("device_code_") and e.get("authorizer"):
-                extra = f" (by {e['authorizer']})"
-            self.stdout.write(f"  {ts}  {etype:<25} {detail}{extra}")
+            self.stdout.write(self._format_audit_event(e))
+
+    def _collect_registration_events(self, since, max_lines):
+        """Collect user registration events since the given time."""
+        recent_users = User.objects.filter(date_joined__gte=since).order_by("-date_joined")[:max_lines]
+        return [
+            {
+                "time": u.date_joined.isoformat(),
+                "type": "registration",
+                "username": u.username,
+                "is_admin": u.is_staff,
+            }
+            for u in recent_users
+        ]
+
+    def _collect_login_events(self, since, max_lines):
+        """Collect passkey login events since the given time."""
+        from apps.core.models import WebAuthnCredential
+
+        recent_logins = (
+            WebAuthnCredential.objects.filter(last_used_at__gte=since)
+            .select_related("user")
+            .order_by("-last_used_at")[:max_lines]
+        )
+        return [
+            {
+                "time": c.last_used_at.isoformat(),
+                "type": "passkey_login",
+                "username": c.user.username,
+                "credential_id": c.pk,
+            }
+            for c in recent_logins
+        ]
+
+    def _collect_device_code_events(self, since, max_lines):
+        """Collect device code events since the given time."""
+        from apps.core.models import DeviceCode
+
+        recent_codes = DeviceCode.objects.filter(created_at__gte=since).order_by("-created_at")[:max_lines]
+        return [
+            {
+                "time": dc.created_at.isoformat(),
+                "type": f"device_code_{dc.status}",
+                "code": dc.code,
+                "authorizer": dc.authorizing_user.username if dc.authorizing_user else None,
+            }
+            for dc in recent_codes
+        ]
+
+    @staticmethod
+    def _format_audit_event(event):
+        """Format a single audit event as a human-readable line."""
+        ts = event["time"][:19].replace("T", " ")
+        etype = event["type"]
+        detail = event.get("username") or event.get("code") or ""
+        extra = ""
+        if etype == "passkey_login":
+            extra = f" (credential #{event['credential_id']})"
+        elif etype.startswith("device_code_") and event.get("authorizer"):
+            extra = f" (by {event['authorizer']})"
+        return f"  {ts}  {etype:<25} {detail}{extra}"
 
     def _handle_list_users(self, options):
         users = User.objects.all().order_by("date_joined")

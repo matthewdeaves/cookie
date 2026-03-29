@@ -11,13 +11,80 @@ interface RecipeCardProps {
   onClick?: (recipe: Recipe) => void
 }
 
+function RecipeImage({ recipe, imgError, onError }: {
+  recipe: Recipe
+  imgError: boolean
+  onError: () => void
+}) {
+  const imageUrl = recipe.image || recipe.image_url
+
+  if (imageUrl && !imgError) {
+    return (
+      <img
+        src={imageUrl}
+        alt={recipe.title}
+        loading="lazy"
+        onError={onError}
+        className="h-full w-full object-cover transition-transform group-hover:scale-105"
+      />
+    )
+  }
+
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-muted px-3 text-center text-sm font-medium text-muted-foreground">
+      {recipe.title}
+    </div>
+  )
+}
+
+function FavoriteButton({ isFavorite, onClick }: {
+  isFavorite: boolean
+  onClick: (e: React.MouseEvent) => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'absolute right-2 top-2 rounded-full bg-background/80 p-2 backdrop-blur-sm transition-colors',
+        isFavorite
+          ? 'text-accent hover:bg-background'
+          : 'text-muted-foreground hover:bg-background hover:text-accent'
+      )}
+      aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+    >
+      <Heart
+        className={cn('h-5 w-5', isFavorite && 'fill-current')}
+      />
+    </button>
+  )
+}
+
+function RecipeMeta({ recipe }: { recipe: Recipe }) {
+  return (
+    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+      <span className="truncate">{recipe.host}</span>
+      {recipe.total_time && (
+        <span className="flex shrink-0 items-center gap-1">
+          <Clock className="h-3 w-3" />
+          {formatTime(recipe.total_time)}
+        </span>
+      )}
+      {recipe.rating && (
+        <span className="flex shrink-0 items-center gap-1">
+          <Star className="h-3 w-3 fill-star text-star" />
+          {recipe.rating.toFixed(1)}
+        </span>
+      )}
+    </div>
+  )
+}
+
 export default function RecipeCard({
   recipe,
   isFavorite = false,
   onFavoriteToggle,
   onClick,
 }: RecipeCardProps) {
-  const imageUrl = recipe.image || recipe.image_url
   const [imgError, setImgError] = useState(false)
 
   const handleImgError = useCallback(() => {
@@ -39,39 +106,12 @@ export default function RecipeCard({
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-        {imageUrl && !imgError ? (
-          <img
-            src={imageUrl}
-            alt={recipe.title}
-            loading="lazy"
-            onError={handleImgError}
-            className="h-full w-full object-cover transition-transform group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-muted px-3 text-center text-sm font-medium text-muted-foreground">
-            {recipe.title}
-          </div>
-        )}
+        <RecipeImage recipe={recipe} imgError={imgError} onError={handleImgError} />
 
-        {/* Favorite button */}
         {onFavoriteToggle && (
-          <button
-            onClick={handleFavoriteClick}
-            className={cn(
-              'absolute right-2 top-2 rounded-full bg-background/80 p-2 backdrop-blur-sm transition-colors',
-              isFavorite
-                ? 'text-accent hover:bg-background'
-                : 'text-muted-foreground hover:bg-background hover:text-accent'
-            )}
-            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-          >
-            <Heart
-              className={cn('h-5 w-5', isFavorite && 'fill-current')}
-            />
-          </button>
+          <FavoriteButton isFavorite={isFavorite} onClick={handleFavoriteClick} />
         )}
 
-        {/* Remix badge */}
         {recipe.is_remix && (
           <div className="absolute left-2 top-2 rounded-full bg-primary/90 px-2 py-0.5 text-xs text-primary-foreground backdrop-blur-sm">
             Remix
@@ -81,32 +121,10 @@ export default function RecipeCard({
 
       {/* Content */}
       <div className="p-3">
-        {/* Title */}
         <h3 className="mb-1 line-clamp-2 text-sm font-medium text-card-foreground">
           {recipe.title}
         </h3>
-
-        {/* Meta */}
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          {/* Source */}
-          <span className="truncate">{recipe.host}</span>
-
-          {/* Time */}
-          {recipe.total_time && (
-            <span className="flex shrink-0 items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {formatTime(recipe.total_time)}
-            </span>
-          )}
-
-          {/* Rating */}
-          {recipe.rating && (
-            <span className="flex shrink-0 items-center gap-1">
-              <Star className="h-3 w-3 fill-star text-star" />
-              {recipe.rating.toFixed(1)}
-            </span>
-          )}
-        </div>
+        <RecipeMeta recipe={recipe} />
       </div>
     </div>
   )

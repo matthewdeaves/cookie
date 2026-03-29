@@ -94,6 +94,12 @@ export default function PasskeyLogin() {
             </Link>
           </p>
         </div>
+
+        <div className="text-center">
+          <a href="/privacy/" className="text-xs text-muted-foreground hover:text-foreground hover:underline">
+            Privacy Policy
+          </a>
+        </div>
       </div>
     </div>
   )
