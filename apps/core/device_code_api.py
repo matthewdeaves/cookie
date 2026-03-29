@@ -97,7 +97,7 @@ def poll_status(request):
 
     try:
         device_code = (
-            DeviceCode.objects.select_for_update()
+            DeviceCode.objects.select_for_update(of=("self",))
             .select_related("authorizing_user")
             .get(session_key=session_key, status__in=["pending", "authorized"])
         )
