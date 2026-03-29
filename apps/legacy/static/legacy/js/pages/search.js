@@ -126,6 +126,8 @@ Cookie.pages.search = (function() {
         if (reset) {
             state.results = [];
             state.sites = {};
+            state.selectedSource = null;
+            renderSourceFilters();
             Cookie.utils.showElement(elements.loading);
             Cookie.utils.hideElement(elements.resultsGrid);
             Cookie.utils.hideElement(elements.emptyState);

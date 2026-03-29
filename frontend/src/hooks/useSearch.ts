@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { api, type SearchResult } from '../api/client'
@@ -68,6 +68,8 @@ export function useSearch(): UseSearchReturn {
     setSearchInput(query)
   }, [query, setSearchInput])
 
+  const prevQueryRef = useRef(query)
+
   useEffect(() => {
     if (!query) {
       navigate('/home')
@@ -76,7 +78,12 @@ export function useSearch(): UseSearchReturn {
     const abortController = new AbortController()
     setResults([])
     setPage(1)
+    setSites({})
     setLoading(true)
+    if (prevQueryRef.current !== query) {
+      setSelectedSource(null)
+      prevQueryRef.current = query
+    }
     searchRecipes(1, true, abortController.signal)
     return () => { abortController.abort() }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate and searchRecipes are stable, only re-run when query or filter changes

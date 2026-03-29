@@ -1,6 +1,6 @@
 # cookie Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-03-28
+Auto-generated from all feature plans. Last updated: 2026-03-29
 
 ## Active Technologies
 - **Backend**: Python 3.14, Django 5.0, Django Ninja 1.0+, Gunicorn, WhiteNoise, curl_cffi, BeautifulSoup4, django-ratelimit 4.1, openrouter SDK
@@ -12,6 +12,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-28
 - PostgreSQL 16+ (tables: WebAuthnCredential, DeviceCode for passkey mode)
 - Python 3.14, TypeScript 5.9 + Django 5.0, Django Ninja 1.0+, React 19, Vite 7 (015-reduce-complexity)
 - PostgreSQL 16+ (no changes) (015-reduce-complexity)
+- Python 3.14 (backend, unchanged), TypeScript 5.9 (modern frontend), ES5 (legacy frontend) + React 19, Vite 7 (modern); vanilla ES5 JS (legacy) (016-fix-stale-search-filters)
+- N/A (no data changes) (016-fix-stale-search-filters)
 
 ## Project Structure
 
@@ -109,9 +111,9 @@ This project has a constitution at `.specify/memory/constitution.md` that define
 - **Speckit workflow**: Feature specifications, plans, and tasks live in `.specify/` (tracked in git). Use `/speckit.*` commands for structured feature development. The constitution is the source of truth for project values.
 
 ## Recent Changes
+- 016-fix-stale-search-filters: Added Python 3.14 (backend, unchanged), TypeScript 5.9 (modern frontend), ES5 (legacy frontend) + React 19, Vite 7 (modern); vanilla ES5 JS (legacy)
 - 015-reduce-complexity: Reduced all backend functions to Radon B rating (CC ≤ 10), all frontend components to ESLint CC ≤ 10 and ≤ 100 lines. Updated privacy policy for passkey mode with source code links. Fixed CSP-blocked inline onclick handlers in legacy frontend.
 - 014-remove-public-auth: Removed public auth mode. Only home and passkey modes remain. Added OPENROUTER_API_KEY env var.
-- 013-passkey-auth: Added passkey authentication mode with WebAuthn and device code pairing
 
 
 <!-- MANUAL ADDITIONS START -->

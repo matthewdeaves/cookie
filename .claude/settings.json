@@ -1,0 +1,56 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/es5-syntax-check.sh",
+            "statusMessage": "Checking ES5 compliance..."
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/ios9-css-check.sh",
+            "statusMessage": "Checking iOS 9 CSS compatibility..."
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/complexity-check.sh",
+            "statusMessage": "Checking code quality..."
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/es5-syntax-check.sh",
+            "statusMessage": "Checking ES5 compliance..."
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/ios9-css-check.sh",
+            "statusMessage": "Checking iOS 9 CSS compatibility..."
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/complexity-check.sh",
+            "statusMessage": "Checking code quality..."
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/docker-command-check.sh",
+            "statusMessage": "Checking Docker environment..."
+          }
+        ]
+      }
+    ]
+  }
+}
