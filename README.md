@@ -11,8 +11,6 @@
 
 A self-hosted recipe manager for searching, importing, organising, and cooking through recipes from popular cooking websites.
 
-> **Note:** Cookie is a work in progress. I'm laying the foundations now and will be blogging about how I improve the code over time, using software metrics to guide development decisions. Read more: [Rapid Prototyping with Claude Code](https://matthewdeaves.com/blog/2026-01-11-rapid-prototyping-with-claude-code)
-
 ## Quick Start (Production)
 
 Create a `.env` file with a Postgres password, then start:
@@ -40,8 +38,6 @@ bin/dev up
 ```
 
 Open http://localhost:3000 - hot reload enabled for both frontend and backend.
-
-See [WORKFLOW.md](WORKFLOW.md) for development commands and testing with Claude Code.
 
 ## Screenshots
 
@@ -163,8 +159,8 @@ Data is stored in two Docker volumes:
 
 ## Data Privacy
 
-- Fully self-hosted — all data stays on your server
-- No email addresses stored — no authentication mode collects email
+- Fully self-hosted — all data stays on your server (traffic may pass through infrastructure providers like Cloudflare depending on deployment)
+- No email addresses or passwords — passkey mode uses WebAuthn, home mode needs no login
 - No analytics, tracking, or third-party scripts
 - No advertising identifiers or device fingerprints
 - Only functional cookies (session + CSRF) — no cookie consent banner needed under UK PECR
@@ -249,5 +245,3 @@ bin/prod build          # Build production image locally
 - [Architecture](docs/ARCHITECTURE.md) - System design, data models, API structure
 - [AI Features](docs/AI-FEATURES.md) - AI capabilities, configuration, customization
 - [Screenshots](docs/SCREENSHOTS.md) - Full visual tour of modern and legacy frontends
-- [WORKFLOW.md](WORKFLOW.md) - Development workflow and commands
-- [plans/](plans/) - Implementation planning documents
