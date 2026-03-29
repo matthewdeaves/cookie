@@ -16,7 +16,7 @@ Cookie integrates with OpenRouter to provide optional AI-powered features. All A
 
 | Provider | Models |
 |----------|--------|
-| Anthropic | Claude 3.5 Haiku (default), Claude Sonnet 4, Claude Opus 4, Claude Opus 4.5 |
+| Anthropic | Claude Haiku 4.5 (default), Claude Sonnet 4, Claude Opus 4, Claude Opus 4.5 |
 | OpenAI | GPT-4o, GPT-4o Mini, GPT-5 Mini, o3 Mini |
 | Google | Gemini 2.5 Pro, Gemini 2.5 Flash |
 
@@ -26,17 +26,17 @@ Each AI feature can use a different model. Configure per-feature models in Setti
 
 | Feature | Endpoint | Purpose | Default Model |
 |---------|----------|---------|---------------|
-| Remix Suggestions | `POST /api/ai/remix-suggestions` | Generate 6 modification ideas for a recipe | Claude 3.5 Haiku |
-| Recipe Remix | `POST /api/ai/remix` | Create a new recipe with AI modifications | Claude 3.5 Haiku |
-| Serving Adjustment | `POST /api/ai/scale` | Scale ingredients and instructions | Claude 3.5 Haiku |
-| Cooking Tips | `POST /api/ai/tips` | Generate 3-5 cooking tips | Claude 3.5 Haiku |
-| Timer Naming | `POST /api/ai/timer-name` | Create descriptive 30-char timer labels | Claude 3.5 Haiku |
-| Discovery (Seasonal) | `GET /api/ai/discover/{profile}/` | Seasonal recipe suggestions | Claude 3.5 Haiku |
-| Discovery (Favorites) | `GET /api/ai/discover/{profile}/` | Suggestions based on your favorites | Claude 3.5 Haiku |
-| Discovery (New) | `GET /api/ai/discover/{profile}/` | "Try something new" suggestions | Claude 3.5 Haiku |
-| Search Ranking | Internal | Rank search results by relevance | Claude 3.5 Haiku |
-| Nutrition Estimate | Internal | Estimate nutrition for remixed recipes | Claude 3.5 Haiku |
-| Selector Repair | `POST /api/ai/repair-selector` | Fix broken CSS selectors (admin) | Claude 3.5 Haiku |
+| Remix Suggestions | `POST /api/ai/remix-suggestions` | Generate 6 modification ideas for a recipe | Claude Haiku 4.5 |
+| Recipe Remix | `POST /api/ai/remix` | Create a new recipe with AI modifications | Claude Haiku 4.5 |
+| Serving Adjustment | `POST /api/ai/scale` | Scale ingredients and instructions | Claude Haiku 4.5 |
+| Cooking Tips | `POST /api/ai/tips` | Generate 3-5 cooking tips | Claude Haiku 4.5 |
+| Timer Naming | `POST /api/ai/timer-name` | Create descriptive 30-char timer labels | Claude Haiku 4.5 |
+| Discovery (Seasonal) | `GET /api/ai/discover/{profile}/` | Seasonal recipe suggestions | Claude Haiku 4.5 |
+| Discovery (Favorites) | `GET /api/ai/discover/{profile}/` | Suggestions based on your favorites | Claude Haiku 4.5 |
+| Discovery (New) | `GET /api/ai/discover/{profile}/` | "Try something new" suggestions | Claude Haiku 4.5 |
+| Search Ranking | Internal | Rank search results by relevance | Claude Haiku 4.5 |
+| Nutrition Estimate | Internal | Estimate nutrition for remixed recipes | Claude Haiku 4.5 |
+| Selector Repair | `POST /api/ai/repair-selector` | Fix broken CSS selectors (admin) | Claude Haiku 4.5 |
 
 ## Feature Details
 
@@ -177,14 +177,14 @@ Response:
   "available": true,
   "configured": true,
   "valid": true,
-  "default_model": "anthropic/claude-3.5-haiku",
+  "default_model": "anthropic/claude-haiku-4.5",
   "error": null
 }
 ```
 
 ## Privacy
 
-- AI requests go only to OpenRouter
-- No data stored on OpenRouter beyond request processing
-- API key stored in local database only
+- Only recipe text (ingredients, instructions, titles) is sent to OpenRouter — no personal data
+- API key stored encrypted in local database (Fernet), or set via `OPENROUTER_API_KEY` env var
 - All recipe data stays on your server
+- See the [privacy policy](../apps/core/templates/core/privacy_policy.html) for full details

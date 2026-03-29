@@ -61,7 +61,7 @@ ALLOWED_HOSTS=192.168.1.100,localhost
 │  ┌─────────────┐    ┌─────────────┐                                  │
 │  │   Gunicorn  │───▶│   Django    │                                  │
 │  │  (2 workers │    │  (Python    │                                  │
-│  │  4 threads) │    │   3.12)     │                                  │
+│  │  4 threads) │    │   3.14)     │                                  │
 │  └─────────────┘    └─────────────┘                                  │
 │                                                                      │
 └──────────────────────────────────────────────────────────────────────┘
@@ -83,7 +83,7 @@ ALLOWED_HOSTS=192.168.1.100,localhost
 | Component | Technology | Purpose |
 |-----------|------------|---------|
 | **Web Server** | nginx | Routing, static files, browser detection |
-| **Runtime** | Python 3.12-slim | Minimal base image |
+| **Runtime** | Python 3.14-slim | Minimal base image |
 | **Framework** | Django 5.x | Web framework |
 | **API** | Django Ninja | Fast API endpoints |
 | **WSGI Server** | Gunicorn | Production-grade Python server |
@@ -102,7 +102,7 @@ ALLOWED_HOSTS=192.168.1.100,localhost
 | **Registry** | GitHub Container Registry (ghcr.io) |
 | **Repository** | `matthewdeaves/cookie` |
 | **Architectures** | `linux/amd64`, `linux/arm64` |
-| **Base Image** | `python:3.12-slim` |
+| **Base Image** | `python:3.14-slim` |
 | **Exposed Port** | `80` (nginx) |
 | **Processes** | nginx (foreground) + gunicorn (background) |
 
@@ -119,8 +119,8 @@ ALLOWED_HOSTS=192.168.1.100,localhost
 The Dockerfile uses a 3-stage build for minimal image size:
 
 1. **frontend-builder** (node:20-alpine): Compiles React/TypeScript to static assets
-2. **python-deps** (python:3.12-slim): Installs Python dependencies with build tools
-3. **production** (python:3.12-slim): Final minimal image with only runtime dependencies
+2. **python-deps** (python:3.14-slim): Installs Python dependencies with build tools
+3. **production** (python:3.14-slim): Final minimal image with only runtime dependencies
 
 ### Security Features
 
@@ -146,17 +146,15 @@ The Dockerfile uses a 3-stage build for minimal image size:
 | `GUNICORN_WORKERS` | `2` | Number of Gunicorn worker processes |
 | `GUNICORN_THREADS` | `4` | Threads per worker |
 
-AI features (OpenRouter API key) are configured through the Settings UI, not environment variables.
-
-### Authentication Variables (Public Mode)
+### Authentication & AI Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `AUTH_MODE` | `home` | `home` (no login) or `public` (user accounts) |
-| `SITE_URL` | `http://localhost` | Base URL for verification email links |
-| `EMAIL_BACKEND` | `console` | Email backend class (use `django_ses.SESBackend` for AWS SES) |
-| `DEFAULT_FROM_EMAIL` | `noreply@cookie.local` | Sender address for verification emails |
-| `AWS_SES_REGION_NAME` | `eu-west-2` | AWS region for SES (only if using SES backend) |
+| `AUTH_MODE` | `home` | `home` (no login) or `passkey` (WebAuthn authentication) |
+| `OPENROUTER_API_KEY` | (none) | OpenRouter API key (overrides value set via Settings UI) |
+| `WEBAUTHN_RP_ID` | Request hostname | WebAuthn Relying Party ID (domain, passkey mode) |
+| `WEBAUTHN_RP_NAME` | `Cookie` | Name shown in passkey prompts |
+| `DEVICE_CODE_EXPIRY_SECONDS` | `600` | Device code lifetime (passkey mode) |
 | `LOG_FORMAT` | `text` | `text` (human-readable) or `json` (structured) |
 | `LOG_LEVEL` | `INFO` | Root log level |
 

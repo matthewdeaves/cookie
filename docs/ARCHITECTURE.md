@@ -23,7 +23,7 @@ This document describes the system architecture, data models, and API structure.
                     │  ┌─────────────┐    ┌─────────────┐                                  │
                     │  │   Gunicorn  │───▶│   Django    │                                  │
                     │  │  (2 workers │    │  (Python    │                                  │
-                    │  │  4 threads) │    │   3.12)     │                                  │
+                    │  │  4 threads) │    │   3.14)     │                                  │
                     │  └─────────────┘    └─────────────┘                                  │
                     │                                                                      │
                     └──────────────────────────────────────────────────────────────────────┘
@@ -50,9 +50,12 @@ cookie/
 │   │   ├── api.py           # AI API endpoints
 │   │   ├── models.py        # AIPrompt, AIDiscoverySuggestion
 │   │   └── services/        # AI service implementations
-│   ├── core/                # App settings, system endpoints
+│   ├── core/                # App settings, auth, system endpoints
 │   │   ├── api.py           # System health, reset endpoints
-│   │   └── models.py        # AppSettings singleton
+│   │   ├── auth.py          # SessionAuth (home/passkey mode-aware)
+│   │   ├── passkey_api.py   # WebAuthn registration and login
+│   │   ├── device_code_api.py # Device code pairing for legacy devices
+│   │   └── models.py        # AppSettings, WebAuthnCredential, DeviceCode
 │   ├── legacy/              # ES5 frontend for old browsers
 │   │   ├── views.py         # Django template views
 │   │   ├── templates/       # HTML templates
@@ -186,8 +189,24 @@ AIDiscoverySuggestion
 └── created_at
 
 AppSettings (singleton)
-├── openrouter_api_key: str
+├── openrouter_api_key: str (Fernet encrypted)
 └── default_ai_model: str
+
+WebAuthnCredential (passkey mode)
+├── user (FK → User)
+├── credential_id: binary
+├── public_key: binary
+├── sign_count: int
+├── transports: JSON
+└── timestamps: created_at, last_used_at
+
+DeviceCode (passkey mode)
+├── code: str (6 chars)
+├── session_key: str
+├── status: pending | authorized | expired | invalidated
+├── authorized_user (FK → User, nullable)
+├── attempts: int
+└── timestamps: created_at, expires_at
 ```
 
 ## Relationship Map
@@ -218,9 +237,28 @@ All API endpoints use Django Ninja and are prefixed with `/api/`.
 ### System (`/api/system/`)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| GET | `/mode/` | Current auth mode |
 | GET | `/health/` | Container health check |
+| GET | `/ready/` | Readiness check |
 | GET | `/reset-preview/` | Preview reset data |
 | POST | `/reset/` | Database reset (requires confirmation) |
+
+### Auth (`/api/auth/`, passkey mode)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/register/options/` | WebAuthn registration options |
+| POST | `/register/verify/` | Complete registration |
+| POST | `/login/options/` | WebAuthn login options |
+| POST | `/login/verify/` | Complete login |
+| POST | `/logout/` | End session |
+| GET | `/me/` | Current user info |
+
+### Device Code (`/api/device/`, passkey mode)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/code/` | Generate pairing code |
+| POST | `/poll/` | Poll for authorization |
+| POST | `/authorize/` | Authorize a device code |
 
 ### Profiles (`/api/profiles/`)
 | Method | Endpoint | Description |
@@ -358,10 +396,11 @@ Re-render UI
 
 ## Legacy Browser Support
 
-nginx detects legacy browsers via User-Agent and redirects to `/legacy/`:
+Django middleware detects legacy browsers via User-Agent and redirects to `/legacy/`:
 - iOS < 11 (Safari)
 - Internet Explorer (all versions)
 - Edge Legacy (EdgeHTML)
+- Chrome < 60, Firefox < 55
 
 The legacy frontend uses:
 - ES5 JavaScript (no transpilation needed)
