@@ -278,7 +278,7 @@ apps/ai/migrations/0006_add_ai_discovery_suggestion.py
     C 7:0 Migration - A (1)
 apps/ai/services/ranking.py
     F 104:0 rank_results - B (7)
-    F 151:0 _apply_ranking - B (7)
+    F 153:0 _apply_ranking - B (7)
     F 24:0 _filter_valid - A (3)
     F 53:0 _build_ranking_prompt - A (3)
     F 79:0 _rank_with_ai - A (3)
@@ -781,14 +781,14 @@ apps/recipes/services/search_parsers.py
     F 348:0 _check_recipe_patterns - A (2)
     F 409:0 looks_like_recipe_url - A (1)
 apps/recipes/services/image_cache.py
-    M 119:4 SearchImageCache._fetch_image - B (9)
+    M 121:4 SearchImageCache._fetch_image - B (9)
     M 63:4 SearchImageCache._download_and_save - B (7)
     C 26:0 SearchImageCache - B (6)
-    M 228:4 SearchImageCache._convert_to_jpeg - B (6)
-    M 169:4 SearchImageCache._looks_like_image - A (5)
+    M 230:4 SearchImageCache._convert_to_jpeg - B (6)
+    M 171:4 SearchImageCache._looks_like_image - A (5)
     M 40:4 SearchImageCache.cache_images - A (4)
-    M 176:4 SearchImageCache.get_cached_urls_batch - A (4)
-    M 213:4 SearchImageCache._generate_filename - A (1)
+    M 178:4 SearchImageCache.get_cached_urls_batch - A (4)
+    M 215:4 SearchImageCache._generate_filename - A (1)
 apps/recipes/management/commands/cleanup_search_images.py
     M 43:4 Command.handle - B (10)
     C 27:0 Command - A (5)
