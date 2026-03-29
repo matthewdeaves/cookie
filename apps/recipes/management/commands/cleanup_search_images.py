@@ -13,12 +13,15 @@ Usage:
 import logging
 from datetime import timedelta
 
+from django.core.cache import cache
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from apps.recipes.models import CachedSearchImage
 
 logger = logging.getLogger(__name__)
+
+CLEANUP_CACHE_KEY = "search_image_cleanup_last_run"
 
 
 class Command(BaseCommand):
@@ -40,9 +43,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         days = options["days"]
         dry_run = options["dry_run"]
+        now = timezone.now()
 
         # Calculate cutoff date
-        cutoff_date = timezone.now() - timedelta(days=days)
+        cutoff_date = now - timedelta(days=days)
 
         # Find old cached images
         old_images = CachedSearchImage.objects.filter(last_accessed_at__lt=cutoff_date)
@@ -51,6 +55,8 @@ class Command(BaseCommand):
 
         if count == 0:
             self.stdout.write(self.style.SUCCESS(f"No cached images older than {days} days found."))
+            if not dry_run:
+                self._record_run(now, 0, CachedSearchImage.objects.count())
             return
 
         # Show what will be deleted
@@ -89,6 +95,9 @@ class Command(BaseCommand):
             except Exception as e:
                 logger.error(f"Failed to delete cached image {img.id}: {e}")
 
+        remaining = CachedSearchImage.objects.count()
+        self._record_run(now, deleted_count, remaining)
+
         self.stdout.write(
             self.style.SUCCESS(f"Successfully deleted {deleted_count} cached image(s) older than {days} days.")
         )
@@ -99,3 +108,11 @@ class Command(BaseCommand):
                     f"Warning: {count - deleted_count} image(s) failed to delete. Check logs for details."
                 )
             )
+
+    @staticmethod
+    def _record_run(now, deleted, remaining):
+        cache.set(
+            CLEANUP_CACHE_KEY,
+            {"time": now.isoformat(), "deleted": deleted, "remaining": remaining},
+            timeout=None,
+        )

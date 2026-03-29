@@ -171,13 +171,18 @@ class Command(BaseCommand):
             "rp_name": settings.WEBAUTHN_RP_NAME,
         }
 
-        # Maintenance — last cleanup run
+        # Maintenance — last cleanup runs
         from django.core.cache import cache
 
-        from apps.core.management.commands.cleanup_device_codes import CLEANUP_CACHE_KEY
+        from apps.core.management.commands.cleanup_device_codes import CLEANUP_CACHE_KEY as DC_KEY
+        from apps.core.management.commands.cleanup_sessions import CLEANUP_CACHE_KEY as SESS_KEY
+        from apps.recipes.management.commands.cleanup_search_images import CLEANUP_CACHE_KEY as IMG_KEY
 
-        cleanup_info = cache.get(CLEANUP_CACHE_KEY)
-        status["maintenance"] = {"device_code_cleanup": cleanup_info or "never run"}
+        status["maintenance"] = {
+            "device_code_cleanup": cache.get(DC_KEY) or "never run",
+            "session_cleanup": cache.get(SESS_KEY) or "never run",
+            "search_image_cleanup": cache.get(IMG_KEY) or "never run",
+        }
 
         if options.get("as_json"):
             self.stdout.write(json.dumps({"ok": True, **status}, indent=2))
@@ -194,14 +199,19 @@ class Command(BaseCommand):
             f"OpenRouter:   {'configured' if status['openrouter']['configured'] else 'not configured'} (source: {src})"
         )
         self.stdout.write(f"WebAuthn RP:  {status['webauthn']['rp_id']} ({status['webauthn']['rp_name']})")
-        cleanup = status["maintenance"]["device_code_cleanup"]
-        if isinstance(cleanup, dict):
-            self.stdout.write(
-                f"Cleanup:      last ran {cleanup['time'][:19]}, "
-                f"deleted {cleanup['deleted']}, {cleanup['remaining']} remaining"
-            )
-        else:
-            self.stdout.write(f"Cleanup:      {cleanup}")
+        self.stdout.write("Maintenance:")
+        for label, key in [
+            ("  Device codes", "device_code_cleanup"),
+            ("  Sessions", "session_cleanup"),
+            ("  Search images", "search_image_cleanup"),
+        ]:
+            info = status["maintenance"][key]
+            if isinstance(info, dict):
+                self.stdout.write(
+                    f"{label}: last ran {info['time'][:19]}, deleted {info['deleted']}, {info['remaining']} remaining"
+                )
+            else:
+                self.stdout.write(f"{label}: {info}")
 
     def _handle_audit(self, options):
         max_lines = options.get("lines", 50)
