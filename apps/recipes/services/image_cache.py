@@ -102,10 +102,12 @@ class SearchImageCache:
                 cached.image = ContentFile(converted_data, name=filename)
                 cached.status = CachedSearchImage.STATUS_SUCCESS
                 await sync_to_async(cached.save)(update_fields=["image", "status"])
-                logger.info(f"Cached image from {url}")
+                logger.info("Cached 1 search image")
+                logger.debug("Cached image from %s", url)
 
             except Exception as e:
-                logger.error(f"Failed to cache image from {url}: {e}")
+                logger.error("Failed to cache search image: %s", e)
+                logger.debug("Failed image URL: %s", url)
                 # Try to mark as failed if we have a record
                 try:
                     from apps.recipes.models import CachedSearchImage

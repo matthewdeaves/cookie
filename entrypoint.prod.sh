@@ -84,7 +84,7 @@ su -s /bin/bash app -c "gunicorn \
     --threads ${GUNICORN_THREADS:-4} \
     --worker-class gthread \
     --worker-tmp-dir /dev/shm \
-    --access-logfile - \
+    --access-logfile /dev/null \
     --error-logfile - \
     --capture-output \
     --enable-stdio-inheritance \

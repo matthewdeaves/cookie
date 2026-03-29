@@ -135,13 +135,15 @@ def rank_results(query: str, results: list[dict]) -> list[dict]:
         results_to_rank, remaining = _prepare_results(results)
         prompt, user_prompt = _build_ranking_prompt(query, results_to_rank)
         ranked_results = _rank_with_ai(prompt, user_prompt, results_to_rank, remaining)
-        logger.info(f'AI ranked {len(results_to_rank)} results for query "{query}"')
+        logger.info("AI ranked %d results", len(results_to_rank))
+        logger.debug('AI ranking query: "%s"', query)
         return ranked_results
     except AIPrompt.DoesNotExist:
         logger.warning("search_ranking prompt not found, using image-first sorting")
         return _sort_by_image(results)
     except (AIUnavailableError, AIResponseError, ValidationError) as e:
-        logger.warning(f'AI ranking failed for query "{query}": {e}, using image-first sorting')
+        logger.warning("AI ranking failed: %s, using image-first sorting", e)
+        logger.debug('Failed AI ranking query: "%s"', query)
         return _sort_by_image(results)
     except Exception as e:
         logger.error(f"Unexpected error in AI ranking: {e}, using image-first sorting")
