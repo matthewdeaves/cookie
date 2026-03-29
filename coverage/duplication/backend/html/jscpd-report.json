@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-29T08:08:21.243Z",
+    "detectionDate": "2026-03-29T08:42:58.260Z",
     "formats": {
       "python": {
         "sources": {
@@ -29,8 +29,8 @@
             "newClones": 0
           },
           "cookie/settings.py": {
-            "lines": 260,
-            "tokens": 1499,
+            "lines": 261,
+            "tokens": 1503,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -520,9 +520,21 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/core/context_processors.py": {
+            "lines": 10,
+            "tokens": 50,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/core/cache.py": {
-            "lines": 20,
-            "tokens": 122,
+            "lines": 24,
+            "tokens": 141,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -666,9 +678,9 @@
           }
         },
         "total": {
-          "lines": 9729,
-          "tokens": 66489,
-          "sources": 55,
+          "lines": 9744,
+          "tokens": 66562,
+          "sources": 56,
           "clones": 6,
           "duplicatedLines": 123,
           "duplicatedTokens": 871,
@@ -680,9 +692,9 @@
       }
     },
     "total": {
-      "lines": 9729,
-      "tokens": 66489,
-      "sources": 55,
+      "lines": 9744,
+      "tokens": 66562,
+      "sources": 56,
       "clones": 6,
       "duplicatedLines": 123,
       "duplicatedTokens": 871,

@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-29T08:08:26.912Z",
+    "detectionDate": "2026-03-29T08:42:57.241Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -101,14 +101,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/search.js": {
-            "lines": 622,
-            "tokens": 4990,
+            "lines": 624,
+            "tokens": 5038,
             "sources": 1,
             "clones": 5,
             "duplicatedLines": 43,
             "duplicatedTokens": 318,
-            "percentage": 6.91,
-            "percentageTokens": 6.37,
+            "percentage": 6.89,
+            "percentageTokens": 6.31,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -125,14 +125,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/play.js": {
-            "lines": 609,
-            "tokens": 4396,
+            "lines": 618,
+            "tokens": 4451,
             "sources": 1,
             "clones": 3,
             "duplicatedLines": 126,
-            "duplicatedTokens": 969,
-            "percentage": 20.69,
-            "percentageTokens": 22.04,
+            "duplicatedTokens": 949,
+            "percentage": 20.39,
+            "percentageTokens": 21.32,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -292,6 +292,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/legacy/static/legacy/js/pages/all-recipes.js": {
+            "lines": 74,
+            "tokens": 692,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/legacy/static/legacy/js/wake-lock.js": {
             "lines": 196,
             "tokens": 1114,
@@ -414,28 +426,28 @@
           }
         },
         "total": {
-          "lines": 6661,
-          "tokens": 50835,
-          "sources": 34,
+          "lines": 6746,
+          "tokens": 51630,
+          "sources": 35,
           "clones": 31,
           "duplicatedLines": 314,
-          "duplicatedTokens": 2655,
-          "percentage": 4.71,
-          "percentageTokens": 5.22,
+          "duplicatedTokens": 2645,
+          "percentage": 4.65,
+          "percentageTokens": 5.12,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 6661,
-      "tokens": 50835,
-      "sources": 34,
+      "lines": 6746,
+      "tokens": 51630,
+      "sources": 35,
       "clones": 31,
       "duplicatedLines": 314,
-      "duplicatedTokens": 2655,
-      "percentage": 4.71,
-      "percentageTokens": 5.22,
+      "duplicatedTokens": 2645,
+      "percentage": 4.65,
+      "percentageTokens": 5.12,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -592,32 +604,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 485,
-        "end": 492,
+        "start": 487,
+        "end": 494,
         "startLoc": {
-          "line": 485,
+          "line": 487,
           "column": 13,
-          "position": 3912
+          "position": 3960
         },
         "endLoc": {
-          "line": 492,
+          "line": 494,
           "column": 3,
-          "position": 3980
+          "position": 4028
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 141,
-        "end": 148,
+        "start": 143,
+        "end": 150,
         "startLoc": {
-          "line": 141,
+          "line": 143,
           "column": 6,
-          "position": 1063
+          "position": 1111
         },
         "endLoc": {
-          "line": 148,
+          "line": 150,
           "column": 6,
-          "position": 1131
+          "position": 1179
         }
       }
     },
@@ -679,53 +691,53 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 609,
-        "end": 619,
+        "start": 611,
+        "end": 621,
         "startLoc": {
-          "line": 609,
+          "line": 611,
           "column": 5,
-          "position": 4897
+          "position": 4945
         },
         "endLoc": {
-          "line": 619,
+          "line": 621,
           "column": 7,
-          "position": 4958
+          "position": 5006
         }
       }
     },
     {
       "format": "javascript",
       "lines": 60,
-      "fragment": "(e) {\n        var btn = e.currentTarget;\n        var duration = parseInt(btn.getAttribute('data-duration'), 10);\n        var label = btn.getAttribute('data-label');\n        var instruction = instructions[currentStep] || '';\n\n        // If AI is available, try to get an AI-generated name\n        if (typeof AI_AVAILABLE !== 'undefined' && AI_AVAILABLE && instruction) {\n            // Disable button while loading\n            btn.disabled = true;\n            btn.classList.add('loading');\n\n            // Convert seconds to minutes for the API\n            var durationMinutes = Math.ceil(duration / 60);\n\n            // Call AI API using XMLHttpRequest (ES5 compatible)\n            var xhr = new XMLHttpRequest();\n            xhr.open('POST', '/api/ai/timer-name', true);\n            xhr.setRequestHeader('Content-Type', 'application/json');\n\n            xhr.onreadystatechange = function() {\n                if (xhr.readyState === 4) {\n                    btn.disabled = false;\n                    btn.classList.remove('loading');\n\n                    if (xhr.status === 200) {\n                        try {\n                            var response = JSON.parse(xhr.responseText);\n                            if (response.label) {\n                                addTimer(response.label, duration);\n                                return;\n                            }\n                        } catch (parseError) {\n                            // JSON parse error, fall through to default\n                        }\n                    }\n                    // AI failed, use default label\n                    addTimer(label, duration);\n                }\n            };\n\n            xhr.onerror = function() {\n                btn.disabled = false;\n                btn.classList.remove('loading');\n                addTimer(label, duration);\n            };\n\n            xhr.send(JSON.stringify({\n                step_text: instruction,\n                duration_minutes: durationMinutes\n            }));\n        } else {\n            // No AI available, use default label\n            addTimer(label, duration);\n        }\n    }\n\n    /**\n     * Add a new timer\n     */",
+      "fragment": "(e) {\n        var btn = e.currentTarget;\n        var duration = parseInt(btn.getAttribute('data-duration'), 10);\n        var label = btn.getAttribute('data-label');\n        var instruction = instructions[currentStep] || '';\n\n        // If AI is available, try to get an AI-generated name\n        if (aiAvailable && instruction) {\n            // Disable button while loading\n            btn.disabled = true;\n            btn.classList.add('loading');\n\n            // Convert seconds to minutes for the API\n            var durationMinutes = Math.ceil(duration / 60);\n\n            // Call AI API using XMLHttpRequest (ES5 compatible)\n            var xhr = new XMLHttpRequest();\n            xhr.open('POST', '/api/ai/timer-name', true);\n            xhr.setRequestHeader('Content-Type', 'application/json');\n\n            xhr.onreadystatechange = function() {\n                if (xhr.readyState === 4) {\n                    btn.disabled = false;\n                    btn.classList.remove('loading');\n\n                    if (xhr.status === 200) {\n                        try {\n                            var response = JSON.parse(xhr.responseText);\n                            if (response.label) {\n                                addTimer(response.label, duration);\n                                return;\n                            }\n                        } catch (parseError) {\n                            // JSON parse error, fall through to default\n                        }\n                    }\n                    // AI failed, use default label\n                    addTimer(label, duration);\n                }\n            };\n\n            xhr.onerror = function() {\n                btn.disabled = false;\n                btn.classList.remove('loading');\n                addTimer(label, duration);\n            };\n\n            xhr.send(JSON.stringify({\n                step_text: instruction,\n                duration_minutes: durationMinutes\n            }));\n        } else {\n            // No AI available, use default label\n            addTimer(label, duration);\n        }\n    }\n\n    /**\n     * Add a new timer\n     */",
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/play.js",
-        "start": 411,
-        "end": 470,
+        "start": 420,
+        "end": 479,
         "startLoc": {
-          "line": 411,
+          "line": 420,
           "column": 20,
-          "position": 2979
+          "position": 3044
         },
         "endLoc": {
-          "line": 470,
+          "line": 479,
           "column": 8,
-          "position": 3435
+          "position": 3490
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/play.js",
-        "start": 350,
-        "end": 410,
+        "start": 359,
+        "end": 419,
         "startLoc": {
-          "line": 350,
+          "line": 359,
           "column": 17,
-          "position": 2517
+          "position": 2592
         },
         "endLoc": {
-          "line": 410,
+          "line": 419,
           "column": 8,
-          "position": 2973
+          "position": 3038
         }
       }
     },
@@ -736,32 +748,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/play.js",
-        "start": 598,
-        "end": 606,
+        "start": 607,
+        "end": 615,
         "startLoc": {
-          "line": 598,
+          "line": 607,
           "column": 5,
-          "position": 4307
+          "position": 4362
         },
         "endLoc": {
-          "line": 606,
+          "line": 615,
           "column": 5,
-          "position": 4364
+          "position": 4419
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 611,
-        "end": 619,
+        "start": 613,
+        "end": 621,
         "startLoc": {
-          "line": 611,
+          "line": 613,
           "column": 5,
-          "position": 4901
+          "position": 4949
         },
         "endLoc": {
-          "line": 619,
+          "line": 621,
           "column": 7,
-          "position": 4958
+          "position": 5006
         }
       }
     },
@@ -787,17 +799,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 608,
-        "end": 619,
+        "start": 610,
+        "end": 621,
         "startLoc": {
-          "line": 608,
+          "line": 610,
           "column": 9,
-          "position": 4894
+          "position": 4942
         },
         "endLoc": {
-          "line": 619,
+          "line": 621,
           "column": 7,
-          "position": 4958
+          "position": 5006
         }
       }
     },
@@ -896,16 +908,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
         "start": 424,
-        "end": 619,
+        "end": 621,
         "startLoc": {
           "line": 424,
           "column": 13,
           "position": 3272
         },
         "endLoc": {
-          "line": 619,
+          "line": 621,
           "column": 7,
-          "position": 4958
+          "position": 5006
         }
       }
     },
@@ -1184,16 +1196,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
         "start": 238,
-        "end": 619,
+        "end": 621,
         "startLoc": {
           "line": 238,
           "column": 7,
           "position": 1652
         },
         "endLoc": {
-          "line": 619,
+          "line": 621,
           "column": 7,
-          "position": 4958
+          "position": 5006
         }
       }
     },
@@ -1292,16 +1304,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/favorites.js",
         "start": 85,
-        "end": 619,
+        "end": 621,
         "startLoc": {
           "line": 85,
           "column": 6,
           "position": 554
         },
         "endLoc": {
-          "line": 619,
+          "line": 621,
           "column": 7,
-          "position": 4958
+          "position": 5006
         }
       }
     },

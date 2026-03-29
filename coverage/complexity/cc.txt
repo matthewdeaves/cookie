@@ -408,8 +408,8 @@ apps/core/logging.py
     C 8:0 JSONFormatter - B (7)
     M 11:4 JSONFormatter.format - B (6)
 apps/core/cache.py
-    C 12:0 PostgreSafeDatabaseCache - A (3)
-    M 15:4 PostgreSafeDatabaseCache._base_set - A (2)
+    C 13:0 PostgreSafeDatabaseCache - A (3)
+    M 16:4 PostgreSafeDatabaseCache._base_set - A (2)
 apps/core/models.py
     C 14:0 AppSettings - A (3)
     M 25:4 AppSettings.save - A (3)
@@ -427,6 +427,8 @@ apps/core/auth_api.py
     F 39:0 get_me - A (4)
     F 29:0 logout_view - A (3)
     F 19:0 _require_auth_mode - A (2)
+apps/core/context_processors.py
+    F 6:0 app_context - A (1)
 apps/core/encryption.py
     F 52:0 decrypt_value - A (5)
     F 29:0 encrypt_value - A (3)
@@ -795,5 +797,5 @@ apps/recipes/management/commands/cleanup_search_images.py
 cookie/settings.py
     F 21:0 get_secret_key - A (3)
 
-712 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.657303370786517)
+713 blocks (classes, functions, methods) analyzed.
+Average complexity: A (2.654978962131837)
