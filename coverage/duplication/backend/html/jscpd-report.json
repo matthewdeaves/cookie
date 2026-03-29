@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-29T07:29:22.222Z",
+    "detectionDate": "2026-03-29T07:49:26.153Z",
     "formats": {
       "python": {
         "sources": {
@@ -53,8 +53,8 @@
             "newClones": 0
           },
           "apps/core/management/commands/cookie_admin.py": {
-            "lines": 358,
-            "tokens": 3325,
+            "lines": 374,
+            "tokens": 3451,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -65,8 +65,8 @@
             "newClones": 0
           },
           "apps/core/management/commands/cleanup_device_codes.py": {
-            "lines": 47,
-            "tokens": 371,
+            "lines": 73,
+            "tokens": 529,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -497,8 +497,8 @@
             "newClones": 0
           },
           "apps/core/device_code_api.py": {
-            "lines": 187,
-            "tokens": 1484,
+            "lines": 190,
+            "tokens": 1504,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -654,28 +654,28 @@
           }
         },
         "total": {
-          "lines": 9628,
-          "tokens": 65686,
+          "lines": 9673,
+          "tokens": 65990,
           "sources": 54,
           "clones": 6,
           "duplicatedLines": 123,
           "duplicatedTokens": 871,
-          "percentage": 1.28,
-          "percentageTokens": 1.33,
+          "percentage": 1.27,
+          "percentageTokens": 1.32,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 9628,
-      "tokens": 65686,
+      "lines": 9673,
+      "tokens": 65990,
       "sources": 54,
       "clones": 6,
       "duplicatedLines": 123,
       "duplicatedTokens": 871,
-      "percentage": 1.28,
-      "percentageTokens": 1.33,
+      "percentage": 1.27,
+      "percentageTokens": 1.32,
       "newDuplicatedLines": 0,
       "newClones": 0
     }

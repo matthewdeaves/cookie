@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-29T07:29:25.107Z",
+    "detectionDate": "2026-03-29T07:49:28.072Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -1449,8 +1449,8 @@
             "newClones": 0
           },
           "src/components/URLImportCard.tsx": {
-            "lines": 44,
-            "tokens": 300,
+            "lines": 73,
+            "tokens": 517,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1786,8 +1786,8 @@
           }
         },
         "total": {
-          "lines": 6845,
-          "tokens": 52551,
+          "lines": 6874,
+          "tokens": 52768,
           "sources": 74,
           "clones": 5,
           "duplicatedLines": 50,
@@ -1970,7 +1970,7 @@
           },
           "src/hooks/useSearch.ts": {
             "lines": 155,
-            "tokens": 1635,
+            "tokens": 1638,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2151,7 +2151,7 @@
         },
         "total": {
           "lines": 2915,
-          "tokens": 23978,
+          "tokens": 23981,
           "sources": 29,
           "clones": 2,
           "duplicatedLines": 57,
@@ -2164,8 +2164,8 @@
       }
     },
     "total": {
-      "lines": 12881,
-      "tokens": 99953,
+      "lines": 12910,
+      "tokens": 100173,
       "sources": 176,
       "clones": 7,
       "duplicatedLines": 107,

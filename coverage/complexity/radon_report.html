@@ -37,11 +37,11 @@
 
     <div class="summary">
         <div class="stat">
-            <div class="stat-value rating-A">2.65</div>
+            <div class="stat-value rating-A">2.66</div>
             <div class="stat-label">Avg Cyclomatic Complexity</div>
         </div>
         <div class="stat">
-            <div class="stat-value rating-A">82.98</div>
+            <div class="stat-value rating-A">82.94</div>
             <div class="stat-label">Avg Maintainability Index</div>
         </div>
         <div class="stat">
@@ -71,6 +71,13 @@
                 <td>apps/core/passkey_api.py</td>
                 <td>login_verify</td>
                 <td>function</td>
+                <td class="complexity-medium">10</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/core/management/commands/cookie_admin.py</td>
+                <td>_handle_status</td>
+                <td>method</td>
                 <td class="complexity-medium">10</td>
                 <td>B</td>
             </tr>
@@ -204,13 +211,6 @@
                 <td>apps/core/device_code_api.py</td>
                 <td>poll_status</td>
                 <td>function</td>
-                <td class="complexity-medium">8</td>
-                <td>B</td>
-            </tr>
-            <tr>
-                <td>apps/core/management/commands/cookie_admin.py</td>
-                <td>_handle_status</td>
-                <td>method</td>
                 <td class="complexity-medium">8</td>
                 <td>B</td>
             </tr>
@@ -502,6 +502,13 @@
                 <td>B</td>
             </tr>
             <tr>
+                <td>apps/core/management/commands/cleanup_device_codes.py</td>
+                <td>handle</td>
+                <td>method</td>
+                <td class="complexity-medium">6</td>
+                <td>B</td>
+            </tr>
+            <tr>
                 <td>apps/core/management/commands/cookie_admin.py</td>
                 <td>_format_audit_event</td>
                 <td>method</td>
@@ -753,13 +760,6 @@
                 <td class="complexity-low">5</td>
                 <td>A</td>
             </tr>
-            <tr>
-                <td>apps/core/encryption.py</td>
-                <td>decrypt_value</td>
-                <td>function</td>
-                <td class="complexity-low">5</td>
-                <td>A</td>
-            </tr>
         </tbody>
     </table>
 
@@ -786,7 +786,7 @@
             </tr>
             <tr>
                 <td>apps/core/management/commands/cookie_admin.py</td>
-                <td class="complexity-medium">40.9</td>
+                <td class="complexity-high">39.9</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -831,7 +831,7 @@
             </tr>
             <tr>
                 <td>apps/core/device_code_api.py</td>
-                <td class="complexity-medium">54.5</td>
+                <td class="complexity-medium">54.0</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -910,6 +910,11 @@
                 <td>A</td>
             </tr>
             <tr>
+                <td>apps/core/management/commands/cleanup_device_codes.py</td>
+                <td class="complexity-low">65.5</td>
+                <td>A</td>
+            </tr>
+            <tr>
                 <td>apps/recipes/utils.py</td>
                 <td class="complexity-low">65.9</td>
                 <td>A</td>
@@ -917,11 +922,6 @@
             <tr>
                 <td>apps/core/middleware.py</td>
                 <td class="complexity-low">68.2</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/core/management/commands/cleanup_device_codes.py</td>
-                <td class="complexity-low">68.9</td>
                 <td>A</td>
             </tr>
             <tr>
