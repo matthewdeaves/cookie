@@ -18,18 +18,30 @@ import os
 BACK_LINK_HTML = """<div style="position:fixed;top:10px;right:10px;z-index:9999;"><a href="/cookie/coverage/" style="background:#0066cc;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;box-shadow:0 2px 4px rgba(0,0,0,0.2);">&#8592; Back to Dashboard</a></div>"""
 
 
+def _safe_resolve(base_dir: str, path: str) -> str:
+    """Resolve path and ensure it stays within the base directory."""
+    base = os.path.realpath(base_dir)
+    resolved = os.path.realpath(path)
+    if not resolved.startswith(base + os.sep) and resolved != base:
+        raise ValueError(f"Path escapes base directory: {path}")
+    return resolved
+
+
 def inject_back_links(site_dir: str):
     """Inject back links into all HTML files except the main dashboard."""
+    real_site_dir = os.path.realpath(site_dir)
     count = 0
     skipped = 0
 
-    for html_file in glob.glob(f"{site_dir}/**/*.html", recursive=True):
+    for html_file in glob.glob(f"{real_site_dir}/**/*.html", recursive=True):
+        safe_path = _safe_resolve(real_site_dir, html_file)
+
         # Skip the main dashboard index
-        if html_file == f"{site_dir}/index.html":
+        if safe_path == os.path.join(real_site_dir, "index.html"):
             continue
 
         try:
-            with open(html_file, encoding="utf-8", errors="ignore") as f:
+            with open(safe_path, encoding="utf-8", errors="ignore") as f:
                 content = f.read()
 
             # Skip if already has the back link or no body tag
@@ -44,14 +56,14 @@ def inject_back_links(site_dir: str):
             # Inject the back link before </body>
             content = content.replace("</body>", BACK_LINK_HTML + "</body>")
 
-            with open(html_file, "w", encoding="utf-8") as f:
+            with open(safe_path, "w", encoding="utf-8") as f:
                 f.write(content)
 
-            print(f"Injected: {html_file}")
+            print(f"Injected: {safe_path}")
             count += 1
 
         except Exception as e:
-            print(f"Skipped {html_file}: {e}")
+            print(f"Skipped {safe_path}: {e}")
             skipped += 1
 
     print(f"\nInjected back links into {count} files")

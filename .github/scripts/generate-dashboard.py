@@ -20,9 +20,20 @@ from datetime import datetime, timezone, UTC
 from pathlib import Path
 
 
+REPO_ROOT = str(Path(__file__).resolve().parent.parent.parent)
+
+
+def _safe_path(path: str) -> str:
+    """Resolve path and ensure it stays within the repository root."""
+    resolved = os.path.realpath(path)
+    if not resolved.startswith(REPO_ROOT + os.sep) and resolved != REPO_ROOT:
+        raise ValueError(f"Path escapes repository root: {path}")
+    return resolved
+
+
 def load_config(config_path: str) -> dict:
     """Load rating thresholds from config file."""
-    with open(config_path) as f:
+    with open(_safe_path(config_path)) as f:
         return json.load(f)
 
 
@@ -363,7 +374,7 @@ def calculate_ratings(metrics: dict, config: dict) -> dict:
 def generate_badges(metrics: dict, ratings: dict, config: dict, output_dir: str):
     """Generate all SVG badges."""
     colors = config["colors"]
-    badges_dir = Path(output_dir) / "badges"
+    badges_dir = Path(_safe_path(output_dir)) / "badges"
     badges_dir.mkdir(parents=True, exist_ok=True)
 
     badges = [
@@ -386,6 +397,7 @@ def generate_badges(metrics: dict, ratings: dict, config: dict, output_dir: str)
     for name, label, value, color in badges:
         svg = generate_badge_svg(label, value, color)
         badge_path = badges_dir / f"{name}.svg"
+        _safe_path(str(badge_path))
         with open(badge_path, "w") as f:
             f.write(svg)  # Badge SVG contains only public metric labels/ratings
         print(f"Generated {name} badge: {value}")
@@ -393,7 +405,7 @@ def generate_badges(metrics: dict, ratings: dict, config: dict, output_dir: str)
 
 def create_metrics_json(metrics: dict, ratings: dict, output_dir: str):
     """Create the metrics.json API file."""
-    api_dir = Path(output_dir) / "api"
+    api_dir = Path(_safe_path(output_dir)) / "api"
     api_dir.mkdir(parents=True, exist_ok=True)
 
     base_url = "https://matthewdeaves.github.io/cookie/coverage"
@@ -490,17 +502,20 @@ def create_metrics_json(metrics: dict, ratings: dict, output_dir: str):
         },
     }
 
-    with open(api_dir / "metrics.json", "w") as f:
+    metrics_path = api_dir / "metrics.json"
+    _safe_path(str(metrics_path))
+    with open(metrics_path, "w") as f:
         json.dump(data, f, indent=2)
 
-    print(f"\nMetrics JSON generated at {api_dir}/metrics.json")
+    print(f"\nMetrics JSON generated at {metrics_path}")
 
 
 def update_history(metrics: dict, ratings: dict, output_dir: str):
     """Update history.json with current metrics."""
-    history_dir = Path(output_dir) / "history"
+    history_dir = Path(_safe_path(output_dir)) / "history"
     history_dir.mkdir(parents=True, exist_ok=True)
     history_file = history_dir / "all.json"
+    _safe_path(str(history_file))
 
     # Load existing history
     if history_file.exists():

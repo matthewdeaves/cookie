@@ -49,10 +49,13 @@ CSRF_TRUSTED_ORIGINS = [o.strip() for o in csrf_origins.split(",") if o.strip()]
 _raw_auth_mode = os.environ.get("AUTH_MODE", "home")
 if _raw_auth_mode not in ("home", "passkey"):
     import logging as _logging
+    import re as _re
 
+    # Sanitise for log output: strip control characters to prevent log injection
+    _safe_mode = _re.sub(r"[\x00-\x1f\x7f]", "", _raw_auth_mode)[:50]
     _logging.getLogger("cookie.settings").warning(
         "Unrecognised AUTH_MODE=%r — falling back to 'home'. Valid modes: 'home', 'passkey'.",
-        _raw_auth_mode,
+        _safe_mode,
     )
     _raw_auth_mode = "home"
 AUTH_MODE = _raw_auth_mode
