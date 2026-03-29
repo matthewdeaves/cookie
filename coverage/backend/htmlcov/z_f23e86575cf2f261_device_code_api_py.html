@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_f23e86575cf2f261_encryption_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.13.5">coverage.py v7.13.5</a>,
-            created at 2026-03-29 00:27 +0000
+            created at 2026-03-29 07:30 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -179,7 +179,7 @@
     <p class="pln"><span class="n"><a id="t97" href="#t97">97</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t98" href="#t98">98</a></span><span class="t">    <span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t99" href="#t99">99</a></span><span class="t">        <span class="nam">device_code</span> <span class="op">=</span> <span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t100" href="#t100">100</a></span><span class="t">            <span class="nam">DeviceCode</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">select_for_update</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t100" href="#t100">100</a></span><span class="t">            <span class="nam">DeviceCode</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">select_for_update</span><span class="op">(</span><span class="nam">of</span><span class="op">=</span><span class="op">(</span><span class="str">"self"</span><span class="op">,</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis mis2 show_mis"><span class="n"><a id="t101" href="#t101">101</a></span><span class="t">            <span class="op">.</span><span class="nam">select_related</span><span class="op">(</span><span class="str">"authorizing_user"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis mis2 show_mis"><span class="n"><a id="t102" href="#t102">102</a></span><span class="t">            <span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="nam">session_key</span><span class="op">=</span><span class="nam">session_key</span><span class="op">,</span> <span class="nam">status__in</span><span class="op">=</span><span class="op">[</span><span class="str">"pending"</span><span class="op">,</span> <span class="str">"authorized"</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis mis2 show_mis"><span class="n"><a id="t103" href="#t103">103</a></span><span class="t">        <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -277,7 +277,7 @@
             <a class="nav" href="z_f23e86575cf2f261_encryption_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.13.5">coverage.py v7.13.5</a>,
-            created at 2026-03-29 00:27 +0000
+            created at 2026-03-29 07:30 +0000
         </p>
     </div>
 </footer>
