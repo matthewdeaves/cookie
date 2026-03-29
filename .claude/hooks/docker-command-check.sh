@@ -69,17 +69,15 @@ fi
 
 # Check for npm commands (might need frontend container)
 if echo "$COMMAND" | grep -qE '^\s*npm\s+(test|install|run)'; then
-    # Check if we're in frontend directory or if it's frontend-related
     if ! echo "$COMMAND" | grep -q "docker compose exec"; then
-        # Could be OK if in frontend dir on host, but warn anyway
-        log_hook "WARNING: npm command on host - verify it's intentional"
+        WARNINGS="${WARNINGS}  - Running npm on host (should use: docker compose exec frontend npm ...)\n"
     fi
 fi
 
 if [[ -n "$WARNINGS" ]]; then
     log_hook "WARNING: Possible host command in Docker-only environment"
     echo ""
-    echo "⚠️  WARNING: Docker Environment Check"
+    echo "WARNING: Docker Environment Check"
     echo "====================================="
     echo ""
     echo "This command may run on host instead of in Docker:"

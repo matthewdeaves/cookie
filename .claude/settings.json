@@ -13,11 +13,6 @@
             "type": "command",
             "command": ".claude/hooks/ios9-css-check.sh",
             "statusMessage": "Checking iOS 9 CSS compatibility..."
-          },
-          {
-            "type": "command",
-            "command": ".claude/hooks/complexity-check.sh",
-            "statusMessage": "Checking code quality..."
           }
         ]
       },
@@ -33,11 +28,6 @@
             "type": "command",
             "command": ".claude/hooks/ios9-css-check.sh",
             "statusMessage": "Checking iOS 9 CSS compatibility..."
-          },
-          {
-            "type": "command",
-            "command": ".claude/hooks/complexity-check.sh",
-            "statusMessage": "Checking code quality..."
           }
         ]
       },
