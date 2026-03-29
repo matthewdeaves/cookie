@@ -60,7 +60,7 @@ export function useSearch(): UseSearchReturn {
   const [searchParams] = useSearchParams()
   const query = searchParams.get('q') || ''
   const state = useSearchState(query)
-  const { selectedSource, setResults, setSites, setTotal, setHasMore, setPage, setLoading, setLoadingMore, setImporting, setSearchInput } = state
+  const { selectedSource, setSelectedSource, setResults, setSites, setTotal, setHasMore, setPage, setLoading, setLoadingMore, setImporting, setSearchInput } = state
 
   const isUrl = /^https?:\/\//i.test(query.trim())
 
