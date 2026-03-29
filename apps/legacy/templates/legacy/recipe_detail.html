@@ -42,7 +42,11 @@
                         {% endif %}
                     </span>
                     {% endif %}
+                    {% if recipe.source_url %}
+                    <a href="{{ recipe.source_url }}" target="_blank" rel="noopener noreferrer" class="hero-host hero-host-link">{{ recipe.host }}</a>
+                    {% else %}
                     <span class="hero-host">{{ recipe.host }}</span>
+                    {% endif %}
                 </div>
             </div>
 

@@ -150,6 +150,17 @@
     color: rgba(255, 255, 255, 0.9);
 }
 
+.hero-host-link {
+    text-decoration: underline;
+    text-decoration-color: rgba(255, 255, 255, 0.4);
+    text-underline-offset: 2px;
+}
+
+.hero-host-link:hover {
+    color: #ffffff;
+    text-decoration-color: rgba(255, 255, 255, 0.8);
+}
+
 /* Hero Action Buttons */
 .hero-actions {
     display: -webkit-flex;
