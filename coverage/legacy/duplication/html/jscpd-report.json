@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-29T08:42:57.241Z",
+    "detectionDate": "2026-03-29T09:10:49.467Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -390,13 +390,13 @@
           },
           "apps/legacy/static/legacy/js/app.js": {
             "lines": 154,
-            "tokens": 1173,
+            "tokens": 1170,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 10,
             "duplicatedTokens": 106,
             "percentage": 6.49,
-            "percentageTokens": 9.04,
+            "percentageTokens": 9.06,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -427,7 +427,7 @@
         },
         "total": {
           "lines": 6746,
-          "tokens": 51630,
+          "tokens": 51627,
           "sources": 35,
           "clones": 31,
           "duplicatedLines": 314,
@@ -441,7 +441,7 @@
     },
     "total": {
       "lines": 6746,
-      "tokens": 51630,
+      "tokens": 51627,
       "sources": 35,
       "clones": 31,
       "duplicatedLines": 314,
@@ -1509,12 +1509,12 @@
         "startLoc": {
           "line": 97,
           "column": 19,
-          "position": 733
+          "position": 730
         },
         "endLoc": {
           "line": 102,
           "column": 4,
-          "position": 786
+          "position": 783
         }
       },
       "secondFile": {
@@ -1524,12 +1524,12 @@
         "startLoc": {
           "line": 71,
           "column": 23,
-          "position": 473
+          "position": 470
         },
         "endLoc": {
           "line": 76,
           "column": 7,
-          "position": 526
+          "position": 523
         }
       }
     },
