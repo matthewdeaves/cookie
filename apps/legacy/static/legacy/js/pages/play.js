@@ -13,6 +13,7 @@ Cookie.pages.play = (function() {
     var currentStep = 0;
     var totalSteps = 0;
     var panelExpanded = true;
+    var aiAvailable = false;
 
     // DOM elements
     var elements = {};
@@ -24,9 +25,17 @@ Cookie.pages.play = (function() {
         var pageEl = document.querySelector('[data-page="play-mode"]');
         if (!pageEl) return;
 
-        // Get instructions from global variable
-        if (typeof RECIPE_INSTRUCTIONS !== 'undefined') {
-            instructions = RECIPE_INSTRUCTIONS;
+        // Get AI availability from data attribute (CSP-safe)
+        aiAvailable = pageEl.getAttribute('data-ai-available') === 'true';
+
+        // Get instructions from json_script element (CSP-safe, no inline script)
+        var instructionsEl = document.getElementById('recipe-instructions');
+        if (instructionsEl) {
+            try {
+                instructions = JSON.parse(instructionsEl.textContent);
+            } catch (e) {
+                instructions = [];
+            }
         }
         totalSteps = instructions.length;
 
@@ -354,7 +363,7 @@ Cookie.pages.play = (function() {
         var instruction = instructions[currentStep] || '';
 
         // If AI is available, try to get an AI-generated name
-        if (typeof AI_AVAILABLE !== 'undefined' && AI_AVAILABLE && instruction) {
+        if (aiAvailable && instruction) {
             // Disable button while loading
             btn.disabled = true;
             btn.classList.add('loading');
@@ -415,7 +424,7 @@ Cookie.pages.play = (function() {
         var instruction = instructions[currentStep] || '';
 
         // If AI is available, try to get an AI-generated name
-        if (typeof AI_AVAILABLE !== 'undefined' && AI_AVAILABLE && instruction) {
+        if (aiAvailable && instruction) {
             // Disable button while loading
             btn.disabled = true;
             btn.classList.add('loading');

@@ -33,7 +33,14 @@
         </a>
         <div class="profile-dropdown" id="profile-dropdown">
             <button type="button" id="profile-dropdown-btn" class="avatar avatar-md" style="background-color: {{ profile.avatar_color }}; min-height: auto; min-width: auto;" aria-label="{{ profile.name }}">
+                {% if auth_mode == "passkey" %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                {% else %}
                 <span class="btn-icon-wrapper">{{ profile.name|slice:":1"|upper }}</span>
+                {% endif %}
             </button>
             <div class="profile-dropdown-menu hidden" id="profile-dropdown-menu">
                 <button type="button" class="profile-dropdown-item" id="switch-profile-btn">

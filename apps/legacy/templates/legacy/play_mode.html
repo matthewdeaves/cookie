@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="play-mode" data-page="play-mode" data-recipe-id="{{ recipe.id }}">
+<div class="play-mode" data-page="play-mode" data-recipe-id="{{ recipe.id }}" data-ai-available="{{ ai_available|yesno:"true,false" }}">
     {% if instructions %}
     <!-- Header with progress -->
     <div class="play-header">
@@ -91,11 +91,8 @@
     {% endif %}
 </div>
 
-<!-- Pass instructions and settings to JavaScript -->
-<script>
-    var RECIPE_INSTRUCTIONS = {{ instructions_json|safe }};
-    var AI_AVAILABLE = {{ ai_available|yesno:"true,false" }};
-</script>
+<!-- Pass instructions and settings to JavaScript (CSP-safe, no inline script) -->
+{{ instructions_json|json_script:"recipe-instructions" }}
 {% endblock %}
 
 {% block extra_js %}

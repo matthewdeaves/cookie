@@ -89,11 +89,9 @@
     </div>
 </div>
 
-<!-- Store query for JS -->
-<script>
-    window.searchQuery = "{{ query|escapejs }}";
-    window.isUrlSearch = {{ is_url|yesno:"true,false" }};
-</script>
+<!-- Store query for JS (CSP-safe, no inline script) -->
+{{ query|json_script:"search-query" }}
+{{ is_url|json_script:"search-is-url" }}
 {% endblock %}
 
 {% block extra_js %}

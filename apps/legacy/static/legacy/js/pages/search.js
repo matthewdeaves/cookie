@@ -49,9 +49,11 @@ Cookie.pages.search = (function() {
      * Initialize the page
      */
     function init() {
-        // Get state from window
-        state.query = window.searchQuery || '';
-        state.isUrl = window.isUrlSearch || false;
+        // Get state from json_script elements (CSP-safe, no inline script)
+        var queryEl = document.getElementById('search-query');
+        var isUrlEl = document.getElementById('search-is-url');
+        state.query = queryEl ? JSON.parse(queryEl.textContent) : '';
+        state.isUrl = isUrlEl ? JSON.parse(isUrlEl.textContent) : false;
 
         // Get DOM elements
         elements.loading = document.getElementById('loading');
