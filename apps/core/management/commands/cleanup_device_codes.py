@@ -1,9 +1,12 @@
 """Management command to clean up expired device codes."""
 
+from django.core.cache import cache
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from apps.core.models import DeviceCode
+
+CLEANUP_CACHE_KEY = "device_code_cleanup_last_run"
 
 
 class Command(BaseCommand):
@@ -28,21 +31,44 @@ class Command(BaseCommand):
         one_hour_ago = now - timezone.timedelta(hours=1)
         consumed = DeviceCode.objects.filter(status="authorized", created_at__lt=one_hour_ago)
 
-        total = expired.count() + invalidated.count() + consumed.count()
+        counts = {
+            "expired": expired.count(),
+            "invalidated": invalidated.count(),
+            "consumed": consumed.count(),
+        }
+        total = sum(counts.values())
+
+        if options.get("dry_run"):
+            if total == 0:
+                self.stdout.write("No device codes to clean up.")
+            else:
+                self.stdout.write(
+                    f"Would delete {total} device codes "
+                    f"({counts['expired']} expired, {counts['invalidated']} invalidated, "
+                    f"{counts['consumed']} consumed)."
+                )
+            return
+
+        if total > 0:
+            expired.delete()
+            invalidated.delete()
+            consumed.delete()
+
+        remaining = DeviceCode.objects.count()
+
+        # Record run stats in cache (no expiry — persists until next run)
+        cache.set(
+            CLEANUP_CACHE_KEY,
+            {
+                "time": now.isoformat(),
+                "deleted": total,
+                "remaining": remaining,
+                **counts,
+            },
+            timeout=None,
+        )
 
         if total == 0:
             self.stdout.write("No device codes to clean up.")
-            return
-
-        if options.get("dry_run"):
-            self.stdout.write(
-                f"Would delete {total} device codes "
-                f"({expired.count()} expired, {invalidated.count()} invalidated, "
-                f"{consumed.count()} consumed)."
-            )
-            return
-
-        expired.delete()
-        invalidated.delete()
-        consumed.delete()
-        self.stdout.write(f"Deleted {total} device codes.")
+        else:
+            self.stdout.write(f"Deleted {total} device codes.")

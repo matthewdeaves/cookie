@@ -54,11 +54,20 @@ python manage.py collectstatic --noinput
 # Ensure app user owns required directories
 chown -R app:app /app/staticfiles /app/data 2>/dev/null || true
 
+# Set up cron job for device code cleanup (hourly)
+echo "DJANGO_SETTINGS_MODULE=cookie.settings" > /etc/cron.d/cookie-cleanup
+echo "DATABASE_URL=${DATABASE_URL}" >> /etc/cron.d/cookie-cleanup
+echo "SECRET_KEY=${SECRET_KEY}" >> /etc/cron.d/cookie-cleanup
+echo "0 * * * * root cd /app && /usr/local/bin/python manage.py cleanup_device_codes >> /proc/1/fd/1 2>&1" >> /etc/cron.d/cookie-cleanup
+chmod 0644 /etc/cron.d/cookie-cleanup
+crontab /etc/cron.d/cookie-cleanup
+echo "Cron job configured: cleanup_device_codes (hourly)"
+
 # Process supervision: if either process exits, terminate the other and exit
 cleanup() {
     echo "Shutting down..."
-    kill -TERM "$GUNICORN_PID" "$NGINX_PID" 2>/dev/null
-    wait "$GUNICORN_PID" "$NGINX_PID" 2>/dev/null
+    kill -TERM "$GUNICORN_PID" "$NGINX_PID" "$CRON_PID" 2>/dev/null
+    wait "$GUNICORN_PID" "$NGINX_PID" "$CRON_PID" 2>/dev/null
     exit 0
 }
 trap cleanup SIGTERM SIGINT
@@ -82,6 +91,10 @@ GUNICORN_PID=$!
 echo "Starting Nginx on 0.0.0.0:80..."
 nginx -g 'daemon off;' &
 NGINX_PID=$!
+
+# Start cron daemon
+cron &
+CRON_PID=$!
 
 # Wait for either process to exit, then terminate the other
 wait -n

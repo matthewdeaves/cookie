@@ -66,7 +66,7 @@ export function useSearch(): UseSearchReturn {
 
   useEffect(() => {
     setSearchInput(query)
-  }, [query])
+  }, [query, setSearchInput])
 
   useEffect(() => {
     if (!query) {

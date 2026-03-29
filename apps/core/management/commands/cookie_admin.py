@@ -171,6 +171,14 @@ class Command(BaseCommand):
             "rp_name": settings.WEBAUTHN_RP_NAME,
         }
 
+        # Maintenance — last cleanup run
+        from django.core.cache import cache
+
+        from apps.core.management.commands.cleanup_device_codes import CLEANUP_CACHE_KEY
+
+        cleanup_info = cache.get(CLEANUP_CACHE_KEY)
+        status["maintenance"] = {"device_code_cleanup": cleanup_info or "never run"}
+
         if options.get("as_json"):
             self.stdout.write(json.dumps({"ok": True, **status}, indent=2))
             return
@@ -186,6 +194,14 @@ class Command(BaseCommand):
             f"OpenRouter:   {'configured' if status['openrouter']['configured'] else 'not configured'} (source: {src})"
         )
         self.stdout.write(f"WebAuthn RP:  {status['webauthn']['rp_id']} ({status['webauthn']['rp_name']})")
+        cleanup = status["maintenance"]["device_code_cleanup"]
+        if isinstance(cleanup, dict):
+            self.stdout.write(
+                f"Cleanup:      last ran {cleanup['time'][:19]}, "
+                f"deleted {cleanup['deleted']}, {cleanup['remaining']} remaining"
+            )
+        else:
+            self.stdout.write(f"Cleanup:      {cleanup}")
 
     def _handle_audit(self, options):
         max_lines = options.get("lines", 50)

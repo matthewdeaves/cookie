@@ -344,7 +344,7 @@ describe('Search', () => {
     renderSearch('https://example.com/my-recipe')
 
     await waitFor(() => {
-      expect(screen.getByText('Import Recipe from URL')).toBeInTheDocument()
+      expect(screen.getByText('Import from example.com')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Import Recipe' })).toBeInTheDocument()
     })
   })

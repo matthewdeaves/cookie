@@ -42,8 +42,10 @@ def request_code(request):
 
     session_key = request.session.session_key
 
-    # Invalidate any existing pending codes for this session
-    DeviceCode.objects.filter(session_key=session_key, status="pending").update(status="invalidated")
+    # Invalidate any existing pending/authorized codes for this session
+    DeviceCode.objects.filter(session_key=session_key, status__in=["pending", "authorized"]).update(
+        status="invalidated"
+    )
 
     # Clean up expired codes for this session
     DeviceCode.objects.filter(session_key=session_key, expires_at__lt=timezone.now()).exclude(
@@ -95,13 +97,14 @@ def poll_status(request):
     if not session_key:
         return 410, {"status": "expired", "error": "No active code. Please request a new one."}
 
-    try:
-        device_code = (
-            DeviceCode.objects.select_for_update(of=("self",))
-            .select_related("authorizing_user")
-            .get(session_key=session_key, status__in=["pending", "authorized"])
-        )
-    except DeviceCode.DoesNotExist:
+    device_code = (
+        DeviceCode.objects.select_for_update(of=("self",))
+        .select_related("authorizing_user")
+        .filter(session_key=session_key, status__in=["pending", "authorized"])
+        .order_by("-created_at")
+        .first()
+    )
+    if device_code is None:
         return 410, {"status": "expired", "error": "No active code. Please request a new one."}
 
     # Check expiry
