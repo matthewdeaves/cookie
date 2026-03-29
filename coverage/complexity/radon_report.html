@@ -41,15 +41,15 @@
             <div class="stat-label">Avg Cyclomatic Complexity</div>
         </div>
         <div class="stat">
-            <div class="stat-value rating-A">82.94</div>
+            <div class="stat-value rating-A">83.05</div>
             <div class="stat-label">Avg Maintainability Index</div>
         </div>
         <div class="stat">
-            <div class="stat-value">709</div>
+            <div class="stat-value">712</div>
             <div class="stat-label">Functions Analyzed</div>
         </div>
         <div class="stat">
-            <div class="stat-value">104</div>
+            <div class="stat-value">105</div>
             <div class="stat-label">Files Analyzed</div>
         </div>
     </div>
@@ -60,6 +60,13 @@
             <tr><th>File</th><th>Function</th><th>Type</th><th>Complexity</th><th>Rating</th></tr>
         </thead>
         <tbody>
+            <tr>
+                <td>apps/core/management/commands/cookie_admin.py</td>
+                <td>_handle_status</td>
+                <td>method</td>
+                <td class="complexity-high">13</td>
+                <td>C</td>
+            </tr>
             <tr>
                 <td>apps/ai/services/remix.py</td>
                 <td>create_remix</td>
@@ -75,8 +82,8 @@
                 <td>B</td>
             </tr>
             <tr>
-                <td>apps/core/management/commands/cookie_admin.py</td>
-                <td>_handle_status</td>
+                <td>apps/recipes/management/commands/cleanup_search_images.py</td>
+                <td>handle</td>
                 <td>method</td>
                 <td class="complexity-medium">10</td>
                 <td>B</td>
@@ -133,13 +140,6 @@
             <tr>
                 <td>apps/recipes/services/image_cache.py</td>
                 <td>_fetch_image</td>
-                <td>method</td>
-                <td class="complexity-medium">9</td>
-                <td>B</td>
-            </tr>
-            <tr>
-                <td>apps/recipes/management/commands/cleanup_search_images.py</td>
-                <td>handle</td>
                 <td>method</td>
                 <td class="complexity-medium">9</td>
                 <td>B</td>
@@ -579,13 +579,6 @@
                 <td>B</td>
             </tr>
             <tr>
-                <td>apps/recipes/management/commands/cleanup_search_images.py</td>
-                <td>Command</td>
-                <td>class</td>
-                <td class="complexity-medium">6</td>
-                <td>B</td>
-            </tr>
-            <tr>
                 <td>apps/legacy/views.py</td>
                 <td>play_mode</td>
                 <td>function</td>
@@ -760,6 +753,13 @@
                 <td class="complexity-low">5</td>
                 <td>A</td>
             </tr>
+            <tr>
+                <td>apps/core/encryption.py</td>
+                <td>decrypt_value</td>
+                <td>function</td>
+                <td class="complexity-low">5</td>
+                <td>A</td>
+            </tr>
         </tbody>
     </table>
 
@@ -786,7 +786,7 @@
             </tr>
             <tr>
                 <td>apps/core/management/commands/cookie_admin.py</td>
-                <td class="complexity-high">39.9</td>
+                <td class="complexity-high">38.8</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -930,6 +930,11 @@
                 <td>A</td>
             </tr>
             <tr>
+                <td>apps/recipes/management/commands/cleanup_search_images.py</td>
+                <td class="complexity-low">70.3</td>
+                <td>A</td>
+            </tr>
+            <tr>
                 <td>apps/ai/services/ranking.py</td>
                 <td class="complexity-low">71.1</td>
                 <td>A</td>
@@ -942,11 +947,6 @@
             <tr>
                 <td>apps/core/auth_helpers.py</td>
                 <td class="complexity-low">72.3</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/recipes/management/commands/cleanup_search_images.py</td>
-                <td class="complexity-low">74.8</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -1151,6 +1151,11 @@
             </tr>
             <tr>
                 <td>apps/core/management/commands/__init__.py</td>
+                <td class="complexity-low">100.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/core/management/commands/cleanup_sessions.py</td>
                 <td class="complexity-low">100.0</td>
                 <td>A</td>
             </tr>

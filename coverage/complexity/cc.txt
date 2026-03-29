@@ -463,29 +463,32 @@ apps/core/migrations/0005_passkey_field_fixes.py
     C 6:0 Migration - A (1)
 apps/core/migrations/0003_passkey_webauthn_devicecode.py
     C 8:0 Migration - A (1)
+apps/core/management/commands/cleanup_sessions.py
+    C 11:0 Command - A (3)
+    M 14:4 Command.handle - A (2)
 apps/core/management/commands/cleanup_device_codes.py
     M 18:4 Command.handle - B (6)
     C 12:0 Command - A (5)
     M 15:4 Command.add_arguments - A (1)
 apps/core/management/commands/cookie_admin.py
-    M 114:4 Command._handle_status - B (10)
-    M 294:4 Command._handle_list_users - B (8)
-    M 282:4 Command._format_audit_event - B (6)
+    M 114:4 Command._handle_status - C (13)
+    M 304:4 Command._handle_list_users - B (8)
+    M 292:4 Command._format_audit_event - B (6)
     C 25:0 Command - A (4)
     M 67:4 Command.handle - A (4)
-    M 206:4 Command._handle_audit - A (4)
+    M 216:4 Command._handle_audit - A (4)
     M 81:4 Command._error - A (3)
     M 88:4 Command._success - A (3)
-    M 266:4 Command._collect_device_code_events - A (3)
-    M 340:4 Command._handle_demote - A (3)
-    M 357:4 Command._handle_deactivate - A (3)
+    M 276:4 Command._collect_device_code_events - A (3)
+    M 350:4 Command._handle_demote - A (3)
+    M 367:4 Command._handle_deactivate - A (3)
     M 97:4 Command._get_user - A (2)
-    M 234:4 Command._collect_registration_events - A (2)
-    M 247:4 Command._collect_login_events - A (2)
-    M 331:4 Command._handle_promote - A (2)
+    M 244:4 Command._collect_registration_events - A (2)
+    M 257:4 Command._collect_login_events - A (2)
+    M 341:4 Command._handle_promote - A (2)
     M 28:4 Command.add_arguments - A (1)
     M 103:4 Command._user_dict - A (1)
-    M 351:4 Command._handle_activate - A (1)
+    M 361:4 Command._handle_activate - A (1)
 apps/profiles/utils.py
     F 9:0 get_current_profile - A (3)
     F 25:0 get_current_profile_or_none - A (3)
@@ -785,11 +788,12 @@ apps/recipes/services/image_cache.py
     M 176:4 SearchImageCache.get_cached_urls_batch - A (4)
     M 213:4 SearchImageCache._generate_filename - A (1)
 apps/recipes/management/commands/cleanup_search_images.py
-    M 40:4 Command.handle - B (9)
-    C 24:0 Command - B (6)
-    M 27:4 Command.add_arguments - A (1)
+    M 43:4 Command.handle - B (10)
+    C 27:0 Command - A (5)
+    M 30:4 Command.add_arguments - A (1)
+    M 113:4 Command._record_run - A (1)
 cookie/settings.py
     F 21:0 get_secret_key - A (3)
 
-709 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.6558533145275036)
+712 blocks (classes, functions, methods) analyzed.
+Average complexity: A (2.657303370786517)

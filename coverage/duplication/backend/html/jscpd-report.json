@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-29T08:02:50.540Z",
+    "detectionDate": "2026-03-29T08:08:21.243Z",
     "formats": {
       "python": {
         "sources": {
@@ -41,8 +41,8 @@
             "newClones": 0
           },
           "apps/recipes/management/commands/cleanup_search_images.py": {
-            "lines": 100,
-            "tokens": 556,
+            "lines": 117,
+            "tokens": 702,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -53,8 +53,20 @@
             "newClones": 0
           },
           "apps/core/management/commands/cookie_admin.py": {
-            "lines": 374,
-            "tokens": 3451,
+            "lines": 384,
+            "tokens": 3576,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/core/management/commands/cleanup_sessions.py": {
+            "lines": 29,
+            "tokens": 228,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -654,28 +666,28 @@
           }
         },
         "total": {
-          "lines": 9673,
-          "tokens": 65990,
-          "sources": 54,
+          "lines": 9729,
+          "tokens": 66489,
+          "sources": 55,
           "clones": 6,
           "duplicatedLines": 123,
           "duplicatedTokens": 871,
-          "percentage": 1.27,
-          "percentageTokens": 1.32,
+          "percentage": 1.26,
+          "percentageTokens": 1.31,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 9673,
-      "tokens": 65990,
-      "sources": 54,
+      "lines": 9729,
+      "tokens": 66489,
+      "sources": 55,
       "clones": 6,
       "duplicatedLines": 123,
       "duplicatedTokens": 871,
-      "percentage": 1.27,
-      "percentageTokens": 1.32,
+      "percentage": 1.26,
+      "percentageTokens": 1.31,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
