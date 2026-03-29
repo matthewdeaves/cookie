@@ -115,11 +115,13 @@
 .side-nav {
     display: -webkit-flex;
     display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
     -webkit-align-items: center;
     align-items: center;
     -webkit-justify-content: center;
     justify-content: center;
-    width: 3rem;
+    width: 3.5rem;
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
     background-color: transparent;
@@ -146,23 +148,21 @@
 }
 
 .side-nav svg {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     stroke-width: 1.5;
 }
 
 .side-nav-label {
     display: none;
-    font-size: 0.75rem;
+    font-size: 0.625rem;
     font-weight: 500;
+    margin-top: 0.125rem;
 }
 
 @media (min-width: 480px) {
     .side-nav-label {
         display: block;
-    }
-
-    .side-nav {
     }
 }
 
@@ -181,9 +181,10 @@
     -webkit-min-width: 0;
     -webkit-align-items: center;
     align-items: center;
-    -webkit-justify-content: center;
-    justify-content: center;
+    -webkit-justify-content: flex-start;
+    justify-content: flex-start;
     padding: 1rem;
+    padding-top: 15%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
@@ -225,7 +226,7 @@
     }
 
     .side-nav {
-        width: 4rem;
+        width: 4.5rem;
     }
 }
 

@@ -26,27 +26,27 @@
         <!-- Gradient overlay -->
         <div class="hero-gradient"></div>
 
-        <!-- Title and rating overlay -->
-        <div class="hero-content">
-            <h1 class="hero-title">{{ recipe.title }}</h1>
-            <div class="hero-meta">
-                {% if recipe.rating %}
-                <span class="hero-rating">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                    </svg>
-                    {{ recipe.rating|floatformat:1 }}
-                    {% if recipe.rating_count %}
-                    <span class="hero-rating-count">({{ recipe.rating_count }})</span>
+        <!-- Title, rating, and action buttons overlay -->
+        <div class="hero-bottom">
+            <div class="hero-content">
+                <h1 class="hero-title">{{ recipe.title }}</h1>
+                <div class="hero-meta">
+                    {% if recipe.rating %}
+                    <span class="hero-rating">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        {{ recipe.rating|floatformat:1 }}
+                        {% if recipe.rating_count %}
+                        <span class="hero-rating-count">({{ recipe.rating_count }})</span>
+                        {% endif %}
+                    </span>
                     {% endif %}
-                </span>
-                {% endif %}
-                <span class="hero-host">{{ recipe.host }}</span>
+                    <span class="hero-host">{{ recipe.host }}</span>
+                </div>
             </div>
-        </div>
 
-        <!-- Action buttons -->
-        <div class="hero-actions">
+            <div class="hero-actions">
             <button
                 type="button"
                 id="favorite-btn"
@@ -102,6 +102,7 @@
                 </svg>
                 Cook!
             </button>
+            </div>
         </div>
     </div>
 

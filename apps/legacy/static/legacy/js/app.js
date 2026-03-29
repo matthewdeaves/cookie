@@ -41,7 +41,7 @@ Cookie.app = (function() {
             if (source) {
                 e.preventDefault();
                 e.stopPropagation();
-                window.open(source.getAttribute('data-source-url'), '_blank', 'noopener');
+                window.open(source.getAttribute('data-source-url'), '_blank');
             }
         });
     }
