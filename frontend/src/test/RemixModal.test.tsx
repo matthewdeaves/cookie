@@ -100,6 +100,11 @@ describe('RemixModal', () => {
 
     expect(screen.getByText('Remix This Recipe')).toBeInTheDocument()
     expect(screen.getByText(/Chocolate Chip Cookies/)).toBeInTheDocument()
+
+    // Wait for suggestions to load so async state updates settle
+    await waitFor(() => {
+      expect(screen.getByText('Make it vegan')).toBeInTheDocument()
+    })
   })
 
   it('shows loading state while fetching suggestions', async () => {

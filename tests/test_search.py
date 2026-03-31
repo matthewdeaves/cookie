@@ -434,9 +434,17 @@ class TestSearchService:
         assert results["results"] == []
         assert results["sites"] == {}
 
+        # Re-enable sources for subsequent tests (transaction=True persists changes)
+        await sync_to_async(SearchSource.objects.update)(is_enabled=True)
+
     @patch("apps.recipes.services.search.AsyncSession")
     async def test_search_with_source_filter(self, mock_session_class):
-        """Test search with specific source filter."""
+        """Test search with specific source filter.
+
+        Note: With transaction=True, async tests may see stale DB state across
+        thread-pool connections. We mock _get_enabled_sources to avoid depending
+        on prior test state.
+        """
         from apps.recipes.models import SearchSource
 
         # Mock response
@@ -458,14 +466,23 @@ class TestSearchService:
         mock_session.__aexit__ = AsyncMock(return_value=None)
         mock_session_class.return_value = mock_session
 
-        search = RecipeSearch()
-        results = await search.search(
-            "cookies",
-            sources=["allrecipes.com"],
-        )
+        # Create a mock source to avoid DB state dependency between tests
+        mock_source = MagicMock(spec=SearchSource)
+        mock_source.host = "allrecipes.com"
+        mock_source.search_url_template = "https://www.allrecipes.com/search?q={query}"
+        mock_source.result_selector = ""
+        mock_source.pk = 1
 
-        # Dict key membership check on test data (not URL substring validation)
-        assert "allrecipes.com" in results["sites"] or results["total"] >= 0
+        search = RecipeSearch()
+        with patch.object(search, "_get_enabled_sources", AsyncMock(return_value=[mock_source])):
+            results = await search.search(
+                "cookies",
+                sources=["allrecipes.com"],
+            )
+
+        # Verify the HTTP session was used to fetch from the source
+        mock_session.get.assert_called()
+        assert isinstance(results["total"], int)
 
     @patch("apps.recipes.services.search.AsyncSession")
     async def test_search_handles_http_error(self, mock_session_class):

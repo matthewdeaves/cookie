@@ -55,14 +55,20 @@ describe('AllRecipes', () => {
     })
   })
 
-  it('shows loading skeleton initially', () => {
+  it('shows loading skeleton initially', async () => {
     render(<AllRecipes />)
     expect(screen.getByTestId('recipe-grid-skeleton')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByTestId('recipe-grid-skeleton')).not.toBeInTheDocument()
+    })
   })
 
-  it('shows page heading', () => {
+  it('shows page heading', async () => {
     render(<AllRecipes />)
     expect(screen.getByText('My Recipes')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByTestId('recipe-grid-skeleton')).not.toBeInTheDocument()
+    })
   })
 
   it('shows empty state when no recipes exist', async () => {

@@ -557,6 +557,7 @@ def update_history(metrics: dict, ratings: dict, output_dir: str):
         "legacy": {
             "errors": metrics["legacy_errors"],
             "warnings": metrics["legacy_warnings"],
+            "complexity_warnings": metrics["legacy_complexity_warnings"],
             "duplication": metrics["legacy_duplication_pct"],
         },
     }

@@ -80,42 +80,56 @@ describe('Search', () => {
     )
   }
 
-  it('renders search bar with query value', () => {
+  it('renders search bar with query value', async () => {
     renderSearch()
     const searchInput = screen.getByPlaceholderText('Search recipes or paste a URL...')
     expect(searchInput).toBeInTheDocument()
     expect(searchInput).toHaveValue('pasta')
+    await waitFor(() => {
+      expect(mockSearch).toHaveBeenCalled()
+    })
   })
 
-  it('renders NavHeader', () => {
+  it('renders NavHeader', async () => {
     renderSearch()
     expect(screen.getByText('Cookie')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(mockSearch).toHaveBeenCalled()
+    })
   })
 
-  it('navigates on search submit with new query', () => {
+  it('navigates on search submit with new query', async () => {
     renderSearch()
-    const searchInput = screen.getByPlaceholderText('Search recipes or paste a URL...')
+    await waitFor(() => {
+      expect(mockSearch).toHaveBeenCalled()
+    })
 
+    const searchInput = screen.getByPlaceholderText('Search recipes or paste a URL...')
     fireEvent.change(searchInput, { target: { value: 'chicken' } })
     fireEvent.submit(searchInput.closest('form')!)
 
     expect(mockNavigate).toHaveBeenCalledWith('/search?q=chicken')
   })
 
-  it('does not navigate on submit with same query', () => {
+  it('does not navigate on submit with same query', async () => {
     renderSearch()
-    const searchInput = screen.getByPlaceholderText('Search recipes or paste a URL...')
+    await waitFor(() => {
+      expect(mockSearch).toHaveBeenCalled()
+    })
 
-    // Submit without changing the value
+    const searchInput = screen.getByPlaceholderText('Search recipes or paste a URL...')
     fireEvent.submit(searchInput.closest('form')!)
 
     expect(mockNavigate).not.toHaveBeenCalledWith(expect.stringContaining('/search'))
   })
 
-  it('does not navigate on submit with empty query', () => {
+  it('does not navigate on submit with empty query', async () => {
     renderSearch()
-    const searchInput = screen.getByPlaceholderText('Search recipes or paste a URL...')
+    await waitFor(() => {
+      expect(mockSearch).toHaveBeenCalled()
+    })
 
+    const searchInput = screen.getByPlaceholderText('Search recipes or paste a URL...')
     fireEvent.change(searchInput, { target: { value: '   ' } })
     fireEvent.submit(searchInput.closest('form')!)
 

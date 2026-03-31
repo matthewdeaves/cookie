@@ -82,14 +82,22 @@ class TestPublicModeFallback:
 
     def test_public_mode_warning_logged(self, caplog):
         """Settings logs a warning when AUTH_MODE is set to an invalid value like 'public'."""
-        logger = logging.getLogger("cookie.settings")
-        with caplog.at_level(logging.WARNING, logger="cookie.settings"):
-            logger.warning(
-                "Unrecognised AUTH_MODE=%r — falling back to 'home'. Valid modes: 'home', 'passkey'.",
-                "public",
-            )
+        import importlib
+        from unittest.mock import patch
+
+        with (
+            caplog.at_level(logging.WARNING, logger="cookie.settings"),
+            patch.dict("os.environ", {"AUTH_MODE": "public", "DATABASE_URL": "postgres://u:p@h:5432/d"}),
+        ):
+            import cookie.settings
+
+            importlib.reload(cookie.settings)
+
         assert "Unrecognised AUTH_MODE='public'" in caplog.text
         assert "falling back to 'home'" in caplog.text
+
+        # Restore settings with real environment
+        importlib.reload(cookie.settings)
 
     def test_removed_public_endpoints_not_found(self, client):
         """Endpoints that existed only in public mode no longer exist."""

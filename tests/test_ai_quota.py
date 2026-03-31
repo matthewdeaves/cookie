@@ -420,52 +420,105 @@ class TestRenameEndpoint:
 @pytest.mark.django_db
 class TestQuotaNotIncrementedOnCacheHit:
     """Quota should only count when OpenRouter is actually called, not when
-    results are served from cache."""
+    results are served from cache. Tests call the real endpoint."""
 
-    def test_tips_cached_does_not_increment(self, passkey_mode):
-        """When generate_tips returns cached=True, quota should not increment."""
-        profile = _make_profile()
-        # Simulate what the endpoint does: if result is cached, don't increment
-        increment_quota(profile, "tips")  # first real call
-        usage_before = get_usage(profile.pk)["tips"]
-        assert usage_before == 1
+    def test_tips_cached_does_not_increment(self, client, settings):
+        """When tips are already cached on the recipe, quota stays unchanged."""
+        from apps.recipes.models import Recipe
 
-        # A cached response should NOT cause another increment
-        # (endpoint checks result.get("cached") before incrementing)
-        # We verify the logic here: only increment if not cached
-        cached_result = {"tips": ["tip1"], "cached": True}
-        if not cached_result.get("cached"):
-            increment_quota(profile, "tips")
+        settings.AUTH_MODE = "passkey"
+        profile = _make_profile("tips_cached")
+        recipe = Recipe.objects.create(
+            profile=profile,
+            title="Test Recipe",
+            host="example.com",
+            ingredients=["flour"],
+            instructions=["mix"],
+            ai_tips=["Cached tip 1", "Cached tip 2", "Cached tip 3"],
+        )
 
-        usage_after = get_usage(profile.pk)["tips"]
-        assert usage_after == 1  # unchanged
+        _login(client, profile.user)
+        response = client.post(
+            "/api/ai/tips",
+            data=json.dumps({"recipe_id": recipe.id}),
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        assert response.json()["cached"] is True
+        assert get_usage(profile.pk)["tips"] == 0
 
-    def test_tips_fresh_does_increment(self, passkey_mode):
-        """When generate_tips returns cached=False, quota should increment."""
-        profile = _make_profile()
-        fresh_result = {"tips": ["tip1"], "cached": False}
-        if not fresh_result.get("cached"):
-            increment_quota(profile, "tips")
+    def test_tips_fresh_does_increment(self, client, settings):
+        """When tips are generated fresh via AI, quota is incremented."""
+        from unittest.mock import patch, MagicMock
+        from apps.recipes.models import Recipe
 
+        settings.AUTH_MODE = "passkey"
+        profile = _make_profile("tips_fresh")
+        recipe = Recipe.objects.create(
+            profile=profile,
+            title="Test Recipe",
+            host="example.com",
+            ingredients=["flour"],
+            instructions=["mix"],
+        )
+
+        mock_service = MagicMock()
+        mock_service.complete.return_value = "mocked"
+        mock_validator = MagicMock()
+        mock_validator.validate.return_value = ["Tip 1", "Tip 2", "Tip 3"]
+
+        _login(client, profile.user)
+        with (
+            patch("apps.ai.services.tips.OpenRouterService", return_value=mock_service),
+            patch("apps.ai.services.tips.AIResponseValidator", return_value=mock_validator),
+        ):
+            response = client.post(
+                "/api/ai/tips",
+                data=json.dumps({"recipe_id": recipe.id}),
+                content_type="application/json",
+            )
+        assert response.status_code == 200
+        assert response.json()["cached"] is False
         assert get_usage(profile.pk)["tips"] == 1
 
-    def test_scale_cached_does_not_increment(self, passkey_mode):
-        """When scale_recipe returns cached=True, quota should not increment."""
-        profile = _make_profile()
-        cached_result = {"cached": True, "ingredients": []}
-        if not cached_result.get("cached"):
-            increment_quota(profile, "scale")
+    def test_scale_cached_does_not_increment(self, client, settings):
+        """When a cached scaling exists, quota stays unchanged."""
+        from apps.recipes.models import Recipe, ServingAdjustment
 
+        settings.AUTH_MODE = "passkey"
+        profile = _make_profile("scale_cached")
+        recipe = Recipe.objects.create(
+            profile=profile,
+            title="Test Recipe",
+            host="example.com",
+            ingredients=["flour"],
+            instructions=["mix"],
+            servings=4,
+        )
+        ServingAdjustment.objects.create(
+            recipe=recipe,
+            profile=profile,
+            target_servings=8,
+            unit_system="metric",
+            ingredients=["2x flour"],
+            notes=[],
+        )
+
+        _login(client, profile.user)
+        response = client.post(
+            "/api/ai/scale",
+            data=json.dumps(
+                {
+                    "recipe_id": recipe.id,
+                    "target_servings": 8,
+                    "profile_id": profile.id,
+                }
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        assert response.json()["cached"] is True
         assert get_usage(profile.pk)["scale"] == 0
-
-    def test_scale_fresh_does_increment(self, passkey_mode):
-        """When scale_recipe returns cached=False, quota should increment."""
-        profile = _make_profile()
-        fresh_result = {"cached": False, "ingredients": []}
-        if not fresh_result.get("cached"):
-            increment_quota(profile, "scale")
-
-        assert get_usage(profile.pk)["scale"] == 1
 
 
 # ---------------------------------------------------------------------------

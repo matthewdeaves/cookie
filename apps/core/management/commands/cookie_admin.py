@@ -132,10 +132,23 @@ class Command(BaseCommand):
         }
 
     def _handle_status(self, options):
+        status = self._collect_status()
+
+        if options.get("as_json"):
+            self.stdout.write(json.dumps({"ok": True, **status}, indent=2))
+            return
+
+        self._print_status(status)
+
+    def _collect_status(self):
+        from django.core.cache import cache
         from django.db import connection
         from django.utils import timezone
 
+        from apps.core.management.commands.cleanup_device_codes import CLEANUP_CACHE_KEY as DC_KEY
+        from apps.core.management.commands.cleanup_sessions import CLEANUP_CACHE_KEY as SESS_KEY
         from apps.core.models import AppSettings, DeviceCode, WebAuthnCredential
+        from apps.recipes.management.commands.cleanup_search_images import CLEANUP_CACHE_KEY as IMG_KEY
 
         status = {"auth_mode": settings.AUTH_MODE}
 
@@ -149,8 +162,9 @@ class Command(BaseCommand):
 
         # Migrations
         try:
-            from django.core.management import call_command
             from io import StringIO
+
+            from django.core.management import call_command
 
             out = StringIO()
             call_command("migrate", "--check", stdout=out, stderr=out)
@@ -159,21 +173,23 @@ class Command(BaseCommand):
             status["migrations"] = "pending"
 
         # Users
-        total_users = User.objects.count()
-        active_users = User.objects.filter(is_active=True).count()
-        admin_users = User.objects.filter(is_staff=True, is_active=True).count()
-        status["users"] = {"total": total_users, "active": active_users, "admins": admin_users}
+        status["users"] = {
+            "total": User.objects.count(),
+            "active": User.objects.filter(is_active=True).count(),
+            "admins": User.objects.filter(is_staff=True, is_active=True).count(),
+        }
 
         # Passkeys
         status["passkeys"] = WebAuthnCredential.objects.count()
 
         # Device codes
         now = timezone.now()
-        pending = DeviceCode.objects.filter(status="pending", expires_at__gt=now).count()
-        expired = (
-            DeviceCode.objects.filter(expires_at__lte=now).exclude(status__in=["authorized", "invalidated"]).count()
-        )
-        status["device_codes"] = {"pending": pending, "stale_expired": expired}
+        status["device_codes"] = {
+            "pending": DeviceCode.objects.filter(status="pending", expires_at__gt=now).count(),
+            "stale_expired": DeviceCode.objects.filter(expires_at__lte=now)
+            .exclude(status__in=["authorized", "invalidated"])
+            .count(),
+        }
 
         # AI / OpenRouter
         app_settings = AppSettings.get()
@@ -192,29 +208,25 @@ class Command(BaseCommand):
         }
 
         # Maintenance — last cleanup runs
-        from django.core.cache import cache
-
-        from apps.core.management.commands.cleanup_device_codes import CLEANUP_CACHE_KEY as DC_KEY
-        from apps.core.management.commands.cleanup_sessions import CLEANUP_CACHE_KEY as SESS_KEY
-        from apps.recipes.management.commands.cleanup_search_images import CLEANUP_CACHE_KEY as IMG_KEY
-
         status["maintenance"] = {
             "device_code_cleanup": cache.get(DC_KEY) or "never run",
             "session_cleanup": cache.get(SESS_KEY) or "never run",
             "search_image_cleanup": cache.get(IMG_KEY) or "never run",
         }
 
-        if options.get("as_json"):
-            self.stdout.write(json.dumps({"ok": True, **status}, indent=2))
-            return
+        return status
+
+    def _print_status(self, status):
+        users = status["users"]
+        dc = status["device_codes"]
+        src = status["openrouter"]["source"]
 
         self.stdout.write(f"Auth mode:    {status['auth_mode']}")
         self.stdout.write(f"Database:     {status['database']}")
         self.stdout.write(f"Migrations:   {status['migrations']}")
-        self.stdout.write(f"Users:        {active_users} active ({admin_users} admin) / {total_users} total")
+        self.stdout.write(f"Users:        {users['active']} active ({users['admins']} admin) / {users['total']} total")
         self.stdout.write(f"Passkeys:     {status['passkeys']}")
-        self.stdout.write(f"Device codes: {pending} pending, {expired} stale")
-        src = status["openrouter"]["source"]
+        self.stdout.write(f"Device codes: {dc['pending']} pending, {dc['stale_expired']} stale")
         self.stdout.write(
             f"OpenRouter:   {'configured' if status['openrouter']['configured'] else 'not configured'} (source: {src})"
         )

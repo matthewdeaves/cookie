@@ -568,6 +568,21 @@ jobs:
                 <p>Vulnerability count over time</p>
                 <canvas id="securityChart" height="150"></canvas>
               </div>
+              <div class="card">
+                <h3>Maintainability Index (MI) Trend</h3>
+                <p>Backend maintainability index over time (higher is better)</p>
+                <canvas id="miChart" height="150"></canvas>
+              </div>
+              <div class="card">
+                <h3>Cyclomatic Complexity Trend</h3>
+                <p>Average cyclomatic complexity over time (lower is better)</p>
+                <canvas id="ccChart" height="150"></canvas>
+              </div>
+              <div class="card" style="grid-column: span 2;">
+                <h3>Legacy Code Health</h3>
+                <p>Legacy frontend errors, warnings, and complexity warnings (lower is better)</p>
+                <canvas id="legacyHealthChart" height="120"></canvas>
+              </div>
             </div>
             <p id="history-status" style="color:#999;font-size:0.85rem;margin-top:0.5rem;"></p>
 
@@ -661,6 +676,45 @@ jobs:
                         { label: 'Bandit HIGH', data: entries.map(e => e.security?.bandit_high), borderColor: '#dc2626', tension: 0.3 },
                         { label: 'Bandit MED', data: entries.map(e => e.security?.bandit_medium), borderColor: '#eab308', tension: 0.3 },
                         { label: 'Secrets', data: entries.map(e => e.security?.secrets_found), borderColor: '#7c3aed', tension: 0.3 }
+                      ]
+                    },
+                    options: chartOptions
+                  });
+
+                  // Maintainability Index Chart
+                  new Chart(document.getElementById('miChart'), {
+                    type: 'line',
+                    data: {
+                      labels,
+                      datasets: [
+                        { label: 'Backend MI', data: entries.map(e => e.complexity?.backend_mi), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 }
+                      ]
+                    },
+                    options: { ...chartOptions, scales: { y: { beginAtZero: true, min: 0, max: 100 } } }
+                  });
+
+                  // Cyclomatic Complexity Chart
+                  new Chart(document.getElementById('ccChart'), {
+                    type: 'line',
+                    data: {
+                      labels,
+                      datasets: [
+                        { label: 'Backend CC', data: entries.map(e => e.complexity?.backend_cc), borderColor: '#3b82f6', tension: 0.3 },
+                        { label: 'Frontend CC', data: entries.map(e => e.complexity?.frontend_avg_cc), borderColor: '#f59e0b', tension: 0.3 }
+                      ]
+                    },
+                    options: chartOptions
+                  });
+
+                  // Legacy Code Health Chart
+                  new Chart(document.getElementById('legacyHealthChart'), {
+                    type: 'line',
+                    data: {
+                      labels,
+                      datasets: [
+                        { label: 'Errors', data: entries.map(e => e.legacy?.errors), borderColor: '#ef4444', tension: 0.3 },
+                        { label: 'Warnings', data: entries.map(e => e.legacy?.warnings), borderColor: '#f59e0b', tension: 0.3 },
+                        { label: 'Complexity Warnings', data: entries.map(e => e.legacy?.complexity_warnings), borderColor: '#8b5cf6', tension: 0.3 }
                       ]
                     },
                     options: chartOptions
