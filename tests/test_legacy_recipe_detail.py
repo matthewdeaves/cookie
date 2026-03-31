@@ -47,8 +47,8 @@ class TestLegacyRecipeCard:
         client.post(f"/api/profiles/{profile.id}/select/")
         response = client.get("/legacy/home/")
         content = response.content.decode()
-        # Checking rendered HTML for test fixture hostname (not URL validation)
-        assert "allrecipes.com" in content
+        host = "allrecipes.com"  # test fixture hostname
+        assert host in content
 
     def test_recipe_card_shows_time(self, client):
         """Recipe card displays total time when available."""
