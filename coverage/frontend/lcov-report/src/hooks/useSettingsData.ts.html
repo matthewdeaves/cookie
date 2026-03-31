@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90% </span>
+                <span class="strong">87.5% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>18/20</span>
+                <span class='fraction'>21/24</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90% </span>
+                <span class="strong">87.5% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>18/20</span>
+                <span class='fraction'>21/24</span>
             </div>
         
             
@@ -137,7 +137,24 @@
 <a name='L72'></a><a href='#L72'>72</a>
 <a name='L73'></a><a href='#L73'>73</a>
 <a name='L74'></a><a href='#L74'>74</a>
-<a name='L75'></a><a href='#L75'>75</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -169,6 +186,7 @@
 <span class="cline-any cline-yes">17x</span>
 <span class="cline-any cline-yes">17x</span>
 <span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-yes">17x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">17x</span>
 <span class="cline-any cline-yes">8x</span>
@@ -189,6 +207,14 @@
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -198,6 +224,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -220,6 +248,7 @@ import {
   type AIStatus,
   type Source,
   type ProfileWithStats,
+  type QuotaResponse,
 } from '../api/client'
 &nbsp;
 export interface SettingsData {
@@ -228,12 +257,14 @@ export interface SettingsData {
   models: AIModel[]
   sources: Source[]
   profiles: ProfileWithStats[]
+  quotaData: QuotaResponse | null
   loading: boolean
   setAiStatus: (status: AIStatus | null) =&gt; void
   setPrompts: (prompts: AIPrompt[]) =&gt; void
   setModels: (models: AIModel[]) =&gt; void
   setSources: (sources: Source[]) =&gt; void
   setProfiles: (profiles: ProfileWithStats[]) =&gt; void
+  setQuotaData: (data: QuotaResponse | null) =&gt; void
 }
 &nbsp;
 export function useSettingsData(): SettingsData {
@@ -242,6 +273,7 @@ export function useSettingsData(): SettingsData {
   const [models, setModels] = useState&lt;AIModel[]&gt;([])
   const [sources, setSources] = useState&lt;Source[]&gt;([])
   const [profiles, setProfiles] = useState&lt;ProfileWithStats[]&gt;([])
+  const [quotaData, setQuotaData] = useState&lt;QuotaResponse | null&gt;(null)
   const [loading, setLoading] = useState(true)
 &nbsp;
   useEffect(() =&gt; {
@@ -263,6 +295,14 @@ export function useSettingsData(): SettingsData {
       setModels(modelsData)
       setSources(sourcesData)
       setProfiles(profilesData)
+&nbsp;
+      // Load quotas separately — 404 in home mode is expected
+      try {
+        const quotas = await api.ai.quotas.get()
+<span class="cstat-no" title="statement not covered" >        setQuotaData(quotas)</span>
+      } catch {
+        // Quotas not available (e.g. home mode) — ignore
+      }
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      console.error('Failed to load settings:', error)</span>
 <span class="cstat-no" title="statement not covered" >      toast.error('Failed to load settings')</span>
@@ -277,12 +317,14 @@ export function useSettingsData(): SettingsData {
     models,
     sources,
     profiles,
+    quotaData,
     loading,
     setAiStatus,
     setPrompts,
     setModels,
     setSources,
     setProfiles,
+    setQuotaData,
   }
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -292,7 +334,7 @@ export function useSettingsData(): SettingsData {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-29T15:40:35.183Z
+                at 2026-03-31T16:05:15.657Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

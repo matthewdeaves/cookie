@@ -1,18 +1,18 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-29T15:40:09.137Z",
+    "detectionDate": "2026-03-31T16:04:37.576Z",
     "formats": {
       "javascript": {
         "sources": {
           "apps/legacy/static/legacy/js/pages/settings-users.js": {
-            "lines": 200,
-            "tokens": 1838,
+            "lines": 357,
+            "tokens": 3221,
             "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
+            "clones": 2,
+            "duplicatedLines": 8,
+            "duplicatedTokens": 156,
+            "percentage": 2.24,
+            "percentageTokens": 4.84,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -65,14 +65,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/settings-general.js": {
-            "lines": 174,
-            "tokens": 1436,
+            "lines": 330,
+            "tokens": 2733,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 9,
-            "duplicatedTokens": 59,
-            "percentage": 5.17,
-            "percentageTokens": 4.11,
+            "clones": 3,
+            "duplicatedLines": 19,
+            "duplicatedTokens": 203,
+            "percentage": 5.76,
+            "percentageTokens": 7.43,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -401,20 +401,20 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/ajax.js": {
-            "lines": 125,
-            "tokens": 873,
+            "lines": 135,
+            "tokens": 914,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 4,
             "duplicatedTokens": 72,
-            "percentage": 3.2,
-            "percentageTokens": 8.25,
+            "percentage": 2.96,
+            "percentageTokens": 7.88,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/ai-error.js": {
-            "lines": 106,
-            "tokens": 790,
+            "lines": 117,
+            "tokens": 986,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -426,13 +426,13 @@
           }
         },
         "total": {
-          "lines": 6748,
-          "tokens": 51643,
+          "lines": 7082,
+          "tokens": 54560,
           "sources": 35,
-          "clones": 31,
-          "duplicatedLines": 314,
-          "duplicatedTokens": 2645,
-          "percentage": 4.65,
+          "clones": 33,
+          "duplicatedLines": 323,
+          "duplicatedTokens": 2795,
+          "percentage": 4.56,
           "percentageTokens": 5.12,
           "newDuplicatedLines": 0,
           "newClones": 0
@@ -440,19 +440,55 @@
       }
     },
     "total": {
-      "lines": 6748,
-      "tokens": 51643,
+      "lines": 7082,
+      "tokens": 54560,
       "sources": 35,
-      "clones": 31,
-      "duplicatedLines": 314,
-      "duplicatedTokens": 2645,
-      "percentage": 4.65,
+      "clones": 33,
+      "duplicatedLines": 323,
+      "duplicatedTokens": 2795,
+      "percentage": 4.56,
       "percentageTokens": 5.12,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
   },
   "duplicates": [
+    {
+      "format": "javascript",
+      "lines": 5,
+      "fragment": "// Update local state\n                var state = Cookie.pages.settings.getState();\n                for (var i = 0; i < state.profiles.length; i++) {\n                    if (state.profiles[i].id === profileId) {\n                        state.profiles[i].name",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/settings-users.js",
+        "start": 315,
+        "end": 319,
+        "startLoc": {
+          "line": 315,
+          "column": 17,
+          "position": 2843
+        },
+        "endLoc": {
+          "line": 319,
+          "column": 5,
+          "position": 2921
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/settings-users.js",
+        "start": 241,
+        "end": 245,
+        "startLoc": {
+          "line": 241,
+          "column": 13,
+          "position": 2176
+        },
+        "endLoc": {
+          "line": 245,
+          "column": 13,
+          "position": 2254
+        }
+      }
+    },
     {
       "format": "javascript",
       "lines": 8,
@@ -568,17 +604,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 70,
-        "end": 79,
+        "start": 83,
+        "end": 92,
         "startLoc": {
-          "line": 70,
+          "line": 83,
           "column": 25,
-          "position": 551
+          "position": 658
         },
         "endLoc": {
-          "line": 79,
+          "line": 92,
           "column": 2,
-          "position": 610
+          "position": 717
         }
       },
       "secondFile": {
@@ -594,6 +630,42 @@
           "line": 116,
           "column": 40,
           "position": 1040
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 6,
+      "fragment": ";\n        for (var i = 0; i < FEATURE_KEYS.length; i++) {\n            var key = FEATURE_KEYS[i];\n            var input = document.getElementById('quota-limit-' + key);\n            if (input) {\n                payload",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
+        "start": 301,
+        "end": 306,
+        "startLoc": {
+          "line": 301,
+          "column": 2,
+          "position": 2480
+        },
+        "endLoc": {
+          "line": 306,
+          "column": 8,
+          "position": 2552
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
+        "start": 219,
+        "end": 225,
+        "startLoc": {
+          "line": 219,
+          "column": 2,
+          "position": 1738
+        },
+        "endLoc": {
+          "line": 225,
+          "column": 6,
+          "position": 1811
         }
       }
     },

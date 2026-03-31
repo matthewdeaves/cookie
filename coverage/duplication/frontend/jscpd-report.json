@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-29T15:40:16.270Z",
+    "detectionDate": "2026-03-31T16:04:27.608Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -113,8 +113,8 @@
             "newClones": 0
           },
           "src/components/settings/UserProfileCard.tsx": {
-            "lines": 31,
-            "tokens": 239,
+            "lines": 124,
+            "tokens": 1167,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -149,8 +149,8 @@
             "newClones": 0
           },
           "src/components/settings/SettingsUsers.tsx": {
-            "lines": 14,
-            "tokens": 85,
+            "lines": 3,
+            "tokens": 21,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -209,8 +209,8 @@
             "newClones": 0
           },
           "src/components/settings/SettingsGeneral.tsx": {
-            "lines": 34,
-            "tokens": 191,
+            "lines": 41,
+            "tokens": 240,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -316,6 +316,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/components/settings/AIUsageSection.tsx": {
+            "lines": 0,
+            "tokens": 3,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/components/settings/AIStatusDisplay.tsx": {
             "lines": 7,
             "tokens": 54,
@@ -328,9 +340,21 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/components/settings/AIQuotaSection.tsx": {
+            "lines": 14,
+            "tokens": 112,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/screens/Settings.tsx": {
-            "lines": 37,
-            "tokens": 360,
+            "lines": 26,
+            "tokens": 271,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -642,7 +666,7 @@
           },
           "src/components/RemixModal.tsx": {
             "lines": 156,
-            "tokens": 1252,
+            "tokens": 1254,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -882,9 +906,9 @@
           }
         },
         "total": {
-          "lines": 3121,
-          "tokens": 23424,
-          "sources": 73,
+          "lines": 3213,
+          "tokens": 24365,
+          "sources": 75,
           "clones": 0,
           "duplicatedLines": 0,
           "duplicatedTokens": 0,
@@ -1005,8 +1029,8 @@
             "newClones": 0
           },
           "src/components/settings/UserProfileCard.tsx": {
-            "lines": 59,
-            "tokens": 428,
+            "lines": 153,
+            "tokens": 1437,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1041,8 +1065,8 @@
             "newClones": 0
           },
           "src/components/settings/SettingsUsers.tsx": {
-            "lines": 62,
-            "tokens": 423,
+            "lines": 65,
+            "tokens": 492,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1101,8 +1125,8 @@
             "newClones": 0
           },
           "src/components/settings/SettingsGeneral.tsx": {
-            "lines": 97,
-            "tokens": 684,
+            "lines": 109,
+            "tokens": 787,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1208,6 +1232,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/components/settings/AIUsageSection.tsx": {
+            "lines": 57,
+            "tokens": 560,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 11,
+            "duplicatedTokens": 142,
+            "percentage": 19.3,
+            "percentageTokens": 25.36,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/components/settings/AIStatusDisplay.tsx": {
             "lines": 64,
             "tokens": 538,
@@ -1220,9 +1256,21 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/components/settings/AIQuotaSection.tsx": {
+            "lines": 76,
+            "tokens": 827,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 11,
+            "duplicatedTokens": 142,
+            "percentage": 14.47,
+            "percentageTokens": 17.17,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/screens/Settings.tsx": {
-            "lines": 131,
-            "tokens": 1294,
+            "lines": 135,
+            "tokens": 1352,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1534,7 +1582,7 @@
           },
           "src/components/RemixModal.tsx": {
             "lines": 190,
-            "tokens": 1531,
+            "tokens": 1536,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1786,14 +1834,14 @@
           }
         },
         "total": {
-          "lines": 6874,
-          "tokens": 52768,
-          "sources": 74,
-          "clones": 5,
-          "duplicatedLines": 50,
-          "duplicatedTokens": 441,
-          "percentage": 0.73,
-          "percentageTokens": 0.84,
+          "lines": 7120,
+          "tokens": 55399,
+          "sources": 76,
+          "clones": 6,
+          "duplicatedLines": 61,
+          "duplicatedTokens": 583,
+          "percentage": 0.86,
+          "percentageTokens": 1.05,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -1825,8 +1873,8 @@
             "newClones": 0
           },
           "src/lib/utils.ts": {
-            "lines": 31,
-            "tokens": 230,
+            "lines": 50,
+            "tokens": 435,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1885,8 +1933,8 @@
             "newClones": 0
           },
           "src/hooks/useTipsPolling.ts": {
-            "lines": 114,
-            "tokens": 967,
+            "lines": 115,
+            "tokens": 980,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1945,8 +1993,8 @@
             "newClones": 0
           },
           "src/hooks/useSettingsData.ts": {
-            "lines": 73,
-            "tokens": 628,
+            "lines": 87,
+            "tokens": 742,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1957,8 +2005,8 @@
             "newClones": 0
           },
           "src/hooks/useServingScale.ts": {
-            "lines": 51,
-            "tokens": 497,
+            "lines": 52,
+            "tokens": 510,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2054,7 +2102,7 @@
           },
           "src/hooks/useDiscoverTab.ts": {
             "lines": 60,
-            "tokens": 599,
+            "tokens": 613,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2125,8 +2173,8 @@
             "newClones": 0
           },
           "src/api/types.ts": {
-            "lines": 387,
-            "tokens": 2215,
+            "lines": 404,
+            "tokens": 2303,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2137,26 +2185,26 @@
             "newClones": 0
           },
           "src/api/client.ts": {
-            "lines": 472,
-            "tokens": 3818,
+            "lines": 497,
+            "tokens": 4079,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 98,
-            "duplicatedTokens": 382,
-            "percentage": 20.76,
-            "percentageTokens": 10.01,
+            "duplicatedLines": 102,
+            "duplicatedTokens": 398,
+            "percentage": 20.52,
+            "percentageTokens": 9.76,
             "newDuplicatedLines": 0,
             "newClones": 0
           }
         },
         "total": {
-          "lines": 2922,
-          "tokens": 24040,
+          "lines": 2999,
+          "tokens": 24748,
           "sources": 29,
           "clones": 2,
-          "duplicatedLines": 57,
-          "duplicatedTokens": 286,
-          "percentage": 1.95,
+          "duplicatedLines": 59,
+          "duplicatedTokens": 294,
+          "percentage": 1.97,
           "percentageTokens": 1.19,
           "newDuplicatedLines": 0,
           "newClones": 0
@@ -2164,19 +2212,55 @@
       }
     },
     "total": {
-      "lines": 12917,
-      "tokens": 100232,
-      "sources": 176,
-      "clones": 7,
-      "duplicatedLines": 107,
-      "duplicatedTokens": 727,
-      "percentage": 0.83,
-      "percentageTokens": 0.73,
+      "lines": 13332,
+      "tokens": 104512,
+      "sources": 180,
+      "clones": 8,
+      "duplicatedLines": 120,
+      "duplicatedTokens": 877,
+      "percentage": 0.9,
+      "percentageTokens": 0.84,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
   },
   "duplicates": [
+    {
+      "format": "tsx",
+      "lines": 12,
+      "fragment": "QuotaLimits } from '../../api/client'\n\nconst FEATURE_LABELS: { key: keyof QuotaLimits; label: string }[] = [\n  { key: 'remix', label: 'Remixes' },\n  { key: 'remix_suggestions', label: 'Remix Suggestions' },\n  { key: 'scale', label: 'Scaling' },\n  { key: 'tips', label: 'Tips' },\n  { key: 'discover', label: 'Discover' },\n  { key: 'timer', label: 'Timer Naming' },\n]\n\ninterface",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/components/settings/AIQuotaSection.tsx",
+        "start": 4,
+        "end": 15,
+        "startLoc": {
+          "line": 4,
+          "column": 2,
+          "position": 56
+        },
+        "endLoc": {
+          "line": 15,
+          "column": 10,
+          "position": 198
+        }
+      },
+      "secondFile": {
+        "name": "src/components/settings/AIUsageSection.tsx",
+        "start": 1,
+        "end": 12,
+        "startLoc": {
+          "line": 1,
+          "column": 2,
+          "position": 9
+        },
+        "endLoc": {
+          "line": 12,
+          "column": 9,
+          "position": 151
+        }
+      }
+    },
     {
       "format": "tsx",
       "lines": 12,
@@ -2395,37 +2479,37 @@
     },
     {
       "format": "typescript",
-      "lines": 50,
-      "fragment": "type {\n  ModeResponse,\n  AIStatus,\n  AIErrorResponse,\n  AIModel,\n  AIPrompt,\n  AIPromptUpdate,\n  RemixSuggestionsResponse,\n  RemixResponse,\n  NutritionValues,\n  ScaleResponse,\n  TipsResponse,\n  DiscoverSuggestion,\n  DiscoverResponse,\n  TimerNameResponse,\n  TestApiKeyResponse,\n  SaveApiKeyResponse,\n  Profile,\n  ProfileStats,\n  ProfileWithStats,\n  DeletionData,\n  ProfileSummary,\n  DeletionPreview,\n  ProfileInput,\n  Recipe,\n  IngredientGroup,\n  LinkedRecipe,\n  RecipeDetail,\n  Favorite,\n  HistoryItem,\n  Collection,\n  CollectionItem,\n  CollectionDetail,\n  CollectionInput,\n  SearchResult,\n  SearchResponse,\n  Source,\n  SourceTestResult,\n  TestAllSourcesResult,\n  ResetDataCounts,\n  ResetPreview,\n  ResetResult,\n  PasskeyAuthResponse,\n  PasskeyCredential,\n  PasskeyCredentialList,\n  DeviceCodeResponse,\n  DevicePollResponse,\n}\n\nconst",
+      "lines": 52,
+      "fragment": "type {\n  ModeResponse,\n  AIStatus,\n  AIErrorResponse,\n  AIModel,\n  AIPrompt,\n  AIPromptUpdate,\n  RemixSuggestionsResponse,\n  RemixResponse,\n  NutritionValues,\n  ScaleResponse,\n  TipsResponse,\n  DiscoverSuggestion,\n  DiscoverResponse,\n  TimerNameResponse,\n  TestApiKeyResponse,\n  SaveApiKeyResponse,\n  Profile,\n  ProfileStats,\n  ProfileWithStats,\n  DeletionData,\n  ProfileSummary,\n  DeletionPreview,\n  ProfileInput,\n  Recipe,\n  IngredientGroup,\n  LinkedRecipe,\n  RecipeDetail,\n  Favorite,\n  HistoryItem,\n  Collection,\n  CollectionItem,\n  CollectionDetail,\n  CollectionInput,\n  SearchResult,\n  SearchResponse,\n  Source,\n  SourceTestResult,\n  TestAllSourcesResult,\n  ResetDataCounts,\n  ResetPreview,\n  ResetResult,\n  PasskeyAuthResponse,\n  PasskeyCredential,\n  PasskeyCredentialList,\n  DeviceCodeResponse,\n  DevicePollResponse,\n  QuotaLimits,\n  QuotaResponse,\n}\n\nconst",
       "tokens": 0,
       "firstFile": {
         "name": "src/api/client.ts",
-        "start": 51,
-        "end": 100,
+        "start": 53,
+        "end": 104,
         "startLoc": {
-          "line": 51,
+          "line": 53,
           "column": 2,
-          "position": 201
+          "position": 209
         },
         "endLoc": {
-          "line": 100,
+          "line": 104,
           "column": 6,
-          "position": 392
+          "position": 408
         }
       },
       "secondFile": {
         "name": "src/api/client.ts",
         "start": 1,
-        "end": 48,
+        "end": 50,
         "startLoc": {
           "line": 1,
           "column": 2,
           "position": 2
         },
         "endLoc": {
-          "line": 48,
+          "line": 50,
           "column": 5,
-          "position": 192
+          "position": 200
         }
       }
     }

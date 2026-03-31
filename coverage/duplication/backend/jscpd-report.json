@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-29T15:40:08.715Z",
+    "detectionDate": "2026-03-31T16:04:48.157Z",
     "formats": {
       "python": {
         "sources": {
@@ -17,8 +17,8 @@
             "newClones": 0
           },
           "cookie/urls.py": {
-            "lines": 52,
-            "tokens": 459,
+            "lines": 54,
+            "tokens": 485,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -53,8 +53,8 @@
             "newClones": 0
           },
           "apps/core/management/commands/cookie_admin.py": {
-            "lines": 384,
-            "tokens": 3576,
+            "lines": 481,
+            "tokens": 4626,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -101,8 +101,8 @@
             "newClones": 0
           },
           "apps/recipes/services/search.py": {
-            "lines": 373,
-            "tokens": 2748,
+            "lines": 366,
+            "tokens": 2705,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -233,8 +233,20 @@
             "newClones": 0
           },
           "apps/ai/services/ranking.py": {
-            "lines": 180,
-            "tokens": 1102,
+            "lines": 44,
+            "tokens": 308,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/ai/services/quota.py": {
+            "lines": 104,
+            "tokens": 745,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -269,8 +281,8 @@
             "newClones": 0
           },
           "apps/ai/services/cache.py": {
-            "lines": 112,
-            "tokens": 618,
+            "lines": 118,
+            "tokens": 681,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -353,8 +365,8 @@
             "newClones": 0
           },
           "apps/profiles/models.py": {
-            "lines": 56,
-            "tokens": 420,
+            "lines": 57,
+            "tokens": 434,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -377,8 +389,8 @@
             "newClones": 0
           },
           "apps/profiles/api.py": {
-            "lines": 317,
-            "tokens": 2536,
+            "lines": 354,
+            "tokens": 2950,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -389,8 +401,8 @@
             "newClones": 0
           },
           "apps/legacy/views.py": {
-            "lines": 433,
-            "tokens": 2787,
+            "lines": 434,
+            "tokens": 2803,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -461,8 +473,8 @@
             "newClones": 0
           },
           "apps/core/models.py": {
-            "lines": 125,
-            "tokens": 987,
+            "lines": 133,
+            "tokens": 1075,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -629,32 +641,44 @@
             "newClones": 0
           },
           "apps/ai/api_scaling.py": {
-            "lines": 127,
-            "tokens": 912,
+            "lines": 135,
+            "tokens": 1001,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 33,
-            "duplicatedTokens": 233,
-            "percentage": 25.98,
-            "percentageTokens": 25.55,
+            "duplicatedTokens": 209,
+            "percentage": 24.44,
+            "percentageTokens": 20.88,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/ai/api_remix.py": {
-            "lines": 156,
-            "tokens": 1118,
+            "lines": 172,
+            "tokens": 1290,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 54,
-            "duplicatedTokens": 395,
-            "percentage": 34.62,
-            "percentageTokens": 35.33,
+            "duplicatedLines": 53,
+            "duplicatedTokens": 346,
+            "percentage": 30.81,
+            "percentageTokens": 26.82,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/ai/api_quotas.py": {
+            "lines": 94,
+            "tokens": 672,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/ai/api_discover.py": {
-            "lines": 64,
-            "tokens": 431,
+            "lines": 89,
+            "tokens": 661,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -665,41 +689,41 @@
             "newClones": 0
           },
           "apps/ai/api.py": {
-            "lines": 475,
-            "tokens": 3127,
+            "lines": 491,
+            "tokens": 3320,
             "sources": 1,
             "clones": 1,
-            "duplicatedLines": 21,
-            "duplicatedTokens": 162,
-            "percentage": 4.42,
-            "percentageTokens": 5.18,
+            "duplicatedLines": 20,
+            "duplicatedTokens": 137,
+            "percentage": 4.07,
+            "percentageTokens": 4.13,
             "newDuplicatedLines": 0,
             "newClones": 0
           }
         },
         "total": {
-          "lines": 9751,
-          "tokens": 66649,
-          "sources": 56,
+          "lines": 10023,
+          "tokens": 69584,
+          "sources": 58,
           "clones": 6,
-          "duplicatedLines": 123,
-          "duplicatedTokens": 871,
-          "percentage": 1.26,
-          "percentageTokens": 1.31,
+          "duplicatedLines": 122,
+          "duplicatedTokens": 822,
+          "percentage": 1.22,
+          "percentageTokens": 1.18,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 9751,
-      "tokens": 66649,
-      "sources": 56,
+      "lines": 10023,
+      "tokens": 69584,
+      "sources": 58,
       "clones": 6,
-      "duplicatedLines": 123,
-      "duplicatedTokens": 871,
-      "percentage": 1.26,
-      "percentageTokens": 1.31,
+      "duplicatedLines": 122,
+      "duplicatedTokens": 822,
+      "percentage": 1.22,
+      "percentageTokens": 1.18,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -852,72 +876,72 @@
     {
       "format": "python",
       "lines": 34,
-      "fragment": ", request.META.get(\"REMOTE_ADDR\"))\n        return 429, {\"error\": \"rate_limited\", \"message\": \"Too many requests. Please try again later.\"}\n    from apps.profiles.utils import get_current_profile_or_none\n\n    profile = get_current_profile_or_none(request)\n\n    if not profile:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": \"Profile not found\",\n        }\n\n    # Verify the profile_id in the request matches the session profile\n    if data.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Profile {data.profile_id} not found\",\n        }\n\n    try:\n        recipe = Recipe.objects.get(id=data.recipe_id)\n    except Recipe.DoesNotExist:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    if recipe.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    remix",
+      "fragment": ", **info}\n\n    from apps.profiles.utils import get_current_profile_or_none\n\n    profile = get_current_profile_or_none(request)\n\n    if not profile:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": \"Profile not found\",\n        }\n\n    # Verify the profile_id in the request matches the session profile\n    if data.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Profile {data.profile_id} not found\",\n        }\n\n    try:\n        recipe = Recipe.objects.get(id=data.recipe_id)\n    except Recipe.DoesNotExist:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    if recipe.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    remix",
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/api_remix.py",
-        "start": 105,
-        "end": 138,
+        "start": 120,
+        "end": 153,
         "startLoc": {
-          "line": 105,
-          "column": 36,
-          "position": 730
+          "line": 120,
+          "column": 32,
+          "position": 915
         },
         "endLoc": {
-          "line": 138,
+          "line": 153,
           "column": 6,
-          "position": 963
+          "position": 1124
         }
       },
       "secondFile": {
         "name": "apps/ai/api_scaling.py",
-        "start": 62,
-        "end": 95,
+        "start": 68,
+        "end": 101,
         "startLoc": {
-          "line": 62,
-          "column": 36,
-          "position": 421
+          "line": 68,
+          "column": 32,
+          "position": 510
         },
         "endLoc": {
-          "line": 95,
+          "line": 101,
           "column": 4,
-          "position": 654
+          "position": 719
         }
       }
     },
     {
       "format": "python",
-      "lines": 22,
-      "fragment": ", request.META.get(\"REMOTE_ADDR\"))\n        return 429, {\"error\": \"rate_limited\", \"message\": \"Too many requests. Please try again later.\"}\n\n    from apps.profiles.utils import get_current_profile_or_none\n\n    profile = get_current_profile_or_none(request)\n\n    try:\n        recipe = Recipe.objects.get(id=data.recipe_id)\n    except Recipe.DoesNotExist:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    if not profile or recipe.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    # Clear existing tips if regenerate requested",
+      "lines": 21,
+      "fragment": ", **info}\n\n    from apps.profiles.utils import get_current_profile_or_none\n\n    profile = get_current_profile_or_none(request)\n\n    try:\n        recipe = Recipe.objects.get(id=data.recipe_id)\n    except Recipe.DoesNotExist:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    if not profile or recipe.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    # Clear existing tips if regenerate requested",
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/api.py",
-        "start": 306,
-        "end": 327,
+        "start": 313,
+        "end": 333,
         "startLoc": {
-          "line": 306,
-          "column": 35,
-          "position": 2007
+          "line": 313,
+          "column": 31,
+          "position": 2107
         },
         "endLoc": {
-          "line": 327,
+          "line": 333,
           "column": 46,
-          "position": 2169
+          "position": 2244
         }
       },
       "secondFile": {
         "name": "apps/ai/api_remix.py",
-        "start": 69,
-        "end": 89,
+        "start": 76,
+        "end": 96,
         "startLoc": {
-          "line": 69,
-          "column": 48,
-          "position": 433
+          "line": 76,
+          "column": 44,
+          "position": 533
         },
         "endLoc": {
-          "line": 89,
-          "column": 12,
-          "position": 594
+          "line": 96,
+          "column": 11,
+          "position": 670
         }
       }
     }

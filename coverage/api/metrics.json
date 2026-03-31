@@ -1,40 +1,40 @@
 {
-  "generated_at": "2026-03-29T15:42:20.600210+00:00",
+  "generated_at": "2026-03-31T16:07:05.105763+00:00",
   "repo": "matthewdeaves/cookie",
   "coverage": {
     "frontend": {
-      "percentage": 55.5,
+      "percentage": 53.63,
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/frontend-coverage.svg"
     },
     "backend": {
-      "percentage": 76.9,
+      "percentage": 77.0,
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/backend-coverage.svg"
     }
   },
   "complexity": {
     "backend": {
-      "cyclomatic_complexity": 2.65,
+      "cyclomatic_complexity": 2.64,
       "cyclomatic_rating": "A",
-      "maintainability_index": 83.2,
+      "maintainability_index": 83.18,
       "maintainability_rating": "A",
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/backend-complexity.svg"
     },
     "frontend": {
       "avg_cyclomatic_complexity": 0,
-      "complexity_warnings": 0,
+      "complexity_warnings": 1,
       "rating": "A",
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/frontend-complexity.svg"
     }
   },
   "duplication": {
     "frontend": {
-      "percentage": 0.83,
-      "clones_count": 7,
+      "percentage": 0.9,
+      "clones_count": 8,
       "rating": "A",
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/duplication.svg"
     },
     "backend": {
-      "percentage": 1.26,
+      "percentage": 1.22,
       "clones_count": 6,
       "rating": "A",
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/backend-duplication.svg"
@@ -66,8 +66,8 @@
     }
   },
   "bundle": {
-    "size_kb": 538.29,
-    "gzip_kb": 165.63,
+    "size_kb": 545.09,
+    "gzip_kb": 167.28,
     "rating": "B",
     "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/bundle-size.svg"
   },
@@ -80,7 +80,7 @@
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/legacy-lint.svg"
     },
     "duplication": {
-      "percentage": 4.65,
+      "percentage": 4.56,
       "rating": "A",
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/legacy-duplication.svg"
     }
