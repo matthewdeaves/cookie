@@ -18,6 +18,14 @@ class AppSettings(models.Model):
     _openrouter_api_key = models.CharField(max_length=500, blank=True, db_column="openrouter_api_key")
     default_ai_model = models.CharField(max_length=100, default="anthropic/claude-haiku-4.5")
 
+    # Per-feature daily AI quota limits (0 = disabled for non-exempt users)
+    daily_limit_remix = models.PositiveIntegerField(default=3)
+    daily_limit_remix_suggestions = models.PositiveIntegerField(default=10)
+    daily_limit_scale = models.PositiveIntegerField(default=20)
+    daily_limit_tips = models.PositiveIntegerField(default=15)
+    daily_limit_discover = models.PositiveIntegerField(default=2)
+    daily_limit_timer = models.PositiveIntegerField(default=30)
+
     class Meta:
         verbose_name = "App Settings"
         verbose_name_plural = "App Settings"

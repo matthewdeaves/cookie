@@ -12,6 +12,7 @@ Cookie.aiError = (function() {
         503: { action: 'configure_key', message: 'AI features are not available. Please configure your API key in Settings.' },
         401: { action: 'update_key', message: 'Your API key appears to be invalid. Please update it in Settings.' },
         429: { action: 'retry', message: 'Too many requests. Please wait a moment and try again.' },
+        'quota_exceeded': { action: 'quota_exceeded', message: 'Daily limit reached.' },
         402: { action: 'add_credits', message: 'Your OpenRouter account may need credits. Please check your account.' }
     };
 
@@ -20,6 +21,7 @@ Cookie.aiError = (function() {
      */
     function getStatusHandler(status, errorCode) {
         if (errorCode === 'ai_unavailable') return STATUS_HANDLERS[503];
+        if (errorCode === 'quota_exceeded') return STATUS_HANDLERS['quota_exceeded'];
         return STATUS_HANDLERS[status] || null;
     }
 
@@ -63,6 +65,15 @@ Cookie.aiError = (function() {
             fullMessage = result.message + ' Go to Settings to configure.';
         } else if (result.action === 'update_key') {
             fullMessage = result.message + ' Go to Settings to update.';
+        } else if (result.action === 'quota_exceeded') {
+            var resetsAt = (err && err.data && err.data.resets_at) ? err.data.resets_at : null;
+            if (resetsAt) {
+                var resetDate = new Date(resetsAt);
+                var resetTime = resetDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+                fullMessage = result.message + ' Resets at ' + resetTime + '.';
+            } else {
+                fullMessage = result.message + ' Resets at midnight.';
+            }
         } else if (result.action === 'retry') {
             fullMessage = result.message;
         } else if (result.action === 'add_credits') {

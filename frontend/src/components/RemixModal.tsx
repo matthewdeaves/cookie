@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, Sparkles, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type RecipeDetail } from '../api/client'
-import { cn } from '../lib/utils'
+import { cn, handleQuotaError } from '../lib/utils'
 import SuggestionSelector from './SuggestionSelector'
 import CustomRemixInput from './CustomRemixInput'
 
@@ -125,7 +125,7 @@ export default function RemixModal({
       setSuggestions(response.suggestions)
     } catch (error) {
       console.error('Failed to load remix suggestions:', error)
-      toast.error('Failed to load suggestions')
+      handleQuotaError(error, 'Failed to load suggestions')
     } finally {
       setLoadingSuggestions(false)
     }
@@ -155,7 +155,7 @@ export default function RemixModal({
       onClose()
     } catch (error) {
       console.error('Failed to create remix:', error)
-      toast.error('Failed to create remix')
+      handleQuotaError(error, 'Failed to create remix')
     } finally {
       setCreating(false)
     }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { api, type RecipeDetail as RecipeDetailType, type ScaleResponse } from '../api/client'
+import { handleQuotaError } from '../lib/utils'
 
 interface UseServingScaleReturn {
   servings: number | null
@@ -41,7 +41,7 @@ export function useServingScale(
       }
     } catch (error) {
       console.error('Failed to scale recipe:', error)
-      toast.error('Failed to scale ingredients')
+      handleQuotaError(error, 'Failed to scale ingredients')
       setServings(servings)
     } finally {
       setScalingLoading(false)

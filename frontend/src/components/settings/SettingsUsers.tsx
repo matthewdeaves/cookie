@@ -45,6 +45,9 @@ export default function SettingsUsers({
               profile={profile}
               isCurrent={profile.id === currentProfileId}
               onDeleteClick={handleDeleteClick}
+              onProfileUpdate={(id, changes) => {
+                onProfilesChange(profiles.map((p) => (p.id === id ? { ...p, ...changes } : p)))
+              }}
             />
           ))}
         </div>

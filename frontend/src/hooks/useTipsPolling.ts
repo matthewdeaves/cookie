@@ -1,6 +1,7 @@
 import { useState, useEffect, type Dispatch, type SetStateAction } from 'react'
 import { toast } from 'sonner'
 import { api, type RecipeDetail as RecipeDetailType } from '../api/client'
+import { handleQuotaError } from '../lib/utils'
 
 const POLL_INTERVAL = 3000 // 3 seconds
 const MAX_POLL_DURATION = 30000 // 30 seconds
@@ -90,7 +91,7 @@ export function useTipsPolling({
       toast.success(regenerate ? 'Tips regenerated!' : 'Tips generated!')
     } catch (error) {
       console.error('Failed to generate tips:', error)
-      toast.error('Failed to generate tips')
+      handleQuotaError(error, 'Failed to generate tips')
     } finally {
       setTipsLoading(false)
     }

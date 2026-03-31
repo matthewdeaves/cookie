@@ -1,9 +1,11 @@
 import { Github, Moon, Sun } from 'lucide-react'
-import type { AIStatus, AIModel } from '../../api/client'
+import type { AIStatus, AIModel, QuotaResponse, QuotaLimits } from '../../api/client'
 import { useProfile } from '../../contexts/ProfileContext'
 import { useVersion } from '../../router'
 import { cn } from '../../lib/utils'
 import APIKeySection from './APIKeySection'
+import AIQuotaSection from './AIQuotaSection'
+import AIUsageSection from './AIUsageSection'
 
 interface SettingsGeneralProps {
   aiStatus: AIStatus | null
@@ -11,6 +13,8 @@ interface SettingsGeneralProps {
   onAIStatusChange: (status: AIStatus) => void
   onModelsChange: (models: AIModel[]) => void
   isAdmin: boolean
+  quotaData: QuotaResponse | null
+  onQuotaSave: (limits: QuotaLimits) => void
 }
 
 export default function SettingsGeneral({
@@ -19,6 +23,8 @@ export default function SettingsGeneral({
   onAIStatusChange,
   onModelsChange,
   isAdmin,
+  quotaData,
+  onQuotaSave,
 }: SettingsGeneralProps) {
   const { theme, toggleTheme } = useProfile()
   const version = useVersion()
@@ -70,6 +76,12 @@ export default function SettingsGeneral({
         onAIStatusChange={onAIStatusChange}
         onModelsChange={onModelsChange}
       />}
+
+      {/* AI Quota Limits — admin only */}
+      {isAdmin && <AIQuotaSection quotaData={quotaData} onSave={onQuotaSave} />}
+
+      {/* AI Usage — all users */}
+      <AIUsageSection quotaData={quotaData} />
 
       {/* About */}
       <div className="rounded-lg border border-border bg-card p-4">

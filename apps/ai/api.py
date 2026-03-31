@@ -18,6 +18,8 @@ from .services.tips import generate_tips, clear_tips
 from .services.timer import generate_timer_name
 from .services.selector import repair_selector, get_sources_needing_attention
 from .services.validator import ValidationError
+from .services.cache import is_ai_cache_hit
+from .services.quota import check_quota, increment_quota
 from apps.core.auth import AdminAuth, SessionAuth
 
 security_logger = logging.getLogger("security")
@@ -306,6 +308,10 @@ def tips_endpoint(request, data: TipsIn):
         security_logger.warning("Rate limit hit: /ai/tips from %s", request.META.get("REMOTE_ADDR"))
         return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
 
+    allowed, info = check_quota(request.auth, "tips")
+    if not allowed:
+        return 429, {"error": "quota_exceeded", "message": "Daily limit reached for tips", **info}
+
     from apps.profiles.utils import get_current_profile_or_none
 
     profile = get_current_profile_or_none(request)
@@ -329,6 +335,8 @@ def tips_endpoint(request, data: TipsIn):
         clear_tips(data.recipe_id)
 
     result = generate_tips(data.recipe_id)
+    if not result.get("cached"):
+        increment_quota(request.auth, "tips")
     return result
 
 
@@ -358,6 +366,11 @@ def timer_name_endpoint(request, data: TimerNameIn):
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /ai/timer-name from %s", request.META.get("REMOTE_ADDR"))
         return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
+
+    allowed, info = check_quota(request.auth, "timer")
+    if not allowed:
+        return 429, {"error": "quota_exceeded", "message": "Daily limit reached for timer", **info}
+
     if not data.step_text:
         return 400, {
             "error": "validation_error",
@@ -370,10 +383,13 @@ def timer_name_endpoint(request, data: TimerNameIn):
             "message": "Duration must be positive",
         }
 
+    was_cached = is_ai_cache_hit("timer_name", step_text=data.step_text, duration_minutes=data.duration_minutes)
     result = generate_timer_name(
         step_text=data.step_text,
         duration_minutes=data.duration_minutes,
     )
+    if not was_cached:
+        increment_quota(request.auth, "timer")
     return result
 
 

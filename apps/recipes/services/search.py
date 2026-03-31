@@ -89,7 +89,7 @@ class RecipeSearch:
         result_dicts = self._deduplicate_and_convert(all_results)
         result_dicts = self._filter_relevant(query, result_dicts)
         if result_dicts:
-            result_dicts = await self._apply_ai_ranking(query, result_dicts)
+            result_dicts = self._apply_ai_ranking(query, result_dicts)
 
         return self._paginate(result_dicts, page, per_page, site_counts)
 
@@ -201,19 +201,12 @@ class RecipeSearch:
                 filtered.append(result)
         return filtered
 
-    async def _apply_ai_ranking(self, query: str, results: list[dict]) -> list[dict]:
-        """Apply AI ranking to search results (non-blocking).
+    @staticmethod
+    def _apply_ai_ranking(query: str, results: list[dict]) -> list[dict]:
+        """Rank search results by relevance using deterministic scoring."""
+        from apps.ai.services.ranking import rank_results
 
-        Skips ranking if AI is unavailable or if it fails.
-        """
-        try:
-            from apps.ai.services.ranking import rank_results
-
-            ranked = await sync_to_async(rank_results)(query, results)
-            return ranked
-        except Exception as e:
-            logger.warning(f"AI ranking failed: {e}")
-            return results
+        return rank_results(query, results)
 
     async def _search_source(
         self,

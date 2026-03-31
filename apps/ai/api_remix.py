@@ -10,6 +10,8 @@ from apps.core.auth import SessionAuth
 from apps.recipes.models import Recipe
 
 from .api import ErrorOut, handle_ai_errors
+from .services.cache import is_ai_cache_hit
+from .services.quota import check_quota, increment_quota
 from .services.remix import get_remix_suggestions, create_remix
 
 security_logger = logging.getLogger("security")
@@ -68,6 +70,11 @@ def remix_suggestions(request, data: RemixSuggestionsIn):
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /ai/remix-suggestions from %s", request.META.get("REMOTE_ADDR"))
         return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
+
+    allowed, info = check_quota(request.auth, "remix_suggestions")
+    if not allowed:
+        return 429, {"error": "quota_exceeded", "message": "Daily limit reached for remix_suggestions", **info}
+
     from apps.profiles.utils import get_current_profile_or_none
 
     profile = get_current_profile_or_none(request)
@@ -86,7 +93,10 @@ def remix_suggestions(request, data: RemixSuggestionsIn):
             "message": f"Recipe {data.recipe_id} not found",
         }
 
+    was_cached = is_ai_cache_hit("remix_suggestions", data.recipe_id)
     suggestions = get_remix_suggestions(data.recipe_id)
+    if not was_cached:
+        increment_quota(request.auth, "remix_suggestions")
     return {"suggestions": suggestions}
 
 
@@ -104,6 +114,11 @@ def create_remix_endpoint(request, data: CreateRemixIn):
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /ai/remix from %s", request.META.get("REMOTE_ADDR"))
         return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
+
+    allowed, info = check_quota(request.auth, "remix")
+    if not allowed:
+        return 429, {"error": "quota_exceeded", "message": "Daily limit reached for remix", **info}
+
     from apps.profiles.utils import get_current_profile_or_none
 
     profile = get_current_profile_or_none(request)
@@ -140,6 +155,7 @@ def create_remix_endpoint(request, data: CreateRemixIn):
         modification=data.modification,
         profile=profile,
     )
+    increment_quota(request.auth, "remix")
     return {
         "id": remix.id,
         "title": remix.title,

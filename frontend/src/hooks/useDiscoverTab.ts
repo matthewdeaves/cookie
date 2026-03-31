@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { api, type DiscoverSuggestion } from '../api/client'
+import { handleQuotaError } from '../lib/utils'
 
 interface UseDiscoverTabOptions {
   profileId: number | undefined
@@ -40,8 +41,7 @@ export function useDiscoverTab({ profileId, aiAvailable }: UseDiscoverTabOptions
         (err.name === 'AbortError' || err.message.includes('abort'))
       if (isAbort) {
         console.debug('Discover fetch aborted:', err)
-      } else {
-        console.error('Failed to load discover suggestions:', err)
+      } else if (!handleQuotaError(err, 'Failed to load discover suggestions')) {
         setError(true)
       }
     } finally {

@@ -427,6 +427,7 @@ def settings(request):
             },
             "current_profile_id": profile.id,
             "ai_available": ai_available,
+            "is_admin": getattr(request, "is_admin", False),
             "default_model": app_settings.default_ai_model,
             "prompts": prompts,
             "models": models,

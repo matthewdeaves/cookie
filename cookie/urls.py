@@ -8,6 +8,7 @@ from apps.ai.api import router as ai_router
 from apps.ai.api_remix import router as ai_remix_router
 from apps.ai.api_scaling import router as ai_scaling_router
 from apps.ai.api_discover import router as ai_discover_router
+from apps.ai.api_quotas import router as ai_quota_router
 from apps.core.api import router as system_router
 from apps.profiles.api import router as profiles_router
 from apps.recipes.api import router as recipes_router
@@ -23,6 +24,7 @@ api.add_router("/ai", ai_router)
 api.add_router("/ai", ai_remix_router)
 api.add_router("/ai", ai_scaling_router)
 api.add_router("/ai", ai_discover_router)
+api.add_router("/ai", ai_quota_router)
 api.add_router("/profiles", profiles_router)
 api.add_router("/recipes", recipes_router)
 api.add_router("/favorites", favorites_router)

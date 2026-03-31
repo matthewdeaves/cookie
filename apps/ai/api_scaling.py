@@ -10,6 +10,7 @@ from apps.core.auth import SessionAuth
 from apps.recipes.models import Recipe
 
 from .api import ErrorOut, handle_ai_errors
+from .services.quota import check_quota, increment_quota
 from .services.scaling import scale_recipe, calculate_nutrition
 
 security_logger = logging.getLogger("security")
@@ -61,6 +62,11 @@ def scale_recipe_endpoint(request, data: ScaleIn):
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /ai/scale from %s", request.META.get("REMOTE_ADDR"))
         return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
+
+    allowed, info = check_quota(request.auth, "scale")
+    if not allowed:
+        return 429, {"error": "quota_exceeded", "message": "Daily limit reached for scale", **info}
+
     from apps.profiles.utils import get_current_profile_or_none
 
     profile = get_current_profile_or_none(request)
@@ -114,6 +120,8 @@ def scale_recipe_endpoint(request, data: ScaleIn):
             target_servings=data.target_servings,
         )
 
+    if not result.get("cached"):
+        increment_quota(request.auth, "scale")
     return {
         "target_servings": result["target_servings"],
         "original_servings": result["original_servings"],

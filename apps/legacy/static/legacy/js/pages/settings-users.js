@@ -22,10 +22,12 @@
         confirmDeleteBtn = document.getElementById('confirm-delete-btn');
         deleteBtnText = document.getElementById('delete-btn-text');
 
-        // Event delegation for dynamically rendered profile delete buttons
+        // Event delegation for dynamically rendered profile actions
         if (profilesList) {
             Cookie.utils.delegate(profilesList, 'click', {
-                'delete-profile': handleDeleteProfileClick
+                'delete-profile': handleDeleteProfileClick,
+                'toggle-unlimited': handleToggleUnlimited,
+                'rename-profile': handleRenameClick
             });
         }
 
@@ -80,6 +82,30 @@
             var badge = clone.querySelector('[data-field="badge"]');
             if (isCurrent) {
                 badge.classList.remove('hidden');
+            }
+
+            // Unlimited toggle
+            var unlimitedToggle = clone.querySelector('[data-action="toggle-unlimited"]');
+            if (unlimitedToggle) {
+                unlimitedToggle.setAttribute('data-profile-id', profile.id);
+                if (profile.unlimited_ai) {
+                    unlimitedToggle.classList.add('active');
+                    unlimitedToggle.textContent = 'Unlimited';
+                } else {
+                    unlimitedToggle.textContent = 'Limited';
+                }
+            }
+
+            // Usage summary
+            var usageSummary = clone.querySelector('[data-field="usage-summary"]');
+            if (usageSummary) {
+                usageSummary.textContent = profile.unlimited_ai ? 'Unlimited AI access' : 'Standard quota';
+            }
+
+            // Rename button
+            var renameBtn = clone.querySelector('[data-action="rename-profile"]');
+            if (renameBtn) {
+                renameBtn.setAttribute('data-profile-id', profile.id);
             }
 
             var deleteBtn = clone.querySelector('[data-action="delete-profile"]');
@@ -190,6 +216,137 @@
             });
             renderProfiles();
             updateProfileCount();
+        });
+    }
+
+    /**
+     * Toggle unlimited AI access for a profile
+     */
+    function handleToggleUnlimited(e) {
+        var btn = e.delegateTarget || e.currentTarget;
+        var profileId = parseInt(btn.getAttribute('data-profile-id'), 10);
+        var isCurrentlyUnlimited = btn.classList.contains('active');
+        var newValue = !isCurrentlyUnlimited;
+
+        btn.disabled = true;
+
+        Cookie.ajax.post('/api/profiles/' + profileId + '/set-unlimited/', { unlimited: newValue }, function(err, result) {
+            btn.disabled = false;
+
+            if (err) {
+                Cookie.toast.error('Failed to update unlimited status');
+                return;
+            }
+
+            // Update local state
+            var state = Cookie.pages.settings.getState();
+            for (var i = 0; i < state.profiles.length; i++) {
+                if (state.profiles[i].id === profileId) {
+                    state.profiles[i].unlimited_ai = result.unlimited_ai;
+                    break;
+                }
+            }
+
+            if (result.unlimited_ai) {
+                btn.classList.add('active');
+                btn.textContent = 'Unlimited';
+            } else {
+                btn.classList.remove('active');
+                btn.textContent = 'Limited';
+            }
+
+            // Update usage summary in the same card
+            var card = btn.closest('.profile-card');
+            if (card) {
+                var summary = card.querySelector('[data-field="usage-summary"]');
+                if (summary) {
+                    summary.textContent = result.unlimited_ai ? 'Unlimited AI access' : 'Standard quota';
+                }
+            }
+
+            Cookie.toast.success(result.unlimited_ai ? 'Unlimited access granted' : 'Unlimited access revoked');
+        });
+    }
+
+    /**
+     * Handle rename button click — show inline input
+     */
+    function handleRenameClick(e) {
+        var btn = e.delegateTarget || e.currentTarget;
+        var profileId = parseInt(btn.getAttribute('data-profile-id'), 10);
+        var card = btn.closest('.profile-card');
+        if (!card) return;
+
+        var nameEl = card.querySelector('[data-field="name"]');
+        var renameInput = card.querySelector('[data-field="rename-input"]');
+        if (!nameEl || !renameInput) return;
+
+        // Show input, hide name
+        renameInput.value = nameEl.textContent;
+        nameEl.classList.add('hidden');
+        renameInput.classList.remove('hidden');
+        btn.classList.add('hidden');
+        renameInput.focus();
+        renameInput.select();
+
+        // Save on Enter or blur
+        function saveRename() {
+            var newName = renameInput.value.trim();
+            if (!newName || newName === nameEl.textContent) {
+                // Cancel — restore display
+                renameInput.classList.add('hidden');
+                nameEl.classList.remove('hidden');
+                btn.classList.remove('hidden');
+                return;
+            }
+
+            Cookie.ajax.patch('/api/profiles/' + profileId + '/rename/', { name: newName }, function(err, result) {
+                renameInput.classList.add('hidden');
+                nameEl.classList.remove('hidden');
+                btn.classList.remove('hidden');
+
+                if (err) {
+                    Cookie.toast.error('Failed to rename profile');
+                    return;
+                }
+
+                nameEl.textContent = result.name;
+
+                // Update local state
+                var state = Cookie.pages.settings.getState();
+                for (var i = 0; i < state.profiles.length; i++) {
+                    if (state.profiles[i].id === profileId) {
+                        state.profiles[i].name = result.name;
+                        break;
+                    }
+                }
+
+                Cookie.toast.success('Profile renamed');
+            });
+        }
+
+        // Remove previous listeners by replacing the element
+        var newInput = renameInput.cloneNode(true);
+        renameInput.parentNode.replaceChild(newInput, renameInput);
+        newInput.classList.remove('hidden');
+        newInput.focus();
+        newInput.select();
+
+        newInput.addEventListener('keydown', function(ev) {
+            if (ev.keyCode === 13) { // Enter
+                ev.preventDefault();
+                renameInput = newInput;
+                saveRename();
+            } else if (ev.keyCode === 27) { // Escape
+                renameInput = newInput;
+                renameInput.classList.add('hidden');
+                nameEl.classList.remove('hidden');
+                btn.classList.remove('hidden');
+            }
+        });
+        newInput.addEventListener('blur', function() {
+            renameInput = newInput;
+            saveRename();
         });
     }
 

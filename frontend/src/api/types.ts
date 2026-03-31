@@ -128,6 +128,7 @@ export interface ProfileWithStats {
   avatar_color: string
   theme: string
   unit_preference: string
+  unlimited_ai: boolean
   created_at: string
   stats: ProfileStats
 }
@@ -385,4 +386,20 @@ export interface DevicePollResponse {
   user?: PasskeyUser
   profile?: AuthProfile
   error?: string
+}
+
+export interface QuotaLimits {
+  remix: number
+  remix_suggestions: number
+  scale: number
+  tips: number
+  discover: number
+  timer: number
+}
+
+export interface QuotaResponse {
+  limits: QuotaLimits
+  usage: QuotaLimits
+  unlimited: boolean
+  resets_at: string
 }

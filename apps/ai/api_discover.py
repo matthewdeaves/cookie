@@ -10,7 +10,9 @@ from ninja import Router, Schema
 from apps.profiles.models import Profile
 
 from .api import ErrorOut, handle_ai_errors
-from .services.discover import get_discover_suggestions
+from .models import AIDiscoverySuggestion
+from .services.quota import check_quota, increment_quota
+from .services.discover import get_discover_suggestions, CACHE_DURATION_HOURS
 
 security_logger = logging.getLogger("security")
 
@@ -50,13 +52,36 @@ def discover_endpoint(request, profile_id: int, refresh: bool = False):
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /ai/discover from %s", request.META.get("REMOTE_ADDR"))
         return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
+
     # In passkey mode, verify profile ownership
     if settings.AUTH_MODE != "home":
         session_profile_id = request.session.get("profile_id")
         if session_profile_id != profile_id:
             return 404, {"error": "not_found", "message": "Not found"}
+
+    try:
+        profile = Profile.objects.select_related("user").get(pk=profile_id)
+    except Profile.DoesNotExist:
+        return 404, {"error": "not_found", "message": f"Profile {profile_id} not found"}
+
+    allowed, info = check_quota(profile, "discover")
+    if not allowed:
+        return 429, {"error": "quota_exceeded", "message": "Daily limit reached for discover", **info}
+
+    # Only count against quota when OpenRouter is actually called (not cache hits)
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    cache_cutoff = timezone.now() - timedelta(hours=CACHE_DURATION_HOURS)
+    has_cached = (
+        not refresh and AIDiscoverySuggestion.objects.filter(profile=profile, created_at__gte=cache_cutoff).exists()
+    )
+
     try:
         result = get_discover_suggestions(profile_id, force_refresh=refresh)
+        if not has_cached:
+            increment_quota(profile, "discover")
         return result
     except Profile.DoesNotExist:
         return 404, {

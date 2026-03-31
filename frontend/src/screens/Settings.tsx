@@ -84,6 +84,10 @@ export default function Settings() {
         onAIStatusChange={data.setAiStatus}
         onModelsChange={data.setModels}
         isAdmin={isAdmin}
+        quotaData={data.quotaData}
+        onQuotaSave={(limits) => {
+          if (data.quotaData) data.setQuotaData({ ...data.quotaData, limits })
+        }}
       />
     ),
     passkeys: () => <SettingsPasskeys />,

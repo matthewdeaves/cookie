@@ -115,6 +115,16 @@ Cookie.ajax = (function() {
         },
 
         /**
+         * PATCH request
+         * @param {string} url - Request URL
+         * @param {Object} data - Request data
+         * @param {Function} callback - Callback function(error, response)
+         */
+        patch: function(url, data, callback) {
+            request('PATCH', url, data, callback);
+        },
+
+        /**
          * DELETE request
          * @param {string} url - Request URL
          * @param {Function} callback - Callback function(error, response)

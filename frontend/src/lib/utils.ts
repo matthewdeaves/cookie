@@ -1,8 +1,27 @@
 import { type ClassValue, clsx } from 'clsx'
+import { toast } from 'sonner'
 import { twMerge } from 'tailwind-merge'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+
+/**
+ * Handle API errors with quota-aware messaging.
+ * Returns true if the error was a quota error (handled), false otherwise.
+ */
+export function handleQuotaError(error: unknown, fallbackMessage: string): boolean {
+  const err = error as { status?: number; body?: { error?: string; resets_at?: string } }
+  if (err?.status === 429 && err?.body?.error === 'quota_exceeded') {
+    const resetsAt = err.body.resets_at
+    const resetTime = resetsAt
+      ? new Date(resetsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : 'midnight'
+    toast.error(`Daily limit reached. Resets at ${resetTime}.`)
+    return true
+  }
+  toast.error(fallbackMessage)
+  return false
 }
 
 /**
