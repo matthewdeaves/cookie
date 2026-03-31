@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { api, type RecipeDetail as RecipeDetailType, type ScaleResponse } from '../api/client'
 import { handleQuotaError } from '../lib/utils'
 
