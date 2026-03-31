@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for apps/recipes/services/search.py: 91%</title>
+    <title>Coverage for apps/recipes/services/search.py: 93%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_c827f16f.png">
     <link rel="stylesheet" href="style_cb_9ff733b0.css" type="text/css">
     <script src="coverage_html_cb_dd2e7eb5.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>apps&#8201;/&#8201;recipes&#8201;/&#8201;services&#8201;/&#8201;search.py</b>:
-            <span class="pc_cov">91%</span>
+            <span class="pc_cov">93%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">173 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">157<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">16<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">161<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">12<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_5537c08e4bdad05f_search_parsers_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.13.5">coverage.py v7.13.5</a>,
-            created at 2026-03-31 16:18 +0000
+            created at 2026-03-31 21:44 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -171,7 +171,7 @@
     <p class="run"><span class="n"><a id="t89" href="#t89">89</a></span><span class="t">        <span class="nam">result_dicts</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_deduplicate_and_convert</span><span class="op">(</span><span class="nam">all_results</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t90" href="#t90">90</a></span><span class="t">        <span class="nam">result_dicts</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_filter_relevant</span><span class="op">(</span><span class="nam">query</span><span class="op">,</span> <span class="nam">result_dicts</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t91" href="#t91">91</a></span><span class="t">        <span class="key">if</span> <span class="nam">result_dicts</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t92" href="#t92">92</a></span><span class="t">            <span class="nam">result_dicts</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_apply_ai_ranking</span><span class="op">(</span><span class="nam">query</span><span class="op">,</span> <span class="nam">result_dicts</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t92" href="#t92">92</a></span><span class="t">            <span class="nam">result_dicts</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_apply_ai_ranking</span><span class="op">(</span><span class="nam">query</span><span class="op">,</span> <span class="nam">result_dicts</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t93" href="#t93">93</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t94" href="#t94">94</a></span><span class="t">        <span class="key">return</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_paginate</span><span class="op">(</span><span class="nam">result_dicts</span><span class="op">,</span> <span class="nam">page</span><span class="op">,</span> <span class="nam">per_page</span><span class="op">,</span> <span class="nam">site_counts</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t95" href="#t95">95</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -280,15 +280,15 @@
     <p class="run"><span class="n"><a id="t198" href="#t198">198</a></span><span class="t">        <span class="key">for</span> <span class="nam">result</span> <span class="key">in</span> <span class="nam">results</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t199" href="#t199">199</a></span><span class="t">            <span class="nam">title_lower</span> <span class="op">=</span> <span class="nam">result</span><span class="op">[</span><span class="str">"title"</span><span class="op">]</span><span class="op">.</span><span class="nam">lower</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t200" href="#t200">200</a></span><span class="t">            <span class="key">if</span> <span class="nam">any</span><span class="op">(</span><span class="nam">term</span> <span class="key">in</span> <span class="nam">title_lower</span> <span class="key">for</span> <span class="nam">term</span> <span class="key">in</span> <span class="nam">query_terms</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t201" href="#t201">201</a></span><span class="t">                <span class="nam">filtered</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="nam">result</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t201" href="#t201">201</a></span><span class="t">                <span class="nam">filtered</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="nam">result</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t202" href="#t202">202</a></span><span class="t">        <span class="key">return</span> <span class="nam">filtered</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t203" href="#t203">203</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t204" href="#t204">204</a></span><span class="t">    <span class="op">@</span><span class="nam">staticmethod</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t205" href="#t205">205</a></span><span class="t">    <span class="key">def</span> <span class="nam">_apply_ai_ranking</span><span class="op">(</span><span class="nam">query</span><span class="op">:</span> <span class="nam">str</span><span class="op">,</span> <span class="nam">results</span><span class="op">:</span> <span class="nam">list</span><span class="op">[</span><span class="nam">dict</span><span class="op">]</span><span class="op">)</span> <span class="op">-></span> <span class="nam">list</span><span class="op">[</span><span class="nam">dict</span><span class="op">]</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t206" href="#t206">206</a></span><span class="t">        <span class="str">"""Rank search results by relevance using deterministic scoring."""</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t207" href="#t207">207</a></span><span class="t">        <span class="key">from</span> <span class="nam">apps</span><span class="op">.</span><span class="nam">ai</span><span class="op">.</span><span class="nam">services</span><span class="op">.</span><span class="nam">ranking</span> <span class="key">import</span> <span class="nam">rank_results</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t207" href="#t207">207</a></span><span class="t">        <span class="key">from</span> <span class="nam">apps</span><span class="op">.</span><span class="nam">ai</span><span class="op">.</span><span class="nam">services</span><span class="op">.</span><span class="nam">ranking</span> <span class="key">import</span> <span class="nam">rank_results</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t208" href="#t208">208</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t209" href="#t209">209</a></span><span class="t">        <span class="key">return</span> <span class="nam">rank_results</span><span class="op">(</span><span class="nam">query</span><span class="op">,</span> <span class="nam">results</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t209" href="#t209">209</a></span><span class="t">        <span class="key">return</span> <span class="nam">rank_results</span><span class="op">(</span><span class="nam">query</span><span class="op">,</span> <span class="nam">results</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t210" href="#t210">210</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t211" href="#t211">211</a></span><span class="t">    <span class="key">async</span> <span class="key">def</span> <span class="nam">_search_source</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="run run2"><span class="n"><a id="t212" href="#t212">212</a></span><span class="t">        <span class="nam">self</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
@@ -456,7 +456,7 @@
             <a class="nav" href="z_5537c08e4bdad05f_search_parsers_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.13.5">coverage.py v7.13.5</a>,
-            created at 2026-03-31 16:18 +0000
+            created at 2026-03-31 21:44 +0000
         </p>
     </div>
 </footer>
