@@ -1,4 +1,4 @@
-import { Github, Moon, Sun } from 'lucide-react'
+import { ExternalLink, Moon, Sun } from 'lucide-react'
 import type { AIStatus, AIModel, QuotaResponse, QuotaLimits } from '../../api/client'
 import { useProfile } from '../../contexts/ProfileContext'
 import { useVersion } from '../../router'
@@ -99,7 +99,7 @@ export default function SettingsGeneral({
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-primary hover:underline"
             >
-              <Github className="h-4 w-4" />
+              <ExternalLink className="h-4 w-4" />
               GitHub
             </a>
           </div>
