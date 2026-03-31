@@ -98,6 +98,12 @@ def cache_ai_response(
     return decorator
 
 
+def is_ai_cache_hit(prefix: str, *args, **kwargs) -> bool:
+    """Check if a cached result exists for the given arguments."""
+    cache_key = _make_cache_key(prefix, *args, **kwargs)
+    return cache.get(cache_key) is not None
+
+
 def invalidate_ai_cache(prefix: str, *args, **kwargs) -> bool:
     """Invalidate a specific AI cache entry.
 

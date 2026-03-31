@@ -11,6 +11,9 @@ Usage:
     manage.py cookie_admin demote <username> [--json]
     manage.py cookie_admin activate <username> [--json]
     manage.py cookie_admin deactivate <username> [--json]
+    manage.py cookie_admin set-unlimited <username> [--json]
+    manage.py cookie_admin remove-unlimited <username> [--json]
+    manage.py cookie_admin usage [--username <name>] [--json]
 """
 
 import json
@@ -64,6 +67,21 @@ class Command(BaseCommand):
         da.add_argument("username")
         da.add_argument("--json", action="store_true", dest="as_json")
 
+        # set-unlimited
+        su = sub.add_parser("set-unlimited", help="Grant unlimited AI access")
+        su.add_argument("username")
+        su.add_argument("--json", action="store_true", dest="as_json")
+
+        # remove-unlimited
+        ru = sub.add_parser("remove-unlimited", help="Revoke unlimited AI access")
+        ru.add_argument("username")
+        ru.add_argument("--json", action="store_true", dest="as_json")
+
+        # usage
+        us = sub.add_parser("usage", help="Show AI usage for today")
+        us.add_argument("--username", required=False, help="Show usage for a specific user")
+        us.add_argument("--json", action="store_true", dest="as_json")
+
     def handle(self, *args, **options):
         if settings.AUTH_MODE != "passkey":
             self._error("cookie_admin is only available in passkey mode (AUTH_MODE=passkey).", options, code=2)
@@ -102,12 +120,14 @@ class Command(BaseCommand):
 
     def _user_dict(self, user):
         passkey_count = user.webauthn_credentials.count()
+        unlimited_ai = getattr(getattr(user, "profile", None), "unlimited_ai", False)
         return {
             "username": user.username,
             "user_id": user.pk,
             "passkeys": passkey_count,
             "is_admin": user.is_staff,
             "is_active": user.is_active,
+            "unlimited_ai": unlimited_ai,
             "date_joined": user.date_joined.strftime("%Y-%m-%d"),
         }
 
@@ -318,6 +338,7 @@ class Command(BaseCommand):
                     "passkeys": u.passkey_count,
                     "is_admin": u.is_staff,
                     "is_active": u.is_active,
+                    "unlimited_ai": getattr(getattr(u, "profile", None), "unlimited_ai", False),
                     "date_joined": u.date_joined.strftime("%Y-%m-%d"),
                 }
                 for u in users
@@ -383,3 +404,79 @@ class Command(BaseCommand):
             options,
             {"user": self._user_dict(user), "sessions_invalidated": count},
         )
+
+    def _handle_set_unlimited(self, options):
+        user = self._get_user(options["username"], options)
+        profile = user.profile
+        profile.unlimited_ai = True
+        profile.save(update_fields=["unlimited_ai"])
+        self._success(
+            f"Updated {user.username}: unlimited AI access granted",
+            options,
+            {"username": user.username, "user_id": user.pk, "unlimited_ai": True, "action": "set-unlimited"},
+        )
+
+    def _handle_remove_unlimited(self, options):
+        user = self._get_user(options["username"], options)
+        profile = user.profile
+        profile.unlimited_ai = False
+        profile.save(update_fields=["unlimited_ai"])
+        self._success(
+            f"Updated {user.username}: unlimited AI access revoked",
+            options,
+            {"username": user.username, "user_id": user.pk, "unlimited_ai": False, "action": "remove-unlimited"},
+        )
+
+    def _handle_usage(self, options):
+        from datetime import date as date_cls
+
+        from apps.ai.services.quota import ALL_FEATURES, FEATURE_LIMIT_FIELDS, get_usage
+        from apps.core.models import AppSettings
+        from apps.profiles.models import Profile
+
+        app_settings = AppSettings.get()
+        limits = {f: getattr(app_settings, FEATURE_LIMIT_FIELDS[f]) for f in ALL_FEATURES}
+        today = date_cls.today().isoformat()
+        users_data = self._collect_usage_data(options, get_usage, Profile)
+
+        if options.get("as_json"):
+            json_users = [
+                {k: u[k] for k in ("username", "profile_name", "is_admin", "unlimited_ai", "usage")} for u in users_data
+            ]
+            self.stdout.write(json.dumps({"ok": True, "date": today, "users": json_users}, indent=2))
+            return
+
+        for u in users_data:
+            self._print_user_usage(u, limits, ALL_FEATURES)
+
+    def _collect_usage_data(self, options, get_usage, Profile):
+        if options.get("username"):
+            user = self._get_user(options["username"], options)
+            profiles = [(user.profile, user)]
+        else:
+            profiles = [(p, p.user) for p in Profile.objects.select_related("user").filter(user__isnull=False)]
+        return [
+            {
+                "username": user.username,
+                "profile_name": profile.name,
+                "is_admin": user.is_staff,
+                "unlimited_ai": profile.unlimited_ai,
+                "is_exempt": user.is_staff or profile.unlimited_ai,
+                "usage": get_usage(profile.pk),
+            }
+            for profile, user in profiles
+        ]
+
+    def _print_user_usage(self, u, limits, all_features):
+        tags = []
+        if u["is_admin"]:
+            tags.append("admin")
+        if u["unlimited_ai"]:
+            tags.append("unlimited")
+        tag_str = f" [{'/'.join(tags)}]" if tags else ""
+        self.stdout.write(f"{u['username']} ({u['profile_name']}){tag_str}")
+        for feature in all_features:
+            count = u["usage"][feature]
+            suffix = "" if u["is_exempt"] else f"/{limits[feature]}"
+            self.stdout.write(f"  {feature}: {count}{suffix}")
+        self.stdout.write("")

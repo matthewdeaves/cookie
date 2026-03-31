@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.models import Count, Q
 from ninja import Router, Schema
 
-from apps.core.auth import SessionAuth
+from apps.core.auth import AdminAuth, SessionAuth
 from .models import Profile
 
 router = Router(tags=["profiles"])
@@ -44,6 +44,7 @@ class ProfileWithStatsSchema(Schema):
     avatar_color: str
     theme: str
     unit_preference: str
+    unlimited_ai: bool = False
     created_at: datetime
     stats: ProfileStatsSchema
 
@@ -70,6 +71,14 @@ class DeletionPreviewSchema(Schema):
     profile: ProfileSummarySchema
     data_to_delete: DeletionDataSchema
     warnings: List[str]
+
+
+class SetUnlimitedIn(Schema):
+    unlimited: bool
+
+
+class RenameIn(Schema):
+    name: str
 
 
 class ErrorSchema(Schema):
@@ -148,6 +157,7 @@ def list_profiles(request):
                 avatar_color=p.avatar_color,
                 theme=p.theme,
                 unit_preference=p.unit_preference,
+                unlimited_ai=p.unlimited_ai,
                 created_at=p.created_at,
                 stats=ProfileStatsSchema(
                     favorites=p.favorites_count,
@@ -316,3 +326,30 @@ def select_profile(request, profile_id: int):
         return 404, {"detail": "Profile not found"}
     request.session["profile_id"] = profile.id
     return profile
+
+
+@router.post("/{profile_id}/set-unlimited/", response={200: dict, 404: ErrorSchema}, auth=AdminAuth())
+def set_unlimited(request, profile_id: int, data: SetUnlimitedIn):
+    """Set or revoke unlimited AI access for a profile. Admin only."""
+    try:
+        profile = Profile.objects.get(id=profile_id)
+    except Profile.DoesNotExist:
+        return 404, {"error": "not_found", "message": "Profile not found"}
+    profile.unlimited_ai = data.unlimited
+    profile.save(update_fields=["unlimited_ai"])
+    return {"id": profile.id, "name": profile.name, "unlimited_ai": profile.unlimited_ai}
+
+
+@router.patch("/{profile_id}/rename/", response={200: dict, 400: ErrorSchema, 404: ErrorSchema}, auth=AdminAuth())
+def rename_profile(request, profile_id: int, data: RenameIn):
+    """Rename a profile. Admin only."""
+    name = data.name.strip()
+    if not name or len(name) > 100:
+        return 400, {"error": "validation_error", "message": "Name must be between 1 and 100 characters"}
+    try:
+        profile = Profile.objects.get(id=profile_id)
+    except Profile.DoesNotExist:
+        return 404, {"error": "not_found", "message": "Profile not found"}
+    profile.name = name
+    profile.save(update_fields=["name"])
+    return {"id": profile.id, "name": profile.name, "avatar_color": profile.avatar_color}

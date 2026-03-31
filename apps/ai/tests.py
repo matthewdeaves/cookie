@@ -18,8 +18,8 @@ class AIPromptModelTests(TestCase):
     """Tests for the AIPrompt model."""
 
     def test_prompts_seeded(self):
-        """Verify all 11 prompts were seeded."""
-        assert AIPrompt.objects.count() == 11
+        """Verify all 10 prompts were seeded."""
+        assert AIPrompt.objects.count() == 10
 
     def test_all_prompt_types_exist(self):
         """Verify all prompt types are present."""
@@ -30,7 +30,6 @@ class AIPromptModelTests(TestCase):
             "discover_favorites",
             "discover_seasonal",
             "discover_new",
-            "search_ranking",
             "timer_naming",
             "remix_suggestions",
             "selector_repair",
@@ -252,7 +251,7 @@ class AIAPITests(TestCase):
         response = self.client.get("/api/ai/prompts")
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 11  # 11 prompts seeded
+        assert len(data) == 10  # 10 prompts seeded (search_ranking removed)
 
     def test_get_prompt_endpoint(self):
         """Test getting a specific prompt."""
@@ -1734,25 +1733,7 @@ class DiscoverServiceTests(TestCase):
 
 
 class RankingServiceTests(TestCase):
-    """Tests for the AI ranking service."""
-
-    def test_is_ranking_available_no_key(self):
-        """Test is_ranking_available returns False without API key."""
-        from apps.ai.services.ranking import is_ranking_available
-
-        settings = AppSettings.get()
-        settings.openrouter_api_key = ""
-        settings.save()
-        assert is_ranking_available() is False
-
-    def test_is_ranking_available_with_key(self):
-        """Test is_ranking_available returns True with API key."""
-        from apps.ai.services.ranking import is_ranking_available
-
-        settings = AppSettings.get()
-        settings.openrouter_api_key = "test-key"
-        settings.save()
-        assert is_ranking_available() is True
+    """Tests for the deterministic ranking service."""
 
     def test_filter_valid_removes_titleless(self):
         """Test _filter_valid removes results without titles."""
@@ -1760,125 +1741,47 @@ class RankingServiceTests(TestCase):
 
         results = [
             {"title": "Good Recipe", "url": "http://test.com/1"},
-            {"url": "http://test.com/2"},  # No title
-            {"title": "", "url": "http://test.com/3"},  # Empty title
+            {"url": "http://test.com/2"},
+            {"title": "", "url": "http://test.com/3"},
             {"title": "Another Good", "url": "http://test.com/4"},
         ]
         filtered = _filter_valid(results)
         assert len(filtered) == 2
-        assert filtered[0]["title"] == "Good Recipe"
-        assert filtered[1]["title"] == "Another Good"
 
-    def test_sort_by_image_prioritizes_images(self):
-        """Test _sort_by_image puts results with images first."""
-        from apps.ai.services.ranking import _sort_by_image
+    def test_images_ranked_before_no_images(self):
+        """Test results with images appear first."""
+        from apps.ai.services.ranking import rank_results
 
         results = [
             {"title": "No Image", "url": "http://test.com/1"},
             {"title": "Has Image", "url": "http://test.com/2", "image_url": "http://img.com/2.jpg"},
-            {"title": "Also No Image", "url": "http://test.com/3"},
         ]
-        sorted_results = _sort_by_image(results)
-        assert sorted_results[0]["title"] == "Has Image"
+        ranked = rank_results("recipe", results)
+        assert ranked[0]["title"] == "Has Image"
 
-    def test_sort_by_image_filters_invalid(self):
-        """Test _sort_by_image also filters out invalid results."""
-        from apps.ai.services.ranking import _sort_by_image
+    def test_query_term_matches_rank_higher(self):
+        """Test more query term matches rank higher."""
+        from apps.ai.services.ranking import rank_results
 
         results = [
-            {"title": "Valid", "url": "http://test.com/1"},
-            {"url": "http://test.com/2"},  # No title - invalid
+            {"title": "Chicken Curry"},
+            {"title": "Chicken Tikka Masala"},
         ]
-        sorted_results = _sort_by_image(results)
-        assert len(sorted_results) == 1
-        assert sorted_results[0]["title"] == "Valid"
-
-    def test_apply_ranking(self):
-        """Test _apply_ranking reorders results correctly."""
-        from apps.ai.services.ranking import _apply_ranking
-
-        results = [
-            {"title": "A", "url": "http://test.com/0"},
-            {"title": "B", "url": "http://test.com/1"},
-            {"title": "C", "url": "http://test.com/2"},
-        ]
-        ranked = _apply_ranking(results, [2, 0, 1])
-        assert ranked[0]["title"] == "C"
-        assert ranked[1]["title"] == "A"
-        assert ranked[2]["title"] == "B"
-
-    def test_apply_ranking_handles_invalid_indices(self):
-        """Test _apply_ranking ignores out-of-bounds indices."""
-        from apps.ai.services.ranking import _apply_ranking
-
-        results = [
-            {"title": "A", "url": "http://test.com/0"},
-            {"title": "B", "url": "http://test.com/1"},
-        ]
-        ranked = _apply_ranking(results, [1, 99, 0, -1])  # 99 and -1 are invalid
-        assert len(ranked) == 2
-        assert ranked[0]["title"] == "B"
-        assert ranked[1]["title"] == "A"
-
-    def test_apply_ranking_handles_duplicates(self):
-        """Test _apply_ranking ignores duplicate indices."""
-        from apps.ai.services.ranking import _apply_ranking
-
-        results = [
-            {"title": "A", "url": "http://test.com/0"},
-            {"title": "B", "url": "http://test.com/1"},
-        ]
-        ranked = _apply_ranking(results, [1, 1, 0, 0])
-        assert len(ranked) == 2
-        assert ranked[0]["title"] == "B"
-        assert ranked[1]["title"] == "A"
-
-    def test_apply_ranking_adds_missing(self):
-        """Test _apply_ranking appends results not in ranking."""
-        from apps.ai.services.ranking import _apply_ranking
-
-        results = [
-            {"title": "A", "url": "http://test.com/0"},
-            {"title": "B", "url": "http://test.com/1"},
-            {"title": "C", "url": "http://test.com/2"},
-        ]
-        # Only rank first two, third should be appended
-        ranked = _apply_ranking(results, [1, 0])
-        assert len(ranked) == 3
-        assert ranked[0]["title"] == "B"
-        assert ranked[1]["title"] == "A"
-        assert ranked[2]["title"] == "C"
+        ranked = rank_results("chicken tikka", results)
+        assert ranked[0]["title"] == "Chicken Tikka Masala"
 
     def test_rank_results_empty_list(self):
         """Test rank_results handles empty list."""
         from apps.ai.services.ranking import rank_results
 
-        result = rank_results("pizza", [])
-        assert result == []
+        assert rank_results("pizza", []) == []
 
     def test_rank_results_single_item(self):
         """Test rank_results returns single item unchanged."""
         from apps.ai.services.ranking import rank_results
 
-        results = [{"title": "Pizza", "url": "http://test.com/1"}]
-        result = rank_results("pizza", results)
-        assert len(result) == 1
-        assert result[0]["title"] == "Pizza"
-
-    def test_rank_results_falls_back_without_key(self):
-        """Test rank_results falls back to image sort without API key."""
-        from apps.ai.services.ranking import rank_results
-
-        settings = AppSettings.get()
-        settings.openrouter_api_key = ""
-        settings.save()
-
-        results = [
-            {"title": "No Image", "url": "http://test.com/1"},
-            {"title": "Has Image", "url": "http://test.com/2", "image_url": "http://img.com/2.jpg"},
-        ]
-        result = rank_results("pizza", results)
-        assert result[0]["title"] == "Has Image"
+        results = [{"title": "Pizza"}]
+        assert len(rank_results("pizza", results)) == 1
 
 
 class FixturesIntegrationTests(TestCase):

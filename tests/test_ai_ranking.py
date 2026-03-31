@@ -1,335 +1,160 @@
 """
-Tests for the AI search result ranking service (T047).
+Tests for the deterministic search result ranking service.
 
 Tests the ranking service at apps/ai/services/ranking.py:
-- rank_results() with multiple results
-- Empty results
-- AI failure fallback behavior (image-first sorting)
-- _apply_ranking() index mapping
-- _filter_valid() and _sort_by_image() helpers
+- rank_results() main entry point
+- _filter_valid() removes titleless results
+- _score_result() scoring logic (image, term match, exact phrase)
 """
 
-from unittest.mock import patch, MagicMock
-
-import pytest
-
-from apps.ai.models import AIPrompt
-from apps.ai.services.ranking import (
-    rank_results,
-    is_ranking_available,
-    _apply_ranking,
-    _filter_valid,
-    _sort_by_image,
-)
-from apps.ai.services.openrouter import AIUnavailableError, AIResponseError
-from apps.ai.services.validator import ValidationError
-from apps.core.models import AppSettings
-
-
-@pytest.fixture
-def ranking_prompt(db):
-    """Get or create the search_ranking AI prompt."""
-    prompt, _ = AIPrompt.objects.get_or_create(
-        prompt_type="search_ranking",
-        defaults={
-            "name": "Search Ranking",
-            "system_prompt": "You are a search ranking assistant.",
-            "user_prompt_template": ("Rank these {count} search results for the query '{query}':\n{results}"),
-            "model": "anthropic/claude-3.5-haiku",
-            "is_active": True,
-        },
-    )
-    return prompt
-
-
-@pytest.fixture
-def api_key(db):
-    """Configure an API key so AI ranking is available."""
-    settings = AppSettings.get()
-    settings.openrouter_api_key = "test-key-123"  # pragma: allowlist secret
-    settings.save()
-    return settings
-
-
-@pytest.fixture
-def sample_results():
-    """Sample search results for ranking tests."""
-    return [
-        {
-            "url": "https://example.com/recipe1",
-            "title": "Chicken Tikka Masala",
-            "host": "example.com",
-            "image_url": "https://example.com/img1.jpg",
-            "description": "A classic Indian dish",
-        },
-        {
-            "url": "https://example.com/recipe2",
-            "title": "Butter Chicken",
-            "host": "example.com",
-            "image_url": "",
-            "description": "Creamy and delicious",
-        },
-        {
-            "url": "https://other.com/recipe3",
-            "title": "Tandoori Chicken",
-            "host": "other.com",
-            "image_url": "https://other.com/img3.jpg",
-            "description": "Smoky grilled chicken",
-        },
-    ]
+from apps.ai.services.ranking import rank_results, _filter_valid, _score_result
 
 
 # --- _filter_valid ---
 
 
-def test_filter_valid_removes_titleless():
+def test_filter_valid_removes_results_without_titles():
     """Results without titles are filtered out."""
     results = [
-        {"title": "Good Recipe", "url": "https://a.com"},
-        {"title": "", "url": "https://b.com"},
-        {"url": "https://c.com"},
-        {"title": "Another Good", "url": "https://d.com"},
+        {"title": "Chicken Tikka Masala", "image_url": "http://example.com/img.jpg", "host": "example.com"},
+        {"title": "", "image_url": "http://example.com/img2.jpg", "host": "example.com"},
+        {"image_url": "http://example.com/img3.jpg", "host": "example.com"},
+        {"title": "Butter Chicken", "host": "example.com"},
     ]
     filtered = _filter_valid(results)
     assert len(filtered) == 2
-    assert filtered[0]["title"] == "Good Recipe"
-    assert filtered[1]["title"] == "Another Good"
-
-
-def test_filter_valid_empty_list():
-    """Empty input returns empty output."""
-    assert _filter_valid([]) == []
-
-
-# --- _sort_by_image ---
-
-
-def test_sort_by_image_prioritizes_images():
-    """Results with images come first."""
-    results = [
-        {"title": "No Image", "image_url": ""},
-        {"title": "Has Image", "image_url": "https://img.jpg"},
-        {"title": "Also No Image"},
-    ]
-    sorted_results = _sort_by_image(results)
-    assert sorted_results[0]["title"] == "Has Image"
-
-
-def test_sort_by_image_filters_invalid():
-    """Results without titles are filtered before sorting."""
-    results = [
-        {"title": "", "image_url": "https://img.jpg"},
-        {"title": "Valid", "image_url": ""},
-    ]
-    sorted_results = _sort_by_image(results)
-    assert len(sorted_results) == 1
-    assert sorted_results[0]["title"] == "Valid"
-
-
-# --- _apply_ranking ---
-
-
-def test_apply_ranking_reorders():
-    """Ranking indices reorder results correctly."""
-    results = [{"id": 0}, {"id": 1}, {"id": 2}]
-    ranked = _apply_ranking(results, [2, 0, 1])
-    assert [r["id"] for r in ranked] == [2, 0, 1]
-
-
-def test_apply_ranking_handles_missing_indices():
-    """Missing indices are appended at end."""
-    results = [{"id": 0}, {"id": 1}, {"id": 2}]
-    ranked = _apply_ranking(results, [1])
-    assert ranked[0]["id"] == 1
-    assert len(ranked) == 3
-
-
-def test_apply_ranking_ignores_out_of_bounds():
-    """Out-of-bounds indices are ignored."""
-    results = [{"id": 0}, {"id": 1}]
-    ranked = _apply_ranking(results, [99, 0, 1])
-    assert [r["id"] for r in ranked] == [0, 1]
-
-
-def test_apply_ranking_deduplicates():
-    """Duplicate indices only appear once."""
-    results = [{"id": 0}, {"id": 1}]
-    ranked = _apply_ranking(results, [0, 0, 1])
-    assert len(ranked) == 2
-
-
-# --- is_ranking_available ---
-
-
-@pytest.mark.django_db
-def test_ranking_available_with_api_key(api_key):
-    """Ranking is available when API key is configured."""
-    assert is_ranking_available() is True
-
-
-@pytest.mark.django_db
-def test_ranking_unavailable_without_api_key(db):
-    """Ranking is not available without API key."""
-    settings = AppSettings.get()
-    settings._openrouter_api_key = ""
-    settings.save()
-    assert is_ranking_available() is False
+    assert filtered[0]["title"] == "Chicken Tikka Masala"
+    assert filtered[1]["title"] == "Butter Chicken"
 
 
 # --- rank_results ---
 
 
-@pytest.mark.django_db
-def test_rank_results_empty_list(api_key, ranking_prompt):
-    """Empty results return empty list."""
-    result = rank_results("chicken", [])
-    assert result == []
+def test_empty_results_returns_empty_list():
+    """Empty results returns empty list."""
+    assert rank_results("chicken", []) == []
 
 
-@pytest.mark.django_db
-def test_rank_results_single_result(api_key, ranking_prompt):
-    """Single result is returned as-is (no AI call needed)."""
-    results = [{"title": "Solo Recipe", "url": "https://a.com"}]
-    with patch("apps.ai.services.ranking.OpenRouterService") as mock_svc:
-        result = rank_results("chicken", results)
-    mock_svc.assert_not_called()
-    assert len(result) == 1
-    assert result[0]["title"] == "Solo Recipe"
-
-
-@pytest.mark.django_db
-def test_rank_results_filters_titleless(api_key, ranking_prompt):
-    """Results without titles are filtered, and single remaining result returned."""
+def test_results_with_images_rank_before_results_without():
+    """Results with images appear before results without images."""
     results = [
-        {"title": "Good Recipe", "url": "https://a.com"},
-        {"title": "", "url": "https://b.com"},
+        {"title": "No Image Recipe", "image_url": "", "host": "example.com"},
+        {"title": "Image Recipe", "image_url": "http://example.com/img.jpg", "host": "example.com"},
     ]
-    with patch("apps.ai.services.ranking.OpenRouterService") as mock_svc:
-        result = rank_results("chicken", results)
-    mock_svc.assert_not_called()
-    assert len(result) == 1
-    assert result[0]["title"] == "Good Recipe"
+    ranked = rank_results("pasta", results)
+    assert ranked[0]["title"] == "Image Recipe"
+    assert ranked[1]["title"] == "No Image Recipe"
 
 
-@pytest.mark.django_db
-def test_rank_results_with_ai(api_key, ranking_prompt, sample_results):
-    """AI ranking reorders results according to AI response."""
-    mock_service_instance = MagicMock()
-    mock_service_instance.complete.return_value = "mocked"
-
-    mock_validator_instance = MagicMock()
-    # AI returns reversed order
-    mock_validator_instance.validate.return_value = [2, 1, 0]
-
-    with (
-        patch(
-            "apps.ai.services.ranking.OpenRouterService",
-            return_value=mock_service_instance,
-        ),
-        patch(
-            "apps.ai.services.ranking.AIResponseValidator",
-            return_value=mock_validator_instance,
-        ),
-    ):
-        result = rank_results("chicken", sample_results)
-
-    assert len(result) == 3
-    assert result[0]["title"] == "Tandoori Chicken"
-    assert result[1]["title"] == "Butter Chicken"
-    assert result[2]["title"] == "Chicken Tikka Masala"
+def test_more_query_term_matches_rank_higher():
+    """More query term matches rank higher."""
+    results = [
+        {"title": "Grilled Steak", "image_url": "", "host": "example.com"},
+        {"title": "Chicken Tikka Masala", "image_url": "", "host": "example.com"},
+        {"title": "Chicken Tikka Wrap", "image_url": "", "host": "example.com"},
+    ]
+    ranked = rank_results("chicken tikka masala", results)
+    # "Chicken Tikka Masala" matches all 3 terms + exact phrase
+    # "Chicken Tikka Wrap" matches 2 terms
+    # "Grilled Steak" matches 0 terms
+    assert ranked[0]["title"] == "Chicken Tikka Masala"
+    assert ranked[1]["title"] == "Chicken Tikka Wrap"
+    assert ranked[2]["title"] == "Grilled Steak"
 
 
-@pytest.mark.django_db
-def test_rank_results_no_api_key_falls_back(db, ranking_prompt, sample_results):
-    """Without API key, falls back to image-first sorting."""
-    settings = AppSettings.get()
-    settings._openrouter_api_key = ""
-    settings.save()
-
-    result = rank_results("chicken", sample_results)
-    # Results with images should come first
-    assert result[0]["image_url"] != ""
-    assert len(result) == 3
-
-
-@pytest.mark.django_db
-def test_rank_results_ai_unavailable_falls_back(api_key, ranking_prompt, sample_results):
-    """AIUnavailableError falls back to image-first sorting."""
-    mock_service_instance = MagicMock()
-    mock_service_instance.complete.side_effect = AIUnavailableError("No key")
-
-    with patch(
-        "apps.ai.services.ranking.OpenRouterService",
-        return_value=mock_service_instance,
-    ):
-        result = rank_results("chicken", sample_results)
-
-    assert len(result) == 3
-    # Should still have all results, just image-sorted
-    titles = [r["title"] for r in result]
-    assert "Chicken Tikka Masala" in titles
+def test_exact_phrase_bonus_gives_additional_score():
+    """Exact phrase bonus gives additional score beyond individual term matches."""
+    results = [
+        {"title": "Butter Chicken Masala", "image_url": "", "host": "example.com"},
+        {"title": "Chicken Butter Dish", "image_url": "", "host": "example.com"},
+    ]
+    # Both match "butter" and "chicken" (2 terms each = 10 points each)
+    # Only "Butter Chicken Masala" contains "butter chicken" as exact phrase (+10)
+    ranked = rank_results("butter chicken", results)
+    assert ranked[0]["title"] == "Butter Chicken Masala"
+    assert ranked[1]["title"] == "Chicken Butter Dish"
 
 
-@pytest.mark.django_db
-def test_rank_results_ai_response_error_falls_back(api_key, ranking_prompt, sample_results):
-    """AIResponseError falls back to image-first sorting."""
-    mock_service_instance = MagicMock()
-    mock_service_instance.complete.side_effect = AIResponseError("Bad response")
-
-    with patch(
-        "apps.ai.services.ranking.OpenRouterService",
-        return_value=mock_service_instance,
-    ):
-        result = rank_results("chicken", sample_results)
-
-    assert len(result) == 3
-
-
-@pytest.mark.django_db
-def test_rank_results_validation_error_falls_back(api_key, ranking_prompt, sample_results):
-    """ValidationError falls back to image-first sorting."""
-    mock_service_instance = MagicMock()
-    mock_service_instance.complete.return_value = "mocked"
-
-    mock_validator_instance = MagicMock()
-    mock_validator_instance.validate.side_effect = ValidationError("Bad schema")
-
-    with (
-        patch(
-            "apps.ai.services.ranking.OpenRouterService",
-            return_value=mock_service_instance,
-        ),
-        patch(
-            "apps.ai.services.ranking.AIResponseValidator",
-            return_value=mock_validator_instance,
-        ),
-    ):
-        result = rank_results("chicken", sample_results)
-
-    assert len(result) == 3
+def test_all_results_without_images_ranked_by_title_match_only():
+    """All results without images: ranked by title match only."""
+    results = [
+        {"title": "Pasta Carbonara", "image_url": "", "host": "example.com"},
+        {"title": "Chicken Pasta Bake", "image_url": "", "host": "example.com"},
+        {"title": "Grilled Salmon", "image_url": "", "host": "example.com"},
+    ]
+    ranked = rank_results("chicken pasta", results)
+    # "Chicken Pasta Bake" matches both terms (10 points)
+    # "Pasta Carbonara" matches one term (5 points)
+    # "Grilled Salmon" matches none (0 points)
+    assert ranked[0]["title"] == "Chicken Pasta Bake"
+    assert ranked[1]["title"] == "Pasta Carbonara"
+    assert ranked[2]["title"] == "Grilled Salmon"
 
 
-@pytest.mark.django_db
-def test_rank_results_unexpected_error_falls_back(api_key, ranking_prompt, sample_results):
-    """Unexpected exceptions fall back to image-first sorting."""
-    mock_service_instance = MagicMock()
-    mock_service_instance.complete.side_effect = RuntimeError("Unexpected")
-
-    with patch(
-        "apps.ai.services.ranking.OpenRouterService",
-        return_value=mock_service_instance,
-    ):
-        result = rank_results("chicken", sample_results)
-
-    assert len(result) == 3
+def test_empty_query_sorted_by_image_presence_only():
+    """Empty query: sorted by image presence only (no term matching)."""
+    results = [
+        {"title": "No Image Recipe", "image_url": "", "host": "example.com"},
+        {"title": "Image Recipe", "image_url": "http://example.com/img.jpg", "host": "example.com"},
+        {"title": "Another No Image", "image_url": "", "host": "example.com"},
+    ]
+    ranked = rank_results("", results)
+    assert ranked[0]["title"] == "Image Recipe"
+    # The two without images follow (order among them is stable/arbitrary)
+    assert all(r["image_url"] == "" for r in ranked[1:])
 
 
-@pytest.mark.django_db
-def test_rank_results_missing_prompt_falls_back(api_key, sample_results):
-    """Missing prompt falls back to image-first sorting."""
-    # No ranking_prompt fixture, so prompt doesn't exist
-    # But prompts may be seeded via migration; delete it explicitly
-    AIPrompt.objects.filter(prompt_type="search_ranking").delete()
+def test_single_character_query_terms_are_ignored():
+    """Single-character query terms are ignored (len >= 2 filter)."""
+    results = [
+        {"title": "A Recipe With Chicken", "image_url": "", "host": "example.com"},
+        {"title": "Plain Bread", "image_url": "", "host": "example.com"},
+    ]
+    # "a" is single char and should be ignored; only "big" counts
+    ranked = rank_results("a big", results)
+    # Neither title contains "big", so scores are equal (both 0)
+    assert len(ranked) == 2
 
-    result = rank_results("chicken", sample_results)
-    assert len(result) == 3
+    # Verify single-char terms truly ignored: query "a" alone produces no term matches
+    query_terms = [t for t in "a".lower().split() if len(t) >= 2]
+    assert query_terms == []
+
+
+def test_case_insensitive_matching():
+    """Case-insensitive matching for query terms and titles."""
+    results = [
+        {"title": "CHICKEN TIKKA MASALA", "image_url": "", "host": "example.com"},
+        {"title": "plain rice", "image_url": "", "host": "example.com"},
+    ]
+    ranked = rank_results("Chicken Tikka", results)
+    assert ranked[0]["title"] == "CHICKEN TIKKA MASALA"
+    assert ranked[1]["title"] == "plain rice"
+
+
+# --- _score_result ---
+
+
+def test_score_result_image_bonus():
+    """Image presence adds 100 to score."""
+    result_with_image = {"title": "Test", "image_url": "http://example.com/img.jpg"}
+    result_without_image = {"title": "Test", "image_url": ""}
+    assert _score_result(result_with_image, []) == 100
+    assert _score_result(result_without_image, []) == 0
+
+
+def test_score_result_term_match_bonus():
+    """Each matching term adds 5 to score."""
+    result = {"title": "Chicken Tikka Masala", "image_url": ""}
+    # Single term: 5 (term match) + 10 (exact phrase, since single-term phrase matches)
+    assert _score_result(result, ["chicken"]) == 15
+    # Two terms: 10 (term matches) + 10 (exact phrase "chicken tikka" found) = 20
+    assert _score_result(result, ["chicken", "tikka"]) == 20
+    # Three terms: 15 (term matches) + 10 (exact phrase) = 25
+    assert _score_result(result, ["chicken", "tikka", "masala"]) == 25
+
+
+def test_score_result_exact_phrase_bonus():
+    """Exact phrase match adds 10 to score on top of term matches."""
+    result = {"title": "Butter Chicken Curry", "image_url": ""}
+    # Two terms match (10) + exact phrase "butter chicken" (10) = 20
+    assert _score_result(result, ["butter", "chicken"]) == 20

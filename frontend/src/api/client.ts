@@ -45,6 +45,8 @@ import type {
   PasskeyCredentialList,
   DeviceCodeResponse,
   DevicePollResponse,
+  QuotaLimits,
+  QuotaResponse,
 } from './types'
 
 // Re-export all types for consumers
@@ -95,6 +97,8 @@ export type {
   PasskeyCredentialList,
   DeviceCodeResponse,
   DevicePollResponse,
+  QuotaLimits,
+  QuotaResponse,
 }
 
 const API_BASE = '/api'
@@ -232,6 +236,15 @@ export const api = {
           duration_minutes: durationMinutes,
         }),
       }),
+
+    quotas: {
+      get: () => request<QuotaResponse>('/ai/quotas'),
+      update: (limits: QuotaLimits) =>
+        request<QuotaResponse>('/ai/quotas', {
+          method: 'PUT',
+          body: JSON.stringify(limits),
+        }),
+    },
   },
 
   profiles: {
@@ -263,6 +276,18 @@ export const api = {
 
     deletionPreview: (id: number) =>
       request<DeletionPreview>(`/profiles/${id}/deletion-preview/`),
+
+    setUnlimited: (id: number, unlimited: boolean) =>
+      request<{ id: number; name: string; unlimited_ai: boolean }>(
+        `/profiles/${id}/set-unlimited/`,
+        { method: 'POST', body: JSON.stringify({ unlimited }) },
+      ),
+
+    rename: (id: number, name: string) =>
+      request<{ id: number; name: string; avatar_color: string }>(
+        `/profiles/${id}/rename/`,
+        { method: 'PATCH', body: JSON.stringify({ name }) },
+      ),
   },
 
   favorites: {

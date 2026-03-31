@@ -94,6 +94,58 @@
                 </p>
             </div>
 
+            {% if is_admin %}
+            <!-- AI Quota Config (admin, passkey mode only — hidden by default, shown by JS) -->
+            <div id="quota-config-section" class="card mt-4 hidden">
+                <h2 class="settings-section-title">AI Quota Limits</h2>
+                <p class="settings-section-desc">Set daily usage limits per feature for all users.</p>
+
+                <div class="quota-limits-grid">
+                    <div class="form-group form-group-inline">
+                        <label for="quota-limit-remix" class="form-label">Remixes</label>
+                        <input type="number" id="quota-limit-remix" class="input input-sm" min="0" value="0">
+                    </div>
+                    <div class="form-group form-group-inline">
+                        <label for="quota-limit-remix_suggestions" class="form-label">Remix Suggestions</label>
+                        <input type="number" id="quota-limit-remix_suggestions" class="input input-sm" min="0" value="0">
+                    </div>
+                    <div class="form-group form-group-inline">
+                        <label for="quota-limit-scale" class="form-label">Scaling</label>
+                        <input type="number" id="quota-limit-scale" class="input input-sm" min="0" value="0">
+                    </div>
+                    <div class="form-group form-group-inline">
+                        <label for="quota-limit-tips" class="form-label">Tips</label>
+                        <input type="number" id="quota-limit-tips" class="input input-sm" min="0" value="0">
+                    </div>
+                    <div class="form-group form-group-inline">
+                        <label for="quota-limit-discover" class="form-label">Discover</label>
+                        <input type="number" id="quota-limit-discover" class="input input-sm" min="0" value="0">
+                    </div>
+                    <div class="form-group form-group-inline">
+                        <label for="quota-limit-timer" class="form-label">Timer Naming</label>
+                        <input type="number" id="quota-limit-timer" class="input input-sm" min="0" value="0">
+                    </div>
+                </div>
+
+                <button type="button" id="save-quotas-btn" class="btn btn-primary mt-2">
+                    <span class="btn-icon-wrapper">
+                        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span id="save-quotas-text">Save Limits</span>
+                    </span>
+                </button>
+            </div>
+            {% endif %}
+
+            <!-- AI Quota Usage (all users, passkey mode only — hidden by default, shown by JS) -->
+            <div id="quota-usage-section" class="card mt-4 hidden">
+                <h2 class="settings-section-title">Your AI Usage</h2>
+                <div id="quota-usage-list" class="quota-usage-list">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
             <!-- About Section -->
             <div class="card mt-4">
                 <h2 class="settings-section-title">About</h2>
@@ -488,18 +540,31 @@
         <div class="profile-info">
             <div class="profile-name-row">
                 <span class="profile-name" data-field="name"></span>
+                <input type="text" class="input input-sm profile-rename-input hidden" data-field="rename-input" maxlength="100">
+                <button type="button" class="btn-icon-sm" data-action="rename-profile" title="Rename profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                        <path d="m15 5 4 4"></path>
+                    </svg>
+                </button>
                 <span class="profile-current-badge hidden" data-field="badge">Current</span>
             </div>
             <span class="profile-meta" data-field="created"></span>
             <span class="profile-stats" data-field="stats"></span>
+            <span class="profile-usage-summary" data-field="usage-summary"></span>
         </div>
-        <button type="button" class="btn-delete" data-action="delete-profile" title="Delete profile">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 6h18"></path>
-                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-            </svg>
-        </button>
+        <div class="profile-actions-col">
+            <button type="button" class="btn-toggle-unlimited" data-action="toggle-unlimited" title="Toggle unlimited AI">
+                Limited
+            </button>
+            <button type="button" class="btn-delete" data-action="delete-profile" title="Delete profile">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"></path>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                </svg>
+            </button>
+        </div>
     </div>
 </template>
 

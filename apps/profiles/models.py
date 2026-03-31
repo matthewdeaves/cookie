@@ -40,6 +40,7 @@ class Profile(models.Model):
     avatar_color = models.CharField(max_length=7)  # Hex color
     theme = models.CharField(max_length=10, choices=THEME_CHOICES, default="light")
     unit_preference = models.CharField(max_length=10, choices=UNIT_CHOICES, default="metric")
+    unlimited_ai = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
