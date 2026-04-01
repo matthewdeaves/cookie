@@ -1,18 +1,18 @@
 {
-  "total_size_kb": 544.97,
-  "total_gzip_kb": 167.23,
-  "js_size_kb": 501.26,
-  "js_gzip_kb": 159.3,
+  "total_size_kb": 545.13,
+  "total_gzip_kb": 167.39,
+  "js_size_kb": 501.42,
+  "js_gzip_kb": 159.47,
   "css_size_kb": 43.71,
   "css_gzip_kb": 7.92,
   "files": [
     {
-      "name": "index-zHdEdTnT.js",
+      "name": "index-DhG7emJI.js",
       "size_kb": 327.85,
-      "gzip_kb": 103.98
+      "gzip_kb": 103.99
     },
     {
-      "name": "Settings-BT8teJ2o.js",
+      "name": "Settings-CCNEhf9i.js",
       "size_kb": 46.91,
       "gzip_kb": 10.75
     },
@@ -22,77 +22,77 @@
       "gzip_kb": 7.92
     },
     {
-      "name": "utils-tu57-560.js",
+      "name": "utils-W3vHIVzW.js",
       "size_kb": 26.64,
       "gzip_kb": 8.58
     },
     {
-      "name": "RecipeDetail-DPtYwMXj.js",
+      "name": "RecipeDetail-DFoUpw0c.js",
       "size_kb": 24.31,
-      "gzip_kb": 6.67
+      "gzip_kb": 6.66
     },
     {
-      "name": "PlayMode-BYVWXNdG.js",
+      "name": "PlayMode-D24n6Xg-.js",
       "size_kb": 16.79,
       "gzip_kb": 6.29
     },
     {
-      "name": "Home-DZ_U9vH_.js",
+      "name": "Home-CCbuWpVl.js",
       "size_kb": 9.51,
       "gzip_kb": 2.98
     },
     {
-      "name": "Search-DtAmOMYz.js",
+      "name": "Search-IcGHhm9X.js",
       "size_kb": 8.68,
       "gzip_kb": 3.17
     },
     {
-      "name": "Collections-BHwH12O1.js",
+      "name": "Collections-qEmLuq5_.js",
       "size_kb": 5.76,
       "gzip_kb": 1.93
     },
     {
-      "name": "NavHeader-CZ00TzbS.js",
-      "size_kb": 5.59,
-      "gzip_kb": 1.98
+      "name": "NavHeader-CGhNOkkM.js",
+      "size_kb": 5.74,
+      "gzip_kb": 2.11
     },
     {
-      "name": "CollectionDetail-CtXiu-pM.js",
+      "name": "CollectionDetail-D-M4ujTS.js",
       "size_kb": 4.77,
       "gzip_kb": 1.66
     },
     {
-      "name": "ProfileSelector-DQCB3wOL.js",
+      "name": "ProfileSelector-Dfj7Daip.js",
       "size_kb": 4.34,
       "gzip_kb": 1.64
     },
     {
-      "name": "AllRecipes-ase_FkGj.js",
+      "name": "AllRecipes-C8BOvJW8.js",
       "size_kb": 3.37,
-      "gzip_kb": 1.38
+      "gzip_kb": 1.39
     },
     {
-      "name": "Skeletons-BSbLBbia.js",
+      "name": "Skeletons-C1Lx00NR.js",
       "size_kb": 2.82,
       "gzip_kb": 0.78
     },
     {
-      "name": "PasskeyRegister-T4zK_NTK.js",
+      "name": "PasskeyRegister-D16QEcBs.js",
       "size_kb": 2.35,
       "gzip_kb": 1.07
     },
     {
-      "name": "RecipeCard-C2Tjboag.js",
+      "name": "RecipeCard-CPfA84nH.js",
       "size_kb": 2.28,
-      "gzip_kb": 1
+      "gzip_kb": 1.01
     },
     {
-      "name": "PasskeyLogin-DcuCPScK.js",
+      "name": "PasskeyLogin-1hATtqA_.js",
       "size_kb": 2.19,
       "gzip_kb": 1.03
     },
     {
-      "name": "Favorites-DtFKVo1t.js",
+      "name": "Favorites-B6_2Qi4h.js",
       "size_kb": 2.02,
       "gzip_kb": 0.93
     },
@@ -102,62 +102,62 @@
       "gzip_kb": 0.54
     },
     {
-      "name": "formatting-0vYxGmSQ.js",
+      "name": "formatting-nhYeP5jT.js",
       "size_kb": 0.75,
       "gzip_kb": 0.48
     },
     {
-      "name": "sparkles-DU1nshDx.js",
+      "name": "sparkles-FSwZoRaN.js",
       "size_kb": 0.53,
       "gzip_kb": 0.31
     },
     {
-      "name": "external-link-BY6EpJc7.js",
+      "name": "external-link-1QUhJdRY.js",
       "size_kb": 0.37,
       "gzip_kb": 0.27
     },
     {
-      "name": "trash-2-D8bQse8T.js",
+      "name": "trash-2-BV88AMMv.js",
       "size_kb": 0.37,
       "gzip_kb": 0.25
     },
     {
-      "name": "folder-plus-IeubRoWw.js",
+      "name": "folder-plus-Aa0pWaD1.js",
       "size_kb": 0.34,
       "gzip_kb": 0.25
     },
     {
-      "name": "globe-Cw_aOwBo.js",
+      "name": "globe-DDum3ARv.js",
       "size_kb": 0.27,
       "gzip_kb": 0.22
     },
     {
-      "name": "chevron-up-D6ET0STb.js",
+      "name": "chevron-up-vUV3xHme.js",
       "size_kb": 0.25,
       "gzip_kb": 0.21
     },
     {
-      "name": "play-CqzMiHem.js",
+      "name": "play-Bv4Ok7vP.js",
       "size_kb": 0.23,
       "gzip_kb": 0.21
     },
     {
-      "name": "search-BLf40_Al.js",
+      "name": "search-B99Uz8kh.js",
       "size_kb": 0.21,
       "gzip_kb": 0.2
     },
     {
-      "name": "loader-circle-CPUehr2V.js",
+      "name": "loader-circle-pu5nBPtv.js",
       "size_kb": 0.19,
       "gzip_kb": 0.18
     },
     {
-      "name": "plus-CBhLrrDr.js",
+      "name": "plus-DExatOjn.js",
       "size_kb": 0.19,
       "gzip_kb": 0.18
     },
     {
-      "name": "x-Bu_UMy99.js",
+      "name": "x-FJc6ISmL.js",
       "size_kb": 0.18,
       "gzip_kb": 0.18
     }
