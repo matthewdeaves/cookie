@@ -5,6 +5,7 @@ from typing import Any, Optional
 
 from django.conf import settings
 from django.http import HttpRequest
+from ninja.errors import HttpError
 from ninja.security import APIKeyCookie
 
 from apps.profiles.models import Profile
@@ -95,7 +96,7 @@ class AdminAuth(SessionAuth):
         if settings.AUTH_MODE == "passkey":
             profile = self._authenticate_passkey(request)
             if profile is None:
-                return None
+                return None  # 401 — not authenticated
             user = getattr(request, "user", None)
             if not user or not user.is_staff:
                 security_logger.warning(
@@ -103,6 +104,6 @@ class AdminAuth(SessionAuth):
                     request.path,
                     request.META.get("REMOTE_ADDR"),
                 )
-                return None
+                raise HttpError(403, "Admin access required")
             return profile
         return self._authenticate_home(request)

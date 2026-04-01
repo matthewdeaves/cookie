@@ -96,8 +96,14 @@ def multiple_recipes(db, test_profile):
 class TestListRecipes:
     """Tests for GET /api/recipes/"""
 
-    def test_list_recipes_empty(self, client):
-        """Test listing recipes when none exist."""
+    def test_list_recipes_requires_auth(self, client):
+        """Test listing recipes requires authentication."""
+        response = client.get("/api/recipes/")
+        assert response.status_code == 401
+
+    def test_list_recipes_empty(self, client, test_profile):
+        """Test listing recipes when none exist for the profile."""
+        client.post(f"/api/profiles/{test_profile.id}/select/")
         response = client.get("/api/recipes/")
         assert response.status_code == 200
         assert response.json() == []

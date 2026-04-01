@@ -156,7 +156,7 @@ class SearchOut(Schema):
 # NOTE: Static routes must come before dynamic routes (e.g., /search/ before /{recipe_id}/)
 
 
-@router.get("/", response=List[RecipeListOut])
+@router.get("/", response=List[RecipeListOut], auth=SessionAuth())
 def list_recipes(
     request,
     host: Optional[str] = None,
@@ -360,7 +360,7 @@ def cache_health(request):
 # Dynamic routes with {recipe_id} must come last
 
 
-@router.get("/{recipe_id}/", response={200: RecipeOut, 404: ErrorOut})
+@router.get("/{recipe_id}/", response={200: RecipeOut, 404: ErrorOut}, auth=SessionAuth())
 def get_recipe(request, recipe_id: int):
     """
     Get a recipe by ID.

@@ -121,7 +121,7 @@ class ErrorOut(Schema):
 # Endpoints
 
 
-@router.get("/status", response=AIStatusOut)
+@router.get("/status", response=AIStatusOut, auth=SessionAuth())
 def get_ai_status(request):
     """Check if AI service is available with optional key validation.
 
@@ -200,7 +200,7 @@ def save_api_key(request, data: SaveApiKeyIn):
     }
 
 
-@router.get("/prompts", response=List[PromptOut])
+@router.get("/prompts", response=List[PromptOut], auth=AdminAuth())
 def list_prompts(request):
     """List all AI prompts."""
     prompts = AIPrompt.objects.all()
@@ -230,7 +230,7 @@ def _validate_model(model_id: str):
     return None
 
 
-@router.get("/prompts/{prompt_type}", response={200: PromptOut, 404: ErrorOut})
+@router.get("/prompts/{prompt_type}", response={200: PromptOut, 404: ErrorOut}, auth=AdminAuth())
 def get_prompt(request, prompt_type: str):
     """Get a specific AI prompt by type."""
     return _get_prompt_or_error(prompt_type)
@@ -263,7 +263,7 @@ def update_prompt(request, prompt_type: str, data: PromptUpdateIn):
     return prompt
 
 
-@router.get("/models", response=List[ModelOut])
+@router.get("/models", response=List[ModelOut], auth=SessionAuth())
 def list_models(request):
     """List available AI models from OpenRouter."""
     try:

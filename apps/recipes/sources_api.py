@@ -76,14 +76,14 @@ class BulkToggleOut(Schema):
 # Endpoints
 
 
-@router.get("/", response=List[SourceOut])
+@router.get("/", response=List[SourceOut], auth=SessionAuth())
 def list_sources(request):
     """List all search sources with their status."""
     sources = SearchSource.objects.all().order_by("name")
     return list(sources)
 
 
-@router.get("/enabled-count/", response={200: dict})
+@router.get("/enabled-count/", response={200: dict}, auth=SessionAuth())
 def enabled_count(request):
     """Get count of enabled sources vs total."""
     total = SearchSource.objects.count()
@@ -94,7 +94,7 @@ def enabled_count(request):
     }
 
 
-@router.get("/{source_id}/", response={200: SourceOut, 404: ErrorOut})
+@router.get("/{source_id}/", response={200: SourceOut, 404: ErrorOut}, auth=SessionAuth())
 def get_source(request, source_id: int):
     """Get a single search source by ID."""
     try:

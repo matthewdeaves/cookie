@@ -62,16 +62,16 @@ describe('TimerPanel', () => {
     const mockTimers = createMockTimersReturn()
     render(<TimerPanel timers={mockTimers} />)
 
-    expect(screen.getByText('+5 min')).toBeInTheDocument()
-    expect(screen.getByText('+10 min')).toBeInTheDocument()
-    expect(screen.getByText('+15 min')).toBeInTheDocument()
+    expect(screen.getByText('5 min')).toBeInTheDocument()
+    expect(screen.getByText('10 min')).toBeInTheDocument()
+    expect(screen.getByText('15 min')).toBeInTheDocument()
   })
 
   it('adds timer when quick timer button is clicked (no AI)', async () => {
     const mockTimers = createMockTimersReturn()
     render(<TimerPanel timers={mockTimers} aiAvailable={false} />)
 
-    fireEvent.click(screen.getByText('+5 min'))
+    fireEvent.click(screen.getByText('5 min'))
 
     expect(mockTimers.addTimer).toHaveBeenCalledWith('5 min', 300)
   })
@@ -84,14 +84,14 @@ describe('TimerPanel', () => {
       <TimerPanel
         timers={mockTimers}
         aiAvailable={true}
-        instructionText="Sauté onions for 5 minutes"
+        instructionText="Sauté onions until soft"
       />
     )
 
-    fireEvent.click(screen.getByText('+5 min'))
+    fireEvent.click(screen.getByText('5 min'))
 
     await waitFor(() => {
-      expect(api.ai.timerName).toHaveBeenCalledWith('Sauté onions for 5 minutes', 5)
+      expect(api.ai.timerName).toHaveBeenCalledWith('Sauté onions until soft', 5)
       expect(mockTimers.addTimer).toHaveBeenCalledWith('Browning onions', 300)
     })
   })
@@ -104,11 +104,11 @@ describe('TimerPanel', () => {
       <TimerPanel
         timers={mockTimers}
         aiAvailable={true}
-        instructionText="Sauté onions for 5 minutes"
+        instructionText="Sauté onions until soft"
       />
     )
 
-    fireEvent.click(screen.getByText('+5 min'))
+    fireEvent.click(screen.getByText('5 min'))
 
     await waitFor(() => {
       expect(mockTimers.addTimer).toHaveBeenCalledWith('5 min', 300)
@@ -137,7 +137,7 @@ describe('TimerPanel', () => {
       />
     )
 
-    expect(screen.getByText('10 min')).toBeInTheDocument()
+    expect(screen.getAllByText('10 min').length).toBeGreaterThanOrEqual(2)
     expect(screen.getByText('30 min')).toBeInTheDocument()
   })
 
@@ -185,13 +185,13 @@ describe('TimerPanel', () => {
     render(<TimerPanel timers={mockTimers} />)
 
     // Initially expanded - quick timer buttons should be visible
-    expect(screen.getByText('+5 min')).toBeInTheDocument()
+    expect(screen.getByText('5 min')).toBeInTheDocument()
 
     // Click header to collapse
     fireEvent.click(screen.getByText('Timers'))
 
     // Quick timer buttons should be hidden
-    expect(screen.queryByText('+5 min')).not.toBeInTheDocument()
+    expect(screen.queryByText('5 min')).not.toBeInTheDocument()
   })
 
   it('shows AI sparkle icon when AI is available and has instruction text', () => {

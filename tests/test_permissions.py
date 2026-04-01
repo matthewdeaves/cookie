@@ -31,7 +31,7 @@ def _login(client, user):
 
 @pytest.mark.django_db
 class TestAdminEndpoints:
-    """Non-admin gets 401 (auth denied) on admin endpoints."""
+    """Non-admin gets 403 (forbidden) on admin endpoints."""
 
     def _setup_non_admin(self, client, passkey_mode):
         _create_user("admin", is_staff=True)
@@ -43,19 +43,19 @@ class TestAdminEndpoints:
         response = client.post(
             "/api/system/reset/", data=json.dumps({"confirmation_text": "RESET"}), content_type="application/json"
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
 
     def test_reset_preview_denied(self, client, passkey_mode):
         self._setup_non_admin(client, passkey_mode)
         response = client.get("/api/system/reset-preview/")
-        assert response.status_code == 401
+        assert response.status_code == 403
 
     def test_save_api_key_denied(self, client, passkey_mode):
         self._setup_non_admin(client, passkey_mode)
         response = client.post(
             "/api/ai/save-api-key", data=json.dumps({"api_key": "test"}), content_type="application/json"
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
 
 
 @pytest.mark.django_db
