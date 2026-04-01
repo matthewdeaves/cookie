@@ -197,7 +197,9 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 63072000  # 2 years, matching nginx.prod.conf
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true").lower() == "true"
+    # Default false: when behind a TLS-terminating proxy (Cloudflare, Traefik),
+    # Django sees plain HTTP and redirect-loops. The proxy enforces HTTPS at the edge.
+    SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "false").lower() == "true"
     SECURE_REDIRECT_EXEMPT = [r"^api/system/health/$", r"^api/system/ready/$"]
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
