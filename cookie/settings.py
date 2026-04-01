@@ -169,6 +169,9 @@ CACHES = {
     "default": {
         "BACKEND": "apps.core.cache.PostgreSafeDatabaseCache",
         "LOCATION": "django_cache",
+        "OPTIONS": {
+            "MAX_ENTRIES": 5000,
+        },
     }
 }
 

@@ -81,8 +81,14 @@ class SessionAuth(APIKeyCookie):
 class AdminAuth(SessionAuth):
     """Admin-only authenticator.
 
-    Home mode: identical to SessionAuth (no admin distinction).
-    Passkey mode: resolves user first, then checks is_staff.
+    Home mode: identical to SessionAuth (no admin distinction). This is an
+    accepted design decision — home mode is intended for single-household use
+    where all profiles are trusted. Any profile holder can access admin
+    endpoints (e.g., /api/system/reset/, /api/ai/save-api-key). This matches
+    the constitution's Principle III: no authentication friction in home mode.
+
+    Passkey mode: resolves user first, then checks is_staff. Only users
+    promoted to admin via the cookie_admin CLI can access admin endpoints.
     """
 
     def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:

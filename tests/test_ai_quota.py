@@ -7,7 +7,14 @@ import pytest
 from django.contrib.auth.models import User
 from django.core.cache import cache
 
-from apps.ai.services.quota import check_quota, get_usage, increment_quota, ALL_FEATURES
+from apps.ai.services.quota import (
+    check_quota,
+    get_usage,
+    increment_quota,
+    release_quota,
+    reserve_quota,
+    ALL_FEATURES,
+)
 from apps.core.models import AppSettings
 from apps.profiles.models import Profile
 
@@ -616,3 +623,135 @@ class TestDiscoverEndpointQuotaEnforcement:
         assert response.status_code == 429
         data = response.json()
         assert data["error"] == "quota_exceeded"
+
+
+# ---------------------------------------------------------------------------
+# Reserve/release quota tests (atomic pattern)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestReserveQuota:
+    """reserve_quota atomically increments before AI call."""
+
+    def test_reserve_allowed_when_under_limit(self, passkey_mode):
+        profile = _make_profile("reserveuser")
+        app = AppSettings.get()
+        app.daily_limit_remix = 5
+        app.save()
+
+        allowed, info = reserve_quota(profile, "remix")
+        assert allowed is True
+        assert info == {}
+        assert get_usage(profile.pk)["remix"] == 1
+
+    def test_reserve_denied_when_at_limit(self, passkey_mode):
+        profile = _make_profile("reserveuser2")
+        app = AppSettings.get()
+        app.daily_limit_remix = 2
+        app.save()
+
+        reserve_quota(profile, "remix")
+        reserve_quota(profile, "remix")
+        allowed, info = reserve_quota(profile, "remix")
+        assert allowed is False
+        assert info["remaining"] == 0
+        assert info["limit"] == 2
+        # Counter should NOT have been incremented beyond limit
+        assert get_usage(profile.pk)["remix"] == 2
+
+    def test_reserve_rolls_back_on_over_limit(self, passkey_mode):
+        """When reserve detects over-limit, it decrements back."""
+        profile = _make_profile("rollbackuser")
+        app = AppSettings.get()
+        app.daily_limit_tips = 1
+        app.save()
+
+        # First reservation succeeds
+        allowed, _ = reserve_quota(profile, "tips")
+        assert allowed is True
+        assert get_usage(profile.pk)["tips"] == 1
+
+        # Second reservation denied — counter stays at 1
+        allowed, _ = reserve_quota(profile, "tips")
+        assert allowed is False
+        assert get_usage(profile.pk)["tips"] == 1
+
+    def test_reserve_bypasses_in_home_mode(self, home_mode):
+        profile = _make_profile("homeuser")
+        app = AppSettings.get()
+        app.daily_limit_remix = 1
+        app.save()
+
+        for _ in range(5):
+            allowed, _ = reserve_quota(profile, "remix")
+            assert allowed is True
+
+    def test_reserve_bypasses_for_admin(self, passkey_mode):
+        profile = _make_profile("adminuser", is_staff=True)
+        app = AppSettings.get()
+        app.daily_limit_remix = 1
+        app.save()
+
+        for _ in range(5):
+            allowed, _ = reserve_quota(profile, "remix")
+            assert allowed is True
+
+    def test_reserve_bypasses_for_unlimited(self, passkey_mode):
+        profile = _make_profile("unlimiteduser", unlimited_ai=True)
+        app = AppSettings.get()
+        app.daily_limit_remix = 1
+        app.save()
+
+        for _ in range(5):
+            allowed, _ = reserve_quota(profile, "remix")
+            assert allowed is True
+
+
+@pytest.mark.django_db
+class TestReleaseQuota:
+    """release_quota decrements after AI failure (rollback)."""
+
+    def test_release_decrements_counter(self, passkey_mode):
+        profile = _make_profile("releaseuser")
+        app = AppSettings.get()
+        app.daily_limit_remix = 5
+        app.save()
+
+        reserve_quota(profile, "remix")
+        assert get_usage(profile.pk)["remix"] == 1
+
+        release_quota(profile, "remix")
+        assert get_usage(profile.pk)["remix"] == 0
+
+    def test_release_does_nothing_in_home_mode(self, home_mode):
+        """Home mode has no quota tracking — release is a no-op."""
+        profile = _make_profile("homerelease")
+        release_quota(profile, "remix")
+        assert get_usage(profile.pk)["remix"] == 0
+
+    def test_release_does_nothing_for_admin(self, passkey_mode):
+        """Admin has no quota tracking — release is a no-op."""
+        profile = _make_profile("adminrelease", is_staff=True)
+        release_quota(profile, "remix")
+        assert get_usage(profile.pk)["remix"] == 0
+
+    def test_reserve_then_release_on_failure(self, passkey_mode):
+        """Simulate: reserve → AI fails → release. Usage should be back to 0."""
+        profile = _make_profile("failuser")
+        app = AppSettings.get()
+        app.daily_limit_tips = 3
+        app.save()
+
+        # Reserve a slot
+        allowed, _ = reserve_quota(profile, "tips")
+        assert allowed is True
+        assert get_usage(profile.pk)["tips"] == 1
+
+        # AI call fails — release the slot
+        release_quota(profile, "tips")
+        assert get_usage(profile.pk)["tips"] == 0
+
+        # Slot is available again
+        allowed, _ = reserve_quota(profile, "tips")
+        assert allowed is True

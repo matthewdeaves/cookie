@@ -16,6 +16,7 @@ Auto-generated from all feature plans. Last updated: 2026-03-31
 - N/A (no data changes) (016-fix-stale-search-filters)
 - Python 3.14 (backend), TypeScript 5.9 (modern frontend), ES5 (legacy frontend) + Django 5.0, Django Ninja 1.0+, React 19, Vite 7, django-ratelimit 4.1 (017-ai-quotas)
 - PostgreSQL 16+ (all environments), Django database cache (`django_cache` table) (017-ai-quotas)
+- Python 3.14, TypeScript 5.9, ES5 (legacy) + Django 5.0, Django Ninja 1.0+, curl_cffi >=0.7, django-ratelimit 4.1, py-webauthn 2.x, Pillow (018-security-hardening)
 
 ## Project Structure
 
@@ -113,9 +114,9 @@ This project has a constitution at `.specify/memory/constitution.md` that define
 - **Speckit workflow**: Feature specifications, plans, and tasks live in `.specify/` (tracked in git). Use `/speckit.*` commands for structured feature development. The constitution is the source of truth for project values.
 
 ## Recent Changes
+- 018-security-hardening: Added Python 3.14, TypeScript 5.9, ES5 (legacy) + Django 5.0, Django Ninja 1.0+, curl_cffi >=0.7, django-ratelimit 4.1, py-webauthn 2.x, Pillow
 - 017-ai-quotas: Added Python 3.14 (backend), TypeScript 5.9 (modern frontend), ES5 (legacy frontend) + Django 5.0, Django Ninja 1.0+, React 19, Vite 7, django-ratelimit 4.1
 - 016-fix-stale-search-filters: Added Python 3.14 (backend, unchanged), TypeScript 5.9 (modern frontend), ES5 (legacy frontend) + React 19, Vite 7 (modern); vanilla ES5 JS (legacy)
-- 015-reduce-complexity: Reduced all backend functions to Radon B rating (CC ≤ 10), all frontend components to ESLint CC ≤ 10 and ≤ 100 lines. Updated privacy policy for passkey mode with source code links. Fixed CSP-blocked inline onclick handlers in legacy frontend.
 
 
 <!-- MANUAL ADDITIONS START -->

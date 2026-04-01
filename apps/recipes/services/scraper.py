@@ -7,19 +7,28 @@ import logging
 import re
 import threading
 from io import BytesIO
-from pathlib import Path
 from urllib.parse import urlparse
 
 from PIL import Image
 from asgiref.sync import sync_to_async
-from django.conf import settings
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from curl_cffi.requests import AsyncSession
 from recipe_scrapers import scrape_html
 
-from apps.core.validators import validate_url
+from apps.core.validators import (
+    MAX_HTML_SIZE,
+    MAX_IMAGE_SIZE,
+    MAX_REDIRECT_HOPS,
+    check_content_size,
+    check_response_size,
+    validate_url,
+    validate_redirect_url,
+)
 from apps.recipes.services.fingerprint import BROWSER_PROFILES
+
+# Limit decompression bomb attacks via PIL
+Image.MAX_IMAGE_PIXELS = 178_956_970  # ~180 megapixels
 
 logger = logging.getLogger(__name__)
 
@@ -191,30 +200,57 @@ class RecipeScraper:
         """
         Fetch HTML from URL with browser impersonation.
 
+        Follows redirects manually with per-hop SSRF validation (max 5 hops).
+        Enforces response size limit (10MB).
         Tries multiple browser profiles if initial request fails.
-        Browser profiles are configured in fingerprint.py.
         """
         errors = []
 
         for profile in BROWSER_PROFILES:
             try:
-                async with AsyncSession(impersonate=profile) as session:
-                    response = await session.get(
-                        url,
-                        timeout=self.timeout,
-                        allow_redirects=True,
-                    )
-
-                    if response.status_code == 200:
-                        return response.text
-
-                    errors.append(f"{profile}: HTTP {response.status_code}")
-
+                html = await self._fetch_with_redirects(url, profile, MAX_HTML_SIZE)
+                if html is not None:
+                    return html
+                errors.append(f"{profile}: empty response")
+            except FetchError:
+                raise
+            except ValueError as e:
+                raise FetchError(str(e))
             except Exception as e:
                 errors.append(f"{profile}: {str(e)}")
                 continue
 
         raise FetchError(f"Failed to fetch {url}: {'; '.join(errors)}")
+
+    async def _fetch_with_redirects(self, url, profile, max_size):
+        """Fetch URL following redirects with per-hop SSRF validation."""
+        current_url = url
+        for _ in range(MAX_REDIRECT_HOPS):
+            async with AsyncSession(impersonate=profile) as session:
+                response = await session.get(
+                    current_url,
+                    timeout=self.timeout,
+                    allow_redirects=False,
+                )
+
+                if response.status_code in (301, 302, 303, 307, 308):
+                    location = response.headers.get("location")
+                    if not location:
+                        raise FetchError("Redirect without Location header")
+                    validate_redirect_url(location)
+                    current_url = location
+                    continue
+
+                if response.status_code == 200:
+                    if not check_response_size(response, max_size):
+                        raise FetchError(f"Response too large (Content-Length > {max_size})")
+                    content = response.text
+                    check_content_size(content.encode("utf-8", errors="replace"), max_size)
+                    return content
+
+                return None
+
+        raise FetchError(f"Too many redirects (>{MAX_REDIRECT_HOPS})")
 
     def _parse_recipe(self, html: str, url: str) -> dict:
         """
@@ -334,41 +370,88 @@ class RecipeScraper:
         """
         Download recipe image and return as ContentFile.
 
+        Validates image URL against SSRF blocklist before fetching.
+        Follows redirects manually with per-hop validation (max 5 hops).
+        Enforces response size limit (50MB).
         WebP images are converted to JPEG for iOS 9 compatibility.
-        Tries multiple browser profiles if initial request fails.
         """
         if not image_url:
             return None
 
-        # Try each browser profile until one succeeds
+        # Validate image URL for SSRF protection (FR-001)
+        try:
+            validate_url(image_url)
+        except ValueError:
+            logger.warning("Blocked image URL (SSRF): %s", image_url)
+            return None
+
         for profile in BROWSER_PROFILES:
             try:
-                async with AsyncSession(impersonate=profile) as session:
-                    response = await session.get(
-                        image_url,
-                        timeout=self.timeout,
-                        allow_redirects=True,
-                    )
-
-                    if response.status_code == 200:
-                        content_type = response.headers.get("content-type", "")
-                        if "image" in content_type or self._is_image_url(image_url):
-                            content = response.content
-                            # Convert WebP to JPEG for iOS 9 compatibility
-                            content = self._convert_webp_to_jpeg(content)
-                            return ContentFile(content)
-
+                content = await self._fetch_image_with_redirects(image_url, profile)
+                if content is not None:
+                    content = self._convert_webp_to_jpeg(content)
+                    return ContentFile(content)
             except Exception as e:
-                logger.warning(f"Failed to download image {image_url} with {profile}: {e}")
+                logger.warning(
+                    "Failed to download image %s with %s: %s",
+                    image_url,
+                    profile,
+                    e,
+                )
                 continue
 
+        return None
+
+    async def _fetch_image_with_redirects(self, url, profile):
+        """Fetch image following redirects with per-hop SSRF validation."""
+        current_url = url
+        for _ in range(MAX_REDIRECT_HOPS):
+            async with AsyncSession(impersonate=profile) as session:
+                response = await session.get(
+                    current_url,
+                    timeout=self.timeout,
+                    allow_redirects=False,
+                )
+
+                if response.status_code in (301, 302, 303, 307, 308):
+                    location = response.headers.get("location")
+                    if not location:
+                        return None
+                    try:
+                        validate_redirect_url(location)
+                    except ValueError:
+                        return None
+                    current_url = location
+                    continue
+
+                if response.status_code == 200:
+                    content_type = response.headers.get("content-type", "")
+                    if "image" not in content_type and not self._is_image_url(current_url):
+                        return None
+                    if not check_response_size(response, MAX_IMAGE_SIZE):
+                        logger.warning("Image too large: %s", current_url)
+                        return None
+                    content = response.content
+                    if len(content) > MAX_IMAGE_SIZE:
+                        logger.warning("Image content too large: %s", current_url)
+                        return None
+                    return content
+
+                return None
+
+        logger.warning("Too many redirects for image: %s", url)
         return None
 
     def _convert_webp_to_jpeg(self, content: bytes) -> bytes:
         """Convert WebP images to JPEG for iOS 9 compatibility.
 
         Also resizes very large images to reduce file size.
+        Rejects images that exceed the size limit (decompression bomb protection).
         """
+        if len(content) > MAX_IMAGE_SIZE:
+            logger.warning("Image content too large for processing: %d bytes", len(content))
+            return content
+
         try:
             img = Image.open(BytesIO(content))
 

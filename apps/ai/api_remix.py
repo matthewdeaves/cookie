@@ -11,7 +11,7 @@ from apps.recipes.models import Recipe
 
 from .api import ErrorOut, handle_ai_errors
 from .services.cache import is_ai_cache_hit
-from .services.quota import check_quota, increment_quota
+from .services.quota import release_quota, reserve_quota
 from .services.remix import get_remix_suggestions, create_remix
 
 security_logger = logging.getLogger("security")
@@ -71,7 +71,7 @@ def remix_suggestions(request, data: RemixSuggestionsIn):
         security_logger.warning("Rate limit hit: /ai/remix-suggestions from %s", request.META.get("REMOTE_ADDR"))
         return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
 
-    allowed, info = check_quota(request.auth, "remix_suggestions")
+    allowed, info = reserve_quota(request.auth, "remix_suggestions")
     if not allowed:
         return 429, {"error": "quota_exceeded", "message": "Daily limit reached for remix_suggestions", **info}
 
@@ -82,21 +82,27 @@ def remix_suggestions(request, data: RemixSuggestionsIn):
     try:
         recipe = Recipe.objects.get(id=data.recipe_id)
     except Recipe.DoesNotExist:
+        release_quota(request.auth, "remix_suggestions")
         return 404, {
             "error": "not_found",
             "message": f"Recipe {data.recipe_id} not found",
         }
 
     if not profile or recipe.profile_id != profile.id:
+        release_quota(request.auth, "remix_suggestions")
         return 404, {
             "error": "not_found",
             "message": f"Recipe {data.recipe_id} not found",
         }
 
     was_cached = is_ai_cache_hit("remix_suggestions", data.recipe_id)
-    suggestions = get_remix_suggestions(data.recipe_id)
-    if not was_cached:
-        increment_quota(request.auth, "remix_suggestions")
+    try:
+        suggestions = get_remix_suggestions(data.recipe_id)
+    except Exception:
+        release_quota(request.auth, "remix_suggestions")
+        raise
+    if was_cached:
+        release_quota(request.auth, "remix_suggestions")
     return {"suggestions": suggestions}
 
 
@@ -115,7 +121,7 @@ def create_remix_endpoint(request, data: CreateRemixIn):
         security_logger.warning("Rate limit hit: /ai/remix from %s", request.META.get("REMOTE_ADDR"))
         return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
 
-    allowed, info = check_quota(request.auth, "remix")
+    allowed, info = reserve_quota(request.auth, "remix")
     if not allowed:
         return 429, {"error": "quota_exceeded", "message": "Daily limit reached for remix", **info}
 
@@ -124,6 +130,7 @@ def create_remix_endpoint(request, data: CreateRemixIn):
     profile = get_current_profile_or_none(request)
 
     if not profile:
+        release_quota(request.auth, "remix")
         return 404, {
             "error": "not_found",
             "message": "Profile not found",
@@ -131,6 +138,7 @@ def create_remix_endpoint(request, data: CreateRemixIn):
 
     # Verify the profile_id in the request matches the session profile
     if data.profile_id != profile.id:
+        release_quota(request.auth, "remix")
         return 404, {
             "error": "not_found",
             "message": f"Profile {data.profile_id} not found",
@@ -139,23 +147,28 @@ def create_remix_endpoint(request, data: CreateRemixIn):
     try:
         recipe = Recipe.objects.get(id=data.recipe_id)
     except Recipe.DoesNotExist:
+        release_quota(request.auth, "remix")
         return 404, {
             "error": "not_found",
             "message": f"Recipe {data.recipe_id} not found",
         }
 
     if recipe.profile_id != profile.id:
+        release_quota(request.auth, "remix")
         return 404, {
             "error": "not_found",
             "message": f"Recipe {data.recipe_id} not found",
         }
 
-    remix = create_remix(
-        recipe_id=data.recipe_id,
-        modification=data.modification,
-        profile=profile,
-    )
-    increment_quota(request.auth, "remix")
+    try:
+        remix = create_remix(
+            recipe_id=data.recipe_id,
+            modification=data.modification,
+            profile=profile,
+        )
+    except Exception:
+        release_quota(request.auth, "remix")
+        raise
     return {
         "id": remix.id,
         "title": remix.title,

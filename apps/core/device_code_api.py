@@ -5,6 +5,7 @@ import logging
 from django.conf import settings
 from django.contrib.auth import login
 from django.db import IntegrityError, transaction
+from django.db.models import F
 from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema
@@ -176,6 +177,27 @@ def authorize_code(request, data: AuthorizeIn):
         device_code.status = "expired"
         device_code.save(update_fields=["status"])
         return 400, {"error": "Invalid or expired code"}
+
+    # Check and decrement attempts_remaining (FR-006, FR-007)
+    if device_code.attempts_remaining <= 0:
+        device_code.status = "invalidated"
+        device_code.save(update_fields=["status"])
+        security_logger.warning(
+            "Device code exhausted attempts: code=%s, user_id=%s",
+            normalized_code,
+            request.user.pk,
+        )
+        return 400, {"error": "Code invalidated: too many attempts"}
+
+    # Decrement attempts atomically
+    DeviceCode.objects.filter(pk=device_code.pk).update(attempts_remaining=F("attempts_remaining") - 1)
+    device_code.refresh_from_db()
+
+    # If attempts now exhausted after decrement, invalidate
+    if device_code.attempts_remaining <= 0:
+        device_code.status = "invalidated"
+        device_code.save(update_fields=["status"])
+        return 400, {"error": "Code invalidated: too many attempts"}
 
     # Authorize the code
     device_code.status = "authorized"

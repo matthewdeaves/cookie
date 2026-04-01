@@ -1,8 +1,11 @@
 """URL validation utilities for SSRF protection."""
 
 import ipaddress
+import logging
 import socket
 from urllib.parse import urlparse
+
+logger = logging.getLogger(__name__)
 
 BLOCKED_NETWORKS = [
     ipaddress.ip_network("127.0.0.0/8"),
@@ -15,6 +18,11 @@ BLOCKED_NETWORKS = [
     ipaddress.ip_network("fc00::/7"),
     ipaddress.ip_network("fe80::/10"),
 ]
+
+# Response size limits for external fetches
+MAX_HTML_SIZE = 10 * 1024 * 1024  # 10 MB
+MAX_IMAGE_SIZE = 50 * 1024 * 1024  # 50 MB
+MAX_REDIRECT_HOPS = 5
 
 
 def is_blocked_ip(ip_str):
@@ -54,3 +62,38 @@ def validate_url(url):
         raise ValueError("URL not allowed: resolves to blocked IP range.")
 
     return url
+
+
+def validate_redirect_url(url):
+    """Validate a redirect destination URL against the SSRF blocklist.
+
+    Same as validate_url but with clearer logging for redirect chains.
+    Raises ValueError if the redirect target is blocked.
+    """
+    try:
+        return validate_url(url)
+    except ValueError:
+        logger.warning("Blocked redirect to SSRF-unsafe URL: %s", url)
+        raise
+
+
+def check_response_size(response, max_size):
+    """Check Content-Length header against max size. Returns True if safe.
+
+    Does not guarantee safety — Content-Length can be absent or spoofed.
+    Callers should also check actual content length after reading.
+    """
+    content_length = response.headers.get("content-length")
+    if content_length:
+        try:
+            if int(content_length) > max_size:
+                return False
+        except (ValueError, TypeError):
+            pass
+    return True
+
+
+def check_content_size(content, max_size):
+    """Check actual content size against limit. Raises ValueError if too large."""
+    if len(content) > max_size:
+        raise ValueError(f"Response too large: {len(content)} bytes (limit: {max_size})")

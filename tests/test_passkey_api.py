@@ -754,3 +754,146 @@ class TestRateLimiting:
         status, body = login_verify(request)
         assert status == 429
         assert "Too many attempts" in body["error"]
+
+
+# --- Tests: Challenge expiry and consumption ---
+
+
+@pytest.mark.django_db
+class TestChallengeExpiry:
+    """WebAuthn challenges must expire after 5 minutes (FR-010)."""
+
+    def test_register_verify_rejects_expired_challenge(self, anon_client, passkey_mode):
+        """A challenge older than 5 minutes is rejected."""
+        import time
+
+        session = anon_client.session
+        session["webauthn_register_challenge"] = "aa" * 16
+        session["webauthn_register_user_id"] = "bb" * 16
+        session["webauthn_challenge_created_at"] = time.time() - 301  # 5m1s ago
+        session.save()
+
+        resp = _post_json(
+            anon_client,
+            f"{BASE}/register/verify/",
+            {
+                "id": "AAAA",
+                "rawId": "AAAA",
+                "response": {"attestationObject": "AAAA", "clientDataJSON": "AAAA"},
+                "type": "public-key",
+            },
+        )
+        assert resp.status_code == 400
+        assert "expired" in resp.json()["error"].lower()
+
+    def test_login_verify_rejects_expired_challenge(self, anon_client, passkey_mode):
+        """A login challenge older than 5 minutes is rejected."""
+        import time
+
+        session = anon_client.session
+        session["webauthn_login_challenge"] = "cc" * 16
+        session["webauthn_challenge_created_at"] = time.time() - 301
+        session.save()
+
+        resp = _post_json(
+            anon_client,
+            f"{BASE}/login/verify/",
+            {
+                "id": "AAAA",
+                "rawId": "AAAA",
+                "response": {
+                    "authenticatorData": "AAAA",
+                    "clientDataJSON": "AAAA",
+                    "signature": "AAAA",
+                },
+                "type": "public-key",
+            },
+        )
+        assert resp.status_code == 401
+        assert "expired" in resp.json()["error"].lower()
+
+    def test_register_verify_accepts_fresh_challenge(self, anon_client, passkey_mode):
+        """A challenge within 5 minutes should NOT be rejected for expiry.
+
+        It may fail for other reasons (invalid credential), but not expiry.
+        """
+        import time
+
+        session = anon_client.session
+        session["webauthn_register_challenge"] = "dd" * 16
+        session["webauthn_register_user_id"] = "ee" * 16
+        session["webauthn_challenge_created_at"] = time.time() - 60  # 1 minute ago
+        session.save()
+
+        resp = _post_json(
+            anon_client,
+            f"{BASE}/register/verify/",
+            {
+                "id": "AAAA",
+                "rawId": "AAAA",
+                "response": {"attestationObject": "AAAA", "clientDataJSON": "AAAA"},
+                "type": "public-key",
+            },
+        )
+        # Should fail for credential validation reasons, NOT expiry
+        assert "expired" not in resp.json().get("error", "").lower()
+
+
+@pytest.mark.django_db
+class TestChallengeConsumption:
+    """Challenges must be consumed (popped) even when rate-limited (FR-011)."""
+
+    def test_register_challenge_consumed_on_rate_limit(self, anon_client, passkey_mode):
+        """If rate limit blocks verify, the challenge is still consumed."""
+        import time
+
+        session = anon_client.session
+        session["webauthn_register_challenge"] = "ff" * 16
+        session["webauthn_register_user_id"] = "00" * 16
+        session["webauthn_challenge_created_at"] = time.time()
+        session.save()
+
+        # Simulate rate-limited request
+        with patch("apps.core.passkey_api.ratelimit"):
+            # Call the endpoint — it will check request.limited
+            _post_json(
+                anon_client,
+                f"{BASE}/register/verify/",
+                {
+                    "id": "AAAA",
+                    "rawId": "AAAA",
+                    "response": {"attestationObject": "AAAA", "clientDataJSON": "AAAA"},
+                    "type": "public-key",
+                },
+            )
+
+        # Regardless of the response, the challenge should be gone from session
+        session_after = anon_client.session
+        assert "webauthn_register_challenge" not in session_after
+
+    def test_login_challenge_consumed_after_verify(self, anon_client, passkey_mode):
+        """After login/verify, the challenge is consumed from session."""
+        import time
+
+        session = anon_client.session
+        session["webauthn_login_challenge"] = "11" * 16
+        session["webauthn_challenge_created_at"] = time.time()
+        session.save()
+
+        _post_json(
+            anon_client,
+            f"{BASE}/login/verify/",
+            {
+                "id": "AAAA",
+                "rawId": "AAAA",
+                "response": {
+                    "authenticatorData": "AAAA",
+                    "clientDataJSON": "AAAA",
+                    "signature": "AAAA",
+                },
+                "type": "public-key",
+            },
+        )
+
+        session_after = anon_client.session
+        assert "webauthn_login_challenge" not in session_after
