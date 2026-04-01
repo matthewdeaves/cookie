@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-03-31T22:14:58.053Z",
+    "detectionDate": "2026-04-01T08:45:51.037Z",
     "formats": {
       "python": {
         "sources": {
@@ -29,8 +29,8 @@
             "newClones": 0
           },
           "cookie/settings.py": {
-            "lines": 264,
-            "tokens": 1538,
+            "lines": 267,
+            "tokens": 1555,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -101,8 +101,8 @@
             "newClones": 0
           },
           "apps/recipes/services/search.py": {
-            "lines": 366,
-            "tokens": 2705,
+            "lines": 389,
+            "tokens": 2864,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -113,26 +113,26 @@
             "newClones": 0
           },
           "apps/recipes/services/scraper.py": {
-            "lines": 414,
-            "tokens": 3196,
+            "lines": 497,
+            "tokens": 3797,
             "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
+            "clones": 3,
+            "duplicatedLines": 39,
+            "duplicatedTokens": 342,
+            "percentage": 7.85,
+            "percentageTokens": 9.01,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/recipes/services/image_cache.py": {
-            "lines": 264,
-            "tokens": 1593,
+            "lines": 300,
+            "tokens": 1864,
             "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
+            "clones": 1,
+            "duplicatedLines": 15,
+            "duplicatedTokens": 104,
+            "percentage": 5,
+            "percentageTokens": 5.58,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -245,26 +245,26 @@
             "newClones": 0
           },
           "apps/ai/services/quota.py": {
-            "lines": 104,
-            "tokens": 745,
+            "lines": 181,
+            "tokens": 1197,
             "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
+            "clones": 2,
+            "duplicatedLines": 34,
+            "duplicatedTokens": 302,
+            "percentage": 18.78,
+            "percentageTokens": 25.23,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/ai/services/openrouter.py": {
-            "lines": 233,
-            "tokens": 1728,
+            "lines": 234,
+            "tokens": 1742,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 52,
             "duplicatedTokens": 322,
-            "percentage": 22.32,
-            "percentageTokens": 18.63,
+            "percentage": 22.22,
+            "percentageTokens": 18.48,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -341,8 +341,8 @@
             "newClones": 0
           },
           "apps/recipes/api.py": {
-            "lines": 429,
-            "tokens": 2896,
+            "lines": 443,
+            "tokens": 3033,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -389,8 +389,8 @@
             "newClones": 0
           },
           "apps/profiles/api.py": {
-            "lines": 354,
-            "tokens": 2950,
+            "lines": 358,
+            "tokens": 3022,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -449,8 +449,8 @@
             "newClones": 0
           },
           "apps/core/validators.py": {
-            "lines": 55,
-            "tokens": 380,
+            "lines": 98,
+            "tokens": 597,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -461,8 +461,8 @@
             "newClones": 0
           },
           "apps/core/passkey_api.py": {
-            "lines": 423,
-            "tokens": 3168,
+            "lines": 448,
+            "tokens": 3401,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -521,8 +521,8 @@
             "newClones": 0
           },
           "apps/core/device_code_api.py": {
-            "lines": 190,
-            "tokens": 1504,
+            "lines": 212,
+            "tokens": 1680,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -581,7 +581,7 @@
             "newClones": 0
           },
           "apps/core/auth.py": {
-            "lines": 101,
+            "lines": 107,
             "tokens": 729,
             "sources": 1,
             "clones": 0,
@@ -641,26 +641,26 @@
             "newClones": 0
           },
           "apps/ai/api_scaling.py": {
-            "lines": 135,
-            "tokens": 1001,
+            "lines": 143,
+            "tokens": 1074,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 33,
-            "duplicatedTokens": 209,
-            "percentage": 24.44,
-            "percentageTokens": 20.88,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/ai/api_remix.py": {
-            "lines": 172,
-            "tokens": 1290,
+            "lines": 185,
+            "tokens": 1391,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 53,
-            "duplicatedTokens": 346,
-            "percentage": 30.81,
-            "percentageTokens": 26.82,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -677,8 +677,8 @@
             "newClones": 0
           },
           "apps/ai/api_discover.py": {
-            "lines": 89,
-            "tokens": 661,
+            "lines": 94,
+            "tokens": 695,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -689,26 +689,26 @@
             "newClones": 0
           },
           "apps/ai/api.py": {
-            "lines": 491,
-            "tokens": 3320,
+            "lines": 503,
+            "tokens": 3408,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 20,
-            "duplicatedTokens": 137,
-            "percentage": 4.07,
-            "percentageTokens": 4.13,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           }
         },
         "total": {
-          "lines": 10035,
-          "tokens": 69628,
+          "lines": 10410,
+          "tokens": 72273,
           "sources": 58,
-          "clones": 6,
-          "duplicatedLines": 122,
-          "duplicatedTokens": 822,
-          "percentage": 1.22,
+          "clones": 7,
+          "duplicatedLines": 113,
+          "duplicatedTokens": 850,
+          "percentage": 1.09,
           "percentageTokens": 1.18,
           "newDuplicatedLines": 0,
           "newClones": 0
@@ -716,19 +716,91 @@
       }
     },
     "total": {
-      "lines": 10035,
-      "tokens": 69628,
+      "lines": 10410,
+      "tokens": 72273,
       "sources": 58,
-      "clones": 6,
-      "duplicatedLines": 122,
-      "duplicatedTokens": 822,
-      "percentage": 1.22,
+      "clones": 7,
+      "duplicatedLines": 113,
+      "duplicatedTokens": 850,
+      "percentage": 1.09,
       "percentageTokens": 1.18,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
   },
   "duplicates": [
+    {
+      "format": "python",
+      "lines": 13,
+      "fragment": "current_url = url\n        for _ in range(MAX_REDIRECT_HOPS):\n            async with AsyncSession(impersonate=profile) as session:\n                response = await session.get(\n                    current_url,\n                    timeout=self.timeout,\n                    allow_redirects=False,\n                )\n\n                if response.status_code in (301, 302, 303, 307, 308):\n                    location = response.headers.get(\"location\")\n                    if not location:\n                        return",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/recipes/services/scraper.py",
+        "start": 407,
+        "end": 419,
+        "startLoc": {
+          "line": 407,
+          "column": 9,
+          "position": 3072
+        },
+        "endLoc": {
+          "line": 419,
+          "column": 7,
+          "position": 3191
+        }
+      },
+      "secondFile": {
+        "name": "apps/recipes/services/scraper.py",
+        "start": 227,
+        "end": 239,
+        "startLoc": {
+          "line": 227,
+          "column": 9,
+          "position": 1429
+        },
+        "endLoc": {
+          "line": 239,
+          "column": 6,
+          "position": 1548
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 16,
+      "fragment": ",\n                    allow_redirects=False,\n                )\n\n                if response.status_code in (301, 302, 303, 307, 308):\n                    location = response.headers.get(\"location\")\n                    if not location:\n                        return None\n                    try:\n                        validate_redirect_url(location)\n                    except ValueError:\n                        return None\n                    current_url = location\n                    continue\n\n                if response.status_code in",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/recipes/services/image_cache.py",
+        "start": 167,
+        "end": 182,
+        "startLoc": {
+          "line": 167,
+          "column": 17,
+          "position": 954
+        },
+        "endLoc": {
+          "line": 182,
+          "column": 3,
+          "position": 1058
+        }
+      },
+      "secondFile": {
+        "name": "apps/recipes/services/scraper.py",
+        "start": 412,
+        "end": 427,
+        "startLoc": {
+          "line": 412,
+          "column": 8,
+          "position": 3130
+        },
+        "endLoc": {
+          "line": 427,
+          "column": 3,
+          "position": 3234
+        }
+      }
+    },
     {
       "format": "python",
       "lines": 15,
@@ -839,109 +911,73 @@
     },
     {
       "format": "python",
+      "lines": 18,
+      "fragment": "if getattr(settings, \"AUTH_MODE\", \"home\") != \"passkey\":\n        return (True, {})\n\n    if profile.user and profile.user.is_staff:\n        return (True, {})\n\n    if profile.unlimited_ai:\n        return (True, {})\n\n    if feature not in FEATURE_LIMIT_FIELDS:\n        raise ValueError(f\"Unknown quota feature: {feature}\")\n\n    app = AppSettings.get()\n    limit_field = FEATURE_LIMIT_FIELDS[feature]\n    limit = getattr(app, limit_field)\n\n    key = _cache_key(profile.pk, feature)\n    ttl",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/ai/services/quota.py",
+        "start": 104,
+        "end": 121,
+        "startLoc": {
+          "line": 104,
+          "column": 5,
+          "position": 642
+        },
+        "endLoc": {
+          "line": 121,
+          "column": 4,
+          "position": 793
+        }
+      },
+      "secondFile": {
+        "name": "apps/ai/services/quota.py",
+        "start": 62,
+        "end": 79,
+        "startLoc": {
+          "line": 62,
+          "column": 5,
+          "position": 374
+        },
+        "endLoc": {
+          "line": 79,
+          "column": 5,
+          "position": 525
+        }
+      }
+    },
+    {
+      "format": "python",
       "lines": 27,
       "fragment": "(\n                    messages=messages,\n                    model=model,\n                    stream=False,\n                    timeout_ms=timeout_ms,\n                )\n\n            if not response or not hasattr(response, \"choices\"):\n                raise AIResponseError(\"Invalid response structure from OpenRouter\")\n\n            if not response.choices:\n                raise AIResponseError(\"No choices in OpenRouter response\")\n\n            content = response.choices[0].message.content\n\n            if json_response:\n                return self._parse_json_response(content)\n\n            return {\"content\": content}\n\n        except AIServiceError:\n            raise\n        except Exception as e:\n            logger.exception(\"OpenRouter API error\")\n            raise AIResponseError(f\"OpenRouter API error: {e}\")\n\n    @",
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/services/openrouter.py",
-        "start": 132,
-        "end": 158,
+        "start": 133,
+        "end": 159,
         "startLoc": {
-          "line": 132,
+          "line": 133,
           "column": 11,
-          "position": 886
+          "position": 890
         },
         "endLoc": {
-          "line": 158,
+          "line": 159,
           "column": 2,
-          "position": 1047
+          "position": 1051
         }
       },
       "secondFile": {
         "name": "apps/ai/services/openrouter.py",
-        "start": 88,
-        "end": 114,
+        "start": 89,
+        "end": 115,
         "startLoc": {
-          "line": 88,
+          "line": 89,
           "column": 5,
-          "position": 561
+          "position": 565
         },
         "endLoc": {
-          "line": 114,
+          "line": 115,
           "column": 6,
-          "position": 722
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 34,
-      "fragment": ", **info}\n\n    from apps.profiles.utils import get_current_profile_or_none\n\n    profile = get_current_profile_or_none(request)\n\n    if not profile:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": \"Profile not found\",\n        }\n\n    # Verify the profile_id in the request matches the session profile\n    if data.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Profile {data.profile_id} not found\",\n        }\n\n    try:\n        recipe = Recipe.objects.get(id=data.recipe_id)\n    except Recipe.DoesNotExist:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    if recipe.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    remix",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/ai/api_remix.py",
-        "start": 120,
-        "end": 153,
-        "startLoc": {
-          "line": 120,
-          "column": 32,
-          "position": 915
-        },
-        "endLoc": {
-          "line": 153,
-          "column": 6,
-          "position": 1124
-        }
-      },
-      "secondFile": {
-        "name": "apps/ai/api_scaling.py",
-        "start": 68,
-        "end": 101,
-        "startLoc": {
-          "line": 68,
-          "column": 32,
-          "position": 510
-        },
-        "endLoc": {
-          "line": 101,
-          "column": 4,
-          "position": 719
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 21,
-      "fragment": ", **info}\n\n    from apps.profiles.utils import get_current_profile_or_none\n\n    profile = get_current_profile_or_none(request)\n\n    try:\n        recipe = Recipe.objects.get(id=data.recipe_id)\n    except Recipe.DoesNotExist:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    if not profile or recipe.profile_id != profile.id:\n        return 404, {\n            \"error\": \"not_found\",\n            \"message\": f\"Recipe {data.recipe_id} not found\",\n        }\n\n    # Clear existing tips if regenerate requested",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/ai/api.py",
-        "start": 313,
-        "end": 333,
-        "startLoc": {
-          "line": 313,
-          "column": 31,
-          "position": 2107
-        },
-        "endLoc": {
-          "line": 333,
-          "column": 46,
-          "position": 2244
-        }
-      },
-      "secondFile": {
-        "name": "apps/ai/api_remix.py",
-        "start": 76,
-        "end": 96,
-        "startLoc": {
-          "line": 76,
-          "column": 44,
-          "position": 533
-        },
-        "endLoc": {
-          "line": 96,
-          "column": 11,
-          "position": 670
+          "position": 726
         }
       }
     }
