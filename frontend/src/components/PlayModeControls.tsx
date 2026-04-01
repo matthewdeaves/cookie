@@ -1,70 +1,49 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 interface PlayModeControlsProps {
   currentStep: number
   totalSteps: number
-  instructions: string[]
   onPrevious: () => void
   onNext: () => void
-  onStepSelect: (idx: number) => void
 }
 
 export default function PlayModeControls({
   currentStep,
   totalSteps,
-  instructions,
   onPrevious,
   onNext,
-  onStepSelect,
 }: PlayModeControlsProps) {
+  const isFirst = currentStep === 0
+  const isLast = currentStep === totalSteps - 1
+
   return (
-    <div className="flex items-center justify-between border-t border-border px-4 py-4">
+    <div className="flex shrink-0 gap-3 px-4 pb-4">
       <button
         onClick={onPrevious}
-        disabled={currentStep === 0}
+        disabled={isFirst}
         className={cn(
-          'flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition-colors',
-          currentStep === 0
-            ? 'text-muted-foreground opacity-50'
-            : 'bg-muted text-foreground hover:bg-muted/80'
+          'flex h-14 flex-1 items-center justify-center gap-2 rounded-xl text-base font-semibold transition-colors',
+          isFirst
+            ? 'bg-muted text-muted-foreground opacity-25'
+            : 'bg-muted text-foreground active:bg-muted/70',
         )}
       >
-        <ChevronLeft className="h-5 w-5" />
+        <span className="text-lg leading-none" aria-hidden="true">&larr;</span>
         Previous
       </button>
 
-      {/* Step indicators */}
-      <div className="hidden gap-1.5 sm:flex">
-        {instructions.map((_, idx) => (
-          <button
-            key={idx}
-            onClick={() => onStepSelect(idx)}
-            className={cn(
-              'h-2 w-2 rounded-full transition-all',
-              idx === currentStep
-                ? 'w-6 bg-primary'
-                : idx < currentStep
-                  ? 'bg-primary/50'
-                  : 'bg-muted'
-            )}
-            aria-label={`Go to step ${idx + 1}`}
-          />
-        ))}
-      </div>
-
       <button
         onClick={onNext}
-        disabled={currentStep === totalSteps - 1}
+        disabled={isLast}
         className={cn(
-          'flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition-colors',
-          currentStep === totalSteps - 1
-            ? 'text-muted-foreground opacity-50'
-            : 'bg-primary text-primary-foreground hover:bg-primary/90'
+          'flex h-14 flex-1 items-center justify-center gap-2 rounded-xl text-base font-semibold transition-colors',
+          isLast
+            ? 'bg-primary text-primary-foreground opacity-25'
+            : 'bg-primary text-primary-foreground active:bg-primary/80',
         )}
       >
         Next
-        <ChevronRight className="h-5 w-5" />
+        <span className="text-lg leading-none" aria-hidden="true">&rarr;</span>
       </button>
     </div>
   )

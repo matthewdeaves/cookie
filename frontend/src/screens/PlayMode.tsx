@@ -10,6 +10,7 @@ import InstructionDisplay from '../components/InstructionDisplay'
 import PlayModeControls from '../components/PlayModeControls'
 import { unlockAudio } from '../lib/audio'
 import { LoadingSpinner } from '../components/Skeletons'
+import { cn } from '../lib/utils'
 
 export default function PlayMode() {
   const navigate = useNavigate()
@@ -18,6 +19,7 @@ export default function PlayMode() {
 
   const { recipe, loading, aiAvailable } = usePlayModeData(recipeId)
   const [currentStep, setCurrentStep] = useState(0)
+  const isLandscape = useIsLandscape()
 
   const handleTimerComplete = useTimerComplete()
   const timers = useTimers(handleTimerComplete)
@@ -54,17 +56,17 @@ export default function PlayMode() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <PlayModeHeader recipe={recipe} currentStep={currentStep} totalSteps={totalSteps} progress={progress} onExit={handleExit} />
-      <div className="flex flex-1 flex-col">
-        <InstructionDisplay currentStep={currentStep} currentInstruction={currentInstruction} />
-        <PlayModeControls
-          currentStep={currentStep}
-          totalSteps={totalSteps}
-          instructions={instructions}
-          onPrevious={handlePrevious}
-          onNext={handleNext}
-          onStepSelect={setCurrentStep}
-        />
-        <TimerPanel timers={timers} instructionText={currentInstruction} aiAvailable={aiAvailable} />
+      <div className={cn('flex min-h-0 flex-1 overflow-hidden', isLandscape ? 'flex-row' : 'flex-col')}>
+        <div className={cn('flex flex-col', isLandscape ? 'min-w-0 flex-[3]' : 'flex-1')}>
+          <InstructionDisplay currentStep={currentStep} currentInstruction={currentInstruction} />
+          <PlayModeControls
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+            onPrevious={handlePrevious}
+            onNext={handleNext}
+          />
+        </div>
+        <TimerPanel timers={timers} instructionText={currentInstruction} aiAvailable={aiAvailable} isLandscape={isLandscape} />
       </div>
     </div>
   )
@@ -111,6 +113,22 @@ function PlayModeEmpty({ hasRecipe, onExit }: { hasRecipe: boolean; onExit: () =
   )
 }
 
+function getIsLandscape() {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(orientation: landscape) and (min-width: 700px)').matches
+}
+
+function useIsLandscape() {
+  const [isLandscape, setIsLandscape] = useState(getIsLandscape)
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return
+    const mq = window.matchMedia('(orientation: landscape) and (min-width: 700px)')
+    const handler = (e: MediaQueryListEvent) => setIsLandscape(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return isLandscape
+}
+
 function PlayModeHeader({
   recipe,
   currentStep,
@@ -125,16 +143,16 @@ function PlayModeHeader({
   onExit: () => void
 }) {
   return (
-    <div className="relative border-b border-border">
+    <div className="relative shrink-0 border-b border-border">
       <div className="h-1 bg-muted">
         <div className="h-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
       </div>
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex-1">
-          <h1 className="line-clamp-1 text-sm font-medium text-foreground">{recipe.title}</h1>
+      <div className="flex items-center justify-between px-4 py-2.5">
+        <div className="min-w-0 flex-1">
+          <h1 className="line-clamp-1 text-sm font-semibold text-foreground">{recipe.title}</h1>
           <p className="text-xs text-muted-foreground">Step {currentStep + 1} of {totalSteps}</p>
         </div>
-        <button onClick={onExit} className="rounded-full bg-muted p-2 text-muted-foreground transition-colors hover:bg-muted/80" aria-label="Exit play mode">
+        <button onClick={onExit} className="ml-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80" aria-label="Exit play mode">
           <X className="h-5 w-5" />
         </button>
       </div>

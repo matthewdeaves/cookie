@@ -27,17 +27,17 @@ export default function QuickTimerButtons({
           key={label}
           onClick={() => onAdd(label, duration, idx)}
           disabled={loadingTimerId !== null}
-          className="flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-muted disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted active:bg-muted/70 disabled:opacity-50"
         >
           {loadingTimerId === `quick-${idx}` ? (
-            <Loader2 className="h-3 w-3 animate-spin" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
-            <Plus className="h-3 w-3" />
+            <Plus className="h-3.5 w-3.5" />
           )}
           {label}
         </button>
       ))}
-      {aiAvailable && instructionText && <Sparkles className="h-4 w-4 text-primary self-center" />}
+      {aiAvailable && instructionText && <Sparkles className="h-4 w-4 self-center text-primary" />}
     </div>
   )
 }

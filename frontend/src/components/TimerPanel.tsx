@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { UseTimersReturn } from '../hooks/useTimers'
 import { detectTimes } from '../hooks/useTimers'
 import { api } from '../api/client'
+import { cn } from '../lib/utils'
 import QuickTimerButtons from './QuickTimerButtons'
 import DetectedTimers from './DetectedTimers'
 import TimerList from './TimerList'
@@ -11,6 +12,7 @@ interface TimerPanelProps {
   timers: UseTimersReturn
   instructionText?: string
   aiAvailable?: boolean
+  isLandscape?: boolean
 }
 
 const QUICK_TIMERS = [
@@ -36,14 +38,18 @@ interface TimerPanelHeaderProps {
   expanded: boolean
   timerCount: number
   activeCount: number
+  isLandscape: boolean
   onToggle: () => void
 }
 
-function TimerPanelHeader({ expanded, timerCount, activeCount, onToggle }: TimerPanelHeaderProps) {
+function TimerPanelHeader({ expanded, timerCount, activeCount, isLandscape, onToggle }: TimerPanelHeaderProps) {
   return (
     <button
-      onClick={onToggle}
-      className="flex w-full items-center justify-between px-4 py-3"
+      onClick={isLandscape ? undefined : onToggle}
+      className={cn(
+        'flex w-full shrink-0 items-center justify-between px-4 py-3',
+        !isLandscape && 'cursor-pointer',
+      )}
     >
       <div className="flex items-center gap-2">
         <TimerIcon className="h-5 w-5 text-primary" />
@@ -57,20 +63,23 @@ function TimerPanelHeader({ expanded, timerCount, activeCount, onToggle }: Timer
           </span>
         )}
       </div>
-      {expanded ? (
-        <ChevronDown className="h-5 w-5 text-muted-foreground" />
-      ) : (
-        <ChevronUp className="h-5 w-5 text-muted-foreground" />
+      {!isLandscape && (
+        expanded ? (
+          <ChevronDown className="h-5 w-5 text-muted-foreground" />
+        ) : (
+          <ChevronUp className="h-5 w-5 text-muted-foreground" />
+        )
       )}
     </button>
   )
 }
 
-export default function TimerPanel({ timers, instructionText, aiAvailable = false }: TimerPanelProps) {
+export default function TimerPanel({ timers, instructionText, aiAvailable = false, isLandscape = false }: TimerPanelProps) {
   const [expanded, setExpanded] = useState(true)
   const [loadingTimerId, setLoadingTimerId] = useState<string | null>(null)
 
   const detectedTimes = instructionText ? detectTimes(instructionText) : []
+  const showContent = isLandscape || expanded
 
   const handleAddTimer = async (id: string, fallbackLabel: string, duration: number) => {
     const durationMinutes = Math.ceil(duration / 60)
@@ -101,15 +110,28 @@ export default function TimerPanel({ timers, instructionText, aiAvailable = fals
   const activeTimerCount = timers.timers.filter((t) => t.isRunning).length
 
   return (
-    <div className="border-t border-border bg-card">
+    <div
+      className={cn(
+        'flex flex-col bg-card',
+        isLandscape
+          ? 'min-h-0 flex-[2] overflow-hidden border-l border-border'
+          : 'max-h-[45vh] shrink-0 border-t border-border',
+      )}
+    >
       <TimerPanelHeader
-        expanded={expanded}
+        expanded={showContent}
         timerCount={timers.timers.length}
         activeCount={activeTimerCount}
+        isLandscape={isLandscape}
         onToggle={() => setExpanded(!expanded)}
       />
-      {expanded && (
-        <div className="space-y-4 px-4 pb-4">
+      {showContent && (
+        <div
+          className={cn(
+            'space-y-4 px-4 pb-4',
+            isLandscape && 'flex-1 overflow-y-auto',
+          )}
+        >
           <QuickTimerButtons
             quickTimers={QUICK_TIMERS}
             loadingTimerId={loadingTimerId}
