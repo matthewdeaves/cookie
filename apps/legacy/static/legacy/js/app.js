@@ -18,6 +18,9 @@ Cookie.app = (function() {
         // Setup profile dropdown (shared across all pages with nav header)
         setupProfileDropdown();
 
+        // Highlight the active nav icon
+        highlightActiveNav();
+
         // Attach image error handlers to all recipe images on the page
         setupImageErrorHandlers();
 
@@ -139,6 +142,37 @@ Cookie.app = (function() {
                 Cookie.state.clearProfile();
                 window.location.href = '/legacy/';
             });
+        }
+    }
+
+    /**
+     * Highlight the active navigation icon based on the current page
+     */
+    function highlightActiveNav() {
+        var screen = document.querySelector('.screen[data-page], .play-mode[data-page]');
+        if (!screen) return;
+
+        var page = screen.getAttribute('data-page');
+        var labelMap = {
+            'home': 'Home',
+            'all-recipes': 'All recipes',
+            'favorites': 'Favorites',
+            'collections': 'Collections',
+            'collection-detail': 'Collections',
+            'settings': 'Settings'
+        };
+
+        var label = labelMap[page];
+        if (!label) return;
+
+        var links = document.querySelectorAll('.header-nav-link');
+        for (var i = 0; i < links.length; i++) {
+            if (links[i].getAttribute('aria-label') === label) {
+                var cls = label === 'Favorites' ? 'header-nav-link-active-accent' : 'header-nav-link-active';
+                links[i].classList.add(cls);
+                links[i].setAttribute('aria-current', 'page');
+                break;
+            }
         }
     }
 

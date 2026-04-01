@@ -226,6 +226,16 @@
     color: #2d2520;
 }
 
+.header-nav-link-active {
+    background-color: #f4ede6;
+    color: #6b8e5f;
+}
+
+.header-nav-link-active-accent {
+    background-color: #f4ede6;
+    color: #a84f5f;
+}
+
 .header-nav-link svg {
     width: 1.375rem;
     height: 1.375rem;
