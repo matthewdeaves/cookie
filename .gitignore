@@ -63,3 +63,5 @@ screenshot-*.png
 specs/
 .openrouter-key
 .playwright-mcp/
+.specify/integration.json
+.specify/integrations/
