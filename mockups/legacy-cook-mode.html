@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Cookie — Cook Mode Redesign (Legacy iPad)</title>
+<style>
+/* ============================================================
+   COOK MODE REDESIGN — Legacy iPad (iOS 9.3 Safari)
+
+   Design concept: "Kitchen Command Center"
+   Two-panel split layout that puts step instructions and timers
+   side-by-side, with chunky navigation buttons designed for
+   flour-covered fingers. Dark earthy palette throughout.
+
+   NO: CSS Grid, var(), gap, sticky, backdrop-filter, :has(),
+       :is(), :where(), aspect-ratio, clamp(), min(), max(),
+       logical properties
+   YES: -webkit-flex, literal colors, margin spacing
+   ============================================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: #1a1510;
+  color: #e8e1d8;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+/* ============================================================
+   LAYOUT SHELL
+   ============================================================ */
+
+.cook-mode {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  height: 100vh;
+  height: -webkit-fill-available;
+}
+
+/* ---- Top Bar ---- */
+.cook-header {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #241e17;
+  border-bottom: 1px solid #3a3028;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+.cook-header-left {
+  -webkit-flex: 1;
+  flex: 1;
+  min-width: 0;
+}
+
+.cook-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #e8e1d8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cook-step-counter {
+  font-size: 0.75rem;
+  color: #8a7e72;
+  margin-top: 2px;
+}
+
+.cook-exit-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: #3a3028;
+  color: #8a7e72;
+  font-size: 1.125rem;
+  line-height: 40px;
+  text-align: center;
+  cursor: pointer;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+  margin-left: 12px;
+  -webkit-transition: background 0.15s;
+  transition: background 0.15s;
+}
+
+.cook-exit-btn:active {
+  background: #4a4038;
+}
+
+/* ---- Progress Bar ---- */
+.cook-progress {
+  height: 3px;
+  background: #2a2420;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+.cook-progress-fill {
+  height: 100%;
+  background: #6b8e5e;
+  -webkit-transition: width 0.3s ease;
+  transition: width 0.3s ease;
+}
+
+/* ============================================================
+   MAIN CONTENT — TWO-PANEL SPLIT (landscape)
+   Falls back to stacked (portrait)
+   ============================================================ */
+
+.cook-body {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-flex: 1;
+  flex: 1;
+  min-height: 0;
+  -webkit-min-height: 0;
+  overflow: hidden;
+}
+
+/* ============================================================
+   STEP PANEL (left in landscape, top in portrait)
+   ============================================================ */
+
+.step-panel {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-flex: 1;
+  flex: 1;
+  min-height: 0;
+  -webkit-min-height: 0;
+}
+
+/* -- Step content area -- */
+.step-content {
+  -webkit-flex: 1;
+  flex: 1;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+  padding: 24px 32px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+  -webkit-min-height: 0;
+}
+
+.step-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #6b8e5e;
+  color: #fff;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 44px;
+  text-align: center;
+  margin-bottom: 16px;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+.step-text {
+  font-size: 1.375rem;
+  line-height: 1.65;
+  text-align: center;
+  color: #e8e1d8;
+  max-width: 560px;
+}
+
+/* -- Navigation buttons -- */
+.step-nav {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+  padding: 0 16px 16px 16px;
+}
+
+.step-nav-btn {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  height: 56px;
+  border-radius: 14px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-transition: background 0.15s, -webkit-transform 0.1s;
+  transition: background 0.15s, transform 0.1s;
+  -webkit-flex: 1;
+  flex: 1;
+}
+
+.step-nav-btn:active {
+  -webkit-transform: scale(0.97);
+  transform: scale(0.97);
+}
+
+.step-nav-btn[disabled] {
+  opacity: 0.25;
+  cursor: default;
+  -webkit-transform: none;
+  transform: none;
+}
+
+.step-nav-btn.prev-btn {
+  background: #2a2420;
+  color: #8a7e72;
+  margin-right: 8px;
+}
+
+.step-nav-btn.prev-btn:active:not([disabled]) {
+  background: #3a3028;
+}
+
+.step-nav-btn.next-btn {
+  background: #6b8e5e;
+  color: #fff;
+  margin-left: 8px;
+}
+
+.step-nav-btn.next-btn:active:not([disabled]) {
+  background: #5a7c4e;
+}
+
+.nav-arrow {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.prev-btn .nav-arrow { margin-right: 8px; }
+.next-btn .nav-arrow { margin-left: 8px; }
+
+/* ============================================================
+   TIMER PANEL (right in landscape, bottom in portrait)
+   ============================================================ */
+
+.timer-panel {
+  background: #1e1914;
+  border-top: 1px solid #3a3028;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+  max-height: 45vh;
+}
+
+.timer-panel.expanded {
+  -webkit-flex: 0 0 auto;
+  flex: 0 0 auto;
+}
+
+/* -- Timer header / toggle -- */
+.timer-toggle {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.timer-icon {
+  width: 22px;
+  height: 22px;
+  margin-right: 8px;
+  opacity: 0.6;
+}
+
+.timer-label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #e8e1d8;
+}
+
+.timer-count-badge {
+  display: inline-block;
+  background: #3a3028;
+  color: #8a7e72;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+}
+
+.timer-count-badge.has-active {
+  background: #3a5c30;
+  color: #a5c99a;
+}
+
+.timer-chevron {
+  margin-left: auto;
+  width: 20px;
+  height: 20px;
+  opacity: 0.4;
+  -webkit-transition: -webkit-transform 0.2s;
+  transition: transform 0.2s;
+}
+
+.timer-panel.expanded .timer-chevron {
+  -webkit-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+/* -- Timer body (collapsible) -- */
+.timer-body {
+  display: none;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 16px 16px 16px;
+  min-height: 0;
+  -webkit-min-height: 0;
+}
+
+.timer-panel.expanded .timer-body {
+  display: -webkit-flex;
+  display: flex;
+}
+
+/* -- Quick timer buttons -- */
+.quick-timers {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.quick-timer-btn {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 20px;
+  border: 1px solid #3a3028;
+  background: #241e17;
+  color: #e8e1d8;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  -webkit-transition: background 0.15s;
+  transition: background 0.15s;
+}
+
+.quick-timer-btn:active {
+  background: #3a3028;
+}
+
+.quick-timer-btn svg {
+  margin-right: 4px;
+}
+
+.ai-sparkle {
+  width: 18px;
+  height: 18px;
+  color: #6b8e5e;
+  -webkit-align-self: center;
+  align-self: center;
+}
+
+/* -- Timer list -- */
+.timer-list {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+}
+
+.timer-widget {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  background: #241e17;
+  border: 1px solid #3a3028;
+  border-left: 3px solid #6b8e5e;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.timer-widget.completed {
+  border-left-color: #a84f5f;
+}
+
+.timer-info {
+  -webkit-flex: 1;
+  flex: 1;
+  min-width: 0;
+}
+
+.timer-name {
+  font-size: 0.8125rem;
+  color: #8a7e72;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timer-time {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #e8e1d8;
+  letter-spacing: 0.02em;
+}
+
+.timer-widget.completed .timer-time {
+  color: #a84f5f;
+}
+
+.timer-actions {
+  display: -webkit-flex;
+  display: flex;
+  margin-left: 8px;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+.timer-action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #3a3028;
+  color: #8a7e72;
+  font-size: 0.875rem;
+  line-height: 36px;
+  text-align: center;
+  cursor: pointer;
+  margin-left: 6px;
+  -webkit-transition: background 0.15s;
+  transition: background 0.15s;
+}
+
+.timer-action-btn:active {
+  background: #4a4038;
+}
+
+.timer-action-btn.pause-btn {
+  background: #6b8e5e;
+  color: #fff;
+}
+
+.timer-action-btn.pause-btn:active {
+  background: #5a7c4e;
+}
+
+/* ============================================================
+   LANDSCAPE MODE — Side-by-side split layout
+   This is the key improvement: on iPad landscape, the step
+   instruction and timer panel sit side by side.
+   ============================================================ */
+
+@media (orientation: landscape) and (min-width: 700px) {
+  .cook-body {
+    -webkit-flex-direction: row;
+    flex-direction: row;
+  }
+
+  .step-panel {
+    -webkit-flex: 3;
+    flex: 3;
+    border-right: 1px solid #3a3028;
+  }
+
+  .step-nav {
+    padding: 0 20px 12px 20px;
+  }
+
+  .timer-panel {
+    -webkit-flex: 2;
+    flex: 2;
+    border-top: none;
+    border-left: 1px solid #3a3028;
+    max-height: none;
+    overflow: hidden;
+  }
+
+  /* In landscape, timers are always expanded */
+  .timer-panel .timer-body {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex: 1;
+    flex: 1;
+  }
+
+  .timer-panel .timer-chevron {
+    display: none;
+  }
+
+  .step-content {
+    padding: 20px 40px;
+  }
+
+  .step-text {
+    font-size: 1.5rem;
+  }
+}
+
+/* ============================================================
+   PORTRAIT TABLET — stacked but efficient
+   ============================================================ */
+
+@media (orientation: portrait) and (min-height: 800px) {
+  .step-text {
+    font-size: 1.5rem;
+  }
+
+  .step-nav-btn {
+    height: 60px;
+    font-size: 1.0625rem;
+  }
+
+  .timer-panel {
+    max-height: 50vh;
+  }
+}
+
+/* ============================================================
+   COMPACT (small landscape, e.g. iPhone landscape)
+   ============================================================ */
+
+@media (orientation: landscape) and (max-height: 420px) {
+  .cook-header {
+    padding: 6px 12px;
+  }
+
+  .step-content {
+    padding: 10px 20px;
+  }
+
+  .step-badge {
+    width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+    line-height: 32px;
+    margin-bottom: 8px;
+  }
+
+  .step-text {
+    font-size: 1.125rem;
+  }
+
+  .step-nav {
+    padding: 0 12px 8px 12px;
+  }
+
+  .step-nav-btn {
+    height: 44px;
+    font-size: 0.875rem;
+  }
+}
+
+/* ============================================================
+   DETECTED TIMES (from step text)
+   ============================================================ */
+
+.detected-times {
+  margin-bottom: 12px;
+}
+
+.detected-label {
+  font-size: 0.75rem;
+  color: #6b6560;
+  margin-bottom: 6px;
+}
+
+.detected-btns {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+
+.detected-btn {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 18px;
+  border: 1px solid #3a5c30;
+  background: rgba(107, 142, 94, 0.12);
+  color: #a5c99a;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: 8px;
+  margin-bottom: 6px;
+  -webkit-transition: background 0.15s;
+  transition: background 0.15s;
+}
+
+.detected-btn:active {
+  background: rgba(107, 142, 94, 0.25);
+}
+
+.detected-btn svg {
+  margin-right: 4px;
+}
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+
+.timer-empty {
+  text-align: center;
+  padding: 24px 16px;
+  color: #6b6560;
+  font-size: 0.875rem;
+}
+
+.timer-empty-icon {
+  font-size: 1.5rem;
+  margin-bottom: 6px;
+  opacity: 0.4;
+}
+
+/* ============================================================
+   INTERACTIVE DEMO CONTROLS (not part of real app)
+   ============================================================ */
+
+.demo-bar {
+  position: fixed;
+  top: 6px;
+  right: 60px;
+  background: rgba(0,0,0,0.7);
+  padding: 4px 10px;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  z-index: 100;
+  font-size: 0.6875rem;
+  color: #777;
+  border-radius: 6px;
+}
+
+.demo-bar span {
+  margin: 0 6px;
+}
+
+.demo-bar button {
+  background: #333;
+  color: #aaa;
+  border: 1px solid #555;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  cursor: pointer;
+  margin: 0 3px;
+}
+
+.demo-bar button:active {
+  background: #444;
+}
+</style>
+</head>
+<body>
+
+<div class="cook-mode">
+
+  <!-- ======== HEADER ======== -->
+  <div class="cook-header">
+    <div class="cook-header-left">
+      <div class="cook-title" id="recipe-title">Grandma Rose's Herb-Roasted Easter Lamb</div>
+      <div class="cook-step-counter"><span id="step-counter">Step 2 of 4</span></div>
+    </div>
+    <button class="cook-exit-btn" aria-label="Exit cook mode">&times;</button>
+  </div>
+
+  <!-- ======== PROGRESS BAR ======== -->
+  <div class="cook-progress">
+    <div class="cook-progress-fill" id="progress-fill" style="width: 50%"></div>
+  </div>
+
+  <!-- ======== MAIN BODY ======== -->
+  <div class="cook-body">
+
+    <!-- ---- STEP PANEL ---- -->
+    <div class="step-panel">
+      <div class="step-content">
+        <div class="step-badge" id="step-badge">2</div>
+        <div class="step-text" id="step-text">
+          Preheat the oven to 450 degrees F (230 degrees C). Season the lamb generously with salt and pepper, then rub with olive oil and minced garlic.
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <button class="step-nav-btn prev-btn" id="prev-btn">
+          <span class="nav-arrow">&#8592;</span>
+          Previous
+        </button>
+        <button class="step-nav-btn next-btn" id="next-btn">
+          Next
+          <span class="nav-arrow">&#8594;</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ---- TIMER PANEL ---- -->
+    <div class="timer-panel expanded" id="timer-panel">
+
+      <div class="timer-toggle" id="timer-toggle">
+        <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span class="timer-label">Timers</span>
+        <span class="timer-count-badge has-active" id="timer-badge">3 (2 active)</span>
+        <svg class="timer-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+
+      <div class="timer-body">
+
+        <!-- Detected times from current step -->
+        <div class="detected-times" id="detected-times">
+          <div class="detected-label">Detected in this step:</div>
+          <div class="detected-btns">
+            <button class="detected-btn">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              20 min
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick add buttons -->
+        <div class="quick-timers">
+          <button class="quick-timer-btn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            5 min
+          </button>
+          <button class="quick-timer-btn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            10 min
+          </button>
+          <button class="quick-timer-btn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            15 min
+          </button>
+          <svg class="ai-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z"/>
+            <path d="M19 15l.6 2.4L22 18l-2.4.6L19 21l-.6-2.4L16 18l2.4-.6z"/>
+          </svg>
+        </div>
+
+        <!-- Active timers -->
+        <div class="timer-list" id="timer-list">
+
+          <div class="timer-widget">
+            <div class="timer-info">
+              <div class="timer-name">Preheat Oven</div>
+              <div class="timer-time">4:52</div>
+            </div>
+            <div class="timer-actions">
+              <button class="timer-action-btn pause-btn" title="Pause">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+              </button>
+              <button class="timer-action-btn" title="Reset">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M1 4v6h6"/><path d="M3.5 15a9 9 0 105-13L1 10"/></svg>
+              </button>
+              <button class="timer-action-btn" title="Delete">&times;</button>
+            </div>
+          </div>
+
+          <div class="timer-widget">
+            <div class="timer-info">
+              <div class="timer-name">Marinate Lamb</div>
+              <div class="timer-time">12:34</div>
+            </div>
+            <div class="timer-actions">
+              <button class="timer-action-btn pause-btn" title="Pause">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+              </button>
+              <button class="timer-action-btn" title="Reset">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M1 4v6h6"/><path d="M3.5 15a9 9 0 105-13L1 10"/></svg>
+              </button>
+              <button class="timer-action-btn" title="Delete">&times;</button>
+            </div>
+          </div>
+
+          <div class="timer-widget completed">
+            <div class="timer-info">
+              <div class="timer-name">Rest Meat</div>
+              <div class="timer-time">0:00</div>
+            </div>
+            <div class="timer-actions">
+              <button class="timer-action-btn" title="Reset">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M1 4v6h6"/><path d="M3.5 15a9 9 0 105-13L1 10"/></svg>
+              </button>
+              <button class="timer-action-btn" title="Delete">&times;</button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======== DEMO CONTROLS ======== -->
+<div class="demo-bar">
+  <span>MOCKUP</span>
+  <button onclick="togglePanel()">Toggle Timer Panel</button>
+  <button onclick="cycleStep()">Next Step</button>
+</div>
+
+<script>
+/* ES5 only — demo interactivity */
+(function() {
+  var steps = [
+    'In a large bowl, combine fresh rosemary, thyme, and oregano with minced garlic and olive oil.',
+    'Preheat the oven to 450 degrees F (230 degrees C). Season the lamb generously with salt and pepper, then rub with olive oil and minced garlic.',
+    'Place lamb on a rack in a roasting pan. Roast for 20 minutes, then reduce heat to 325 degrees F and continue cooking for about 1 hour.',
+    'Remove from oven and let rest for 15 minutes before carving. Serve with pan juices and roasted vegetables.'
+  ];
+
+  var currentStep = 1;
+  var totalSteps = steps.length;
+
+  function updateDisplay() {
+    var badge = document.getElementById('step-badge');
+    var text = document.getElementById('step-text');
+    var counter = document.getElementById('step-counter');
+    var progress = document.getElementById('progress-fill');
+    var prevBtn = document.getElementById('prev-btn');
+    var nextBtn = document.getElementById('next-btn');
+
+    badge.textContent = currentStep + 1;
+    text.textContent = steps[currentStep];
+    counter.textContent = 'Step ' + (currentStep + 1) + ' of ' + totalSteps;
+    progress.style.width = ((currentStep + 1) / totalSteps * 100) + '%';
+
+    prevBtn.disabled = currentStep === 0;
+    nextBtn.disabled = currentStep === totalSteps - 1;
+  }
+
+  document.getElementById('prev-btn').addEventListener('click', function() {
+    if (currentStep > 0) {
+      currentStep--;
+      updateDisplay();
+    }
+  });
+
+  document.getElementById('next-btn').addEventListener('click', function() {
+    if (currentStep < totalSteps - 1) {
+      currentStep++;
+      updateDisplay();
+    }
+  });
+
+  window.togglePanel = function() {
+    var panel = document.getElementById('timer-panel');
+    if (panel.className.indexOf('expanded') !== -1) {
+      panel.className = 'timer-panel';
+    } else {
+      panel.className = 'timer-panel expanded';
+    }
+  };
+
+  window.cycleStep = function() {
+    currentStep = (currentStep + 1) % totalSteps;
+    updateDisplay();
+  };
+
+  document.getElementById('timer-toggle').addEventListener('click', function() {
+    window.togglePanel();
+  });
+})();
+</script>
+
+</body>
+</html>
