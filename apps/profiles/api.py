@@ -4,6 +4,7 @@ from typing import List, Optional
 
 from django.conf import settings
 from django.db.models import Count, Q
+from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema
 
 from apps.core.auth import AdminAuth, SessionAuth
@@ -173,9 +174,12 @@ def list_profiles(request):
     return result
 
 
-@router.post("/", response={201: ProfileOut, 404: ErrorSchema})
+@router.post("/", response={201: ProfileOut, 404: ErrorSchema, 429: ErrorSchema})
+@ratelimit(key="ip", rate="10/h", method="POST", block=False)
 def create_profile(request, payload: ProfileIn):
     """Create a new profile. Only available in home mode."""
+    if getattr(request, "limited", False):
+        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
     if settings.AUTH_MODE != "home":
         return 404, {"error": "not_found", "message": "Not found"}
     data = payload.dict()

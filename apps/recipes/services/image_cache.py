@@ -9,16 +9,23 @@ import asyncio
 import hashlib
 import io
 import logging
-from pathlib import Path
-from urllib.parse import urlparse
 
 from asgiref.sync import sync_to_async
 from curl_cffi.requests import AsyncSession
 from django.core.files.base import ContentFile
 from PIL import Image
 
-from apps.core.validators import validate_url
+from apps.core.validators import (
+    MAX_IMAGE_SIZE,
+    MAX_REDIRECT_HOPS,
+    check_response_size,
+    validate_redirect_url,
+    validate_url,
+)
 from apps.recipes.services.fingerprint import BROWSER_PROFILES
+
+# Limit decompression bomb attacks via PIL
+Image.MAX_IMAGE_PIXELS = 178_956_970
 
 logger = logging.getLogger(__name__)
 
@@ -138,33 +145,58 @@ class SearchImageCache:
             logger.warning(f"Blocked image URL (SSRF): {url}")
             return None
 
-        # Try each browser profile until one succeeds
+        # Try each browser profile with manual redirect following
         for profile in BROWSER_PROFILES:
             try:
-                async with AsyncSession(impersonate=profile) as session:
-                    response = await session.get(
-                        url,
-                        timeout=self.DOWNLOAD_TIMEOUT,
-                        allow_redirects=True,
-                    )
-
-                    if response.status_code == 200 and response.content:
-                        content_type = response.headers.get("content-type", "")
-                        # Accept if content-type says image, or if we can
-                        # validate the bytes are a valid image
-                        if "image" in content_type:
-                            return response.content
-                        if self._looks_like_image(response.content):
-                            return response.content
-
-                    # Don't try more profiles for non-transient errors
-                    if response.status_code in (404, 410):
-                        return None
-
+                content = await self._fetch_image_safe(url, profile)
+                if content is not None:
+                    return content
             except Exception as e:
                 logger.debug(f"Failed to fetch image {url} with {profile}: {e}")
                 continue
 
+        return None
+
+    async def _fetch_image_safe(self, url, profile):
+        """Fetch image following redirects with per-hop SSRF validation."""
+        current_url = url
+        for _ in range(MAX_REDIRECT_HOPS):
+            async with AsyncSession(impersonate=profile) as session:
+                response = await session.get(
+                    current_url,
+                    timeout=self.DOWNLOAD_TIMEOUT,
+                    allow_redirects=False,
+                )
+
+                if response.status_code in (301, 302, 303, 307, 308):
+                    location = response.headers.get("location")
+                    if not location:
+                        return None
+                    try:
+                        validate_redirect_url(location)
+                    except ValueError:
+                        return None
+                    current_url = location
+                    continue
+
+                if response.status_code in (404, 410):
+                    return None
+
+                if response.status_code == 200 and response.content:
+                    if not check_response_size(response, MAX_IMAGE_SIZE):
+                        logger.warning("Image too large: %s", current_url)
+                        return None
+                    if len(response.content) > MAX_IMAGE_SIZE:
+                        return None
+                    content_type = response.headers.get("content-type", "")
+                    if "image" in content_type:
+                        return response.content
+                    if self._looks_like_image(response.content):
+                        return response.content
+
+                return None
+
+        logger.warning("Too many redirects for image: %s", url)
         return None
 
     @staticmethod
@@ -240,8 +272,12 @@ class SearchImageCache:
         Returns:
             JPEG image bytes, or None if conversion fails
         """
+        if len(image_data) > MAX_IMAGE_SIZE:
+            logger.warning("Image data too large for processing: %d bytes", len(image_data))
+            return None
+
         try:
-            # Open image from bytes
+            # Open image from bytes (MAX_IMAGE_PIXELS protects against decompression bombs)
             img = Image.open(io.BytesIO(image_data))
 
             # Convert RGBA to RGB (JPEG doesn't support transparency)

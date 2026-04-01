@@ -13,8 +13,14 @@ from bs4 import BeautifulSoup
 from curl_cffi.requests import AsyncSession
 from django.utils import timezone
 
+from apps.core.validators import (
+    MAX_HTML_SIZE,
+    MAX_REDIRECT_HOPS,
+    check_content_size,
+    check_response_size,
+    validate_redirect_url,
+)
 from apps.recipes.services.fingerprint import (
-    BROWSER_PROFILES,
     get_fallback_profiles,
     get_random_delay,
     get_random_profile,
@@ -293,11 +299,30 @@ class RecipeSearch:
         return any(code in error_str for code in ("403", "404", "429", "500", "502", "503"))
 
     async def _fetch_url(self, session: AsyncSession, url: str):
-        """Fetch a URL with timeout handling."""
-        return await asyncio.wait_for(
-            session.get(url, timeout=self.timeout, allow_redirects=True),
-            timeout=self.timeout + 5,
-        )
+        """Fetch a URL with timeout handling, redirect validation, and size limits."""
+        current_url = url
+        for _ in range(MAX_REDIRECT_HOPS):
+            response = await asyncio.wait_for(
+                session.get(current_url, timeout=self.timeout, allow_redirects=False),
+                timeout=self.timeout + 5,
+            )
+
+            if response.status_code in (301, 302, 303, 307, 308):
+                location = response.headers.get("location")
+                if not location:
+                    return response
+                validate_redirect_url(location)
+                current_url = location
+                continue
+
+            if response.status_code == 200:
+                if not check_response_size(response, MAX_HTML_SIZE):
+                    raise ValueError(f"Search response too large for {url}")
+                check_content_size(response.content, MAX_HTML_SIZE)
+
+            return response
+
+        raise ValueError(f"Too many redirects (>{MAX_REDIRECT_HOPS}) for {url}")
 
     def _parse_search_results(
         self,
@@ -336,7 +361,6 @@ class RecipeSearch:
 
     async def _record_failure(self, source) -> None:
         """Record a search failure for maintenance tracking."""
-        from apps.recipes.models import SearchSource
 
         @sync_to_async
         def update():
@@ -349,7 +373,6 @@ class RecipeSearch:
 
     async def _record_success(self, source) -> None:
         """Record a successful search."""
-        from apps.recipes.models import SearchSource
 
         @sync_to_async
         def update():

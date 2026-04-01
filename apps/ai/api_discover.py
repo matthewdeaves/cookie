@@ -11,7 +11,7 @@ from apps.profiles.models import Profile
 
 from .api import ErrorOut, handle_ai_errors
 from .models import AIDiscoverySuggestion
-from .services.quota import check_quota, increment_quota
+from .services.quota import release_quota, reserve_quota
 from .services.discover import get_discover_suggestions, CACHE_DURATION_HOURS
 
 security_logger = logging.getLogger("security")
@@ -64,10 +64,6 @@ def discover_endpoint(request, profile_id: int, refresh: bool = False):
     except Profile.DoesNotExist:
         return 404, {"error": "not_found", "message": f"Profile {profile_id} not found"}
 
-    allowed, info = check_quota(profile, "discover")
-    if not allowed:
-        return 429, {"error": "quota_exceeded", "message": "Daily limit reached for discover", **info}
-
     # Only count against quota when OpenRouter is actually called (not cache hits)
     from datetime import timedelta
 
@@ -78,13 +74,22 @@ def discover_endpoint(request, profile_id: int, refresh: bool = False):
         not refresh and AIDiscoverySuggestion.objects.filter(profile=profile, created_at__gte=cache_cutoff).exists()
     )
 
+    if not has_cached:
+        allowed, info = reserve_quota(profile, "discover")
+        if not allowed:
+            return 429, {"error": "quota_exceeded", "message": "Daily limit reached for discover", **info}
+
     try:
         result = get_discover_suggestions(profile_id, force_refresh=refresh)
-        if not has_cached:
-            increment_quota(profile, "discover")
         return result
     except Profile.DoesNotExist:
+        if not has_cached:
+            release_quota(profile, "discover")
         return 404, {
             "error": "not_found",
             "message": f"Profile {profile_id} not found",
         }
+    except Exception:
+        if not has_cached:
+            release_quota(profile, "discover")
+        raise

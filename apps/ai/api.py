@@ -19,7 +19,7 @@ from .services.timer import generate_timer_name
 from .services.selector import repair_selector, get_sources_needing_attention
 from .services.validator import ValidationError
 from .services.cache import is_ai_cache_hit
-from .services.quota import check_quota, increment_quota
+from .services.quota import release_quota, reserve_quota
 from apps.core.auth import AdminAuth, SessionAuth
 
 security_logger = logging.getLogger("security")
@@ -308,7 +308,7 @@ def tips_endpoint(request, data: TipsIn):
         security_logger.warning("Rate limit hit: /ai/tips from %s", request.META.get("REMOTE_ADDR"))
         return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
 
-    allowed, info = check_quota(request.auth, "tips")
+    allowed, info = reserve_quota(request.auth, "tips")
     if not allowed:
         return 429, {"error": "quota_exceeded", "message": "Daily limit reached for tips", **info}
 
@@ -319,12 +319,14 @@ def tips_endpoint(request, data: TipsIn):
     try:
         recipe = Recipe.objects.get(id=data.recipe_id)
     except Recipe.DoesNotExist:
+        release_quota(request.auth, "tips")
         return 404, {
             "error": "not_found",
             "message": f"Recipe {data.recipe_id} not found",
         }
 
     if not profile or recipe.profile_id != profile.id:
+        release_quota(request.auth, "tips")
         return 404, {
             "error": "not_found",
             "message": f"Recipe {data.recipe_id} not found",
@@ -334,9 +336,13 @@ def tips_endpoint(request, data: TipsIn):
     if data.regenerate:
         clear_tips(data.recipe_id)
 
-    result = generate_tips(data.recipe_id)
-    if not result.get("cached"):
-        increment_quota(request.auth, "tips")
+    try:
+        result = generate_tips(data.recipe_id)
+    except Exception:
+        release_quota(request.auth, "tips")
+        raise
+    if result.get("cached"):
+        release_quota(request.auth, "tips")
     return result
 
 
@@ -367,29 +373,35 @@ def timer_name_endpoint(request, data: TimerNameIn):
         security_logger.warning("Rate limit hit: /ai/timer-name from %s", request.META.get("REMOTE_ADDR"))
         return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
 
-    allowed, info = check_quota(request.auth, "timer")
+    allowed, info = reserve_quota(request.auth, "timer")
     if not allowed:
         return 429, {"error": "quota_exceeded", "message": "Daily limit reached for timer", **info}
 
     if not data.step_text:
+        release_quota(request.auth, "timer")
         return 400, {
             "error": "validation_error",
             "message": "Step text is required",
         }
 
     if data.duration_minutes <= 0:
+        release_quota(request.auth, "timer")
         return 400, {
             "error": "validation_error",
             "message": "Duration must be positive",
         }
 
     was_cached = is_ai_cache_hit("timer_name", step_text=data.step_text, duration_minutes=data.duration_minutes)
-    result = generate_timer_name(
-        step_text=data.step_text,
-        duration_minutes=data.duration_minutes,
-    )
-    if not was_cached:
-        increment_quota(request.auth, "timer")
+    try:
+        result = generate_timer_name(
+            step_text=data.step_text,
+            duration_minutes=data.duration_minutes,
+        )
+    except Exception:
+        release_quota(request.auth, "timer")
+        raise
+    if was_cached:
+        release_quota(request.auth, "timer")
     return result
 
 

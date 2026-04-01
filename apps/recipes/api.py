@@ -2,7 +2,6 @@
 Recipe API endpoints.
 """
 
-import asyncio
 import hashlib
 import logging
 from typing import List, Optional
@@ -14,6 +13,9 @@ from django.conf import settings
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from ninja import Router, Schema
+from ninja.errors import HttpError
+
+from django_ratelimit.core import is_ratelimited
 
 from apps.core.auth import AdminAuth, SessionAuth
 from apps.profiles.utils import aget_current_profile_or_none, get_current_profile_or_none
@@ -187,7 +189,11 @@ def list_recipes(
     return qs[offset : offset + limit]
 
 
-@router.post("/scrape/", response={201: RecipeOut, 400: ErrorOut, 403: ErrorOut, 502: ErrorOut}, auth=SessionAuth())
+@router.post(
+    "/scrape/",
+    response={201: RecipeOut, 400: ErrorOut, 403: ErrorOut, 429: ErrorOut, 502: ErrorOut},
+    auth=SessionAuth(),
+)
 async def scrape_recipe(request, payload: ScrapeIn):
     """
     Scrape a recipe from a URL.
@@ -198,6 +204,10 @@ async def scrape_recipe(request, payload: ScrapeIn):
 
     Note: Re-scraping the same URL will create a new recipe record.
     """
+    limited = await sync_to_async(is_ratelimited)(request, group="scrape", key="ip", rate="5/h", increment=True)
+    if limited:
+        return 429, {"detail": "Too many scrape requests. Please try again later."}
+
     profile = await aget_current_profile_or_none(request)
     if not profile:
         return 403, {"detail": "Profile required to scrape recipes"}
@@ -304,6 +314,10 @@ async def search_recipes(
     Uses cached images when available for iOS 9 compatibility.
     Use the scrape endpoint to save a recipe from the results.
     """
+    limited = await sync_to_async(is_ratelimited)(request, group="search", key="ip", rate="60/h", increment=True)
+    if limited:
+        raise HttpError(429, "Too many search requests. Please try again later.")
+
     source_list = None
     if sources:
         source_list = [s.strip() for s in sources.split(",") if s.strip()]

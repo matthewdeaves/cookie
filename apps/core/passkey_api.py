@@ -2,12 +2,13 @@
 
 import json
 import logging
+import time
 import uuid
 
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.models import User
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
 from ninja import Router
@@ -84,9 +85,10 @@ def register_options(request):
         ),
     )
 
-    # Store challenge and user_id in session for verification
+    # Store challenge, user_id, and creation timestamp in session
     request.session["webauthn_register_challenge"] = options.challenge.hex()
     request.session["webauthn_register_user_id"] = user_id.hex()
+    request.session["webauthn_challenge_created_at"] = time.time()
 
     return 200, json.loads(options_to_json(options))
 
@@ -96,6 +98,12 @@ def register_options(request):
 def register_verify(request):
     """Verify registration response and create account."""
     require_passkey_mode(request)
+
+    # Consume challenge BEFORE rate limit check to prevent replay (FR-011)
+    challenge_hex = request.session.pop("webauthn_register_challenge", None)
+    user_id_hex = request.session.pop("webauthn_register_user_id", None)
+    created_at = request.session.pop("webauthn_challenge_created_at", None)
+
     if getattr(request, "limited", False):
         security_logger.warning(
             "Rate limit hit: passkey register/verify/ from %s",
@@ -103,10 +111,12 @@ def register_verify(request):
         )
         return 429, {"error": "Too many attempts. Please try again later."}
 
-    challenge_hex = request.session.pop("webauthn_register_challenge", None)
-    user_id_hex = request.session.pop("webauthn_register_user_id", None)
     if not challenge_hex or not user_id_hex:
         return 400, {"error": "Registration failed: no pending challenge"}
+
+    # Reject expired challenges (FR-010: 5-minute window)
+    if created_at and (time.time() - created_at) > 300:
+        return 400, {"error": "Registration failed: challenge expired"}
 
     try:
         body = json.loads(request.body)
@@ -202,6 +212,7 @@ def login_options(request):
     )
 
     request.session["webauthn_login_challenge"] = options.challenge.hex()
+    request.session["webauthn_challenge_created_at"] = time.time()
 
     return 200, json.loads(options_to_json(options))
 
@@ -211,6 +222,11 @@ def login_options(request):
 def login_verify(request):
     """Verify authentication response and establish session."""
     require_passkey_mode(request)
+
+    # Consume challenge BEFORE rate limit check to prevent replay (FR-011)
+    challenge_hex = request.session.pop("webauthn_login_challenge", None)
+    created_at = request.session.pop("webauthn_challenge_created_at", None)
+
     if getattr(request, "limited", False):
         security_logger.warning(
             "Rate limit hit: passkey login/verify/ from %s",
@@ -218,9 +234,12 @@ def login_verify(request):
         )
         return 429, {"error": "Too many attempts. Please try again later."}
 
-    challenge_hex = request.session.pop("webauthn_login_challenge", None)
     if not challenge_hex:
         return 401, {"error": "Authentication failed: no pending challenge"}
+
+    # Reject expired challenges (FR-010: 5-minute window)
+    if created_at and (time.time() - created_at) > 300:
+        return 401, {"error": "Authentication failed: challenge expired"}
 
     try:
         body = json.loads(request.body)
@@ -338,6 +357,7 @@ def add_credential_options(request):
     )
 
     request.session["webauthn_add_challenge"] = options.challenge.hex()
+    request.session["webauthn_challenge_created_at"] = time.time()
 
     return 200, json.loads(options_to_json(options))
 
@@ -348,8 +368,13 @@ def add_credential_verify(request):
     require_passkey_mode(request)
 
     challenge_hex = request.session.pop("webauthn_add_challenge", None)
+    created_at = request.session.pop("webauthn_challenge_created_at", None)
     if not challenge_hex:
         return 400, {"error": "No pending challenge"}
+
+    # Reject expired challenges (FR-010: 5-minute window)
+    if created_at and (time.time() - created_at) > 300:
+        return 400, {"error": "Challenge expired"}
 
     try:
         body = json.loads(request.body)

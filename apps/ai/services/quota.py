@@ -51,10 +51,13 @@ def _next_midnight_utc_iso() -> str:
 
 
 def check_quota(profile, feature: str) -> tuple[bool, dict]:
-    """Check whether *profile* may use *feature* right now.
+    """Check whether *profile* may use *feature* right now (read-only).
 
     Returns (allowed, info_dict). Info is empty when allowed;
     contains remaining/limit/used/resets_at when denied.
+
+    NOTE: For atomic enforcement under concurrent load, use
+    reserve_quota() instead of check_quota() + increment_quota().
     """
     if getattr(settings, "AUTH_MODE", "home") != "passkey":
         return (True, {})
@@ -89,8 +92,82 @@ def check_quota(profile, feature: str) -> tuple[bool, dict]:
     return (True, {})
 
 
+def reserve_quota(profile, feature: str) -> tuple[bool, dict]:
+    """Atomically reserve a quota slot BEFORE executing the AI operation.
+
+    Uses cache.incr() which is atomic at the database level, preventing
+    concurrent requests from bypassing the quota limit.
+
+    Returns (allowed, info_dict). If allowed, the counter is already
+    incremented. On AI failure, call release_quota() to roll back.
+    """
+    if getattr(settings, "AUTH_MODE", "home") != "passkey":
+        return (True, {})
+
+    if profile.user and profile.user.is_staff:
+        return (True, {})
+
+    if profile.unlimited_ai:
+        return (True, {})
+
+    if feature not in FEATURE_LIMIT_FIELDS:
+        raise ValueError(f"Unknown quota feature: {feature}")
+
+    app = AppSettings.get()
+    limit_field = FEATURE_LIMIT_FIELDS[feature]
+    limit = getattr(app, limit_field)
+
+    key = _cache_key(profile.pk, feature)
+    ttl = _seconds_until_midnight_utc()
+
+    # Atomic increment — if key doesn't exist, set to 1
+    try:
+        new_count = cache.incr(key)
+    except ValueError:
+        cache.set(key, 1, timeout=ttl)
+        new_count = 1
+
+    if new_count > limit:
+        # Over limit — roll back the increment we just did
+        try:
+            cache.decr(key)
+        except ValueError:
+            pass
+        return (
+            False,
+            {
+                "remaining": 0,
+                "limit": limit,
+                "used": new_count - 1,
+                "resets_at": _next_midnight_utc_iso(),
+            },
+        )
+
+    return (True, {})
+
+
+def release_quota(profile, feature: str) -> None:
+    """Roll back a reserved quota slot on AI operation failure (FR-009)."""
+    if getattr(settings, "AUTH_MODE", "home") != "passkey":
+        return
+    if profile.user and profile.user.is_staff:
+        return
+    if profile.unlimited_ai:
+        return
+
+    key = _cache_key(profile.pk, feature)
+    try:
+        cache.decr(key)
+    except ValueError:
+        pass
+
+
 def increment_quota(profile, feature: str) -> None:
-    """Increment the daily counter after a successful AI operation."""
+    """Increment the daily counter after a successful AI operation.
+
+    DEPRECATED: Use reserve_quota() / release_quota() instead for
+    atomic enforcement under concurrent load.
+    """
     key = _cache_key(profile.pk, feature)
     ttl = _seconds_until_midnight_utc()
 

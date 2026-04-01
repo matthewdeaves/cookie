@@ -1,5 +1,6 @@
 """OpenRouter API service using the official SDK."""
 
+import hashlib
 import json
 import logging
 import time
@@ -212,7 +213,7 @@ class OpenRouterService:
         if not api_key:
             return False, "No API key configured"
 
-        key_hash = hash(api_key)
+        key_hash = hashlib.sha256(api_key.encode()).hexdigest()
         now = time.time()
 
         if key_hash in cls._key_validation_cache:

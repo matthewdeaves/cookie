@@ -10,7 +10,7 @@ from apps.core.auth import SessionAuth
 from apps.recipes.models import Recipe
 
 from .api import ErrorOut, handle_ai_errors
-from .services.quota import check_quota, increment_quota
+from .services.quota import release_quota, reserve_quota
 from .services.scaling import scale_recipe, calculate_nutrition
 
 security_logger = logging.getLogger("security")
@@ -63,7 +63,7 @@ def scale_recipe_endpoint(request, data: ScaleIn):
         security_logger.warning("Rate limit hit: /ai/scale from %s", request.META.get("REMOTE_ADDR"))
         return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
 
-    allowed, info = check_quota(request.auth, "scale")
+    allowed, info = reserve_quota(request.auth, "scale")
     if not allowed:
         return 429, {"error": "quota_exceeded", "message": "Daily limit reached for scale", **info}
 
@@ -72,6 +72,7 @@ def scale_recipe_endpoint(request, data: ScaleIn):
     profile = get_current_profile_or_none(request)
 
     if not profile:
+        release_quota(request.auth, "scale")
         return 404, {
             "error": "not_found",
             "message": "Profile not found",
@@ -79,6 +80,7 @@ def scale_recipe_endpoint(request, data: ScaleIn):
 
     # Verify the profile_id in the request matches the session profile
     if data.profile_id != profile.id:
+        release_quota(request.auth, "scale")
         return 404, {
             "error": "not_found",
             "message": f"Profile {data.profile_id} not found",
@@ -87,12 +89,14 @@ def scale_recipe_endpoint(request, data: ScaleIn):
     try:
         recipe = Recipe.objects.get(id=data.recipe_id)
     except Recipe.DoesNotExist:
+        release_quota(request.auth, "scale")
         return 404, {
             "error": "not_found",
             "message": f"Recipe {data.recipe_id} not found",
         }
 
     if recipe.profile_id != profile.id:
+        release_quota(request.auth, "scale")
         return 404, {
             "error": "not_found",
             "message": f"Recipe {data.recipe_id} not found",
@@ -106,10 +110,14 @@ def scale_recipe_endpoint(request, data: ScaleIn):
             unit_system=data.unit_system,
         )
     except ValueError as e:
+        release_quota(request.auth, "scale")
         return 400, {
             "error": "validation_error",
             "message": str(e),
         }
+    except Exception:
+        release_quota(request.auth, "scale")
+        raise
 
     # Calculate nutrition if available
     nutrition = None
@@ -120,8 +128,8 @@ def scale_recipe_endpoint(request, data: ScaleIn):
             target_servings=data.target_servings,
         )
 
-    if not result.get("cached"):
-        increment_quota(request.auth, "scale")
+    if result.get("cached"):
+        release_quota(request.auth, "scale")
     return {
         "target_servings": result["target_servings"],
         "original_servings": result["original_servings"],
