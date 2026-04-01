@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-01T15:29:52.197Z",
+    "detectionDate": "2026-04-01T19:23:47.568Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -401,8 +401,8 @@
             "newClones": 0
           },
           "src/screens/PlayMode.tsx": {
-            "lines": 86,
-            "tokens": 803,
+            "lines": 102,
+            "tokens": 1016,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -593,8 +593,8 @@
             "newClones": 0
           },
           "src/components/TimerWidget.tsx": {
-            "lines": 59,
-            "tokens": 353,
+            "lines": 58,
+            "tokens": 312,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -605,8 +605,8 @@
             "newClones": 0
           },
           "src/components/TimerPanel.tsx": {
-            "lines": 85,
-            "tokens": 749,
+            "lines": 104,
+            "tokens": 831,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -702,7 +702,7 @@
           },
           "src/components/QuickTimerButtons.tsx": {
             "lines": 2,
-            "tokens": 42,
+            "tokens": 30,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -725,8 +725,8 @@
             "newClones": 0
           },
           "src/components/PlayModeControls.tsx": {
-            "lines": 40,
-            "tokens": 219,
+            "lines": 21,
+            "tokens": 99,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -739,18 +739,6 @@
           "src/components/NavHeader.tsx": {
             "lines": 76,
             "tokens": 611,
-            "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
-          "src/components/InstructionDisplay.tsx": {
-            "lines": 0,
-            "tokens": 9,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -906,9 +894,9 @@
           }
         },
         "total": {
-          "lines": 3218,
-          "tokens": 24526,
-          "sources": 75,
+          "lines": 3233,
+          "tokens": 24639,
+          "sources": 74,
           "clones": 0,
           "duplicatedLines": 0,
           "duplicatedTokens": 0,
@@ -1317,8 +1305,8 @@
             "newClones": 0
           },
           "src/screens/PlayMode.tsx": {
-            "lines": 142,
-            "tokens": 1397,
+            "lines": 160,
+            "tokens": 1633,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1509,8 +1497,8 @@
             "newClones": 0
           },
           "src/components/TimerWidget.tsx": {
-            "lines": 92,
-            "tokens": 603,
+            "lines": 89,
+            "tokens": 526,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1521,8 +1509,8 @@
             "newClones": 0
           },
           "src/components/TimerPanel.tsx": {
-            "lines": 135,
-            "tokens": 1230,
+            "lines": 157,
+            "tokens": 1340,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1618,7 +1606,7 @@
           },
           "src/components/QuickTimerButtons.tsx": {
             "lines": 42,
-            "tokens": 338,
+            "tokens": 326,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1641,8 +1629,8 @@
             "newClones": 0
           },
           "src/components/PlayModeControls.tsx": {
-            "lines": 70,
-            "tokens": 408,
+            "lines": 49,
+            "tokens": 282,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1665,8 +1653,8 @@
             "newClones": 0
           },
           "src/components/InstructionDisplay.tsx": {
-            "lines": 27,
-            "tokens": 157,
+            "lines": 24,
+            "tokens": 144,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1834,13 +1822,13 @@
           }
         },
         "total": {
-          "lines": 7133,
-          "tokens": 55654,
+          "lines": 7146,
+          "tokens": 55772,
           "sources": 76,
           "clones": 6,
           "duplicatedLines": 61,
           "duplicatedTokens": 583,
-          "percentage": 0.86,
+          "percentage": 0.85,
           "percentageTokens": 1.05,
           "newDuplicatedLines": 0,
           "newClones": 0
@@ -2212,14 +2200,14 @@
       }
     },
     "total": {
-      "lines": 13350,
-      "tokens": 104928,
-      "sources": 180,
+      "lines": 13378,
+      "tokens": 105159,
+      "sources": 179,
       "clones": 8,
       "duplicatedLines": 120,
       "duplicatedTokens": 877,
       "percentage": 0.9,
-      "percentageTokens": 0.84,
+      "percentageTokens": 0.83,
       "newDuplicatedLines": 0,
       "newClones": 0
     }

@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-01T15:29:42.192Z",
+    "detectionDate": "2026-04-01T19:24:01.470Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -104,11 +104,11 @@
             "lines": 626,
             "tokens": 5054,
             "sources": 1,
-            "clones": 5,
-            "duplicatedLines": 43,
-            "duplicatedTokens": 318,
-            "percentage": 6.87,
-            "percentageTokens": 6.29,
+            "clones": 4,
+            "duplicatedLines": 35,
+            "duplicatedTokens": 261,
+            "percentage": 5.59,
+            "percentageTokens": 5.16,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -116,23 +116,35 @@
             "lines": 252,
             "tokens": 1749,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 29,
-            "duplicatedTokens": 232,
-            "percentage": 11.51,
-            "percentageTokens": 13.26,
+            "clones": 5,
+            "duplicatedLines": 40,
+            "duplicatedTokens": 297,
+            "percentage": 15.87,
+            "percentageTokens": 16.98,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/play.js": {
-            "lines": 618,
-            "tokens": 4451,
+            "lines": 342,
+            "tokens": 2863,
             "sources": 1,
             "clones": 3,
-            "duplicatedLines": 126,
-            "duplicatedTokens": 949,
-            "percentage": 20.39,
-            "percentageTokens": 21.32,
+            "duplicatedLines": 41,
+            "duplicatedTokens": 329,
+            "percentage": 11.99,
+            "percentageTokens": 11.49,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/legacy/static/legacy/js/pages/play-timers.js": {
+            "lines": 177,
+            "tokens": 1282,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -426,28 +438,28 @@
           }
         },
         "total": {
-          "lines": 7145,
-          "tokens": 55064,
-          "sources": 35,
+          "lines": 7046,
+          "tokens": 54758,
+          "sources": 36,
           "clones": 33,
-          "duplicatedLines": 323,
-          "duplicatedTokens": 2795,
-          "percentage": 4.52,
-          "percentageTokens": 5.08,
+          "duplicatedLines": 282,
+          "duplicatedTokens": 2489,
+          "percentage": 4,
+          "percentageTokens": 4.55,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7145,
-      "tokens": 55064,
-      "sources": 35,
+      "lines": 7046,
+      "tokens": 54758,
+      "sources": 36,
       "clones": 33,
-      "duplicatedLines": 323,
-      "duplicatedTokens": 2795,
-      "percentage": 4.52,
-      "percentageTokens": 5.08,
+      "duplicatedLines": 282,
+      "duplicatedTokens": 2489,
+      "percentage": 4,
+      "percentageTokens": 4.55,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -779,68 +791,68 @@
     },
     {
       "format": "javascript",
-      "lines": 60,
-      "fragment": "(e) {\n        var btn = e.currentTarget;\n        var duration = parseInt(btn.getAttribute('data-duration'), 10);\n        var label = btn.getAttribute('data-label');\n        var instruction = instructions[currentStep] || '';\n\n        // If AI is available, try to get an AI-generated name\n        if (aiAvailable && instruction) {\n            // Disable button while loading\n            btn.disabled = true;\n            btn.classList.add('loading');\n\n            // Convert seconds to minutes for the API\n            var durationMinutes = Math.ceil(duration / 60);\n\n            // Call AI API using XMLHttpRequest (ES5 compatible)\n            var xhr = new XMLHttpRequest();\n            xhr.open('POST', '/api/ai/timer-name', true);\n            xhr.setRequestHeader('Content-Type', 'application/json');\n\n            xhr.onreadystatechange = function() {\n                if (xhr.readyState === 4) {\n                    btn.disabled = false;\n                    btn.classList.remove('loading');\n\n                    if (xhr.status === 200) {\n                        try {\n                            var response = JSON.parse(xhr.responseText);\n                            if (response.label) {\n                                addTimer(response.label, duration);\n                                return;\n                            }\n                        } catch (parseError) {\n                            // JSON parse error, fall through to default\n                        }\n                    }\n                    // AI failed, use default label\n                    addTimer(label, duration);\n                }\n            };\n\n            xhr.onerror = function() {\n                btn.disabled = false;\n                btn.classList.remove('loading');\n                addTimer(label, duration);\n            };\n\n            xhr.send(JSON.stringify({\n                step_text: instruction,\n                duration_minutes: durationMinutes\n            }));\n        } else {\n            // No AI available, use default label\n            addTimer(label, duration);\n        }\n    }\n\n    /**\n     * Add a new timer\n     */",
+      "lines": 16,
+      "fragment": "(e) {\n        var btn = e.currentTarget;\n        var duration = parseInt(btn.getAttribute('data-duration'), 10);\n        var label = btn.getAttribute('data-label');\n        var instruction = instructions[currentStep] || '';\n\n        if (aiAvailable && instruction) {\n            requestAITimerName(btn, duration, label, instruction);\n        } else {\n            Cookie.pages.playTimers.addTimer(label, duration);\n        }\n    }\n\n    /**\n     * Request AI-generated timer name, falling back to default label\n     */",
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/play.js",
-        "start": 420,
-        "end": 479,
+        "start": 274,
+        "end": 289,
         "startLoc": {
-          "line": 420,
+          "line": 274,
           "column": 20,
-          "position": 3044
+          "position": 2281
         },
         "endLoc": {
-          "line": 479,
+          "line": 289,
           "column": 8,
-          "position": 3490
+          "position": 2413
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/play.js",
-        "start": 359,
-        "end": 419,
+        "start": 258,
+        "end": 273,
         "startLoc": {
-          "line": 359,
+          "line": 258,
           "column": 17,
-          "position": 2592
+          "position": 2143
         },
         "endLoc": {
-          "line": 419,
+          "line": 273,
           "column": 8,
-          "position": 3038
+          "position": 2275
         }
       }
     },
     {
       "format": "javascript",
-      "lines": 9,
-      "fragment": "return {\n        init: init\n    };\n})();\n\n// Auto-init on page load\n(function() {\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', Cookie.pages.play",
+      "lines": 12,
+      "fragment": ");\n    }\n\n    return {\n        init: init\n    };\n})();\n\n// Auto-init on page load\n(function() {\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', Cookie.pages.play",
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/play.js",
-        "start": 607,
-        "end": 615,
+        "start": 328,
+        "end": 339,
         "startLoc": {
-          "line": 607,
-          "column": 5,
-          "position": 4362
+          "line": 328,
+          "column": 2,
+          "position": 2766
         },
         "endLoc": {
-          "line": 615,
+          "line": 339,
           "column": 5,
-          "position": 4419
+          "position": 2831
         }
       },
       "secondFile": {
-        "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 615,
+        "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
+        "start": 238,
         "end": 623,
         "startLoc": {
-          "line": 615,
-          "column": 5,
-          "position": 4965
+          "line": 238,
+          "column": 7,
+          "position": 1652
         },
         "endLoc": {
           "line": 623,
