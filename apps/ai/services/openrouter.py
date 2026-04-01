@@ -213,17 +213,18 @@ class OpenRouterService:
         if not api_key:
             return False, "No API key configured"
 
-        key_hash = hashlib.sha256(api_key.encode()).hexdigest()
+        # SHA-256 used as a cache lookup key (not for password storage)
+        cache_id = hashlib.sha256(api_key.encode()).hexdigest()  # nosec
         now = time.time()
 
-        if key_hash in cls._key_validation_cache:
-            is_valid, timestamp = cls._key_validation_cache[key_hash]
+        if cache_id in cls._key_validation_cache:
+            is_valid, timestamp = cls._key_validation_cache[cache_id]
             if now - timestamp < cls.KEY_VALIDATION_TTL:
                 return is_valid, None if is_valid else "API key is invalid or expired"
 
         try:
             is_valid, message = cls.test_connection(api_key)
-            cls._key_validation_cache[key_hash] = (is_valid, now)
+            cls._key_validation_cache[cache_id] = (is_valid, now)
             return is_valid, None if is_valid else message
         except Exception as e:
             logger.exception("Failed to validate API key")
