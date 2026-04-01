@@ -27,6 +27,9 @@ Cookie.app = (function() {
         // Make source links on recipe cards open the original recipe URL
         setupSourceLinks();
 
+        // Keep links inside the PWA shell on iOS standalone mode
+        setupStandaloneNavigation();
+
         // Initialize page-specific modules if they exist
         var pageName = document.body.getAttribute('data-page');
         if (pageName && Cookie.pages && Cookie.pages[pageName]) {
@@ -174,6 +177,32 @@ Cookie.app = (function() {
                 break;
             }
         }
+    }
+
+    /**
+     * Keep navigation inside the PWA shell on iOS standalone mode.
+     * Without this, tapping <a> links opens a new Safari window.
+     */
+    function setupStandaloneNavigation() {
+        if (!window.navigator.standalone) return;
+
+        document.addEventListener('click', function(e) {
+            var target = e.target;
+            while (target && target.nodeName !== 'A') {
+                target = target.parentNode;
+            }
+            if (!target || target.nodeName !== 'A') return;
+
+            var href = target.getAttribute('href');
+            if (href
+                && href.indexOf('http') !== 0
+                && href.indexOf('javascript:') !== 0
+                && href.charAt(0) !== '#'
+                && !target.getAttribute('target')) {
+                e.preventDefault();
+                window.location.href = href;
+            }
+        }, false);
     }
 
     // Initialize when DOM is ready
