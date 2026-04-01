@@ -298,7 +298,7 @@ apps/ai/services/openrouter.py
     C 22:0 AIUnavailableError - A (1)
     C 28:0 AIResponseError - A (1)
     M 160:4 OpenRouterService.is_available - A (1)
-    M 233:4 OpenRouterService.invalidate_key_cache - A (1)
+    M 234:4 OpenRouterService.invalidate_key_cache - A (1)
 apps/ai/services/selector.py
     F 18:0 repair_selector - A (5)
     F 128:0 repair_all_broken_selectors - A (5)

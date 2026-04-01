@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-01T09:19:33.966Z",
+    "detectionDate": "2026-04-01T09:40:22.151Z",
     "formats": {
       "python": {
         "sources": {
@@ -257,14 +257,14 @@
             "newClones": 0
           },
           "apps/ai/services/openrouter.py": {
-            "lines": 234,
-            "tokens": 1742,
+            "lines": 235,
+            "tokens": 1747,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 52,
             "duplicatedTokens": 322,
-            "percentage": 22.22,
-            "percentageTokens": 18.48,
+            "percentage": 22.13,
+            "percentageTokens": 18.43,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -702,8 +702,8 @@
           }
         },
         "total": {
-          "lines": 10410,
-          "tokens": 72273,
+          "lines": 10411,
+          "tokens": 72278,
           "sources": 58,
           "clones": 7,
           "duplicatedLines": 113,
@@ -716,8 +716,8 @@
       }
     },
     "total": {
-      "lines": 10410,
-      "tokens": 72273,
+      "lines": 10411,
+      "tokens": 72278,
       "sources": 58,
       "clones": 7,
       "duplicatedLines": 113,
