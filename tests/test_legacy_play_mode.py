@@ -75,8 +75,7 @@ class TestLegacyPlayMode:
         # Step counter shows "Step X of N" with total-steps span
         assert "play-step-counter" in content
         assert 'id="total-steps"' in content
-        # 3 step indicator dots rendered
-        assert content.count("step-dot") == 3
+        assert 'id="current-step"' in content
 
     def test_play_mode_shows_navigation_buttons(self, client):
         """Play mode shows previous/next buttons."""
