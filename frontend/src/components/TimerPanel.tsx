@@ -14,9 +14,9 @@ interface TimerPanelProps {
 }
 
 const QUICK_TIMERS = [
-  { label: '+5 min', duration: 5 * 60 },
-  { label: '+10 min', duration: 10 * 60 },
-  { label: '+15 min', duration: 15 * 60 },
+  { label: '5 min', duration: 5 * 60 },
+  { label: '10 min', duration: 10 * 60 },
+  { label: '15 min', duration: 15 * 60 },
 ]
 
 function formatDetectedTime(seconds: number): string {

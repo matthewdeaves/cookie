@@ -25,7 +25,7 @@ export default function QuickTimerButtons({
       {quickTimers.map(({ label, duration }, idx) => (
         <button
           key={label}
-          onClick={() => onAdd(label.replace('+', '').trim(), duration, idx)}
+          onClick={() => onAdd(label, duration, idx)}
           disabled={loadingTimerId !== null}
           className="flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-muted disabled:opacity-50"
         >

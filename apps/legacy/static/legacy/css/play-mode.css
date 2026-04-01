@@ -1,28 +1,25 @@
-/* Cookie Legacy - Play Mode Styles (iOS 9 compatible) */
+/* Cookie Legacy - Play Mode / Cook Mode (iOS 9.3 compatible)
+   Landscape split (step + timers side-by-side), portrait stacked.
+   Uses -webkit- prefixes, literal colors, margin-based gaps. */
 
-/* Full-screen play mode layout */
+/* Base layout */
 .play-mode {
     display: -webkit-flex;
     display: flex;
     -webkit-flex-direction: column;
     flex-direction: column;
-    min-height: 100vh;
     height: 100vh;
     height: -webkit-fill-available;
     background-color: #faf9f7;
 }
 
-/* Header with progress */
 .play-header {
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
     border-bottom: 1px solid #e8e1d8;
 }
 
-.progress-track {
-    height: 4px;
-    background-color: #e8e1d8;
-}
+.progress-track { height: 4px; background-color: #e8e1d8; }
 
 .progress-bar {
     height: 100%;
@@ -38,18 +35,14 @@
     align-items: center;
     -webkit-justify-content: space-between;
     justify-content: space-between;
-    padding: 0.75rem 1rem;
+    padding: 0.625rem 1rem;
 }
 
-.play-header-info {
-    -webkit-flex: 1;
-    flex: 1;
-    min-width: 0;
-}
+.play-header-info { -webkit-flex: 1; flex: 1; min-width: 0; }
 
 .play-title {
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: 0.9375rem;
+    font-weight: 600;
     color: #2d2520;
     margin: 0;
     overflow: hidden;
@@ -57,11 +50,7 @@
     white-space: nowrap;
 }
 
-.play-step-counter {
-    font-size: 0.75rem;
-    color: #6b6560;
-    margin: 0;
-}
+.play-step-counter { font-size: 0.75rem; color: #6b6560; margin: 2px 0 0 0; }
 
 .play-exit-btn {
     display: -webkit-flex;
@@ -72,453 +61,262 @@
     justify-content: center;
     width: 2.5rem;
     height: 2.5rem;
+    margin-left: 0.75rem;
     background-color: #e8e1d8;
     border: none;
     border-radius: 50%;
     color: #6b6560;
     text-decoration: none;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
     -webkit-transition: background-color 0.15s ease;
     transition: background-color 0.15s ease;
 }
 
-.play-exit-btn:hover {
-    background-color: #f4ede6;
-}
+.play-exit-btn:active { background-color: #f4ede6; }
 
-/* Main content area */
-.play-main {
+/* Cook body — flex container for split layout */
+.cook-body {
     display: -webkit-flex;
     display: flex;
     -webkit-flex-direction: column;
     flex-direction: column;
     -webkit-flex: 1;
     flex: 1;
-    /* iOS 9 flexbox fix: min-height: 0 allows flex child to shrink below content size */
     min-height: 0;
     -webkit-min-height: 0;
     overflow: hidden;
 }
 
-/* Instruction wrapper - horizontal layout with side nav buttons */
-.instruction-wrapper {
+/* Step panel */
+.step-panel {
     display: -webkit-flex;
     display: flex;
-    -webkit-flex-direction: row;
-    flex-direction: row;
+    -webkit-flex-direction: column;
+    flex-direction: column;
     -webkit-flex: 1;
     flex: 1;
     min-height: 0;
     -webkit-min-height: 0;
 }
 
-/* Side navigation buttons - minimal, subtle design */
-.side-nav {
+.step-content {
+    -webkit-flex: 1;
+    flex: 1;
     display: -webkit-flex;
     display: flex;
     -webkit-flex-direction: column;
     flex-direction: column;
-    -webkit-align-items: center;
-    align-items: center;
     -webkit-justify-content: center;
     justify-content: center;
-    width: 3.5rem;
-    -webkit-flex-shrink: 0;
-    flex-shrink: 0;
-    background-color: transparent;
-    border: none;
-    color: #6b6560;
-    cursor: pointer;
-    -webkit-transition: color 0.15s ease, background-color 0.15s ease;
-    transition: color 0.15s ease, background-color 0.15s ease;
-}
-
-.side-nav:hover:not(:disabled) {
-    color: #2d2520;
-    background-color: rgba(0, 0, 0, 0.03);
-}
-
-.side-nav:active:not(:disabled) {
-    background-color: rgba(0, 0, 0, 0.06);
-}
-
-.side-nav:disabled,
-.side-nav.disabled {
-    opacity: 0.2;
-    cursor: not-allowed;
-}
-
-.side-nav svg {
-    width: 28px;
-    height: 28px;
-    stroke-width: 1.5;
-}
-
-.side-nav-label {
-    display: none;
-    font-size: 0.625rem;
-    font-weight: 500;
-    margin-top: 0.125rem;
-}
-
-@media (min-width: 480px) {
-    .side-nav-label {
-        display: block;
-    }
-}
-
-/* Instruction area */
-.instruction-area {
-    display: -webkit-flex;
-    display: flex;
-    -webkit-flex: 1;
-    flex: 1;
-    -webkit-flex-direction: column;
-    flex-direction: column;
-    /* iOS 9 flexbox fix: min-height: 0 allows this flex child to shrink and scroll */
-    min-height: 0;
-    -webkit-min-height: 0;
-    min-width: 0;
-    -webkit-min-width: 0;
     -webkit-align-items: center;
     align-items: center;
-    -webkit-justify-content: flex-start;
-    justify-content: flex-start;
-    padding: 1rem;
-    padding-top: 15%;
+    padding: 1.5rem 2rem;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    min-height: 0;
+    -webkit-min-height: 0;
 }
 
-.instruction-content {
-    max-width: 40rem;
-    width: 100%;
-    text-align: center;
-    padding: 0.5rem 0;
-}
-
-.step-number {
-    display: -webkit-flex;
-    display: flex;
-    -webkit-align-items: center;
-    align-items: center;
-    -webkit-justify-content: center;
-    justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    margin: 0 auto 1rem;
-    background-color: #6b8e5f;
+.step-badge {
+    width: 2.75rem;
+    height: 2.75rem;
     border-radius: 50%;
-    font-size: 1rem;
-    font-weight: 700;
+    background-color: #6b8e5f;
     color: #ffffff;
-}
-
-.instruction-text {
     font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 2.75rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+}
+
+.step-text {
+    font-size: 1.25rem;
     line-height: 1.6;
+    text-align: center;
     color: #2d2520;
-    margin: 0 0 1rem 0;
+    max-width: 36rem;
+    margin: 0;
 }
 
-@media (min-width: 640px) {
-    .instruction-text {
-        font-size: 1.25rem;
-    }
-
-    .side-nav {
-        width: 4.5rem;
-    }
+/* Navigation buttons */
+.step-nav {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+    padding: 0 1rem 1rem 1rem;
 }
 
-/* Landscape mode adjustments - more compact layout */
-@media (orientation: landscape) and (max-height: 500px) {
-    .play-header-content {
-        padding: 0.5rem 1rem;
-    }
-
-    .play-title {
-        font-size: 0.75rem;
-    }
-
-    .play-step-counter {
-        font-size: 0.625rem;
-    }
-
-    .play-exit-btn {
-        width: 2rem;
-        height: 2rem;
-    }
-
-    .play-exit-btn svg {
-        width: 16px;
-        height: 16px;
-    }
-
-    .instruction-area {
-        padding: 0.5rem;
-    }
-
-    .instruction-content {
-        padding: 0;
-    }
-
-    .step-number {
-        width: 2rem;
-        height: 2rem;
-        margin: 0 auto 0.5rem;
-        font-size: 0.875rem;
-    }
-
-    .instruction-text {
-        font-size: 1rem;
-        line-height: 1.4;
-        margin: 0;
-    }
-
-    /* Hide step indicators in landscape - not enough space */
-    .step-indicators {
-        display: none;
-    }
-
-    .side-nav svg {
-        width: 24px;
-        height: 24px;
-    }
-}
-
-/* Very short landscape (phones) - even more compact */
-@media (orientation: landscape) and (max-height: 380px) {
-    .play-header {
-        display: none;
-    }
-
-    .step-number {
-        display: none;
-    }
-
-    .instruction-text {
-        font-size: 0.9375rem;
-    }
-}
-
-/* Step indicators - compact, at bottom of content */
-.step-indicators {
+.step-nav-btn {
     display: -webkit-flex;
     display: flex;
     -webkit-align-items: center;
     align-items: center;
     -webkit-justify-content: center;
     justify-content: center;
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid #e8e1d8;
-}
-
-/* iOS 9 fallback for gap */
-.step-indicators > * {
-    margin: 0 2px;
-}
-
-.step-dot {
-    width: 6px;
-    height: 6px;
-    background-color: #e8e1d8;
+    height: 56px;
+    border-radius: 14px;
     border: none;
-    border-radius: 50%;
+    font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
-    padding: 0;
-    -webkit-transition: all 0.15s ease;
-    transition: all 0.15s ease;
+    -webkit-flex: 1;
+    flex: 1;
+    -webkit-transition: background-color 0.15s ease, -webkit-transform 0.1s ease;
+    transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
-.step-dot:hover {
-    background-color: #6b8e5f;
+.step-nav-btn:active:not([disabled]) {
+    -webkit-transform: scale(0.97);
+    transform: scale(0.97);
 }
 
-.step-dot.active {
-    width: 8px;
-    height: 8px;
-    background-color: #6b8e5f;
-}
+.step-nav-btn[disabled] { opacity: 0.25; cursor: default; }
+.step-nav-btn.prev-btn { background-color: #e8e1d8; color: #6b6560; margin-right: 0.5rem; }
+.step-nav-btn.prev-btn:active:not([disabled]) { background-color: #f4ede6; }
+.step-nav-btn.next-btn { background-color: #6b8e5f; color: #ffffff; margin-left: 0.5rem; }
+.step-nav-btn.next-btn:active:not([disabled]) { background-color: #5e7f53; }
 
-.step-dot.completed {
-    background-color: #6b8e5f;
-    opacity: 0.4;
-}
+.nav-arrow { font-size: 1.25rem; line-height: 1; }
+.prev-btn .nav-arrow { margin-right: 0.5rem; }
+.next-btn .nav-arrow { margin-left: 0.5rem; }
 
-/* For recipes with many steps, hide dots entirely */
-/* The header already shows "Step X of Y" */
-.step-indicators.many-steps {
-    display: none;
-}
-
-/* Timer Panel */
+/* Timer panel */
 .timer-panel {
     border-top: 1px solid #e8e1d8;
     background-color: #ffffff;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
+    max-height: 45vh;
 }
 
-.timer-panel-toggle {
+.timer-toggle {
     display: -webkit-flex;
     display: flex;
     -webkit-align-items: center;
     align-items: center;
-    -webkit-justify-content: space-between;
-    justify-content: space-between;
     width: 100%;
     padding: 0.75rem 1rem;
     background: none;
     border: none;
     cursor: pointer;
-    text-align: left;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
 }
 
-.timer-panel-title {
-    display: -webkit-flex;
-    display: flex;
-    -webkit-align-items: center;
-    align-items: center;
-    font-weight: 500;
-    color: #2d2520;
-}
+.timer-icon { color: #6b8e5f; margin-right: 0.5rem; -webkit-flex-shrink: 0; flex-shrink: 0; }
+.timer-toggle-label { font-size: 0.9375rem; font-weight: 600; color: #2d2520; }
 
-/* iOS 9 fallback for gap (flex-row) */
-.timer-panel-title > * + * {
-    margin-left: 0.5rem;
-}
-
-.timer-panel-title svg {
-    color: #6b8e5f;
-}
-
-.timer-count {
+.timer-count-badge {
+    display: none;
     padding: 0.125rem 0.5rem;
     background-color: #e8e1d8;
     border-radius: 9999px;
     font-size: 0.75rem;
-    font-weight: normal;
     color: #6b6560;
+    margin-left: 0.5rem;
 }
 
 .timer-chevron {
+    margin-left: auto;
     color: #6b6560;
-    -webkit-transition: -webkit-transform 0.15s ease;
-    transition: transform 0.15s ease;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+    -webkit-transition: -webkit-transform 0.2s ease;
+    transition: transform 0.2s ease;
 }
 
-.timer-panel-content {
-    padding: 0 1rem 1rem;
+.timer-body {
+    display: none;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 1rem 1rem 1rem;
+    min-height: 0;
+    -webkit-min-height: 0;
 }
 
-/* Quick timer buttons */
+/* Quick timers & detected times */
 .quick-timers {
     display: -webkit-flex;
     display: flex;
     -webkit-flex-wrap: wrap;
     flex-wrap: wrap;
-    margin-bottom: 1rem;
-    /* iOS 9 fallback for gap (flex-wrap) */
     margin: -0.25rem -0.25rem 0.75rem -0.25rem;
 }
 
-/* iOS 9 fallback for gap (flex-wrap) */
-.quick-timers > * {
-    margin: 0.25rem;
-}
+.quick-timers > * { margin: 0.25rem; }
 
 .quick-timer-btn {
     display: -webkit-flex;
     display: flex;
     -webkit-align-items: center;
     align-items: center;
-    padding: 0.375rem 0.75rem;
-    background-color: #faf9f7;
-    border: 1px solid #e8e1d8;
+    height: 40px;
+    padding: 0 0.875rem;
     border-radius: 9999px;
-    font-size: 0.875rem;
+    border: 1px solid #e8e1d8;
+    background-color: #faf9f7;
     color: #2d2520;
+    font-size: 0.875rem;
+    font-weight: 500;
     cursor: pointer;
     -webkit-transition: background-color 0.15s ease;
     transition: background-color 0.15s ease;
-    min-height: 32px;
 }
 
-/* iOS 9 fallback for gap (flex-row) */
-.quick-timer-btn > * + * {
-    margin-left: 0.25rem;
-}
-
-.quick-timer-btn:hover {
-    background-color: #e8e1d8;
-}
-
-.quick-timer-btn:disabled {
-    opacity: 0.5;
-    cursor: wait;
-}
+.quick-timer-btn > * + * { margin-left: 0.25rem; }
+.quick-timer-btn:active { background-color: #e8e1d8; }
+.quick-timer-btn:disabled { opacity: 0.5; cursor: wait; }
 
 .quick-timer-btn.loading svg {
     -webkit-animation: spin 1s linear infinite;
     animation: spin 1s linear infinite;
 }
 
-/* Detected times */
-.detected-times {
-    margin-bottom: 1rem;
-}
-
-.detected-times-label {
-    font-size: 0.75rem;
-    color: #6b6560;
-    margin: 0 0 0.5rem 0;
-}
+.detected-times { margin-bottom: 0.75rem; }
+.detected-times-label { font-size: 0.75rem; color: #6b6560; margin: 0 0 0.375rem 0; }
 
 .detected-times-btns {
     display: -webkit-flex;
     display: flex;
     -webkit-flex-wrap: wrap;
     flex-wrap: wrap;
-    /* iOS 9 fallback for gap (flex-wrap) */
     margin: -0.25rem;
 }
 
-/* iOS 9 fallback for gap (flex-wrap) */
-.detected-times-btns > * {
-    margin: 0.25rem;
-}
+.detected-times-btns > * { margin: 0.25rem; }
 
 .detected-time-btn {
     display: -webkit-flex;
     display: flex;
     -webkit-align-items: center;
     align-items: center;
-    padding: 0.375rem 0.75rem;
-    background-color: rgba(107, 142, 95, 0.1);
-    border: none;
+    height: 36px;
+    padding: 0 0.75rem;
     border-radius: 9999px;
-    font-size: 0.875rem;
+    border: 1px solid rgba(107, 142, 95, 0.3);
+    background-color: rgba(107, 142, 95, 0.1);
     color: #6b8e5f;
+    font-size: 0.8125rem;
+    font-weight: 500;
     cursor: pointer;
     -webkit-transition: background-color 0.15s ease;
     transition: background-color 0.15s ease;
-    min-height: 32px;
 }
 
-/* iOS 9 fallback for gap (flex-row) */
-.detected-time-btn > * + * {
-    margin-left: 0.25rem;
-}
-
-.detected-time-btn:hover {
-    background-color: rgba(107, 142, 95, 0.2);
-}
-
-.detected-time-btn:disabled {
-    opacity: 0.5;
-    cursor: wait;
-}
+.detected-time-btn > * + * { margin-left: 0.25rem; }
+.detected-time-btn:active { background-color: rgba(107, 142, 95, 0.2); }
+.detected-time-btn:disabled { opacity: 0.5; cursor: wait; }
 
 .detected-time-btn.loading svg {
     -webkit-animation: spin 1s linear infinite;
@@ -535,21 +333,15 @@
     to { transform: rotate(360deg); }
 }
 
-/* Timer list */
+/* Timer list & compact widgets */
 .timer-list {
     display: -webkit-flex;
     display: flex;
     -webkit-flex-direction: column;
     flex-direction: column;
-    max-height: 200px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
 }
 
-/* iOS 9 fallback for gap (flex-column) */
-.timer-list > * + * {
-    margin-top: 0.5rem;
-}
+.timer-list > * + * { margin-top: 0.5rem; }
 
 .timer-list-empty {
     text-align: center;
@@ -559,150 +351,55 @@
     margin: 0;
 }
 
-/* Timer widget */
 .timer-widget {
-    background-color: #faf9f7;
-    border: 1px solid #e8e1d8;
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-    /* iOS 9 flexbox containment fix */
-    -webkit-flex-shrink: 0;
-    flex-shrink: 0;
-    overflow: hidden;
-}
-
-.timer-widget.timer-running {
-    border-color: #6b8e5f;
-}
-
-.timer-widget.timer-completed {
-    border-color: #a84f5f;
-    background-color: rgba(244, 172, 69, 0.1);
-}
-
-.timer-info {
     display: -webkit-flex;
     display: flex;
     -webkit-align-items: center;
     align-items: center;
-    -webkit-justify-content: space-between;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
+    background-color: #faf9f7;
+    border: 1px solid #e8e1d8;
+    border-left: 3px solid #e8e1d8;
+    border-radius: 10px;
+    padding: 10px 12px;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
 }
 
+.timer-widget.timer-running { border-left-color: #6b8e5f; }
+.timer-widget.timer-completed { border-left-color: #a84f5f; }
+
+.timer-info { -webkit-flex: 1; flex: 1; min-width: 0; }
+
 .timer-label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #2d2520;
+    font-size: 0.8125rem;
+    color: #6b6560;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .timer-time {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     font-weight: 700;
     font-family: monospace;
     color: #2d2520;
+    letter-spacing: 0.02em;
 }
 
-.timer-running .timer-time {
-    color: #6b8e5f;
-}
-
-.timer-completed .timer-time {
-    color: #a84f5f;
-}
-
-.timer-progress {
-    height: 4px;
-    background-color: #e8e1d8;
-    border-radius: 2px;
-    margin-bottom: 0.75rem;
-    overflow: hidden;
-}
-
-.timer-progress-bar {
-    height: 100%;
-    background-color: #6b8e5f;
-    border-radius: 2px;
-    -webkit-transition: width 0.3s ease;
-    transition: width 0.3s ease;
-}
-
-.timer-completed .timer-progress-bar {
-    background-color: #a84f5f;
-}
+.timer-running .timer-time { color: #6b8e5f; }
+.timer-completed .timer-time { color: #a84f5f; }
 
 .timer-actions {
     display: -webkit-flex;
     display: flex;
-    /* iOS 9 flexbox fix */
-    -webkit-align-items: stretch;
-    align-items: stretch;
-    width: 100%;
-}
-
-/* iOS 9 fallback for gap (flex-row) */
-.timer-actions > * + * {
     margin-left: 0.5rem;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
 }
 
-.btn-timer {
-    -webkit-flex: 1;
-    flex: 1;
-    -webkit-flex-shrink: 1;
-    flex-shrink: 1;
-    padding: 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    background-color: #6b8e5f;
-    border: none;
-    border-radius: 0.375rem;
-    color: #ffffff;
-    cursor: pointer;
-    min-height: 36px;
-    -webkit-transition: background-color 0.15s ease;
-    transition: background-color 0.15s ease;
-    /* iOS 9 sizing fix */
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    max-width: 100%;
-}
+.timer-actions > * + * { margin-left: 0.375rem; }
 
-.btn-timer:hover:not(:disabled) {
-    background-color: #5e7f53;
-}
-
-.btn-timer:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.btn-timer-secondary {
-    -webkit-flex: 1;
-    flex: 1;
-    -webkit-flex-shrink: 1;
-    flex-shrink: 1;
-    padding: 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    background-color: #e8e1d8;
-    border: none;
-    border-radius: 0.375rem;
-    color: #2d2520;
-    cursor: pointer;
-    min-height: 36px;
-    -webkit-transition: background-color 0.15s ease;
-    transition: background-color 0.15s ease;
-    /* iOS 9 sizing fix */
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    max-width: 100%;
-}
-
-.btn-timer-secondary:hover {
-    background-color: #f4ede6;
-}
-
-.btn-timer-danger {
+.timer-action-btn {
     display: -webkit-flex;
     display: flex;
     -webkit-align-items: center;
@@ -710,27 +407,20 @@
     -webkit-justify-content: center;
     justify-content: center;
     width: 36px;
-    -webkit-flex-shrink: 0;
-    flex-shrink: 0;
-    padding: 0.5rem;
-    background-color: transparent;
-    border: 1px solid #e8e1d8;
-    border-radius: 0.375rem;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background-color: #e8e1d8;
     color: #6b6560;
     cursor: pointer;
-    min-height: 36px;
-    -webkit-transition: background-color 0.15s ease, color 0.15s ease;
-    transition: background-color 0.15s ease, color 0.15s ease;
-    /* iOS 9 sizing fix */
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
+    -webkit-transition: background-color 0.15s ease;
+    transition: background-color 0.15s ease;
 }
 
-.btn-timer-danger:hover {
-    background-color: #c94545;
-    border-color: #c94545;
-    color: white;
-}
+.timer-action-btn:active { background-color: #f4ede6; }
+.timer-action-btn.pause-btn { background-color: #6b8e5f; color: #ffffff; }
+.timer-action-btn.pause-btn:active { background-color: #5e7f53; }
+.timer-action-btn.delete-btn:active { background-color: #a84f5f; color: #ffffff; }
 
 /* Empty state */
 .play-empty {
@@ -747,9 +437,61 @@
     padding: 2rem;
 }
 
-.play-empty-text {
-    font-size: 1rem;
-    color: #6b6560;
-    margin: 0 0 1.5rem 0;
-    text-align: center;
+.play-empty-text { font-size: 1rem; color: #6b6560; margin: 0 0 1.5rem 0; text-align: center; }
+
+/* Landscape split — step panel left, timer panel right */
+@media (orientation: landscape) and (min-width: 700px) {
+    .cook-body { -webkit-flex-direction: row; flex-direction: row; }
+
+    .step-panel { -webkit-flex: 3; flex: 3; }
+    .step-nav { padding: 0 1.25rem 0.75rem 1.25rem; }
+
+    .timer-panel {
+        -webkit-flex: 2;
+        flex: 2;
+        border-top: none;
+        border-left: 1px solid #e8e1d8;
+        max-height: none;
+        overflow: hidden;
+    }
+
+    .timer-panel .timer-body {
+        display: -webkit-flex;
+        display: flex;
+        -webkit-flex: 1;
+        flex: 1;
+    }
+
+    .timer-panel .timer-chevron { display: none; }
+    .step-content { padding: 1.25rem 2.5rem; }
+    .step-text { font-size: 1.5rem; }
+}
+
+/* Portrait tablet — larger text, taller buttons */
+@media (orientation: portrait) and (min-height: 800px) {
+    .step-text { font-size: 1.5rem; }
+    .step-nav-btn { height: 60px; font-size: 1.0625rem; }
+    .timer-panel { max-height: 50vh; }
+}
+
+/* Compact landscape — small screens */
+@media (orientation: landscape) and (max-height: 420px) {
+    .play-header-content { padding: 0.375rem 0.75rem; }
+    .play-title { font-size: 0.75rem; }
+    .play-step-counter { font-size: 0.625rem; }
+    .play-exit-btn { width: 2rem; height: 2rem; }
+    .play-exit-btn svg { width: 16px; height: 16px; }
+    .step-content { padding: 0.625rem 1.25rem; }
+
+    .step-badge {
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.875rem;
+        line-height: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .step-text { font-size: 1.125rem; }
+    .step-nav { padding: 0 0.75rem 0.5rem 0.75rem; }
+    .step-nav-btn { height: 44px; font-size: 0.875rem; }
 }

@@ -122,7 +122,7 @@ def _check_profile_ownership(request, profile_id):
     return None
 
 
-@router.get("/", response=List[ProfileWithStatsSchema])
+@router.get("/", response=List[ProfileWithStatsSchema], auth=SessionAuth())
 def list_profiles(request):
     """List all profiles with stats.
 
@@ -189,7 +189,7 @@ def create_profile(request, payload: ProfileIn):
     return 201, profile
 
 
-@router.get("/{profile_id}/", response={200: ProfileOut, 404: ErrorSchema})
+@router.get("/{profile_id}/", response={200: ProfileOut, 404: ErrorSchema}, auth=SessionAuth())
 def get_profile(request, profile_id: int):
     """Get a profile by ID. Public mode: own profile only (admin: any)."""
     ownership_error = _check_profile_ownership(request, profile_id)
@@ -217,7 +217,9 @@ def update_profile(request, profile_id: int, payload: ProfileIn):
     return profile
 
 
-@router.get("/{profile_id}/deletion-preview/", response={200: DeletionPreviewSchema, 404: ErrorSchema})
+@router.get(
+    "/{profile_id}/deletion-preview/", response={200: DeletionPreviewSchema, 404: ErrorSchema}, auth=SessionAuth()
+)
 def get_deletion_preview(request, profile_id: int):
     """Get summary of data that will be deleted. Public mode: own profile only."""
     from apps.ai.models import AIDiscoverySuggestion

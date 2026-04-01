@@ -7,6 +7,7 @@ from django.conf import settings
 from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema
 
+from apps.core.auth import SessionAuth
 from apps.profiles.models import Profile
 
 from .api import ErrorOut, handle_ai_errors
@@ -37,7 +38,9 @@ class DiscoverOut(Schema):
 # Endpoints
 
 
-@router.get("/discover/{profile_id}/", response={200: DiscoverOut, 404: ErrorOut, 429: dict, 503: ErrorOut})
+@router.get(
+    "/discover/{profile_id}/", response={200: DiscoverOut, 404: ErrorOut, 429: dict, 503: ErrorOut}, auth=SessionAuth()
+)
 @ratelimit(key="ip", rate="20/h", method="GET", block=False)
 @handle_ai_errors
 def discover_endpoint(request, profile_id: int, refresh: bool = False):

@@ -38,6 +38,15 @@ def profile(db):
 
 
 @pytest.fixture
+def auth_client(client, profile):
+    """Return a client with a valid session profile_id."""
+    session = client.session
+    session["profile_id"] = profile.id
+    session.save()
+    return client
+
+
+@pytest.fixture
 def seasonal_prompt(db):
     """Get or create the discover_seasonal AI prompt."""
     prompt, _ = AIPrompt.objects.get_or_create(
@@ -301,16 +310,23 @@ def test_discover_nonexistent_profile_raises():
 
 
 @pytest.mark.django_db
-def test_discover_endpoint_not_found(client):
-    """GET /api/ai/discover/99999/ returns 404."""
+def test_discover_endpoint_requires_auth(client):
+    """GET /api/ai/discover/99999/ requires authentication."""
     response = client.get("/api/ai/discover/99999/")
+    assert response.status_code == 401
+
+
+@pytest.mark.django_db
+def test_discover_endpoint_not_found(auth_client):
+    """GET /api/ai/discover/99999/ returns 404 for non-existent profile."""
+    response = auth_client.get("/api/ai/discover/99999/")
     assert response.status_code == 404
     data = json.loads(response.content)
     assert data["error"] == "not_found"
 
 
 @pytest.mark.django_db
-def test_discover_endpoint_returns_cached(client, profile):
+def test_discover_endpoint_returns_cached(auth_client, profile):
     """GET /api/ai/discover/{id}/ returns cached suggestions."""
     AIDiscoverySuggestion.objects.create(
         profile=profile,
@@ -320,7 +336,7 @@ def test_discover_endpoint_returns_cached(client, profile):
         search_query="spring salad recipes",
     )
 
-    response = client.get(f"/api/ai/discover/{profile.id}/")
+    response = auth_client.get(f"/api/ai/discover/{profile.id}/")
     assert response.status_code == 200
     data = json.loads(response.content)
     assert len(data["suggestions"]) == 1
@@ -330,7 +346,7 @@ def test_discover_endpoint_returns_cached(client, profile):
 
 
 @pytest.mark.django_db
-def test_discover_endpoint_with_mocked_ai(client, profile, seasonal_prompt):
+def test_discover_endpoint_with_mocked_ai(auth_client, profile, seasonal_prompt):
     """GET /api/ai/discover/{id}/ generates suggestions via mocked AI."""
     mock_service_instance = MagicMock()
     mock_service_instance.complete.return_value = "mocked"
@@ -348,7 +364,7 @@ def test_discover_endpoint_with_mocked_ai(client, profile, seasonal_prompt):
         patch("apps.ai.services.discover.OpenRouterService", return_value=mock_service_instance),
         patch("apps.ai.services.discover.AIResponseValidator", return_value=mock_validator_instance),
     ):
-        response = client.get(f"/api/ai/discover/{profile.id}/")
+        response = auth_client.get(f"/api/ai/discover/{profile.id}/")
 
     assert response.status_code == 200
     data = json.loads(response.content)

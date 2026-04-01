@@ -11,11 +11,21 @@ from apps.recipes.models import Recipe, RecipeCollection, RecipeFavorite, Recipe
 class TestProfilesAPI:
     """Tests for the Profile API endpoints."""
 
-    def test_list_profiles_empty(self, client):
-        """List profiles returns empty list when no profiles exist."""
+    def test_list_profiles_requires_auth(self, client):
+        """List profiles requires authentication."""
+        response = client.get("/api/profiles/")
+        assert response.status_code == 401
+
+    def test_list_profiles(self, client):
+        """List profiles returns profiles for authenticated user."""
+        profile = Profile.objects.create(name="Test User", avatar_color="#d97850")
+        session = client.session
+        session["profile_id"] = profile.id
+        session.save()
         response = client.get("/api/profiles/")
         assert response.status_code == 200
-        assert response.json() == []
+        data = response.json()
+        assert len(data) >= 1
 
     def test_create_profile(self, client):
         """Create a new profile."""
@@ -35,9 +45,18 @@ class TestProfilesAPI:
     def test_get_profile(self, client):
         """Get a profile by ID."""
         profile = Profile.objects.create(name="Test", avatar_color="#123456")
+        session = client.session
+        session["profile_id"] = profile.id
+        session.save()
         response = client.get(f"/api/profiles/{profile.id}/")
         assert response.status_code == 200
         assert response.json()["name"] == "Test"
+
+    def test_get_profile_requires_auth(self, client):
+        """Get profile requires authentication."""
+        profile = Profile.objects.create(name="Test", avatar_color="#123456")
+        response = client.get(f"/api/profiles/{profile.id}/")
+        assert response.status_code == 401
 
     def test_update_profile(self, client):
         """Update an existing profile."""
@@ -256,7 +275,7 @@ class TestSetUnlimited:
             data=json.dumps({"unlimited": True}),
             content_type="application/json",
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
 
 
 # ── PATCH /api/profiles/{id}/rename/ ──
@@ -364,4 +383,4 @@ class TestRenameProfile:
             data=json.dumps({"name": "New"}),
             content_type="application/json",
         )
-        assert response.status_code == 401
+        assert response.status_code == 403

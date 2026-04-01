@@ -433,7 +433,7 @@ class TestRecipeProfileIsolation:
         assert "Profile A Recipe" not in titles
 
     def test_recipes_hidden_when_no_profile(self, client, profile_a):
-        """Recipes are hidden when no profile is selected."""
+        """Recipes require authentication — no profile returns 401."""
         Recipe.objects.create(
             profile=profile_a,
             host="example.com",
@@ -441,16 +441,13 @@ class TestRecipeProfileIsolation:
         )
 
         response = client.get("/api/recipes/")
-        assert response.status_code == 200
-        # No recipes returned without profile selected
-        assert response.json() == []
+        assert response.status_code == 401
 
     def test_recipe_only_visible_to_owner(self, client, profile_a, profile_b, recipe):
         """Recipes are only visible to their owning profile."""
-        # No profile selected - should not see the test recipe
+        # No profile selected - should be rejected
         response = client.get("/api/recipes/")
-        assert response.status_code == 200
-        assert response.json() == []
+        assert response.status_code == 401
 
         # Profile A (owner) - should see the test recipe
         select_profile(client, profile_a)
@@ -490,7 +487,7 @@ class TestRecipeProfileIsolation:
         assert response.status_code == 404
 
     def test_get_recipe_by_id_no_profile(self, client, profile_a):
-        """No profile selected gets 404 when accessing recipe by ID."""
+        """No profile selected gets 401 when accessing recipe by ID."""
         recipe = Recipe.objects.create(
             profile=profile_a,
             host="example.com",
@@ -498,7 +495,7 @@ class TestRecipeProfileIsolation:
         )
 
         response = client.get(f"/api/recipes/{recipe.id}/")
-        assert response.status_code == 404
+        assert response.status_code == 401
 
     def test_delete_recipe_owner(self, client, profile_a):
         """Owner can delete their recipe."""

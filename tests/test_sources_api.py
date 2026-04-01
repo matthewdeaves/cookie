@@ -79,17 +79,24 @@ def disabled_source(clean_sources):
 
 
 @pytest.mark.django_db
-def test_list_sources_empty(client, clean_sources):
-    """GET /api/sources/ returns empty list when no sources exist."""
+def test_list_sources_requires_auth(client, clean_sources):
+    """GET /api/sources/ requires authentication."""
     response = client.get("/api/sources/")
+    assert response.status_code == 401
+
+
+@pytest.mark.django_db
+def test_list_sources_empty(auth_client, clean_sources):
+    """GET /api/sources/ returns empty list when no sources exist."""
+    response = auth_client.get("/api/sources/")
     assert response.status_code == 200
     assert json.loads(response.content) == []
 
 
 @pytest.mark.django_db
-def test_list_sources(client, source, disabled_source):
+def test_list_sources(auth_client, source, disabled_source):
     """GET /api/sources/ returns all sources ordered by name."""
-    response = client.get("/api/sources/")
+    response = auth_client.get("/api/sources/")
     assert response.status_code == 200
     data = json.loads(response.content)
     assert len(data) == 2
@@ -99,9 +106,9 @@ def test_list_sources(client, source, disabled_source):
 
 
 @pytest.mark.django_db
-def test_list_sources_fields(client, source):
+def test_list_sources_fields(auth_client, source):
     """GET /api/sources/ returns expected fields for each source."""
-    response = client.get("/api/sources/")
+    response = auth_client.get("/api/sources/")
     data = json.loads(response.content)
     assert len(data) == 1
     item = data[0]
@@ -118,16 +125,9 @@ def test_list_sources_fields(client, source):
 
 
 @pytest.mark.django_db
-def test_list_sources_no_auth_required(client, source):
-    """GET /api/sources/ does not require authentication."""
-    response = client.get("/api/sources/")
-    assert response.status_code == 200
-
-
-@pytest.mark.django_db
-def test_list_sources_includes_seeded_data(client, db):
+def test_list_sources_includes_seeded_data(auth_client, db):
     """GET /api/sources/ returns migration-seeded sources."""
-    response = client.get("/api/sources/")
+    response = auth_client.get("/api/sources/")
     assert response.status_code == 200
     data = json.loads(response.content)
     # Migrations seed sources; verify at least some exist
@@ -144,9 +144,16 @@ def test_list_sources_includes_seeded_data(client, db):
 
 
 @pytest.mark.django_db
-def test_enabled_count(client, source, disabled_source):
-    """GET /api/sources/enabled-count/ returns correct counts."""
+def test_enabled_count_requires_auth(client, source, disabled_source):
+    """GET /api/sources/enabled-count/ requires authentication."""
     response = client.get("/api/sources/enabled-count/")
+    assert response.status_code == 401
+
+
+@pytest.mark.django_db
+def test_enabled_count(auth_client, source, disabled_source):
+    """GET /api/sources/enabled-count/ returns correct counts."""
+    response = auth_client.get("/api/sources/enabled-count/")
     assert response.status_code == 200
     data = json.loads(response.content)
     assert data["enabled"] == 1
@@ -154,9 +161,9 @@ def test_enabled_count(client, source, disabled_source):
 
 
 @pytest.mark.django_db
-def test_enabled_count_empty(client, clean_sources):
+def test_enabled_count_empty(auth_client, clean_sources):
     """GET /api/sources/enabled-count/ returns zeros when no sources exist."""
-    response = client.get("/api/sources/enabled-count/")
+    response = auth_client.get("/api/sources/enabled-count/")
     assert response.status_code == 200
     data = json.loads(response.content)
     assert data["enabled"] == 0
@@ -167,9 +174,16 @@ def test_enabled_count_empty(client, clean_sources):
 
 
 @pytest.mark.django_db
-def test_get_source(client, source):
-    """GET /api/sources/{id}/ returns the source."""
+def test_get_source_requires_auth(client, source):
+    """GET /api/sources/{id}/ requires authentication."""
     response = client.get(f"/api/sources/{source.id}/")
+    assert response.status_code == 401
+
+
+@pytest.mark.django_db
+def test_get_source(auth_client, source):
+    """GET /api/sources/{id}/ returns the source."""
+    response = auth_client.get(f"/api/sources/{source.id}/")
     assert response.status_code == 200
     data = json.loads(response.content)
     assert data["id"] == source.id
@@ -178,19 +192,12 @@ def test_get_source(client, source):
 
 
 @pytest.mark.django_db
-def test_get_source_not_found(client):
+def test_get_source_not_found(auth_client):
     """GET /api/sources/{id}/ returns 404 for non-existent source."""
-    response = client.get("/api/sources/99999/")
+    response = auth_client.get("/api/sources/99999/")
     assert response.status_code == 404
     data = json.loads(response.content)
     assert data["error"] == "not_found"
-
-
-@pytest.mark.django_db
-def test_get_source_no_auth_required(client, source):
-    """GET /api/sources/{id}/ does not require authentication."""
-    response = client.get(f"/api/sources/{source.id}/")
-    assert response.status_code == 200
 
 
 # --- Toggle Source ---
@@ -237,9 +244,40 @@ def test_toggle_source_requires_auth(client, source):
     assert response.status_code == 401
 
 
+# --- Async test helper ---
+
+
+async def _async_setup(clean_sources_flag=True):
+    """Create profile, source, and authenticated AsyncClient for async tests."""
+    from django.test import AsyncClient
+    from django.contrib.sessions.backends.db import SessionStore
+    from asgiref.sync import sync_to_async
+    from django.conf import settings as django_settings
+
+    @sync_to_async
+    def create_data():
+        if clean_sources_flag:
+            SearchSource.objects.all().delete()
+        profile = Profile.objects.create(name="Async User", avatar_color="#d97850")
+        source = SearchSource.objects.create(
+            host="example.com",
+            name="Example",
+            is_enabled=True,
+            search_url_template="https://example.com/search?q={query}",
+            result_selector="div.recipe-card",
+        )
+        session = SessionStore()
+        session["profile_id"] = profile.id
+        session.create()
+        return profile, source, session.session_key
+
+    profile, source, session_key = await create_data()
+    async_client = AsyncClient()
+    async_client.cookies[django_settings.SESSION_COOKIE_NAME] = session_key
+    return async_client, source
+
+
 # --- Bulk Toggle ---
-# Note: bulk-toggle is a sync POST endpoint but Django Ninja routing
-# causes 405 with the sync test client. We test auth enforcement only.
 
 
 @pytest.mark.django_db
@@ -326,7 +364,7 @@ def test_test_all_requires_auth(client):
 
 
 @pytest.mark.django_db
-def test_source_with_last_validated_at(client, clean_sources):
+def test_source_with_last_validated_at(auth_client, clean_sources):
     """Source with last_validated_at returns ISO formatted date."""
     from django.utils import timezone
 
@@ -339,7 +377,7 @@ def test_source_with_last_validated_at(client, clean_sources):
         result_selector="div.r",
         last_validated_at=now,
     )
-    response = client.get(f"/api/sources/{src.id}/")
+    response = auth_client.get(f"/api/sources/{src.id}/")
     assert response.status_code == 200
     data = json.loads(response.content)
     assert data["last_validated_at"] is not None
@@ -351,9 +389,9 @@ def test_source_with_last_validated_at(client, clean_sources):
 
 
 @pytest.mark.django_db
-def test_source_needs_attention_flag(client, disabled_source):
+def test_source_needs_attention_flag(auth_client, disabled_source):
     """Source with consecutive_failures >= 3 has needs_attention=True."""
-    response = client.get(f"/api/sources/{disabled_source.id}/")
+    response = auth_client.get(f"/api/sources/{disabled_source.id}/")
     assert response.status_code == 200
     data = json.loads(response.content)
     assert data["needs_attention"] is True
@@ -367,3 +405,96 @@ def test_toggle_disabled_source_enables_it(auth_client, disabled_source):
     assert response.status_code == 200
     data = json.loads(response.content)
     assert data["is_enabled"] is True
+
+
+# --- Test Source (async) ---
+
+
+@pytest.mark.django_db(transaction=True)
+async def test_test_source_success():
+    """POST /api/sources/{id}/test/ returns results for a valid source."""
+    from unittest.mock import AsyncMock, MagicMock, patch
+    from asgiref.sync import sync_to_async
+
+    async_client, source = await _async_setup()
+
+    mock_search = MagicMock()
+    mock_search.search = AsyncMock(
+        return_value={
+            "results": [
+                {"title": "Chicken Soup", "url": "https://example.com/soup"},
+            ],
+        }
+    )
+
+    with patch("apps.recipes.sources_api.RecipeSearch", return_value=mock_search):
+        response = await async_client.post(f"/api/sources/{source.id}/test/")
+
+    assert response.status_code == 200
+    data = json.loads(response.content)
+    assert data["success"] is True
+    assert data["results_count"] == 1
+
+    updated = await sync_to_async(SearchSource.objects.get)(id=source.id)
+    assert updated.consecutive_failures == 0
+
+
+@pytest.mark.django_db(transaction=True)
+async def test_test_source_no_results():
+    """POST /api/sources/{id}/test/ handles zero results."""
+    from unittest.mock import AsyncMock, MagicMock, patch
+    from asgiref.sync import sync_to_async
+
+    async_client, source = await _async_setup()
+
+    mock_search = MagicMock()
+    mock_search.search = AsyncMock(return_value={"results": []})
+
+    with patch("apps.recipes.sources_api.RecipeSearch", return_value=mock_search):
+        response = await async_client.post(f"/api/sources/{source.id}/test/")
+
+    assert response.status_code == 200
+    data = json.loads(response.content)
+    assert data["success"] is False
+    assert data["results_count"] == 0
+
+    updated = await sync_to_async(SearchSource.objects.get)(id=source.id)
+    assert updated.consecutive_failures == 1
+
+
+@pytest.mark.django_db(transaction=True)
+async def test_test_source_not_found():
+    """POST /api/sources/{id}/test/ returns 404 for non-existent source."""
+    async_client, _ = await _async_setup()
+    response = await async_client.post("/api/sources/99999/test/")
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db(transaction=True)
+async def test_test_source_exception():
+    """POST /api/sources/{id}/test/ handles search exceptions."""
+    from unittest.mock import AsyncMock, MagicMock, patch
+    from asgiref.sync import sync_to_async
+
+    async_client, source = await _async_setup()
+
+    mock_search = MagicMock()
+    mock_search.search = AsyncMock(side_effect=Exception("Connection timeout"))
+
+    with patch("apps.recipes.sources_api.RecipeSearch", return_value=mock_search):
+        response = await async_client.post(f"/api/sources/{source.id}/test/")
+
+    assert response.status_code == 500
+    data = json.loads(response.content)
+    assert data["error"] == "test_failed"
+
+    updated = await sync_to_async(SearchSource.objects.get)(id=source.id)
+    assert updated.consecutive_failures == 1
+
+
+# --- Test All Sources (async) ---
+
+
+# Note: test_all_sources (POST /api/sources/test-all/) cannot be tested via
+# AsyncClient due to Django Ninja routing 405 on mixed sync/async routers.
+# Auth enforcement is tested by test_test_all_requires_auth above.

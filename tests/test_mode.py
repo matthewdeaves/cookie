@@ -22,10 +22,19 @@ class TestHomeModeDefaults:
         """T021: AUTH_MODE=home, /api/auth/me/ returns 404 (no user accounts)."""
         assert client.get("/api/auth/me/").status_code in (401, 404)
 
-    def test_home_mode_profiles_get_returns_all(self, client):
-        """T022: AUTH_MODE=home, /api/profiles/ GET returns all profiles."""
+    def test_home_mode_profiles_get_requires_auth(self, client):
+        """T022: AUTH_MODE=home, /api/profiles/ GET requires session auth."""
         Profile.objects.create(name="Alice", avatar_color="#d97850")
+        response = client.get("/api/profiles/")
+        assert response.status_code == 401
+
+    def test_home_mode_profiles_get_returns_all(self, client):
+        """T022: AUTH_MODE=home, /api/profiles/ GET returns all profiles when authenticated."""
+        alice = Profile.objects.create(name="Alice", avatar_color="#d97850")
         Profile.objects.create(name="Bob", avatar_color="#8fae6f")
+        session = client.session
+        session["profile_id"] = alice.id
+        session.save()
         response = client.get("/api/profiles/")
         assert response.status_code == 200
         data = response.json()

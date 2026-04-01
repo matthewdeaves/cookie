@@ -94,8 +94,12 @@ def _login(client, user):
 
 @pytest.mark.django_db
 class TestAIStatus:
-    def test_no_key_configured(self, client):
+    def test_requires_auth(self, client):
         response = client.get("/api/ai/status")
+        assert response.status_code == 401
+
+    def test_no_key_configured(self, auth_client):
+        response = auth_client.get("/api/ai/status")
         assert response.status_code == 200
         data = response.json()
         assert data["available"] is False
@@ -104,13 +108,13 @@ class TestAIStatus:
 
     @patch.object(AppSettings, "get")
     @patch("apps.ai.api.OpenRouterService.validate_key_cached", return_value=(False, "Invalid key"))
-    def test_key_invalid(self, mock_validate, mock_get, client):
+    def test_key_invalid(self, mock_validate, mock_get, auth_client):
         mock_settings = MagicMock()
         mock_settings.openrouter_api_key = "sk-bad"  # pragma: allowlist secret
         mock_settings.default_ai_model = "anthropic/claude-haiku-4.5"
         mock_get.return_value = mock_settings
 
-        response = client.get("/api/ai/status")
+        response = auth_client.get("/api/ai/status")
         data = response.json()
         assert data["available"] is False
         assert data["configured"] is True
@@ -119,13 +123,13 @@ class TestAIStatus:
 
     @patch.object(AppSettings, "get")
     @patch("apps.ai.api.OpenRouterService.validate_key_cached", return_value=(True, None))
-    def test_key_valid(self, mock_validate, mock_get, client):
+    def test_key_valid(self, mock_validate, mock_get, auth_client):
         mock_settings = MagicMock()
         mock_settings.openrouter_api_key = "sk-good"  # pragma: allowlist secret
         mock_settings.default_ai_model = "anthropic/claude-haiku-4.5"
         mock_get.return_value = mock_settings
 
-        response = client.get("/api/ai/status")
+        response = auth_client.get("/api/ai/status")
         data = response.json()
         assert data["available"] is True
         assert data["configured"] is True
@@ -146,7 +150,7 @@ class TestTestApiKey:
             data=json.dumps({"api_key": "sk-test"}),
             content_type="application/json",
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
 
     @patch("apps.ai.api.OpenRouterService.test_connection", return_value=(True, "Valid key"))
     def test_valid_key(self, mock_conn, auth_client):
@@ -193,7 +197,7 @@ class TestSaveApiKey:
             data=json.dumps({"api_key": "sk-test"}),
             content_type="application/json",
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
 
     @patch("apps.ai.api.OpenRouterService.invalidate_key_cache")
     def test_saves_key(self, mock_invalidate, auth_client):
@@ -216,25 +220,30 @@ class TestSaveApiKey:
 
 @pytest.mark.django_db
 class TestPrompts:
-    def test_list_prompts(self, client):
-        """Seeded prompts are returned."""
+    def test_list_requires_auth(self, client):
+        """Unauthenticated request is rejected."""
         response = client.get("/api/ai/prompts")
+        assert response.status_code == 401
+
+    def test_list_prompts(self, auth_client):
+        """Seeded prompts are returned."""
+        response = auth_client.get("/api/ai/prompts")
         assert response.status_code == 200
         data = response.json()
         assert len(data) >= 1
         types = {p["prompt_type"] for p in data}
         assert "tips_generation" in types
 
-    def test_get_prompt(self, client):
+    def test_get_prompt(self, auth_client):
         """Get a seeded prompt by type."""
-        response = client.get("/api/ai/prompts/tips_generation")
+        response = auth_client.get("/api/ai/prompts/tips_generation")
         assert response.status_code == 200
         data = response.json()
         assert data["prompt_type"] == "tips_generation"
         assert data["is_active"] is True
 
-    def test_get_prompt_not_found(self, client):
-        response = client.get("/api/ai/prompts/nonexistent")
+    def test_get_prompt_not_found(self, auth_client):
+        response = auth_client.get("/api/ai/prompts/nonexistent")
         assert response.status_code == 404
 
     def test_update_prompt(self, auth_client):
@@ -278,7 +287,7 @@ class TestPrompts:
             data=json.dumps({"is_active": False}),
             content_type="application/json",
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
 
 
 # ── GET /api/ai/models ──
@@ -286,33 +295,37 @@ class TestPrompts:
 
 @pytest.mark.django_db
 class TestModels:
+    def test_requires_auth(self, client):
+        response = client.get("/api/ai/models")
+        assert response.status_code == 401
+
     @patch("apps.ai.api.OpenRouterService")
-    def test_returns_models(self, mock_cls, client):
+    def test_returns_models(self, mock_cls, auth_client):
         mock_instance = MagicMock()
         mock_instance.get_available_models.return_value = [
             {"id": "anthropic/claude-haiku-4.5", "name": "Claude Haiku"},
         ]
         mock_cls.return_value = mock_instance
 
-        response = client.get("/api/ai/models")
+        response = auth_client.get("/api/ai/models")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
         assert data[0]["id"] == "anthropic/claude-haiku-4.5"
 
     @patch("apps.ai.api.OpenRouterService", side_effect=AIUnavailableError("No key"))
-    def test_no_key_returns_empty(self, mock_cls, client):
-        response = client.get("/api/ai/models")
+    def test_no_key_returns_empty(self, mock_cls, auth_client):
+        response = auth_client.get("/api/ai/models")
         assert response.status_code == 200
         assert response.json() == []
 
     @patch("apps.ai.api.OpenRouterService")
-    def test_api_error_returns_empty(self, mock_cls, client):
+    def test_api_error_returns_empty(self, mock_cls, auth_client):
         mock_instance = MagicMock()
         mock_instance.get_available_models.side_effect = AIResponseError("API error")
         mock_cls.return_value = mock_instance
 
-        response = client.get("/api/ai/models")
+        response = auth_client.get("/api/ai/models")
         assert response.status_code == 200
         assert response.json() == []
 
@@ -510,7 +523,7 @@ class TestRepairSelectorEndpoint:
             data=json.dumps({"source_id": 1, "html_sample": "<div>test</div>"}),
             content_type="application/json",
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
 
     @patch("apps.ai.api.repair_selector")
     def test_success(self, mock_repair, auth_client, search_source):
@@ -564,7 +577,7 @@ class TestSourcesNeedingAttention:
         regular = _create_user("regular")
         _login(client, regular)
         response = client.get("/api/ai/sources-needing-attention")
-        assert response.status_code == 401
+        assert response.status_code == 403
 
     @patch("apps.ai.api.get_sources_needing_attention")
     def test_returns_sources(self, mock_get, auth_client, search_source):

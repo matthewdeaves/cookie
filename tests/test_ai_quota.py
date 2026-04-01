@@ -303,7 +303,7 @@ class TestUpdateQuotasEndpoint:
             ),
             content_type="application/json",
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
 
     def test_put_quotas_updates_limits(self, client, settings):
         settings.AUTH_MODE = "passkey"
@@ -366,7 +366,7 @@ class TestSetUnlimitedEndpoint:
             data=json.dumps({"unlimited": True}),
             content_type="application/json",
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
 
 
 @pytest.mark.django_db
@@ -402,7 +402,7 @@ class TestRenameEndpoint:
             data=json.dumps({"name": "Hacked"}),
             content_type="application/json",
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
 
     def test_rename_rejects_empty_name(self, client, settings):
         settings.AUTH_MODE = "passkey"
