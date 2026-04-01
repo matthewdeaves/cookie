@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-01T14:48:33.436Z",
+    "detectionDate": "2026-04-01T15:29:42.192Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -389,14 +389,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/app.js": {
-            "lines": 188,
-            "tokens": 1443,
+            "lines": 217,
+            "tokens": 1674,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 10,
             "duplicatedTokens": 106,
-            "percentage": 5.32,
-            "percentageTokens": 7.35,
+            "percentage": 4.61,
+            "percentageTokens": 6.33,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -426,28 +426,28 @@
           }
         },
         "total": {
-          "lines": 7116,
-          "tokens": 54833,
+          "lines": 7145,
+          "tokens": 55064,
           "sources": 35,
           "clones": 33,
           "duplicatedLines": 323,
           "duplicatedTokens": 2795,
-          "percentage": 4.54,
-          "percentageTokens": 5.1,
+          "percentage": 4.52,
+          "percentageTokens": 5.08,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7116,
-      "tokens": 54833,
+      "lines": 7145,
+      "tokens": 55064,
       "sources": 35,
       "clones": 33,
       "duplicatedLines": 323,
       "duplicatedTokens": 2795,
-      "percentage": 4.54,
-      "percentageTokens": 5.1,
+      "percentage": 4.52,
+      "percentageTokens": 5.08,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -1576,32 +1576,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/app.js",
-        "start": 100,
-        "end": 105,
+        "start": 103,
+        "end": 108,
         "startLoc": {
-          "line": 100,
+          "line": 103,
           "column": 19,
-          "position": 740
+          "position": 750
         },
         "endLoc": {
-          "line": 105,
+          "line": 108,
           "column": 4,
-          "position": 793
+          "position": 803
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/app.js",
-        "start": 74,
-        "end": 79,
+        "start": 77,
+        "end": 82,
         "startLoc": {
-          "line": 74,
+          "line": 77,
           "column": 23,
-          "position": 480
+          "position": 490
         },
         "endLoc": {
-          "line": 79,
+          "line": 82,
           "column": 7,
-          "position": 533
+          "position": 543
         }
       }
     },
