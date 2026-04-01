@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import Home from '../screens/Home'
 import type { Favorite, HistoryItem, Recipe } from '../api/client'
 
@@ -90,36 +90,38 @@ describe('Home', () => {
   })
 
   it('renders without crashing', async () => {
-    render(<Home />)
-    await waitFor(() => {
-      expect(screen.getByTestId('nav-header')).toBeInTheDocument()
+    await act(async () => {
+      render(<Home />)
     })
+    expect(screen.getByTestId('nav-header')).toBeInTheDocument()
   })
 
-  it('shows loading skeleton initially', () => {
+  it('shows loading skeleton initially', async () => {
     render(<Home />)
     expect(screen.getByTestId('recipe-grid-skeleton')).toBeInTheDocument()
+    // Flush async state updates from useHomeData useEffect
+    await act(async () => {})
   })
 
   it('shows search input', async () => {
-    render(<Home />)
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('Search recipes or paste a URL...')).toBeInTheDocument()
+    await act(async () => {
+      render(<Home />)
     })
+    expect(screen.getByPlaceholderText('Search recipes or paste a URL...')).toBeInTheDocument()
   })
 
   it('shows empty state when no favorites exist', async () => {
-    render(<Home />)
-    await waitFor(() => {
-      expect(screen.getByText('No favorites yet')).toBeInTheDocument()
+    await act(async () => {
+      render(<Home />)
     })
+    expect(screen.getByText('No favorites yet')).toBeInTheDocument()
   })
 
   it('shows favorites section heading after loading', async () => {
-    render(<Home />)
-    await waitFor(() => {
-      expect(screen.getByText('My Favorite Recipes')).toBeInTheDocument()
+    await act(async () => {
+      render(<Home />)
     })
+    expect(screen.getByText('My Favorite Recipes')).toBeInTheDocument()
   })
 
   it('renders favorite recipe cards when favorites exist', async () => {
@@ -140,9 +142,9 @@ describe('Home', () => {
       { recipe: mockRecipe, created_at: '2024-01-01T00:00:00Z' },
     ])
 
-    render(<Home />)
-    await waitFor(() => {
-      expect(screen.getByText('Test Recipe')).toBeInTheDocument()
+    await act(async () => {
+      render(<Home />)
     })
+    expect(screen.getByText('Test Recipe')).toBeInTheDocument()
   })
 })
