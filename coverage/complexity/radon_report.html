@@ -41,11 +41,11 @@
             <div class="stat-label">Avg Cyclomatic Complexity</div>
         </div>
         <div class="stat">
-            <div class="stat-value rating-A">83.07</div>
+            <div class="stat-value rating-A">82.99</div>
             <div class="stat-label">Avg Maintainability Index</div>
         </div>
         <div class="stat">
-            <div class="stat-value">739</div>
+            <div class="stat-value">742</div>
             <div class="stat-label">Functions Analyzed</div>
         </div>
         <div class="stat">
@@ -61,6 +61,13 @@
         </thead>
         <tbody>
             <tr>
+                <td>apps/recipes/services/image_cache.py</td>
+                <td>_fetch_image_safe</td>
+                <td>method</td>
+                <td class="complexity-high">13</td>
+                <td>C</td>
+            </tr>
+            <tr>
                 <td>apps/ai/api_discover.py</td>
                 <td>discover_endpoint</td>
                 <td>function</td>
@@ -75,13 +82,6 @@
                 <td>C</td>
             </tr>
             <tr>
-                <td>apps/recipes/services/image_cache.py</td>
-                <td>_fetch_image_safe</td>
-                <td>method</td>
-                <td class="complexity-high">12</td>
-                <td>C</td>
-            </tr>
-            <tr>
                 <td>apps/ai/api_scaling.py</td>
                 <td>scale_recipe_endpoint</td>
                 <td>function</td>
@@ -89,16 +89,16 @@
                 <td>C</td>
             </tr>
             <tr>
-                <td>apps/ai/services/remix.py</td>
-                <td>create_remix</td>
-                <td>function</td>
-                <td class="complexity-medium">10</td>
-                <td>B</td>
-            </tr>
-            <tr>
                 <td>apps/recipes/services/scraper.py</td>
                 <td>_fetch_image_with_redirects</td>
                 <td>method</td>
+                <td class="complexity-high">11</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>apps/ai/services/remix.py</td>
+                <td>create_remix</td>
+                <td>function</td>
                 <td class="complexity-medium">10</td>
                 <td>B</td>
             </tr>
@@ -425,6 +425,13 @@
                 <td>B</td>
             </tr>
             <tr>
+                <td>apps/recipes/services/scraper.py</td>
+                <td>_fetch_with_redirects</td>
+                <td>method</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
                 <td>apps/recipes/services/search.py</td>
                 <td>_filter_relevant</td>
                 <td>method</td>
@@ -608,13 +615,6 @@
             </tr>
             <tr>
                 <td>apps/recipes/services/scraper.py</td>
-                <td>_fetch_with_redirects</td>
-                <td>method</td>
-                <td class="complexity-medium">6</td>
-                <td>B</td>
-            </tr>
-            <tr>
-                <td>apps/recipes/services/scraper.py</td>
                 <td>_download_image</td>
                 <td>method</td>
                 <td class="complexity-medium">6</td>
@@ -791,27 +791,27 @@
             </tr>
             <tr>
                 <td>apps/core/passkey_api.py</td>
-                <td class="complexity-medium">40.3</td>
+                <td class="complexity-medium">40.2</td>
                 <td>A</td>
             </tr>
             <tr>
                 <td>apps/recipes/services/scraper.py</td>
-                <td class="complexity-medium">42.4</td>
+                <td class="complexity-medium">41.9</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/ai/api.py</td>
+                <td class="complexity-medium">42.5</td>
                 <td>A</td>
             </tr>
             <tr>
                 <td>apps/recipes/services/search.py</td>
-                <td class="complexity-medium">42.8</td>
+                <td class="complexity-medium">42.7</td>
                 <td>A</td>
             </tr>
             <tr>
                 <td>apps/recipes/services/search_parsers.py</td>
                 <td class="complexity-medium">43.1</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/ai/api.py</td>
-                <td class="complexity-medium">43.2</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -821,22 +821,27 @@
             </tr>
             <tr>
                 <td>apps/recipes/sources_api.py</td>
-                <td class="complexity-medium">47.6</td>
+                <td class="complexity-medium">47.1</td>
                 <td>A</td>
             </tr>
             <tr>
                 <td>apps/legacy/views.py</td>
-                <td class="complexity-medium">51.6</td>
+                <td class="complexity-medium">50.1</td>
                 <td>A</td>
             </tr>
             <tr>
                 <td>apps/core/device_code_api.py</td>
-                <td class="complexity-medium">52.5</td>
+                <td class="complexity-medium">52.2</td>
                 <td>A</td>
             </tr>
             <tr>
                 <td>apps/ai/api_remix.py</td>
-                <td class="complexity-medium">54.3</td>
+                <td class="complexity-medium">53.5</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/api_user.py</td>
+                <td class="complexity-medium">55.2</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -845,13 +850,8 @@
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/recipes/api_user.py</td>
-                <td class="complexity-medium">56.6</td>
-                <td>A</td>
-            </tr>
-            <tr>
                 <td>apps/recipes/services/image_cache.py</td>
-                <td class="complexity-medium">56.8</td>
+                <td class="complexity-medium">56.4</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -865,13 +865,13 @@
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/core/tests.py</td>
-                <td class="complexity-medium">59.9</td>
+                <td>apps/core/api.py</td>
+                <td class="complexity-medium">59.8</td>
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/core/api.py</td>
-                <td class="complexity-medium">60.0</td>
+                <td>apps/core/tests.py</td>
+                <td class="complexity-medium">59.9</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -905,6 +905,11 @@
                 <td>A</td>
             </tr>
             <tr>
+                <td>apps/ai/api_scaling.py</td>
+                <td class="complexity-low">64.7</td>
+                <td>A</td>
+            </tr>
+            <tr>
                 <td>apps/ai/services/validator.py</td>
                 <td class="complexity-low">64.8</td>
                 <td>A</td>
@@ -915,28 +920,23 @@
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/ai/api_scaling.py</td>
-                <td class="complexity-low">65.8</td>
-                <td>A</td>
-            </tr>
-            <tr>
                 <td>apps/recipes/utils.py</td>
                 <td class="complexity-low">65.9</td>
                 <td>A</td>
             </tr>
             <tr>
                 <td>apps/ai/api_discover.py</td>
-                <td class="complexity-low">66.3</td>
+                <td class="complexity-low">66.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/core/validators.py</td>
+                <td class="complexity-low">66.1</td>
                 <td>A</td>
             </tr>
             <tr>
                 <td>apps/core/auth.py</td>
                 <td class="complexity-low">66.7</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/core/validators.py</td>
-                <td class="complexity-low">67.4</td>
                 <td>A</td>
             </tr>
             <tr>

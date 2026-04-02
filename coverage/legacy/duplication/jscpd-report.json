@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-01T19:24:01.470Z",
+    "detectionDate": "2026-04-02T16:18:25.506Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -366,13 +366,13 @@
           },
           "apps/legacy/static/legacy/js/time-detect.js": {
             "lines": 99,
-            "tokens": 679,
+            "tokens": 659,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 26,
             "duplicatedTokens": 220,
             "percentage": 26.26,
-            "percentageTokens": 32.4,
+            "percentageTokens": 33.38,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -439,7 +439,7 @@
         },
         "total": {
           "lines": 7046,
-          "tokens": 54758,
+          "tokens": 54738,
           "sources": 36,
           "clones": 33,
           "duplicatedLines": 282,
@@ -453,7 +453,7 @@
     },
     "total": {
       "lines": 7046,
-      "tokens": 54758,
+      "tokens": 54738,
       "sources": 36,
       "clones": 33,
       "duplicatedLines": 282,
@@ -1521,12 +1521,12 @@
         "startLoc": {
           "line": 63,
           "column": 7,
-          "position": 392
+          "position": 372
         },
         "endLoc": {
           "line": 89,
           "column": 8,
-          "position": 612
+          "position": 592
         }
       },
       "secondFile": {
