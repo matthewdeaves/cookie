@@ -9,6 +9,8 @@ import threading
 from io import BytesIO
 from urllib.parse import urlparse
 
+from apps.recipes.services.sanitizer import sanitize_recipe_data
+
 from PIL import Image
 from asgiref.sync import sync_to_async
 from django.core.files.base import ContentFile
@@ -306,6 +308,9 @@ class RecipeScraper:
 
         if not data["title"]:
             raise ParseError("Recipe has no title")
+
+        # Sanitize all text fields to strip HTML (defense-in-depth against stored XSS)
+        sanitize_recipe_data(data)
 
         return data
 

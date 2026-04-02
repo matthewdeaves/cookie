@@ -207,11 +207,11 @@ Cookie.pages.play = (function() {
         var times = Cookie.TimeDetect.detect(instruction);
 
         if (times.length === 0) {
-            elements.detectedTimes.style.display = 'none';
+            elements.detectedTimes.classList.add('hidden');
             return;
         }
 
-        elements.detectedTimes.style.display = 'block';
+        elements.detectedTimes.classList.remove('hidden');
         elements.detectedTimesBtns.innerHTML = '';
 
         for (var i = 0; i < times.length; i++) {

@@ -30,6 +30,9 @@ Cookie.app = (function() {
         // Keep links inside the PWA shell on iOS standalone mode
         setupStandaloneNavigation();
 
+        // Apply avatar colors from data attributes (CSP blocks inline style=)
+        applyAvatarColors();
+
         // Initialize page-specific modules if they exist
         var pageName = document.body.getAttribute('data-page');
         if (pageName && Cookie.pages && Cookie.pages[pageName]) {
@@ -176,6 +179,17 @@ Cookie.app = (function() {
                 links[i].setAttribute('aria-current', 'page');
                 break;
             }
+        }
+    }
+
+    /**
+     * Apply background colors from data-avatar-color attributes via CSSOM.
+     * Inline style= attributes are blocked by CSP, but JS property assignment is not.
+     */
+    function applyAvatarColors() {
+        var elements = document.querySelectorAll('[data-avatar-color]');
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].style.backgroundColor = elements[i].getAttribute('data-avatar-color');
         }
     }
 

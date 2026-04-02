@@ -16,11 +16,11 @@ function getCsrfToken() {
 function showError(msg) {
   var el = document.getElementById('error-msg');
   el.textContent = msg;
-  el.style.display = 'block';
+  el.classList.remove('hidden');
 }
 
 function hideError() {
-  document.getElementById('error-msg').style.display = 'none';
+  document.getElementById('error-msg').classList.add('hidden');
 }
 
 function requestCode() {
@@ -69,8 +69,8 @@ function requestCode() {
 }
 
 function showCode(code, expiresIn, pollInterval) {
-  document.getElementById('request-section').style.display = 'none';
-  document.getElementById('code-display').style.display = 'block';
+  document.getElementById('request-section').classList.add('hidden');
+  document.getElementById('code-display').classList.remove('hidden');
   document.getElementById('code-value').textContent = code;
 
   var expiresAt = Date.now() + (expiresIn * 1000);
@@ -148,8 +148,8 @@ function onExpired() {
     clearInterval(countdownTimer);
     countdownTimer = null;
   }
-  document.getElementById('code-display').style.display = 'none';
-  document.getElementById('request-section').style.display = 'block';
+  document.getElementById('code-display').classList.add('hidden');
+  document.getElementById('request-section').classList.remove('hidden');
   showError('Code expired. Please request a new one.');
 }
 

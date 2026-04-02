@@ -14,7 +14,7 @@
         <div id="profile-grid" class="profile-grid mb-8">
             {% for profile in profiles %}
             <button type="button" class="profile-btn" data-profile-id="{{ profile.id }}" data-profile-name="{{ profile.name }}">
-                <div class="avatar avatar-xl" style="background-color: {{ profile.avatar_color }}">
+                <div class="avatar avatar-xl" data-avatar-color="{{ profile.avatar_color }}">
                     {{ profile.name|slice:":1"|upper }}
                 </div>
                 <span class="profile-btn-name">{{ profile.name }}</span>
@@ -31,7 +31,7 @@
                         </svg>
                     </span>
                 </button>
-                <span class="profile-btn-name mt-2" style="color: var(--muted-foreground);">Add Profile</span>
+                <span class="profile-btn-name mt-2 text-muted">Add Profile</span>
             </div>
         </div>
 
@@ -52,10 +52,10 @@
 
                 <!-- Color picker -->
                 <div class="mb-6">
-                    <label class="mb-2" style="display: block; font-size: 0.875rem; color: var(--muted-foreground);">
+                    <label class="form-label mb-2">
                         Choose a color
                     </label>
-                    <div id="color-picker" class="flex flex-wrap justify-center" style="margin: -0.25rem;">
+                    <div id="color-picker" class="flex flex-wrap justify-center color-picker-grid">
                         <!-- Colors will be populated by JS -->
                     </div>
                 </div>

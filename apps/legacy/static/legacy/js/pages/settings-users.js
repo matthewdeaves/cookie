@@ -148,12 +148,16 @@
         var data = preview.data_to_delete;
 
         deleteProfileInfo.innerHTML = [
-            '<div class="profile-avatar" style="background-color: ' + Cookie.utils.escapeHtml(profile.avatar_color) + '"></div>',
+            '<div class="profile-avatar" data-avatar-color="' + Cookie.utils.escapeHtml(profile.avatar_color) + '"></div>',
             '<div>',
             '  <div class="profile-name">' + Cookie.utils.escapeHtml(profile.name) + '</div>',
             '  <div class="profile-meta">Created ' + Cookie.utils.formatDate(profile.created_at) + '</div>',
             '</div>'
         ].join('');
+        var avatarEl = deleteProfileInfo.querySelector('[data-avatar-color]');
+        if (avatarEl) {
+            avatarEl.style.backgroundColor = avatarEl.getAttribute('data-avatar-color');
+        }
 
         var summaryItems = [];
         if (data.remixes > 0) {
