@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">60% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>3/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>2/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>2/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">60% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>3/5</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -138,16 +138,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -169,7 +166,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -190,19 +190,19 @@ interface SettingsPromptsProps {
   onPromptsChange: (prompts: AIPrompt[]) =&gt; void
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >SettingsPrompts({</span>
+export default function SettingsPrompts({
   aiStatus,
   prompts,
   models,
   onPromptsChange,
 }: SettingsPromptsProps) {
-  const handlePromptUpdated = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(u</span>pdated: AIPrompt) =&gt; {</span>
+  const handlePromptUpdated = <span class="fstat-no" title="function not covered" >(u</span>pdated: AIPrompt) =&gt; {
 <span class="cstat-no" title="statement not covered" >    onPromptsChange(</span>
       prompts.map(<span class="fstat-no" title="function not covered" >(p</span>) =&gt; (<span class="cstat-no" title="statement not covered" >p.prompt_type === updated.prompt_type ? updated : p))</span>
     )
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="space-y-4"&gt;
       &lt;div className="flex items-start gap-3 rounded-lg border border-border bg-card p-4"&gt;
         &lt;AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" /&gt;
@@ -226,8 +226,8 @@ export default function <span class="fstat-no" title="function not covered" >Set
         &lt;/div&gt;
       )}
 &nbsp;
-      {prompts.map(<span class="fstat-no" title="function not covered" >(p</span>rompt) =&gt; (
-<span class="cstat-no" title="statement not covered" >        &lt;PromptCard</span>
+      {prompts.map((prompt) =&gt; (
+        &lt;PromptCard
           key={prompt.prompt_type}
           prompt={prompt}
           models={models}
@@ -244,7 +244,7 @@ export default function <span class="fstat-no" title="function not covered" >Set
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-02T16:49:30.555Z
+                at 2026-04-02T17:28:07.409Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

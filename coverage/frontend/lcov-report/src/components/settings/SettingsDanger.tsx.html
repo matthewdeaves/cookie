@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">61.11% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/18</span>
+                <span class='fraction'>11/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">80% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>4/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">40% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>2/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">61.11% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/18</span>
+                <span class='fraction'>11/18</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -127,29 +127,29 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -182,30 +182,30 @@ import DangerZoneInfo from './DangerZoneInfo'
 import ResetPreviewStep from './ResetPreviewStep'
 import ConfirmResetStep from './ConfirmResetStep'
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >SettingsDanger() {</span>
-  const [showResetModal, setShowResetModal<span class="cstat-no" title="statement not covered" >] = useState(false)</span>
-  const [resetPreview, setResetPreview<span class="cstat-no" title="statement not covered" >] = useState&lt;ResetPreview | null&gt;(null)</span>
-  const [resetStep, setResetStep<span class="cstat-no" title="statement not covered" >] = useState&lt;1 | 2&gt;(1)</span>
+export default function SettingsDanger() {
+  const [showResetModal, setShowResetModal] = useState(false)
+  const [resetPreview, setResetPreview] = useState&lt;ResetPreview | null&gt;(null)
+  const [resetStep, setResetStep] = useState&lt;1 | 2&gt;(1)
 &nbsp;
-  const handleResetClick = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >    try {</span>
-      const preview = <span class="cstat-no" title="statement not covered" >await api.system.resetPreview()</span>
-<span class="cstat-no" title="statement not covered" >      setResetPreview(preview)</span>
-<span class="cstat-no" title="statement not covered" >      setResetStep(1)</span>
-<span class="cstat-no" title="statement not covered" >      setShowResetModal(true)</span>
+  const handleResetClick = async () =&gt; {
+    try {
+      const preview = await api.system.resetPreview()
+      setResetPreview(preview)
+      setResetStep(1)
+      setShowResetModal(true)
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      console.error('Failed to load reset preview:', error)</span>
 <span class="cstat-no" title="statement not covered" >      toast.error('Failed to load reset preview')</span>
     }
   }
 &nbsp;
-  const handleCancelReset = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
+  const handleCancelReset = <span class="fstat-no" title="function not covered" >() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    setShowResetModal(false)</span>
 <span class="cstat-no" title="statement not covered" >    setResetPreview(null)</span>
 <span class="cstat-no" title="statement not covered" >    setResetStep(1)</span>
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;&gt;
       &lt;DangerZoneInfo onResetClick={handleResetClick} /&gt;
 &nbsp;
@@ -223,7 +223,7 @@ export default function <span class="fstat-no" title="function not covered" >Set
                 onContinue={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etResetStep(2)}</span>
               /&gt;
             ) : (
-              &lt;ConfirmResetStep onBack={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etResetStep(1)} /</span>&gt;
+<span class="branch-1 cbranch-no" title="branch not covered" >              &lt;ConfirmResetStep onBack={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etResetStep(1)} /</span>&gt;</span>
             )}
           &lt;/div&gt;
         &lt;/div&gt;
@@ -238,7 +238,7 @@ export default function <span class="fstat-no" title="function not covered" >Set
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-02T16:49:30.498Z
+                at 2026-04-02T17:28:07.354Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

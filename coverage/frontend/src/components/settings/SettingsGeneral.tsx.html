@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">80% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>4/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>8/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>2/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">80% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>4/5</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -201,22 +201,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -228,6 +216,18 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -302,7 +302,7 @@ interface SettingsGeneralProps {
   onQuotaSave: (limits: QuotaLimits) =&gt; void
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >SettingsGeneral({</span>
+export default function SettingsGeneral({
   aiStatus,
   models,
   onAIStatusChange,
@@ -311,10 +311,10 @@ export default function <span class="fstat-no" title="function not covered" >Set
   quotaData,
   onQuotaSave,
 }: SettingsGeneralProps) {
-  const { theme, toggleTheme <span class="cstat-no" title="statement not covered" >} = useProfile()</span>
-  const <span class="cstat-no" title="statement not covered" >version = useVersion()</span>
+  const { theme, toggleTheme } = useProfile()
+  const version = useVersion()
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="space-y-6"&gt;
       {/* Preferences */}
       &lt;div className="rounded-lg border border-border bg-card p-4"&gt;
@@ -330,18 +330,18 @@ export default function <span class="fstat-no" title="function not covered" >Set
                 'flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
                 theme === 'light'
                   ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-background text-foreground hover:bg-muted'
+                  : <span class="branch-1 cbranch-no" title="branch not covered" >'border-border bg-background text-foreground hover:bg-muted'</span>
               )}
             &gt;
               &lt;Sun className="h-4 w-4" /&gt;
               Light
             &lt;/button&gt;
             &lt;button
-              onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >t</span>heme !== 'dark' &amp;&amp; toggleTheme()}</span>
+              onClick={() =&gt; theme !== 'dark' &amp;&amp; toggleTheme()}
               className={cn(
                 'flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
                 theme === 'dark'
-                  ? 'border-primary bg-primary text-primary-foreground'
+                  ? <span class="branch-0 cbranch-no" title="branch not covered" >'border-primary bg-primary text-primary-foreground'</span>
                   : 'border-border bg-background text-foreground hover:bg-muted'
               )}
             &gt;
@@ -400,7 +400,7 @@ export default function <span class="fstat-no" title="function not covered" >Set
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-02T16:49:30.555Z
+                at 2026-04-02T17:28:07.409Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

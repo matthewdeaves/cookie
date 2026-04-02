@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">80% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>12/15</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">83.33% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>5/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">85.71% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>12/14</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -144,26 +144,26 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -180,7 +180,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -214,27 +214,27 @@ interface ConfirmResetStepProps {
   onBack: () =&gt; void
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >ConfirmResetStep({</span> onBack }: ConfirmResetStepProps) {
-  const [confirmText, setConfirmText<span class="cstat-no" title="statement not covered" >] = useState('')</span>
-  const [resetting, setResetting<span class="cstat-no" title="statement not covered" >] = useState(false)</span>
+export default function ConfirmResetStep({ onBack }: ConfirmResetStepProps) {
+  const [confirmText, setConfirmText] = useState('')
+  const [resetting, setResetting] = useState(false)
 &nbsp;
-  const handleConfirmReset = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >    if (confirmText !== 'RESET') <span class="cstat-no" title="statement not covered" >return</span></span>
+  const handleConfirmReset = async () =&gt; {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (confirmText !== 'RESET') <span class="cstat-no" title="statement not covered" >return</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    setResetting(true)</span>
-<span class="cstat-no" title="statement not covered" >    try {</span>
-<span class="cstat-no" title="statement not covered" >      await api.system.reset('RESET')</span>
-<span class="cstat-no" title="statement not covered" >      toast.success('Database reset complete')</span>
-<span class="cstat-no" title="statement not covered" >      window.location.href = '/'</span>
+    setResetting(true)
+    try {
+      await api.system.reset('RESET')
+      toast.success('Database reset complete')
+      window.location.href = '/'
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      console.error('Failed to reset database:', error)</span>
 <span class="cstat-no" title="statement not covered" >      toast.error('Failed to reset database')</span>
     } finally {
-<span class="cstat-no" title="statement not covered" >      setResetting(false)</span>
+      setResetting(false)
     }
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;&gt;
       &lt;div className="flex items-center gap-2 text-destructive"&gt;
         &lt;AlertTriangle className="h-5 w-5" /&gt;
@@ -251,7 +251,7 @@ export default function <span class="fstat-no" title="function not covered" >Con
         &lt;input
           type="text"
           value={confirmText}
-          onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >setConfirmText(e.target.value)}</span>
+          onChange={(e) =&gt; setConfirmText(e.target.value)}
           placeholder="Type RESET"
           className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
         /&gt;
@@ -283,7 +283,7 @@ export default function <span class="fstat-no" title="function not covered" >Con
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-02T16:49:30.498Z
+                at 2026-04-02T17:28:07.354Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

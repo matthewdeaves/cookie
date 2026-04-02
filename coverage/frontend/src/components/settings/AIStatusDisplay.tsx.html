@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/18</span>
+                <span class='fraction'>18/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">94.44% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/18</span>
+                <span class='fraction'>17/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>6/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>12/12</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -138,25 +138,21 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">15x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">15x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">20x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -164,12 +160,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">20x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -202,39 +202,39 @@ interface AIStatusDisplayProps {
   models: AIModel[]
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >getStatusColor(a</span>iStatus: AIStatus | null): string {
-<span class="cstat-no" title="statement not covered" >  if (aiStatus?.available) <span class="cstat-no" title="statement not covered" >return 'bg-green-500'</span></span>
-<span class="cstat-no" title="statement not covered" >  if (aiStatus?.configured) <span class="cstat-no" title="statement not covered" >return 'bg-yellow-500'</span></span>
-<span class="cstat-no" title="statement not covered" >  return 'bg-red-500'</span>
+function getStatusColor(aiStatus: AIStatus | null): string {
+  if (aiStatus?.available) return 'bg-green-500'
+  if (aiStatus?.configured) return 'bg-yellow-500'
+  return 'bg-red-500'
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >getStatusLabel(a</span>iStatus: AIStatus | null): string {
-<span class="cstat-no" title="statement not covered" >  if (aiStatus?.available) <span class="cstat-no" title="statement not covered" >return 'Connected'</span></span>
-<span class="cstat-no" title="statement not covered" >  if (aiStatus?.configured) <span class="cstat-no" title="statement not covered" >return 'Invalid key'</span></span>
-<span class="cstat-no" title="statement not covered" >  return 'Not configured'</span>
+function getStatusLabel(aiStatus: AIStatus | null): string {
+  if (aiStatus?.available) return 'Connected'
+  if (aiStatus?.configured) return 'Invalid key'
+  return 'Not configured'
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >StatusWarning({</span> aiStatus }: { aiStatus: AIStatus | null }) {
-<span class="cstat-no" title="statement not covered" >  if (!aiStatus?.configured || aiStatus?.valid) <span class="cstat-no" title="statement not covered" >return null</span></span>
+function StatusWarning({ aiStatus }: { aiStatus: AIStatus | null }) {
+  if (!aiStatus?.configured || aiStatus?.valid) return null
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="mb-4 flex items-center gap-2 rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-3"&gt;
       &lt;AlertCircle className="h-5 w-5 flex-shrink-0 text-yellow-500" /&gt;
       &lt;p className="text-sm text-yellow-600 dark:text-yellow-400"&gt;
         {aiStatus?.error ||
-          'Your API key appears to be invalid or expired. Please update it.'}
+<span class="branch-1 cbranch-no" title="branch not covered" >          'Your API key appears to be invalid or expired. Please update it.'}</span>
       &lt;/p&gt;
     &lt;/div&gt;
   )
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >AIStatusDisplay({</span> aiStatus, models }: AIStatusDisplayProps) {
-  const getModelName = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(m</span>odelId: string) =&gt; {</span>
-    const model = <span class="cstat-no" title="statement not covered" >models.find(<span class="fstat-no" title="function not covered" >(m</span>) =&gt; <span class="cstat-no" title="statement not covered" >m.id === modelId)</span></span>
-<span class="cstat-no" title="statement not covered" >    return model?.name || modelId</span>
+export default function AIStatusDisplay({ aiStatus, models }: AIStatusDisplayProps) {
+  const getModelName = (modelId: string) =&gt; {
+    const model = models.find((m) =&gt; m.id === modelId)
+    return model?.name || modelId
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;&gt;
       &lt;div className="mb-4 flex items-center gap-2"&gt;
         &lt;div
@@ -265,7 +265,7 @@ export default function <span class="fstat-no" title="function not covered" >AIS
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-02T16:49:30.555Z
+                at 2026-04-02T17:28:07.409Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

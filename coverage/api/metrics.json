@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-04-02T16:52:17.103904+00:00",
+  "generated_at": "2026-04-02T17:30:47.705194+00:00",
   "repo": "matthewdeaves/cookie",
   "coverage": {
     "frontend": {
-      "percentage": 53.82,
+      "percentage": 66.21,
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/frontend-coverage.svg"
     },
     "backend": {

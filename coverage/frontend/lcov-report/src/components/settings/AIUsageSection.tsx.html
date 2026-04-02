@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>6/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>6/6</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -123,7 +123,7 @@
 <a name='L58'></a><a href='#L58'>58</a>
 <a name='L59'></a><a href='#L59'>59</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -133,8 +133,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -142,17 +142,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -163,7 +155,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -181,7 +181,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { QuotaResponse, QuotaLimits } from '../../api/client'
 &nbsp;
-const FEATURE_LABELS: { key: keyof QuotaLimits; label: string }[] = <span class="cstat-no" title="statement not covered" >[</span>
+const FEATURE_LABELS: { key: keyof QuotaLimits; label: string }[] = [
   { key: 'remix', label: 'Remixes' },
   { key: 'remix_suggestions', label: 'Remix Suggestions' },
   { key: 'scale', label: 'Scaling' },
@@ -190,19 +190,19 @@ const FEATURE_LABELS: { key: keyof QuotaLimits; label: string }[] = <span class=
   { key: 'timer', label: 'Timer Naming' },
 ]
 &nbsp;
-function <span class="fstat-no" title="function not covered" >formatResetTime(i</span>soString: string): string {
-  const date = <span class="cstat-no" title="statement not covered" >new Date(isoString)</span>
-<span class="cstat-no" title="statement not covered" >  return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })</span>
+function formatResetTime(isoString: string): string {
+  const date = new Date(isoString)
+  return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 }
 &nbsp;
 interface AIUsageSectionProps {
   quotaData: QuotaResponse | null
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >AIUsageSection({</span> quotaData }: AIUsageSectionProps) {
-<span class="cstat-no" title="statement not covered" >  if (!quotaData) <span class="cstat-no" title="statement not covered" >return null</span></span>
+export default function AIUsageSection({ quotaData }: AIUsageSectionProps) {
+  if (!quotaData) return null
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="rounded-lg border border-border bg-card p-4"&gt;
       &lt;div className="mb-4 flex items-center gap-2"&gt;
         &lt;h2 className="text-lg font-medium text-foreground"&gt;AI Usage&lt;/h2&gt;
@@ -220,8 +220,8 @@ export default function <span class="fstat-no" title="function not covered" >AIU
       ) : (
         &lt;&gt;
           &lt;div className="grid grid-cols-2 gap-2 sm:grid-cols-3"&gt;
-            {FEATURE_LABELS.map(<span class="fstat-no" title="function not covered" >({</span> key, label }) =&gt; (
-<span class="cstat-no" title="statement not covered" >              &lt;div key={key} className="text-sm"&gt;</span>
+            {FEATURE_LABELS.map(({ key, label }) =&gt; (
+              &lt;div key={key} className="text-sm"&gt;
                 &lt;span className="text-muted-foreground"&gt;{label}: &lt;/span&gt;
                 &lt;span className="font-medium text-foreground"&gt;
                   {quotaData.usage[key]}/{quotaData.limits[key]}
@@ -244,7 +244,7 @@ export default function <span class="fstat-no" title="function not covered" >AIU
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-02T16:49:30.498Z
+                at 2026-04-02T17:28:07.354Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

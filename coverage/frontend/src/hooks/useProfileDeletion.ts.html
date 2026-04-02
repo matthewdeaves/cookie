@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">25% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/32</span>
+                <span class='fraction'>8/32</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">20% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>1/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">26.66% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/30</span>
+                <span class='fraction'>8/30</span>
             </div>
         
             
@@ -148,29 +148,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -180,17 +163,34 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -212,16 +212,16 @@ interface UseProfileDeletionResult {
   handleCancelDelete: () =&gt; void
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >useProfileDeletion(</span>
+export function useProfileDeletion(
   profiles: ProfileWithStats[],
   onProfilesChange: (profiles: ProfileWithStats[]) =&gt; void
 ): UseProfileDeletionResult {
-  const [showDeleteModal, setShowDeleteModal<span class="cstat-no" title="statement not covered" >] = useState(false)</span>
-  const [deletePreview, setDeletePreview<span class="cstat-no" title="statement not covered" >] = useState&lt;DeletionPreview | null&gt;(null)</span>
-  const [deletingId, setDeletingId<span class="cstat-no" title="statement not covered" >] = useState&lt;number | null&gt;(null)</span>
-  const [deleting, setDeleting<span class="cstat-no" title="statement not covered" >] = useState(false)</span>
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deletePreview, setDeletePreview] = useState&lt;DeletionPreview | null&gt;(null)
+  const [deletingId, setDeletingId] = useState&lt;number | null&gt;(null)
+  const [deleting, setDeleting] = useState(false)
 &nbsp;
-  const handleDeleteClick = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async (p</span>rofileId: number) =&gt; {</span>
+  const handleDeleteClick = <span class="fstat-no" title="function not covered" >async (p</span>rofileId: number) =&gt; {
 <span class="cstat-no" title="statement not covered" >    try {</span>
       const preview = <span class="cstat-no" title="statement not covered" >await api.profiles.deletionPreview(profileId)</span>
 <span class="cstat-no" title="statement not covered" >      setDeletePreview(preview)</span>
@@ -233,7 +233,7 @@ export function <span class="fstat-no" title="function not covered" >useProfileD
     }
   }
 &nbsp;
-  const handleConfirmDelete = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
+  const handleConfirmDelete = <span class="fstat-no" title="function not covered" >async () =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    if (!deletingId) <span class="cstat-no" title="statement not covered" >return</span></span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    setDeleting(true)</span>
@@ -252,13 +252,13 @@ export function <span class="fstat-no" title="function not covered" >useProfileD
     }
   }
 &nbsp;
-  const handleCancelDelete = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
+  const handleCancelDelete = <span class="fstat-no" title="function not covered" >() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    setShowDeleteModal(false)</span>
 <span class="cstat-no" title="statement not covered" >    setDeletePreview(null)</span>
 <span class="cstat-no" title="statement not covered" >    setDeletingId(null)</span>
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return {</span>
+  return {
     showDeleteModal,
     deletePreview,
     deleting,
@@ -274,7 +274,7 @@ export function <span class="fstat-no" title="function not covered" >useProfileD
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-02T16:49:30.555Z
+                at 2026-04-02T17:28:07.409Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

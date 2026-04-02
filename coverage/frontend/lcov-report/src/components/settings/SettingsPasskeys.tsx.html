@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">62.5% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>5/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -119,19 +119,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -145,7 +143,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -170,34 +170,34 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import usePasskeys from '../../hooks/usePasskeys'
 import PasskeyItem from './PasskeyItem'
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >SettingsPasskeys() {</span>
-  const { credentials, loading, error, adding, handleAdd, handleDelete <span class="cstat-no" title="statement not covered" >} = usePasskeys()</span>
+export default function SettingsPasskeys() {
+  const { credentials, loading, error, adding, handleAdd, handleDelete } = usePasskeys()
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  if (loading) {</span>
-<span class="cstat-no" title="statement not covered" >    return (</span>
+  if (loading) {
+    return (
       &lt;div className="flex items-center justify-center py-12"&gt;
         &lt;div className="text-muted-foreground"&gt;Loading...&lt;/div&gt;
       &lt;/div&gt;
     )
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="space-y-6"&gt;
       &lt;div className="rounded-lg border border-border bg-card p-4"&gt;
         &lt;h2 className="mb-1 text-lg font-medium text-foreground"&gt;Manage Passkeys&lt;/h2&gt;
         &lt;p className="mb-4 text-sm text-muted-foreground"&gt;
-          {credentials.length} passkey{credentials.length !== 1 ? 's' : ''} registered
+          {credentials.length} passkey{credentials.length !== 1 ? 's' : <span class="branch-1 cbranch-no" title="branch not covered" >''} </span>registered
         &lt;/p&gt;
 &nbsp;
         {error &amp;&amp; (
-          &lt;div role="alert" className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-300"&gt;
+<span class="branch-1 cbranch-no" title="branch not covered" >          &lt;div role="alert" className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-300"&gt;</span>
             {error}
           &lt;/div&gt;
         )}
 &nbsp;
         &lt;div className="space-y-3"&gt;
-          {credentials.map(<span class="fstat-no" title="function not covered" >(c</span>red) =&gt; (
-<span class="cstat-no" title="statement not covered" >            &lt;PasskeyItem</span>
+          {credentials.map((cred) =&gt; (
+            &lt;PasskeyItem
               key={cred.id}
               id={cred.id}
               createdAt={cred.created_at}
@@ -213,7 +213,7 @@ export default function <span class="fstat-no" title="function not covered" >Set
           disabled={adding}
           className="mt-4 w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50"
         &gt;
-          {adding ? 'Adding passkey...' : 'Add Passkey'}
+          {adding ? <span class="branch-0 cbranch-no" title="branch not covered" >'Adding passkey...' : '</span>Add Passkey'}
         &lt;/button&gt;
       &lt;/div&gt;
     &lt;/div&gt;
@@ -226,7 +226,7 @@ export default function <span class="fstat-no" title="function not covered" >Set
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-02T16:49:30.498Z
+                at 2026-04-02T17:28:07.354Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

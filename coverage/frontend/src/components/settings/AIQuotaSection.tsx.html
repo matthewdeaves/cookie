@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">75% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/24</span>
+                <span class='fraction'>18/24</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>8/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">57.14% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>4/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">80% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/20</span>
+                <span class='fraction'>16/20</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -145,7 +145,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -160,41 +160,41 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -222,7 +222,7 @@ import { Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type QuotaResponse, type QuotaLimits } from '../../api/client'
 &nbsp;
-const FEATURE_LABELS: { key: keyof QuotaLimits; label: string }[] = <span class="cstat-no" title="statement not covered" >[</span>
+const FEATURE_LABELS: { key: keyof QuotaLimits; label: string }[] = [
   { key: 'remix', label: 'Remixes' },
   { key: 'remix_suggestions', label: 'Remix Suggestions' },
   { key: 'scale', label: 'Scaling' },
@@ -236,42 +236,42 @@ interface AIQuotaSectionProps {
   onSave: (limits: QuotaLimits) =&gt; void
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >AIQuotaSection({</span> quotaData, onSave }: AIQuotaSectionProps) {
-  const [limits, setLimits<span class="cstat-no" title="statement not covered" >] = useState&lt;QuotaLimits&gt;(</span>
+export default function AIQuotaSection({ quotaData, onSave }: AIQuotaSectionProps) {
+  const [limits, setLimits] = useState&lt;QuotaLimits&gt;(
     quotaData?.limits ?? { remix: 0, remix_suggestions: 0, scale: 0, tips: 0, discover: 0, timer: 0 },
   )
-  const [saving, setSaving<span class="cstat-no" title="statement not covered" >] = useState(false)</span>
+  const [saving, setSaving] = useState(false)
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >    if (quotaData?.limits) <span class="cstat-no" title="statement not covered" >setLimits(quotaData.limits)</span></span>
+  useEffect(() =&gt; {
+    if (quotaData?.limits) setLimits(quotaData.limits)
   }, [quotaData?.limits])
 &nbsp;
-  const handleChange = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(k</span>ey: keyof QuotaLimits, value: string) =&gt; {</span>
+  const handleChange = <span class="fstat-no" title="function not covered" >(k</span>ey: keyof QuotaLimits, value: string) =&gt; {
     const num = <span class="cstat-no" title="statement not covered" >parseInt(value, 10)</span>
 <span class="cstat-no" title="statement not covered" >    if (!isNaN(num) &amp;&amp; num &gt;= 0) <span class="cstat-no" title="statement not covered" >setLimits(<span class="fstat-no" title="function not covered" >(p</span>rev) =&gt; (<span class="cstat-no" title="statement not covered" >{ ...prev, [key]: num }))</span></span></span>
   }
 &nbsp;
-  const handleSave = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >    setSaving(true)</span>
-<span class="cstat-no" title="statement not covered" >    try {</span>
-      const updated = <span class="cstat-no" title="statement not covered" >await api.ai.quotas.update(limits)</span>
-<span class="cstat-no" title="statement not covered" >      onSave(updated.limits)</span>
-<span class="cstat-no" title="statement not covered" >      toast.success('Quota limits saved')</span>
+  const handleSave = async () =&gt; {
+    setSaving(true)
+    try {
+      const updated = await api.ai.quotas.update(limits)
+      onSave(updated.limits)
+      toast.success('Quota limits saved')
     } catch {
 <span class="cstat-no" title="statement not covered" >      toast.error('Failed to save quota limits')</span>
     } finally {
-<span class="cstat-no" title="statement not covered" >      setSaving(false)</span>
+      setSaving(false)
     }
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  if (!quotaData) <span class="cstat-no" title="statement not covered" >return null</span></span>
+  if (!quotaData) return null
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="rounded-lg border border-border bg-card p-4"&gt;
       &lt;h2 className="mb-4 text-lg font-medium text-foreground"&gt;AI Daily Limits&lt;/h2&gt;
       &lt;div className="grid grid-cols-2 gap-3 sm:grid-cols-3"&gt;
-        {FEATURE_LABELS.map(<span class="fstat-no" title="function not covered" >({</span> key, label }) =&gt; (
-<span class="cstat-no" title="statement not covered" >          &lt;label key={key} className="block"&gt;</span>
+        {FEATURE_LABELS.map(({ key, label }) =&gt; (
+          &lt;label key={key} className="block"&gt;
             &lt;span className="mb-1 block text-sm font-medium text-foreground"&gt;{label}&lt;/span&gt;
             &lt;input
               type="number"
@@ -301,7 +301,7 @@ export default function <span class="fstat-no" title="function not covered" >AIQ
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-02T16:49:30.555Z
+                at 2026-04-02T17:28:07.409Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
