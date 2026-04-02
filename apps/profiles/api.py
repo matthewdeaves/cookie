@@ -5,7 +5,7 @@ from typing import List, Optional
 from django.conf import settings
 from django.db.models import Count, Q
 from django_ratelimit.decorators import ratelimit
-from ninja import Router, Schema
+from ninja import Router, Schema, Status
 
 from apps.core.auth import AdminAuth, SessionAuth
 from .models import Profile
@@ -114,11 +114,11 @@ def _check_profile_ownership(request, profile_id):
         return None
     user, own_profile = _resolve_authenticated_user(request)
     if not user:
-        return 404, {"error": "not_found", "message": "Profile not found"}
+        return Status(404, {"error": "not_found", "message": "Profile not found"})
     if user.is_staff:
         return None  # Admin can access any profile
     if not own_profile or own_profile.id != profile_id:
-        return 404, {"error": "not_found", "message": "Profile not found"}
+        return Status(404, {"error": "not_found", "message": "Profile not found"})
     return None
 
 
@@ -179,14 +179,14 @@ def list_profiles(request):
 def create_profile(request, payload: ProfileIn):
     """Create a new profile. Only available in home mode."""
     if getattr(request, "limited", False):
-        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
+        return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
     if settings.AUTH_MODE != "home":
-        return 404, {"error": "not_found", "message": "Not found"}
+        return Status(404, {"error": "not_found", "message": "Not found"})
     data = payload.dict()
     if not data.get("avatar_color"):
         data["avatar_color"] = Profile.next_avatar_color()
     profile = Profile.objects.create(**data)
-    return 201, profile
+    return Status(201, profile)
 
 
 @router.get("/{profile_id}/", response={200: ProfileOut, 404: ErrorSchema}, auth=SessionAuth())
@@ -198,7 +198,7 @@ def get_profile(request, profile_id: int):
     try:
         return Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
-        return 404, {"error": "not_found", "message": "Profile not found"}
+        return Status(404, {"error": "not_found", "message": "Profile not found"})
 
 
 @router.put("/{profile_id}/", response={200: ProfileOut, 404: ErrorSchema}, auth=SessionAuth())
@@ -210,7 +210,7 @@ def update_profile(request, profile_id: int, payload: ProfileIn):
     try:
         profile = Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
-        return 404, {"error": "not_found", "message": "Profile not found"}
+        return Status(404, {"error": "not_found", "message": "Profile not found"})
     for key, value in payload.dict().items():
         setattr(profile, key, value)
     profile.save()
@@ -239,7 +239,7 @@ def get_deletion_preview(request, profile_id: int):
     try:
         profile = Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
-        return 404, {"error": "not_found", "message": "Profile not found"}
+        return Status(404, {"error": "not_found", "message": "Profile not found"})
 
     remixes = Recipe.objects.filter(is_remix=True, remix_profile=profile)
     favorites = RecipeFavorite.objects.filter(profile=profile)
@@ -290,7 +290,7 @@ def delete_profile(request, profile_id: int):
     try:
         profile = Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
-        return 404, {"error": "not_found", "message": "Profile not found"}
+        return Status(404, {"error": "not_found", "message": "Profile not found"})
 
     current_profile_id = request.session.get("profile_id")
     if current_profile_id == profile_id:
@@ -317,19 +317,19 @@ def delete_profile(request, profile_id: int):
         except OSError:
             pass
 
-    return 204, None
+    return Status(204, None)
 
 
 @router.post("/{profile_id}/select/", response={200: ProfileOut, 404: dict})
 def select_profile(request, profile_id: int):
     """Set a profile as the current profile. Only available in home mode."""
     if settings.AUTH_MODE != "home":
-        return 404, {"detail": "Not found"}
+        return Status(404, {"detail": "Not found"})
     try:
         profile = Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
         request.session.pop("profile_id", None)
-        return 404, {"detail": "Profile not found"}
+        return Status(404, {"detail": "Profile not found"})
     request.session["profile_id"] = profile.id
     return profile
 
@@ -340,7 +340,7 @@ def set_unlimited(request, profile_id: int, data: SetUnlimitedIn):
     try:
         profile = Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
-        return 404, {"error": "not_found", "message": "Profile not found"}
+        return Status(404, {"error": "not_found", "message": "Profile not found"})
     profile.unlimited_ai = data.unlimited
     profile.save(update_fields=["unlimited_ai"])
     return {"id": profile.id, "name": profile.name, "unlimited_ai": profile.unlimited_ai}
@@ -351,11 +351,11 @@ def rename_profile(request, profile_id: int, data: RenameIn):
     """Rename a profile. Admin only."""
     name = data.name.strip()
     if not name or len(name) > 100:
-        return 400, {"error": "validation_error", "message": "Name must be between 1 and 100 characters"}
+        return Status(400, {"error": "validation_error", "message": "Name must be between 1 and 100 characters"})
     try:
         profile = Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
-        return 404, {"error": "not_found", "message": "Profile not found"}
+        return Status(404, {"error": "not_found", "message": "Profile not found"})
     profile.name = name
     profile.save(update_fields=["name"])
     return {"id": profile.id, "name": profile.name, "avatar_color": profile.avatar_color}

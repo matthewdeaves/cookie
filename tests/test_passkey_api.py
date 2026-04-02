@@ -727,33 +727,33 @@ class TestRateLimiting:
         from apps.core.passkey_api import register_options
 
         request = self._make_request(f"{BASE}/register/options/")
-        status, body = register_options(request)
-        assert status == 429
-        assert "Too many attempts" in body["error"]
+        result = register_options(request)
+        assert result.status_code == 429
+        assert "Too many attempts" in result.value["error"]
 
     def test_register_verify_rate_limited(self, passkey_mode):
         from apps.core.passkey_api import register_verify
 
         request = self._make_request(f"{BASE}/register/verify/")
-        status, body = register_verify(request)
-        assert status == 429
-        assert "Too many attempts" in body["error"]
+        result = register_verify(request)
+        assert result.status_code == 429
+        assert "Too many attempts" in result.value["error"]
 
     def test_login_options_rate_limited(self, passkey_mode):
         from apps.core.passkey_api import login_options
 
         request = self._make_request(f"{BASE}/login/options/")
-        status, body = login_options(request)
-        assert status == 429
-        assert "Too many attempts" in body["error"]
+        result = login_options(request)
+        assert result.status_code == 429
+        assert "Too many attempts" in result.value["error"]
 
     def test_login_verify_rate_limited(self, passkey_mode):
         from apps.core.passkey_api import login_verify
 
         request = self._make_request(f"{BASE}/login/verify/")
-        status, body = login_verify(request)
-        assert status == 429
-        assert "Too many attempts" in body["error"]
+        result = login_verify(request)
+        assert result.status_code == 429
+        assert "Too many attempts" in result.value["error"]
 
 
 # --- Tests: Challenge expiry and consumption ---

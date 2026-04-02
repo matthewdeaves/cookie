@@ -192,6 +192,9 @@ CSRF_COOKIE_HTTPONLY = False  # SPA reads CSRF cookie via JavaScript
 
 CSRF_FAILURE_VIEW = "apps.core.views.csrf_failure"
 
+# Cross-Origin-Opener-Policy: applies to all Django-served responses including WhiteNoise static files
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
+
 # Production security hardening (inactive in development)
 if not DEBUG:
     SECURE_HSTS_SECONDS = 63072000  # 2 years, matching nginx.prod.conf

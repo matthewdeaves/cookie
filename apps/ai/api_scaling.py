@@ -4,7 +4,7 @@ import logging
 from typing import List, Optional
 
 from django_ratelimit.decorators import ratelimit
-from ninja import Router, Schema
+from ninja import Router, Schema, Status
 
 from apps.core.auth import SessionAuth
 from apps.recipes.models import Recipe
@@ -61,11 +61,11 @@ def scale_recipe_endpoint(request, data: ScaleIn):
     """
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /ai/scale from %s", request.META.get("REMOTE_ADDR"))
-        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
+        return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
 
     allowed, info = reserve_quota(request.auth, "scale")
     if not allowed:
-        return 429, {"error": "quota_exceeded", "message": "Daily limit reached for scale", **info}
+        return Status(429, {"error": "quota_exceeded", "message": "Daily limit reached for scale", **info})
 
     from apps.profiles.utils import get_current_profile_or_none
 
@@ -73,34 +73,46 @@ def scale_recipe_endpoint(request, data: ScaleIn):
 
     if not profile:
         release_quota(request.auth, "scale")
-        return 404, {
-            "error": "not_found",
-            "message": "Profile not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": "Profile not found",
+            },
+        )
 
     # Verify the profile_id in the request matches the session profile
     if data.profile_id != profile.id:
         release_quota(request.auth, "scale")
-        return 404, {
-            "error": "not_found",
-            "message": f"Profile {data.profile_id} not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Profile {data.profile_id} not found",
+            },
+        )
 
     try:
         recipe = Recipe.objects.get(id=data.recipe_id)
     except Recipe.DoesNotExist:
         release_quota(request.auth, "scale")
-        return 404, {
-            "error": "not_found",
-            "message": f"Recipe {data.recipe_id} not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Recipe {data.recipe_id} not found",
+            },
+        )
 
     if recipe.profile_id != profile.id:
         release_quota(request.auth, "scale")
-        return 404, {
-            "error": "not_found",
-            "message": f"Recipe {data.recipe_id} not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Recipe {data.recipe_id} not found",
+            },
+        )
 
     try:
         result = scale_recipe(
@@ -111,10 +123,13 @@ def scale_recipe_endpoint(request, data: ScaleIn):
         )
     except ValueError as e:
         release_quota(request.auth, "scale")
-        return 400, {
-            "error": "validation_error",
-            "message": str(e),
-        }
+        return Status(
+            400,
+            {
+                "error": "validation_error",
+                "message": str(e),
+            },
+        )
     except Exception:
         release_quota(request.auth, "scale")
         raise

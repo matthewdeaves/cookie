@@ -84,14 +84,14 @@ class RecipeScraper:
         # Import here to avoid circular imports
         from apps.recipes.models import Recipe
 
-        # Validate URL for SSRF protection
+        # Validate URL for SSRF protection (returns pinned DNS resolution)
         try:
-            validate_url(url)
+            resolved = validate_url(url)
         except ValueError as e:
             raise FetchError(str(e))
 
-        # Fetch HTML
-        html = await self._fetch_html(url)
+        # Fetch HTML using pinned DNS to prevent TOCTOU rebinding
+        html = await self._fetch_html(url, resolved.curl_resolve)
 
         # Parse recipe data
         data = self._parse_recipe(html, url)
@@ -196,19 +196,23 @@ class RecipeScraper:
             # Log but don't fail - tips generation is optional
             logger.warning(f"Failed to auto-generate tips for recipe {recipe_id}: {e}")
 
-    async def _fetch_html(self, url: str) -> str:
+    async def _fetch_html(self, url: str, curl_resolve: list[str] | None = None) -> str:
         """
         Fetch HTML from URL with browser impersonation.
 
         Follows redirects manually with per-hop SSRF validation (max 5 hops).
         Enforces response size limit (10MB).
         Tries multiple browser profiles if initial request fails.
+
+        Args:
+            url: URL to fetch
+            curl_resolve: DNS pinning list from validate_url to prevent TOCTOU rebinding
         """
         errors = []
 
         for profile in BROWSER_PROFILES:
             try:
-                html = await self._fetch_with_redirects(url, profile, MAX_HTML_SIZE)
+                html = await self._fetch_with_redirects(url, profile, MAX_HTML_SIZE, curl_resolve)
                 if html is not None:
                     return html
                 errors.append(f"{profile}: empty response")
@@ -222,23 +226,26 @@ class RecipeScraper:
 
         raise FetchError(f"Failed to fetch {url}: {'; '.join(errors)}")
 
-    async def _fetch_with_redirects(self, url, profile, max_size):
-        """Fetch URL following redirects with per-hop SSRF validation."""
+    async def _fetch_with_redirects(self, url, profile, max_size, curl_resolve=None):
+        """Fetch URL following redirects with per-hop SSRF validation and DNS pinning."""
         current_url = url
+        current_resolve = curl_resolve or []
         for _ in range(MAX_REDIRECT_HOPS):
             async with AsyncSession(impersonate=profile) as session:
                 response = await session.get(
                     current_url,
                     timeout=self.timeout,
                     allow_redirects=False,
+                    resolve=current_resolve,
                 )
 
                 if response.status_code in (301, 302, 303, 307, 308):
                     location = response.headers.get("location")
                     if not location:
                         raise FetchError("Redirect without Location header")
-                    validate_redirect_url(location)
+                    resolved = validate_redirect_url(location)
                     current_url = location
+                    current_resolve = resolved.curl_resolve
                     continue
 
                 if response.status_code == 200:
@@ -380,14 +387,14 @@ class RecipeScraper:
 
         # Validate image URL for SSRF protection (FR-001)
         try:
-            validate_url(image_url)
+            resolved = validate_url(image_url)
         except ValueError:
             logger.warning("Blocked image URL (SSRF): %s", image_url)
             return None
 
         for profile in BROWSER_PROFILES:
             try:
-                content = await self._fetch_image_with_redirects(image_url, profile)
+                content = await self._fetch_image_with_redirects(image_url, profile, resolved.curl_resolve)
                 if content is not None:
                     content = self._convert_webp_to_jpeg(content)
                     return ContentFile(content)
@@ -402,15 +409,17 @@ class RecipeScraper:
 
         return None
 
-    async def _fetch_image_with_redirects(self, url, profile):
-        """Fetch image following redirects with per-hop SSRF validation."""
+    async def _fetch_image_with_redirects(self, url, profile, curl_resolve=None):
+        """Fetch image following redirects with per-hop SSRF validation and DNS pinning."""
         current_url = url
+        current_resolve = curl_resolve or []
         for _ in range(MAX_REDIRECT_HOPS):
             async with AsyncSession(impersonate=profile) as session:
                 response = await session.get(
                     current_url,
                     timeout=self.timeout,
                     allow_redirects=False,
+                    resolve=current_resolve,
                 )
 
                 if response.status_code in (301, 302, 303, 307, 308):
@@ -418,10 +427,11 @@ class RecipeScraper:
                     if not location:
                         return None
                     try:
-                        validate_redirect_url(location)
+                        resolved = validate_redirect_url(location)
                     except ValueError:
                         return None
                     current_url = location
+                    current_resolve = resolved.curl_resolve
                     continue
 
                 if response.status_code == 200:

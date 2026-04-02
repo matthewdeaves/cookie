@@ -138,9 +138,9 @@ class SearchImageCache:
         Returns:
             Image bytes or None if fetch fails
         """
-        # Validate URL for SSRF protection
+        # Validate URL for SSRF protection (returns pinned DNS resolution)
         try:
-            validate_url(url)
+            resolved = validate_url(url)
         except ValueError:
             logger.warning(f"Blocked image URL (SSRF): {url}")
             return None
@@ -148,7 +148,7 @@ class SearchImageCache:
         # Try each browser profile with manual redirect following
         for profile in BROWSER_PROFILES:
             try:
-                content = await self._fetch_image_safe(url, profile)
+                content = await self._fetch_image_safe(url, profile, resolved.curl_resolve)
                 if content is not None:
                     return content
             except Exception as e:
@@ -157,15 +157,17 @@ class SearchImageCache:
 
         return None
 
-    async def _fetch_image_safe(self, url, profile):
-        """Fetch image following redirects with per-hop SSRF validation."""
+    async def _fetch_image_safe(self, url, profile, curl_resolve=None):
+        """Fetch image following redirects with per-hop SSRF validation and DNS pinning."""
         current_url = url
+        current_resolve = curl_resolve or []
         for _ in range(MAX_REDIRECT_HOPS):
             async with AsyncSession(impersonate=profile) as session:
                 response = await session.get(
                     current_url,
                     timeout=self.DOWNLOAD_TIMEOUT,
                     allow_redirects=False,
+                    resolve=current_resolve,
                 )
 
                 if response.status_code in (301, 302, 303, 307, 308):
@@ -173,10 +175,11 @@ class SearchImageCache:
                     if not location:
                         return None
                     try:
-                        validate_redirect_url(location)
+                        resolved = validate_redirect_url(location)
                     except ValueError:
                         return None
                     current_url = location
+                    current_resolve = resolved.curl_resolve
                     continue
 
                 if response.status_code in (404, 410):

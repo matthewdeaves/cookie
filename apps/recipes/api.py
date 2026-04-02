@@ -12,7 +12,7 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
-from ninja import Router, Schema
+from ninja import Router, Schema, Status
 from ninja.errors import HttpError
 
 from django_ratelimit.core import is_ratelimited
@@ -206,11 +206,11 @@ async def scrape_recipe(request, payload: ScrapeIn):
     """
     limited = await sync_to_async(is_ratelimited)(request, group="scrape", key="ip", rate="5/h", increment=True)
     if limited:
-        return 429, {"detail": "Too many scrape requests. Please try again later."}
+        return Status(429, {"detail": "Too many scrape requests. Please try again later."})
 
     profile = await aget_current_profile_or_none(request)
     if not profile:
-        return 403, {"detail": "Profile required to scrape recipes"}
+        return Status(403, {"detail": "Profile required to scrape recipes"})
 
     scraper = RecipeScraper()
     logger.info(f"Scrape request: {payload.url}")
@@ -218,13 +218,13 @@ async def scrape_recipe(request, payload: ScrapeIn):
     try:
         recipe = await scraper.scrape_url(payload.url, profile)
         logger.info(f'Scrape success: {payload.url} -> recipe {recipe.id} "{recipe.title}"')
-        return 201, recipe
+        return Status(201, recipe)
     except FetchError as e:
         logger.warning(f"Scrape fetch error: {payload.url} - {e}")
-        return 502, {"detail": str(e)}
+        return Status(502, {"detail": str(e)})
     except ParseError as e:
         logger.warning(f"Scrape parse error: {payload.url} - {e}")
-        return 400, {"detail": str(e)}
+        return Status(400, {"detail": str(e)})
 
 
 async def _get_or_fetch_results(query: str) -> list:
@@ -370,7 +370,7 @@ def get_recipe(request, recipe_id: int):
     """
     profile = get_current_profile_or_none(request)
     if not profile:
-        return 404, {"detail": "Recipe not found"}
+        return Status(404, {"detail": "Recipe not found"})
 
     # Only allow access to recipes owned by this profile
     recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)
@@ -436,9 +436,9 @@ def delete_recipe(request, recipe_id: int):
     """
     profile = get_current_profile_or_none(request)
     if not profile:
-        return 404, {"detail": "Recipe not found"}
+        return Status(404, {"detail": "Recipe not found"})
 
     # Only allow deletion of recipes owned by this profile
     recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)
     recipe.delete()
-    return 204, None
+    return Status(204, None)

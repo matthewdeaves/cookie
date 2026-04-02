@@ -66,10 +66,10 @@ def select_profile(client, profile):
 class TestFavoritesAPI:
     """Tests for favorites endpoints."""
 
-    def test_list_favorites_requires_profile(self, client):
-        """List favorites returns 404 when no profile selected."""
+    def test_list_favorites_requires_auth(self, client):
+        """List favorites returns 401 when no profile selected."""
         response = client.get("/api/favorites/")
-        assert response.status_code == 404
+        assert response.status_code == 401
 
     def test_list_favorites_empty(self, client, profile_a):
         """List favorites returns empty list for new profile."""

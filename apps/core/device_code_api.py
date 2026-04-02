@@ -8,7 +8,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import F
 from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
-from ninja import Router, Schema
+from ninja import Router, Schema, Status
 
 from apps.core.auth import SessionAuth
 from apps.core.auth_helpers import passkey_user_profile_response, require_passkey_mode
@@ -35,7 +35,7 @@ def request_code(request):
             "Rate limit hit: device/code/ from %s",
             request.META.get("REMOTE_ADDR"),
         )
-        return 429, {"error": "Too many attempts. Please try again later."}
+        return Status(429, {"error": "Too many attempts. Please try again later."})
 
     # Ensure session exists
     if not request.session.session_key:
@@ -69,7 +69,7 @@ def request_code(request):
             continue
 
     if device_code is None:
-        return 429, {"error": "Unable to generate code. Please try again."}
+        return Status(429, {"error": "Unable to generate code. Please try again."})
 
     security_logger.info(
         "Device code generated: session=%s from %s",
@@ -77,12 +77,15 @@ def request_code(request):
         request.META.get("REMOTE_ADDR"),
     )
 
-    return 201, {
-        "code": device_code.code,
-        "expires_in": settings.DEVICE_CODE_EXPIRY_SECONDS,
-        "poll_interval": 5,
-        "poll_url": "/api/auth/device/poll/",
-    }
+    return Status(
+        201,
+        {
+            "code": device_code.code,
+            "expires_in": settings.DEVICE_CODE_EXPIRY_SECONDS,
+            "poll_interval": 5,
+            "poll_url": "/api/auth/device/poll/",
+        },
+    )
 
 
 @router.get("/poll/", response={200: dict, 202: dict, 410: dict})
@@ -92,11 +95,11 @@ def poll_status(request):
     """Poll for device code authorization status."""
     require_passkey_mode(request)
     if getattr(request, "limited", False):
-        return 410, {"status": "expired", "error": "Too many requests."}
+        return Status(410, {"status": "expired", "error": "Too many requests."})
 
     session_key = request.session.session_key
     if not session_key:
-        return 410, {"status": "expired", "error": "No active code. Please request a new one."}
+        return Status(410, {"status": "expired", "error": "No active code. Please request a new one."})
 
     device_code = (
         DeviceCode.objects.select_for_update(of=("self",))
@@ -106,26 +109,29 @@ def poll_status(request):
         .first()
     )
     if device_code is None:
-        return 410, {"status": "expired", "error": "No active code. Please request a new one."}
+        return Status(410, {"status": "expired", "error": "No active code. Please request a new one."})
 
     # Check expiry
     if device_code.is_expired and device_code.status == "pending":
         device_code.status = "expired"
         device_code.save(update_fields=["status"])
-        return 410, {
-            "status": "expired",
-            "error": "Code has expired. Please request a new one.",
-        }
+        return Status(
+            410,
+            {
+                "status": "expired",
+                "error": "Code has expired. Please request a new one.",
+            },
+        )
 
     if device_code.status == "pending":
-        return 202, {"status": "pending"}
+        return Status(202, {"status": "pending"})
 
     # Authorized — verify authorizing_user exists
     user = device_code.authorizing_user
     if user is None:
         device_code.status = "invalidated"
         device_code.save(update_fields=["status"])
-        return 410, {"status": "expired", "error": "Authorization invalid. Please request a new code."}
+        return Status(410, {"status": "expired", "error": "Authorization invalid. Please request a new code."})
 
     # Establish session for this device
     login(request, user, backend=_AUTH_BACKEND)
@@ -144,7 +150,7 @@ def poll_status(request):
 
     response = passkey_user_profile_response(user, user.profile)
     response["status"] = "authorized"
-    return 200, response
+    return Status(200, response)
 
 
 @router.post("/authorize/", response={200: dict, 400: dict, 429: dict}, auth=SessionAuth())
@@ -158,7 +164,7 @@ def authorize_code(request, data: AuthorizeIn):
             "Rate limit hit: device/authorize/ from %s",
             request.META.get("REMOTE_ADDR"),
         )
-        return 429, {"error": "Too many attempts. Please try again later."}
+        return Status(429, {"error": "Too many attempts. Please try again later."})
 
     normalized_code = data.code.strip().upper()
 
@@ -170,13 +176,13 @@ def authorize_code(request, data: AuthorizeIn):
             request.user.pk,
             request.META.get("REMOTE_ADDR"),
         )
-        return 400, {"error": "Invalid or expired code"}
+        return Status(400, {"error": "Invalid or expired code"})
 
     # Check expiry
     if device_code.is_expired:
         device_code.status = "expired"
         device_code.save(update_fields=["status"])
-        return 400, {"error": "Invalid or expired code"}
+        return Status(400, {"error": "Invalid or expired code"})
 
     # Check and decrement attempts_remaining (FR-006, FR-007)
     if device_code.attempts_remaining <= 0:
@@ -187,7 +193,7 @@ def authorize_code(request, data: AuthorizeIn):
             normalized_code,
             request.user.pk,
         )
-        return 400, {"error": "Code invalidated: too many attempts"}
+        return Status(400, {"error": "Code invalidated: too many attempts"})
 
     # Decrement attempts atomically
     DeviceCode.objects.filter(pk=device_code.pk).update(attempts_remaining=F("attempts_remaining") - 1)
@@ -197,7 +203,7 @@ def authorize_code(request, data: AuthorizeIn):
     if device_code.attempts_remaining <= 0:
         device_code.status = "invalidated"
         device_code.save(update_fields=["status"])
-        return 400, {"error": "Code invalidated: too many attempts"}
+        return Status(400, {"error": "Code invalidated: too many attempts"})
 
     # Authorize the code
     device_code.status = "authorized"
@@ -210,4 +216,4 @@ def authorize_code(request, data: AuthorizeIn):
         request.META.get("REMOTE_ADDR"),
     )
 
-    return 200, {"message": "Device authorized"}
+    return Status(200, {"message": "Device authorized"})

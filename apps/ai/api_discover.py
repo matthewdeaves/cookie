@@ -5,7 +5,7 @@ from typing import List
 
 from django.conf import settings
 from django_ratelimit.decorators import ratelimit
-from ninja import Router, Schema
+from ninja import Router, Schema, Status
 
 from apps.core.auth import SessionAuth
 from apps.profiles.models import Profile
@@ -54,18 +54,18 @@ def discover_endpoint(request, profile_id: int, refresh: bool = False):
     """
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /ai/discover from %s", request.META.get("REMOTE_ADDR"))
-        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
+        return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
 
     # In passkey mode, verify profile ownership
     if settings.AUTH_MODE != "home":
         session_profile_id = request.session.get("profile_id")
         if session_profile_id != profile_id:
-            return 404, {"error": "not_found", "message": "Not found"}
+            return Status(404, {"error": "not_found", "message": "Not found"})
 
     try:
         profile = Profile.objects.select_related("user").get(pk=profile_id)
     except Profile.DoesNotExist:
-        return 404, {"error": "not_found", "message": f"Profile {profile_id} not found"}
+        return Status(404, {"error": "not_found", "message": f"Profile {profile_id} not found"})
 
     # Only count against quota when OpenRouter is actually called (not cache hits)
     from datetime import timedelta
@@ -80,7 +80,7 @@ def discover_endpoint(request, profile_id: int, refresh: bool = False):
     if not has_cached:
         allowed, info = reserve_quota(profile, "discover")
         if not allowed:
-            return 429, {"error": "quota_exceeded", "message": "Daily limit reached for discover", **info}
+            return Status(429, {"error": "quota_exceeded", "message": "Daily limit reached for discover", **info})
 
     try:
         result = get_discover_suggestions(profile_id, force_refresh=refresh)
@@ -88,10 +88,13 @@ def discover_endpoint(request, profile_id: int, refresh: bool = False):
     except Profile.DoesNotExist:
         if not has_cached:
             release_quota(profile, "discover")
-        return 404, {
-            "error": "not_found",
-            "message": f"Profile {profile_id} not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Profile {profile_id} not found",
+            },
+        )
     except Exception:
         if not has_cached:
             release_quota(profile, "discover")

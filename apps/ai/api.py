@@ -7,7 +7,7 @@ from functools import wraps
 from typing import Callable, List, Optional
 
 from django_ratelimit.decorators import ratelimit
-from ninja import Router, Schema
+from ninja import Router, Schema, Status
 
 from apps.core.models import AppSettings
 from apps.recipes.models import Recipe
@@ -46,16 +46,22 @@ def handle_ai_errors(func: Callable) -> Callable:
         try:
             return func(*args, **kwargs)
         except AIUnavailableError as e:
-            return 503, {
-                "error": "ai_unavailable",
-                "message": str(e) or "AI features are not available. Please configure your API key in Settings.",
-                "action": "configure_key",
-            }
+            return Status(
+                503,
+                {
+                    "error": "ai_unavailable",
+                    "message": str(e) or "AI features are not available. Please configure your API key in Settings.",
+                    "action": "configure_key",
+                },
+            )
         except (AIResponseError, ValidationError) as e:
-            return 400, {
-                "error": "ai_error",
-                "message": str(e),
-            }
+            return Status(
+                400,
+                {
+                    "error": "ai_error",
+                    "message": str(e),
+                },
+            )
 
     return wrapper
 
@@ -167,12 +173,15 @@ def get_ai_status(request):
 def test_api_key(request, data: TestApiKeyIn):
     """Test if an API key is valid."""
     if getattr(request, "limited", False):
-        return 429, {"detail": "Rate limit exceeded. Try again later."}
+        return Status(429, {"detail": "Rate limit exceeded. Try again later."})
     if not data.api_key:
-        return 400, {
-            "error": "validation_error",
-            "message": "API key is required",
-        }
+        return Status(
+            400,
+            {
+                "error": "validation_error",
+                "message": "API key is required",
+            },
+        )
 
     success, message = OpenRouterService.test_connection(data.api_key)
     return {
@@ -186,7 +195,7 @@ def test_api_key(request, data: TestApiKeyIn):
 def save_api_key(request, data: SaveApiKeyIn):
     """Save the OpenRouter API key."""
     if getattr(request, "limited", False):
-        return 429, {"detail": "Rate limit exceeded. Try again later."}
+        return Status(429, {"detail": "Rate limit exceeded. Try again later."})
     settings = AppSettings.get()
     settings.openrouter_api_key = data.api_key
     settings.save()
@@ -212,7 +221,7 @@ def _get_prompt_or_error(prompt_type: str):
     try:
         return AIPrompt.objects.get(prompt_type=prompt_type)
     except AIPrompt.DoesNotExist:
-        return 404, {"error": "not_found", "message": f'Prompt type "{prompt_type}" not found'}
+        return Status(404, {"error": "not_found", "message": f'Prompt type "{prompt_type}" not found'})
 
 
 def _validate_model(model_id: str):
@@ -220,10 +229,13 @@ def _validate_model(model_id: str):
     try:
         valid_ids = {m["id"] for m in OpenRouterService().get_available_models()}
         if model_id not in valid_ids:
-            return 422, {
-                "error": "invalid_model",
-                "message": f'Model "{model_id}" is not available. Please select a valid model.',
-            }
+            return Status(
+                422,
+                {
+                    "error": "invalid_model",
+                    "message": f'Model "{model_id}" is not available. Please select a valid model.',
+                },
+            )
     except (AIUnavailableError, AIResponseError):
         # Can't validate — allow the change; it may fail later
         pass
@@ -306,11 +318,11 @@ def tips_endpoint(request, data: TipsIn):
     """
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /ai/tips from %s", request.META.get("REMOTE_ADDR"))
-        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
+        return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
 
     allowed, info = reserve_quota(request.auth, "tips")
     if not allowed:
-        return 429, {"error": "quota_exceeded", "message": "Daily limit reached for tips", **info}
+        return Status(429, {"error": "quota_exceeded", "message": "Daily limit reached for tips", **info})
 
     from apps.profiles.utils import get_current_profile_or_none
 
@@ -320,17 +332,23 @@ def tips_endpoint(request, data: TipsIn):
         recipe = Recipe.objects.get(id=data.recipe_id)
     except Recipe.DoesNotExist:
         release_quota(request.auth, "tips")
-        return 404, {
-            "error": "not_found",
-            "message": f"Recipe {data.recipe_id} not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Recipe {data.recipe_id} not found",
+            },
+        )
 
     if not profile or recipe.profile_id != profile.id:
         release_quota(request.auth, "tips")
-        return 404, {
-            "error": "not_found",
-            "message": f"Recipe {data.recipe_id} not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Recipe {data.recipe_id} not found",
+            },
+        )
 
     # Clear existing tips if regenerate requested
     if data.regenerate:
@@ -371,25 +389,31 @@ def timer_name_endpoint(request, data: TimerNameIn):
     """
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /ai/timer-name from %s", request.META.get("REMOTE_ADDR"))
-        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
+        return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
 
     allowed, info = reserve_quota(request.auth, "timer")
     if not allowed:
-        return 429, {"error": "quota_exceeded", "message": "Daily limit reached for timer", **info}
+        return Status(429, {"error": "quota_exceeded", "message": "Daily limit reached for timer", **info})
 
     if not data.step_text:
         release_quota(request.auth, "timer")
-        return 400, {
-            "error": "validation_error",
-            "message": "Step text is required",
-        }
+        return Status(
+            400,
+            {
+                "error": "validation_error",
+                "message": "Step text is required",
+            },
+        )
 
     if data.duration_minutes <= 0:
         release_quota(request.auth, "timer")
-        return 400, {
-            "error": "validation_error",
-            "message": "Duration must be positive",
-        }
+        return Status(
+            400,
+            {
+                "error": "validation_error",
+                "message": "Duration must be positive",
+            },
+        )
 
     was_cached = is_ai_cache_hit("timer_name", step_text=data.step_text, duration_minutes=data.duration_minutes)
     try:
@@ -452,22 +476,28 @@ def repair_selector_endpoint(request, data: SelectorRepairIn):
     """
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /ai/repair-selector from %s", request.META.get("REMOTE_ADDR"))
-        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
+        return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
     from apps.recipes.models import SearchSource
 
     try:
         source = SearchSource.objects.get(id=data.source_id)
     except SearchSource.DoesNotExist:
-        return 404, {
-            "error": "not_found",
-            "message": f"SearchSource {data.source_id} not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"SearchSource {data.source_id} not found",
+            },
+        )
 
     if not data.html_sample:
-        return 400, {
-            "error": "validation_error",
-            "message": "HTML sample is required",
-        }
+        return Status(
+            400,
+            {
+                "error": "validation_error",
+                "message": "HTML sample is required",
+            },
+        )
 
     result = repair_selector(
         source=source,

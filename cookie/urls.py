@@ -4,6 +4,9 @@ from django.conf import settings
 from django.urls import path, include
 from ninja import NinjaAPI
 
+_docs_url = "/docs/" if settings.DEBUG else None
+_openapi_url = "/openapi.json" if settings.DEBUG else None
+
 from apps.ai.api import router as ai_router
 from apps.ai.api_remix import router as ai_remix_router
 from apps.ai.api_scaling import router as ai_scaling_router
@@ -19,7 +22,7 @@ from apps.recipes.api_user import (
 )
 from apps.recipes.sources_api import router as sources_router
 
-api = NinjaAPI()
+api = NinjaAPI(docs_url=_docs_url, openapi_url=_openapi_url)
 api.add_router("/ai", ai_router)
 api.add_router("/ai", ai_remix_router)
 api.add_router("/ai", ai_scaling_router)

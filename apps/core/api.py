@@ -13,7 +13,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.management import call_command
 from django.contrib.sessions.models import Session
-from ninja import Router, Schema
+from ninja import Router, Schema, Status
 
 from apps.profiles.models import Profile
 from apps.recipes.models import (
@@ -70,9 +70,9 @@ def readiness_check(request):
     try:
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
-        return 200, {"status": "ready", "database": "ok"}
+        return Status(200, {"status": "ready", "database": "ok"})
     except Exception:
-        return 503, {"status": "not_ready", "database": "error"}
+        return Status(503, {"status": "not_ready", "database": "error"})
 
 
 class DataCountsSchema(Schema):
@@ -148,12 +148,15 @@ def reset_database(request, data: ResetConfirmSchema):
     """
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /system/reset/ from %s", request.META.get("REMOTE_ADDR"))
-        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
+        return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
     if data.confirmation_text != "RESET":
-        return 400, {
-            "error": "invalid_confirmation",
-            "message": "Type RESET to confirm",
-        }
+        return Status(
+            400,
+            {
+                "error": "invalid_confirmation",
+                "message": "Type RESET to confirm",
+            },
+        )
 
     try:
         # 1. Clear database tables (order matters for FK constraints)
@@ -239,4 +242,4 @@ def reset_database(request, data: ResetConfirmSchema):
 
     except Exception as e:
         logger.error("Database reset failed: %s", str(e), exc_info=True)
-        return 400, {"error": "reset_failed", "message": "Database reset failed. Check server logs."}
+        return Status(400, {"error": "reset_failed", "message": "Database reset failed. Check server logs."})

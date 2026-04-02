@@ -25,11 +25,15 @@ class TestValidateUrl:
 
     def test_allows_valid_http_url(self):
         with patch("apps.core.validators.resolve_hostname", return_value="93.184.216.34"):
-            assert validate_url("http://example.com") == "http://example.com"
+            resolved = validate_url("http://example.com")
+            assert resolved.url == "http://example.com"
+            assert resolved.hostname == "example.com"
+            assert resolved.ip == "93.184.216.34"
 
     def test_allows_valid_https_url(self):
         with patch("apps.core.validators.resolve_hostname", return_value="93.184.216.34"):
-            assert validate_url("https://example.com/recipe") == "https://example.com/recipe"
+            resolved = validate_url("https://example.com/recipe")
+            assert resolved.url == "https://example.com/recipe"
 
     def test_blocks_file_scheme(self):
         with pytest.raises(ValueError, match="scheme not allowed"):
@@ -154,7 +158,8 @@ class TestValidateRedirectUrl:
 
     def test_allows_redirect_to_public_ip(self):
         with patch("apps.core.validators.resolve_hostname", return_value="93.184.216.34"):
-            assert validate_redirect_url("https://example.com/recipe") == "https://example.com/recipe"
+            resolved = validate_redirect_url("https://example.com/recipe")
+            assert resolved.url == "https://example.com/recipe"
 
 
 # ---------------------------------------------------------------------------

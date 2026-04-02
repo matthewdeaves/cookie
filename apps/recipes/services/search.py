@@ -301,9 +301,10 @@ class RecipeSearch:
     async def _fetch_url(self, session: AsyncSession, url: str):
         """Fetch a URL with timeout handling, redirect validation, and size limits."""
         current_url = url
+        current_resolve = []
         for _ in range(MAX_REDIRECT_HOPS):
             response = await asyncio.wait_for(
-                session.get(current_url, timeout=self.timeout, allow_redirects=False),
+                session.get(current_url, timeout=self.timeout, allow_redirects=False, resolve=current_resolve),
                 timeout=self.timeout + 5,
             )
 
@@ -311,8 +312,9 @@ class RecipeSearch:
                 location = response.headers.get("location")
                 if not location:
                     return response
-                validate_redirect_url(location)
+                resolved = validate_redirect_url(location)
                 current_url = location
+                current_resolve = resolved.curl_resolve
                 continue
 
             if response.status_code == 200:

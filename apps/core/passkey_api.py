@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
-from ninja import Router
+from ninja import Router, Status
 from webauthn import (
     generate_authentication_options,
     generate_registration_options,
@@ -70,7 +70,7 @@ def register_options(request):
             "Rate limit hit: passkey register/options/ from %s",
             request.META.get("REMOTE_ADDR"),
         )
-        return 429, {"error": "Too many attempts. Please try again later."}
+        return Status(429, {"error": "Too many attempts. Please try again later."})
 
     user_id = uuid.uuid4().bytes
     options = generate_registration_options(
@@ -90,7 +90,7 @@ def register_options(request):
     request.session["webauthn_register_user_id"] = user_id.hex()
     request.session["webauthn_challenge_created_at"] = time.time()
 
-    return 200, json.loads(options_to_json(options))
+    return Status(200, json.loads(options_to_json(options)))
 
 
 @router.post("/register/verify/", response={201: dict, 400: dict, 429: dict})
@@ -109,19 +109,19 @@ def register_verify(request):
             "Rate limit hit: passkey register/verify/ from %s",
             request.META.get("REMOTE_ADDR"),
         )
-        return 429, {"error": "Too many attempts. Please try again later."}
+        return Status(429, {"error": "Too many attempts. Please try again later."})
 
     if not challenge_hex or not user_id_hex:
-        return 400, {"error": "Registration failed: no pending challenge"}
+        return Status(400, {"error": "Registration failed: no pending challenge"})
 
     # Reject expired challenges (FR-010: 5-minute window)
     if created_at and (time.time() - created_at) > 300:
-        return 400, {"error": "Registration failed: challenge expired"}
+        return Status(400, {"error": "Registration failed: challenge expired"})
 
     try:
         body = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
-        return 400, {"error": "Registration failed: invalid request body"}
+        return Status(400, {"error": "Registration failed: invalid request body"})
 
     try:
         verification = verify_registration_response(
@@ -137,7 +137,7 @@ def register_verify(request):
             request.META.get("REMOTE_ADDR"),
             str(e),
         )
-        return 400, {"error": "Registration failed: verification error"}
+        return Status(400, {"error": "Registration failed: verification error"})
 
     user, profile = _create_passkey_user_and_profile(verification, body.get("transports"))
     login(request, user, backend=_AUTH_BACKEND)
@@ -149,7 +149,7 @@ def register_verify(request):
         request.META.get("REMOTE_ADDR"),
     )
 
-    return 201, passkey_user_profile_response(user, profile)
+    return Status(201, passkey_user_profile_response(user, profile))
 
 
 @transaction.atomic
@@ -199,12 +199,12 @@ def login_options(request):
             "Rate limit hit: passkey login/options/ from %s",
             request.META.get("REMOTE_ADDR"),
         )
-        return 429, {"error": "Too many attempts. Please try again later."}
+        return Status(429, {"error": "Too many attempts. Please try again later."})
 
     # If no credentials exist, don't issue a challenge — the browser would show
     # confusing hardware-key / QR prompts with nothing to match against.
     if not WebAuthnCredential.objects.exists():
-        return 200, {"no_credentials": True}
+        return Status(200, {"no_credentials": True})
 
     options = generate_authentication_options(
         rp_id=_get_rp_id(request),
@@ -214,7 +214,7 @@ def login_options(request):
     request.session["webauthn_login_challenge"] = options.challenge.hex()
     request.session["webauthn_challenge_created_at"] = time.time()
 
-    return 200, json.loads(options_to_json(options))
+    return Status(200, json.loads(options_to_json(options)))
 
 
 @router.post("/login/verify/", response={200: dict, 401: dict, 429: dict})
@@ -232,19 +232,19 @@ def login_verify(request):
             "Rate limit hit: passkey login/verify/ from %s",
             request.META.get("REMOTE_ADDR"),
         )
-        return 429, {"error": "Too many attempts. Please try again later."}
+        return Status(429, {"error": "Too many attempts. Please try again later."})
 
     if not challenge_hex:
-        return 401, {"error": "Authentication failed: no pending challenge"}
+        return Status(401, {"error": "Authentication failed: no pending challenge"})
 
     # Reject expired challenges (FR-010: 5-minute window)
     if created_at and (time.time() - created_at) > 300:
-        return 401, {"error": "Authentication failed: challenge expired"}
+        return Status(401, {"error": "Authentication failed: challenge expired"})
 
     try:
         body = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
-        return 401, {"error": "Authentication failed: invalid request body"}
+        return Status(401, {"error": "Authentication failed: invalid request body"})
 
     # Look up credential by credential_id
     raw_id = body.get("rawId", "")
@@ -253,7 +253,7 @@ def login_verify(request):
 
         credential_id_bytes = base64url_to_bytes(raw_id)
     except Exception:
-        return 401, {"error": "Authentication failed"}
+        return Status(401, {"error": "Authentication failed"})
 
     try:
         credential = WebAuthnCredential.objects.select_related("user").get(credential_id=credential_id_bytes)
@@ -262,10 +262,10 @@ def login_verify(request):
             "Passkey login: unknown credential from %s",
             request.META.get("REMOTE_ADDR"),
         )
-        return 401, {"error": "Authentication failed"}
+        return Status(401, {"error": "Authentication failed"})
 
     if not credential.user.is_active:
-        return 401, {"error": "Authentication failed"}
+        return Status(401, {"error": "Authentication failed"})
 
     try:
         verification = verify_authentication_response(
@@ -283,7 +283,7 @@ def login_verify(request):
             request.META.get("REMOTE_ADDR"),
             str(e),
         )
-        return 401, {"error": "Authentication failed"}
+        return Status(401, {"error": "Authentication failed"})
 
     # Check sign_count for cloned authenticator
     if verification.new_sign_count > 0 and verification.new_sign_count <= credential.sign_count:
@@ -293,7 +293,7 @@ def login_verify(request):
             credential.sign_count,
             verification.new_sign_count,
         )
-        return 401, {"error": "Authentication failed"}
+        return Status(401, {"error": "Authentication failed"})
 
     # Update credential
     credential.sign_count = verification.new_sign_count
@@ -309,7 +309,7 @@ def login_verify(request):
         request.META.get("REMOTE_ADDR"),
     )
 
-    return 200, passkey_user_profile_response(credential.user, credential.user.profile)
+    return Status(200, passkey_user_profile_response(credential.user, credential.user.profile))
 
 
 # --- Credential Management ---
@@ -322,17 +322,20 @@ def list_credentials(request):
     credentials = WebAuthnCredential.objects.filter(user=request.user).order_by("created_at")
     total = credentials.count()
 
-    return 200, {
-        "credentials": [
-            {
-                "id": c.pk,
-                "created_at": c.created_at.isoformat(),
-                "last_used_at": c.last_used_at.isoformat() if c.last_used_at else None,
-                "is_deletable": total > 1,
-            }
-            for c in credentials
-        ]
-    }
+    return Status(
+        200,
+        {
+            "credentials": [
+                {
+                    "id": c.pk,
+                    "created_at": c.created_at.isoformat(),
+                    "last_used_at": c.last_used_at.isoformat() if c.last_used_at else None,
+                    "is_deletable": total > 1,
+                }
+                for c in credentials
+            ]
+        },
+    )
 
 
 @router.post("/credentials/add/options/", response={200: dict}, auth=SessionAuth())
@@ -359,7 +362,7 @@ def add_credential_options(request):
     request.session["webauthn_add_challenge"] = options.challenge.hex()
     request.session["webauthn_challenge_created_at"] = time.time()
 
-    return 200, json.loads(options_to_json(options))
+    return Status(200, json.loads(options_to_json(options)))
 
 
 @router.post("/credentials/add/verify/", response={201: dict, 400: dict}, auth=SessionAuth())
@@ -370,16 +373,16 @@ def add_credential_verify(request):
     challenge_hex = request.session.pop("webauthn_add_challenge", None)
     created_at = request.session.pop("webauthn_challenge_created_at", None)
     if not challenge_hex:
-        return 400, {"error": "No pending challenge"}
+        return Status(400, {"error": "No pending challenge"})
 
     # Reject expired challenges (FR-010: 5-minute window)
     if created_at and (time.time() - created_at) > 300:
-        return 400, {"error": "Challenge expired"}
+        return Status(400, {"error": "Challenge expired"})
 
     try:
         body = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
-        return 400, {"error": "Invalid request body"}
+        return Status(400, {"error": "Invalid request body"})
 
     try:
         verification = verify_registration_response(
@@ -395,7 +398,7 @@ def add_credential_verify(request):
             request.user.pk,
             str(e),
         )
-        return 400, {"error": "Verification failed"}
+        return Status(400, {"error": "Verification failed"})
 
     cred = WebAuthnCredential.objects.create(
         user=request.user,
@@ -411,14 +414,17 @@ def add_credential_verify(request):
         cred.pk,
     )
 
-    return 201, {
-        "credential": {
-            "id": cred.pk,
-            "created_at": cred.created_at.isoformat(),
-            "last_used_at": None,
-            "is_deletable": True,
-        }
-    }
+    return Status(
+        201,
+        {
+            "credential": {
+                "id": cred.pk,
+                "created_at": cred.created_at.isoformat(),
+                "last_used_at": None,
+                "is_deletable": True,
+            }
+        },
+    )
 
 
 @router.delete(
@@ -434,11 +440,11 @@ def delete_credential(request, credential_id: int):
     try:
         cred = WebAuthnCredential.objects.select_for_update().get(pk=credential_id, user=request.user)
     except WebAuthnCredential.DoesNotExist:
-        return 404, {"error": "Credential not found"}
+        return Status(404, {"error": "Credential not found"})
 
     total = WebAuthnCredential.objects.select_for_update().filter(user=request.user).count()
     if total <= 1:
-        return 400, {"error": "Cannot delete your only passkey"}
+        return Status(400, {"error": "Cannot delete your only passkey"})
 
     cred.delete()
     security_logger.info(
@@ -446,4 +452,4 @@ def delete_credential(request, credential_id: int):
         request.user.pk,
         credential_id,
     )
-    return 200, {"message": "Passkey deleted"}
+    return Status(200, {"message": "Passkey deleted"})

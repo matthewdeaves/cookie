@@ -6,7 +6,7 @@ import asyncio
 from typing import List, Optional
 
 from django.utils import timezone
-from ninja import Router, Schema
+from ninja import Router, Schema, Status
 
 from apps.core.auth import AdminAuth, SessionAuth
 
@@ -101,10 +101,13 @@ def get_source(request, source_id: int):
         source = SearchSource.objects.get(id=source_id)
         return source
     except SearchSource.DoesNotExist:
-        return 404, {
-            "error": "not_found",
-            "message": f"Source {source_id} not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Source {source_id} not found",
+            },
+        )
 
 
 @router.post("/{source_id}/toggle/", response={200: SourceToggleOut, 404: ErrorOut}, auth=AdminAuth())
@@ -119,10 +122,13 @@ def toggle_source(request, source_id: int):
             "is_enabled": source.is_enabled,
         }
     except SearchSource.DoesNotExist:
-        return 404, {
-            "error": "not_found",
-            "message": f"Source {source_id} not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Source {source_id} not found",
+            },
+        )
 
 
 @router.post("/bulk-toggle/", response={200: BulkToggleOut}, auth=AdminAuth())
@@ -147,10 +153,13 @@ def update_selector(request, source_id: int, data: SourceUpdateIn):
             "result_selector": source.result_selector,
         }
     except SearchSource.DoesNotExist:
-        return 404, {
-            "error": "not_found",
-            "message": f"Source {source_id} not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Source {source_id} not found",
+            },
+        )
 
 
 @router.post("/{source_id}/test/", response={200: SourceTestOut, 404: ErrorOut, 500: ErrorOut}, auth=AdminAuth())
@@ -165,10 +174,13 @@ async def test_source(request, source_id: int):
     try:
         source = await sync_to_async(SearchSource.objects.get)(id=source_id)
     except SearchSource.DoesNotExist:
-        return 404, {
-            "error": "not_found",
-            "message": f"Source {source_id} not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Source {source_id} not found",
+            },
+        )
 
     # Test with a common search query
     test_query = "chicken"
@@ -219,10 +231,13 @@ async def test_source(request, source_id: int):
         source.last_validated_at = timezone.now()
         await sync_to_async(source.save)()
 
-        return 500, {
-            "error": "test_failed",
-            "message": f"Test failed: {str(e)}",
-        }
+        return Status(
+            500,
+            {
+                "error": "test_failed",
+                "message": f"Test failed: {str(e)}",
+            },
+        )
 
 
 @router.post("/test-all/", response={200: dict}, auth=AdminAuth())

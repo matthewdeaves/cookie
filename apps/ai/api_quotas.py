@@ -2,7 +2,7 @@
 AI quota management API endpoints.
 """
 
-from ninja import Router, Schema
+from ninja import Router, Schema, Status
 
 from apps.core.auth import AdminAuth, SessionAuth
 from apps.core.models import AppSettings
@@ -71,7 +71,7 @@ def get_quotas(request):
     from django.conf import settings as django_settings
 
     if getattr(django_settings, "AUTH_MODE", "home") == "home":
-        return 404, {"error": "not_found", "message": "Quotas are not available in home mode"}
+        return Status(404, {"error": "not_found", "message": "Quotas are not available in home mode"})
 
     profile = request.auth
     app_settings = AppSettings.get()
@@ -84,7 +84,7 @@ def update_quotas(request, data: QuotaLimitsIn):
     from django.conf import settings as django_settings
 
     if getattr(django_settings, "AUTH_MODE", "home") == "home":
-        return 404, {"error": "not_found", "message": "Quotas are not available in home mode"}
+        return Status(404, {"error": "not_found", "message": "Quotas are not available in home mode"})
 
     app_settings = AppSettings.get()
     for feature in ALL_FEATURES:

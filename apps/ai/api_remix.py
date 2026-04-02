@@ -4,7 +4,7 @@ import logging
 from typing import List, Optional
 
 from django_ratelimit.decorators import ratelimit
-from ninja import Router, Schema
+from ninja import Router, Schema, Status
 
 from apps.core.auth import SessionAuth
 from apps.recipes.models import Recipe
@@ -69,11 +69,11 @@ def remix_suggestions(request, data: RemixSuggestionsIn):
     """
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /ai/remix-suggestions from %s", request.META.get("REMOTE_ADDR"))
-        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
+        return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
 
     allowed, info = reserve_quota(request.auth, "remix_suggestions")
     if not allowed:
-        return 429, {"error": "quota_exceeded", "message": "Daily limit reached for remix_suggestions", **info}
+        return Status(429, {"error": "quota_exceeded", "message": "Daily limit reached for remix_suggestions", **info})
 
     from apps.profiles.utils import get_current_profile_or_none
 
@@ -83,17 +83,23 @@ def remix_suggestions(request, data: RemixSuggestionsIn):
         recipe = Recipe.objects.get(id=data.recipe_id)
     except Recipe.DoesNotExist:
         release_quota(request.auth, "remix_suggestions")
-        return 404, {
-            "error": "not_found",
-            "message": f"Recipe {data.recipe_id} not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Recipe {data.recipe_id} not found",
+            },
+        )
 
     if not profile or recipe.profile_id != profile.id:
         release_quota(request.auth, "remix_suggestions")
-        return 404, {
-            "error": "not_found",
-            "message": f"Recipe {data.recipe_id} not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Recipe {data.recipe_id} not found",
+            },
+        )
 
     was_cached = is_ai_cache_hit("remix_suggestions", data.recipe_id)
     try:
@@ -119,11 +125,11 @@ def create_remix_endpoint(request, data: CreateRemixIn):
     """
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /ai/remix from %s", request.META.get("REMOTE_ADDR"))
-        return 429, {"error": "rate_limited", "message": "Too many requests. Please try again later."}
+        return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
 
     allowed, info = reserve_quota(request.auth, "remix")
     if not allowed:
-        return 429, {"error": "quota_exceeded", "message": "Daily limit reached for remix", **info}
+        return Status(429, {"error": "quota_exceeded", "message": "Daily limit reached for remix", **info})
 
     from apps.profiles.utils import get_current_profile_or_none
 
@@ -131,34 +137,46 @@ def create_remix_endpoint(request, data: CreateRemixIn):
 
     if not profile:
         release_quota(request.auth, "remix")
-        return 404, {
-            "error": "not_found",
-            "message": "Profile not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": "Profile not found",
+            },
+        )
 
     # Verify the profile_id in the request matches the session profile
     if data.profile_id != profile.id:
         release_quota(request.auth, "remix")
-        return 404, {
-            "error": "not_found",
-            "message": f"Profile {data.profile_id} not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Profile {data.profile_id} not found",
+            },
+        )
 
     try:
         recipe = Recipe.objects.get(id=data.recipe_id)
     except Recipe.DoesNotExist:
         release_quota(request.auth, "remix")
-        return 404, {
-            "error": "not_found",
-            "message": f"Recipe {data.recipe_id} not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Recipe {data.recipe_id} not found",
+            },
+        )
 
     if recipe.profile_id != profile.id:
         release_quota(request.auth, "remix")
-        return 404, {
-            "error": "not_found",
-            "message": f"Recipe {data.recipe_id} not found",
-        }
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Recipe {data.recipe_id} not found",
+            },
+        )
 
     try:
         remix = create_remix(

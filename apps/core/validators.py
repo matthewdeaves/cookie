@@ -3,6 +3,7 @@
 import ipaddress
 import logging
 import socket
+from dataclasses import dataclass
 from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
@@ -45,8 +46,29 @@ def resolve_hostname(hostname):
     return results[0][4][0]
 
 
+@dataclass(frozen=True)
+class ResolvedURL:
+    """URL with pinned DNS resolution to prevent TOCTOU rebinding attacks.
+
+    Pass curl_resolve to curl_cffi session.get() to ensure the HTTP client
+    connects to the same IP that was validated, not a second DNS lookup.
+    """
+
+    url: str
+    hostname: str
+    ip: str
+
+    def __str__(self):
+        return self.url
+
+    @property
+    def curl_resolve(self):
+        """Resolve list for curl_cffi (maps to libcurl CURLOPT_RESOLVE)."""
+        return [f"{self.hostname}:80:{self.ip}", f"{self.hostname}:443:{self.ip}"]
+
+
 def validate_url(url):
-    """Validate a URL for SSRF protection. Returns the URL or raises ValueError."""
+    """Validate a URL for SSRF protection. Returns ResolvedURL with pinned DNS."""
     parsed = urlparse(url)
 
     if parsed.scheme not in ("http", "https"):
@@ -61,7 +83,7 @@ def validate_url(url):
     if is_blocked_ip(ip_str):
         raise ValueError("URL not allowed: resolves to blocked IP range.")
 
-    return url
+    return ResolvedURL(url=url, hostname=hostname, ip=ip_str)
 
 
 def validate_redirect_url(url):

@@ -9,7 +9,9 @@ from typing import List, Optional
 from django.db import IntegrityError
 from django.db.models import Max
 from django.shortcuts import get_object_or_404
-from ninja import Router, Schema
+from ninja import Router, Schema, Status
+
+from django_ratelimit.decorators import ratelimit
 
 from apps.core.auth import SessionAuth
 from apps.profiles.utils import get_current_profile
@@ -47,24 +49,29 @@ class ErrorOut(Schema):
     detail: str
 
 
-@favorites_router.get("/", response=List[FavoriteOut])
+@favorites_router.get("/", response=List[FavoriteOut], auth=SessionAuth())
 def list_favorites(request):
     """List all favorites for the current profile."""
     profile = get_current_profile(request)
     return RecipeFavorite.objects.filter(profile=profile).select_related("recipe")
 
 
-@favorites_router.post("/", response={201: FavoriteOut, 400: ErrorOut, 404: ErrorOut}, auth=SessionAuth())
+@favorites_router.post(
+    "/", response={201: FavoriteOut, 400: ErrorOut, 404: ErrorOut, 429: ErrorOut}, auth=SessionAuth()
+)
+@ratelimit(key="ip", rate="60/h", method="POST", block=False)
 def add_favorite(request, payload: FavoriteIn):
     """Add a recipe to favorites."""
+    if getattr(request, "limited", False):
+        return Status(429, {"detail": "Too many requests. Please try again later."})
     profile = get_current_profile(request)
     recipe = get_object_or_404(Recipe, id=payload.recipe_id)
 
     try:
         favorite = RecipeFavorite.objects.create(profile=profile, recipe=recipe)
-        return 201, favorite
+        return Status(201, favorite)
     except IntegrityError:
-        return 400, {"detail": "Recipe is already a favorite"}
+        return Status(400, {"detail": "Recipe is already a favorite"})
 
 
 @favorites_router.delete("/{recipe_id}/", response={204: None, 404: ErrorOut}, auth=SessionAuth())
@@ -73,7 +80,7 @@ def remove_favorite(request, recipe_id: int):
     profile = get_current_profile(request)
     favorite = get_object_or_404(RecipeFavorite, profile=profile, recipe_id=recipe_id)
     favorite.delete()
-    return 204, None
+    return Status(204, None)
 
 
 # =============================================================================
@@ -156,16 +163,19 @@ class CollectionDetailOut(Schema):
         return obj.updated_at.isoformat()
 
 
-@collections_router.get("/", response=List[CollectionOut])
+@collections_router.get("/", response=List[CollectionOut], auth=SessionAuth())
 def list_collections(request):
     """List all collections for the current profile."""
     profile = get_current_profile(request)
     return RecipeCollection.objects.filter(profile=profile).prefetch_related("items")
 
 
-@collections_router.post("/", response={201: CollectionOut, 400: ErrorOut}, auth=SessionAuth())
+@collections_router.post("/", response={201: CollectionOut, 400: ErrorOut, 429: ErrorOut}, auth=SessionAuth())
+@ratelimit(key="ip", rate="60/h", method="POST", block=False)
 def create_collection(request, payload: CollectionIn):
     """Create a new collection."""
+    if getattr(request, "limited", False):
+        return Status(429, {"detail": "Too many requests. Please try again later."})
     profile = get_current_profile(request)
 
     try:
@@ -174,12 +184,12 @@ def create_collection(request, payload: CollectionIn):
             name=payload.name,
             description=payload.description,
         )
-        return 201, collection
+        return Status(201, collection)
     except IntegrityError:
-        return 400, {"detail": "A collection with this name already exists"}
+        return Status(400, {"detail": "A collection with this name already exists"})
 
 
-@collections_router.get("/{collection_id}/", response={200: CollectionDetailOut, 404: ErrorOut})
+@collections_router.get("/{collection_id}/", response={200: CollectionDetailOut, 404: ErrorOut}, auth=SessionAuth())
 def get_collection(request, collection_id: int):
     """Get a collection with its recipes."""
     profile = get_current_profile(request)
@@ -201,7 +211,7 @@ def update_collection(request, collection_id: int, payload: CollectionIn):
         collection.save()
         return collection
     except IntegrityError:
-        return 400, {"detail": "A collection with this name already exists"}
+        return Status(400, {"detail": "A collection with this name already exists"})
 
 
 @collections_router.delete("/{collection_id}/", response={204: None, 404: ErrorOut}, auth=SessionAuth())
@@ -210,7 +220,7 @@ def delete_collection(request, collection_id: int):
     profile = get_current_profile(request)
     collection = get_object_or_404(RecipeCollection, id=collection_id, profile=profile)
     collection.delete()
-    return 204, None
+    return Status(204, None)
 
 
 @collections_router.post(
@@ -232,9 +242,9 @@ def add_recipe_to_collection(request, collection_id: int, payload: CollectionIte
             recipe=recipe,
             order=next_order,
         )
-        return 201, item
+        return Status(201, item)
     except IntegrityError:
-        return 400, {"detail": "Recipe is already in this collection"}
+        return Status(400, {"detail": "Recipe is already in this collection"})
 
 
 @collections_router.delete(
@@ -246,7 +256,7 @@ def remove_recipe_from_collection(request, collection_id: int, recipe_id: int):
     collection = get_object_or_404(RecipeCollection, id=collection_id, profile=profile)
     item = get_object_or_404(RecipeCollectionItem, collection=collection, recipe_id=recipe_id)
     item.delete()
-    return 204, None
+    return Status(204, None)
 
 
 # =============================================================================
@@ -269,7 +279,7 @@ class HistoryOut(Schema):
         return obj.viewed_at.isoformat()
 
 
-@history_router.get("/", response=List[HistoryOut])
+@history_router.get("/", response=List[HistoryOut], auth=SessionAuth())
 def list_history(request, limit: int = 6):
     """
     Get recently viewed recipes for the current profile.
@@ -280,13 +290,16 @@ def list_history(request, limit: int = 6):
     return RecipeViewHistory.objects.filter(profile=profile).select_related("recipe")[:limit]
 
 
-@history_router.post("/", response={200: HistoryOut, 201: HistoryOut, 404: ErrorOut}, auth=SessionAuth())
+@history_router.post("/", response={200: HistoryOut, 201: HistoryOut, 404: ErrorOut, 429: ErrorOut}, auth=SessionAuth())
+@ratelimit(key="ip", rate="120/h", method="POST", block=False)
 def record_view(request, payload: HistoryIn):
     """
     Record a recipe view.
 
     If the recipe was already viewed, updates the timestamp.
     """
+    if getattr(request, "limited", False):
+        return Status(429, {"detail": "Too many requests. Please try again later."})
     profile = get_current_profile(request)
     recipe = get_object_or_404(Recipe, id=payload.recipe_id)
 
@@ -296,8 +309,8 @@ def record_view(request, payload: HistoryIn):
         defaults={},  # viewed_at auto-updates due to auto_now
     )
 
-    status = 201 if created else 200
-    return status, history
+    status_code = 201 if created else 200
+    return Status(status_code, history)
 
 
 @history_router.delete("/", response={204: None}, auth=SessionAuth())
@@ -305,4 +318,4 @@ def clear_history(request):
     """Clear all view history for the current profile."""
     profile = get_current_profile(request)
     RecipeViewHistory.objects.filter(profile=profile).delete()
-    return 204, None
+    return Status(204, None)

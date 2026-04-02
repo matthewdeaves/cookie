@@ -98,17 +98,21 @@ class TestValidateUrl:
 
     @patch("apps.core.validators.socket.getaddrinfo")
     def test_allows_valid_external_url(self, mock_getaddrinfo):
-        """Valid external HTTPS URL passes validation."""
+        """Valid external HTTPS URL passes validation with pinned DNS."""
         mock_getaddrinfo.return_value = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", 0))]
         result = validate_url("https://example.com/recipe")
-        assert result == "https://example.com/recipe"
+        assert result.url == "https://example.com/recipe"
+        assert result.hostname == "example.com"
+        assert result.ip == "93.184.216.34"
+        assert "example.com:443:93.184.216.34" in result.curl_resolve
 
     @patch("apps.core.validators.socket.getaddrinfo")
     def test_allows_http_url(self, mock_getaddrinfo):
-        """Valid external HTTP URL passes validation."""
+        """Valid external HTTP URL passes validation with pinned DNS."""
         mock_getaddrinfo.return_value = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", 0))]
         result = validate_url("http://example.com/recipe")
-        assert result == "http://example.com/recipe"
+        assert result.url == "http://example.com/recipe"
+        assert result.ip == "93.184.216.34"
 
     def test_blocks_file_scheme(self):
         """file:// URLs must be rejected."""
