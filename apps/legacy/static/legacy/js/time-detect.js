@@ -42,8 +42,8 @@ Cookie.TimeDetect = (function() {
                 var value = parseInt(match[1], 10);
                 var seconds = value * pattern.multiplier;
 
-                // Create a unique key to avoid duplicates
-                var key = match.index + '-' + value + '-' + pattern.multiplier;
+                // Deduplicate by final duration (not text position)
+                var key = seconds;
 
                 if (!seen[key] && seconds > 0) {
                     seen[key] = true;

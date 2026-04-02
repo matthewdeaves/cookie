@@ -19,7 +19,7 @@
     border-bottom: 1px solid #e8e1d8;
 }
 
-.progress-track { height: 4px; background-color: #e8e1d8; }
+.progress-track { height: 6px; background-color: #e8e1d8; }
 
 .progress-bar {
     height: 100%;
@@ -469,6 +469,11 @@
 
 /* Portrait tablet — larger text, taller buttons */
 @media (orientation: portrait) and (min-height: 800px) {
+    .step-content {
+        -webkit-justify-content: flex-start;
+        justify-content: flex-start;
+        padding-top: 3rem;
+    }
     .step-text { font-size: 1.5rem; }
     .step-nav-btn { height: 60px; font-size: 1.0625rem; }
     .timer-panel { max-height: 50vh; }

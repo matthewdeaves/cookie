@@ -123,8 +123,8 @@ Cookie.pages.playTimers = (function() {
             timerListEmpty.style.display = 'none';
         }
 
-        updateTimerCount();
         timer.start();
+        updateTimerCount();
 
         Cookie.toast.success('Timer added: ' + label);
     }
