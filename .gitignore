@@ -55,6 +55,9 @@ frontend/coverage/
 # Root node_modules (from CI tooling tests)
 node_modules/
 
+# Security/pentest reports
+PENTEST-FINDINGS*
+
 # Local/generated artifacts
 .mcp.json
 data/
