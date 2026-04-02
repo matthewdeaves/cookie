@@ -88,6 +88,94 @@ class TestLegacyPasskeyMode:
         # Admin-only quota config section is NOT rendered for regular users
         assert "quota-config-section" not in content
 
+    def test_non_admin_cannot_see_admin_tab_buttons(self, client, passkey_mode, passkey_profile):
+        """In passkey mode, non-staff user does not see admin tab buttons."""
+        session = client.session
+        session["profile_id"] = passkey_profile.id
+        session.save()
+
+        response = client.get("/legacy/settings/")
+        content = response.content.decode()
+        assert 'data-tab="general"' in content
+        assert 'data-tab="prompts"' not in content
+        assert 'data-tab="sources"' not in content
+        assert 'data-tab="selectors"' not in content
+        assert 'data-tab="users"' not in content
+        assert 'data-tab="danger"' not in content
+
+    def test_non_admin_cannot_see_admin_tab_content(self, client, passkey_mode, passkey_profile):
+        """In passkey mode, non-staff user does not see admin tab content."""
+        session = client.session
+        session["profile_id"] = passkey_profile.id
+        session.save()
+
+        response = client.get("/legacy/settings/")
+        content = response.content.decode()
+        assert 'id="tab-prompts"' not in content
+        assert 'id="tab-sources"' not in content
+        assert 'id="tab-selectors"' not in content
+        assert 'id="tab-users"' not in content
+        assert 'id="tab-danger"' not in content
+
+    def test_non_admin_cannot_see_api_key_section(self, client, passkey_mode, passkey_profile):
+        """In passkey mode, non-staff user does not see API key management."""
+        session = client.session
+        session["profile_id"] = passkey_profile.id
+        session.save()
+
+        response = client.get("/legacy/settings/")
+        content = response.content.decode()
+        assert 'id="api-key-input"' not in content
+        assert 'id="test-key-btn"' not in content
+        assert 'id="save-key-btn"' not in content
+
+    def test_non_admin_cannot_see_admin_modals(self, client, passkey_mode, passkey_profile):
+        """In passkey mode, non-staff user does not see admin modals."""
+        session = client.session
+        session["profile_id"] = passkey_profile.id
+        session.save()
+
+        response = client.get("/legacy/settings/")
+        content = response.content.decode()
+        assert 'id="delete-profile-modal"' not in content
+        assert 'id="reset-modal-step1"' not in content
+        assert 'id="reset-modal-step2"' not in content
+
+    def test_non_admin_does_not_load_admin_js(self, client, passkey_mode, passkey_profile):
+        """In passkey mode, non-staff user does not load admin JS modules."""
+        session = client.session
+        session["profile_id"] = passkey_profile.id
+        session.save()
+
+        response = client.get("/legacy/settings/")
+        content = response.content.decode()
+        assert "settings-core.js" in content
+        assert "settings-general.js" in content
+        assert "settings-prompts.js" not in content
+        assert "settings-sources.js" not in content
+        assert "settings-selectors.js" not in content
+        assert "settings-users.js" not in content
+        assert "settings-danger.js" not in content
+
+    def test_admin_sees_all_tabs_and_content(self, client, passkey_mode):
+        """In passkey mode, admin user sees all admin tabs and content."""
+        user = User.objects.create_user(username="admin2", password="!", is_active=True, is_staff=True)
+        profile = Profile.objects.create(user=user, name="Admin2", avatar_color="#d97850")
+
+        session = client.session
+        session["profile_id"] = profile.id
+        session.save()
+
+        response = client.get("/legacy/settings/")
+        content = response.content.decode()
+        assert 'data-tab="prompts"' in content
+        assert 'data-tab="sources"' in content
+        assert 'data-tab="danger"' in content
+        assert 'id="tab-prompts"' in content
+        assert 'id="api-key-input"' in content
+        assert "settings-prompts.js" in content
+        assert "settings-danger.js" in content
+
 
 class TestLegacyRequireAdmin:
     """Tests for the require_admin decorator."""
