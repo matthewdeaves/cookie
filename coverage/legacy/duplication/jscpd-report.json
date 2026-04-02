@@ -1,18 +1,18 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-02T16:18:25.506Z",
+    "detectionDate": "2026-04-02T16:49:05.596Z",
     "formats": {
       "javascript": {
         "sources": {
           "apps/legacy/static/legacy/js/pages/settings-users.js": {
-            "lines": 357,
-            "tokens": 3221,
+            "lines": 361,
+            "tokens": 3265,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 8,
             "duplicatedTokens": 156,
-            "percentage": 2.24,
-            "percentageTokens": 4.84,
+            "percentage": 2.22,
+            "percentageTokens": 4.78,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -126,13 +126,13 @@
           },
           "apps/legacy/static/legacy/js/pages/play.js": {
             "lines": 342,
-            "tokens": 2863,
+            "tokens": 2861,
             "sources": 1,
             "clones": 3,
             "duplicatedLines": 41,
             "duplicatedTokens": 329,
             "percentage": 11.99,
-            "percentageTokens": 11.49,
+            "percentageTokens": 11.5,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -174,13 +174,13 @@
           },
           "apps/legacy/static/legacy/js/pages/device-pair.js": {
             "lines": 159,
-            "tokens": 1294,
+            "tokens": 1288,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 4,
             "duplicatedTokens": 72,
             "percentage": 2.52,
-            "percentageTokens": 5.56,
+            "percentageTokens": 5.59,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -401,14 +401,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/app.js": {
-            "lines": 217,
-            "tokens": 1674,
+            "lines": 231,
+            "tokens": 1769,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 10,
             "duplicatedTokens": 106,
-            "percentage": 4.61,
-            "percentageTokens": 6.33,
+            "percentage": 4.33,
+            "percentageTokens": 5.99,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -438,28 +438,28 @@
           }
         },
         "total": {
-          "lines": 7046,
-          "tokens": 54738,
+          "lines": 7064,
+          "tokens": 54869,
           "sources": 36,
           "clones": 33,
           "duplicatedLines": 282,
           "duplicatedTokens": 2489,
-          "percentage": 4,
-          "percentageTokens": 4.55,
+          "percentage": 3.99,
+          "percentageTokens": 4.54,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7046,
-      "tokens": 54738,
+      "lines": 7064,
+      "tokens": 54869,
       "sources": 36,
       "clones": 33,
       "duplicatedLines": 282,
       "duplicatedTokens": 2489,
-      "percentage": 4,
-      "percentageTokens": 4.55,
+      "percentage": 3.99,
+      "percentageTokens": 4.54,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -472,32 +472,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-users.js",
-        "start": 315,
-        "end": 319,
+        "start": 319,
+        "end": 323,
         "startLoc": {
-          "line": 315,
+          "line": 319,
           "column": 17,
-          "position": 2843
+          "position": 2887
         },
         "endLoc": {
-          "line": 319,
+          "line": 323,
           "column": 5,
-          "position": 2921
+          "position": 2965
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-users.js",
-        "start": 241,
-        "end": 245,
+        "start": 245,
+        "end": 249,
         "startLoc": {
-          "line": 241,
-          "column": 13,
-          "position": 2176
-        },
-        "endLoc": {
           "line": 245,
           "column": 13,
-          "position": 2254
+          "position": 2220
+        },
+        "endLoc": {
+          "line": 249,
+          "column": 13,
+          "position": 2298
         }
       }
     },
@@ -801,12 +801,12 @@
         "startLoc": {
           "line": 274,
           "column": 20,
-          "position": 2281
+          "position": 2279
         },
         "endLoc": {
           "line": 289,
           "column": 8,
-          "position": 2413
+          "position": 2411
         }
       },
       "secondFile": {
@@ -816,12 +816,12 @@
         "startLoc": {
           "line": 258,
           "column": 17,
-          "position": 2143
+          "position": 2141
         },
         "endLoc": {
           "line": 273,
           "column": 8,
-          "position": 2275
+          "position": 2273
         }
       }
     },
@@ -837,12 +837,12 @@
         "startLoc": {
           "line": 328,
           "column": 2,
-          "position": 2766
+          "position": 2764
         },
         "endLoc": {
           "line": 339,
           "column": 5,
-          "position": 2831
+          "position": 2829
         }
       },
       "secondFile": {
@@ -1588,32 +1588,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/app.js",
-        "start": 103,
-        "end": 108,
+        "start": 106,
+        "end": 111,
         "startLoc": {
-          "line": 103,
+          "line": 106,
           "column": 19,
-          "position": 750
+          "position": 760
         },
         "endLoc": {
-          "line": 108,
+          "line": 111,
           "column": 4,
-          "position": 803
+          "position": 813
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/app.js",
-        "start": 77,
-        "end": 82,
+        "start": 80,
+        "end": 85,
         "startLoc": {
-          "line": 77,
+          "line": 80,
           "column": 23,
-          "position": 490
+          "position": 500
         },
         "endLoc": {
-          "line": 82,
+          "line": 85,
           "column": 7,
-          "position": 543
+          "position": 553
         }
       }
     },

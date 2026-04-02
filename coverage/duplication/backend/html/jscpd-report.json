@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-02T16:18:40.897Z",
+    "detectionDate": "2026-04-02T16:49:18.306Z",
     "formats": {
       "python": {
         "sources": {
@@ -113,14 +113,26 @@
             "newClones": 0
           },
           "apps/recipes/services/scraper.py": {
-            "lines": 507,
-            "tokens": 3907,
+            "lines": 512,
+            "tokens": 3932,
             "sources": 1,
             "clones": 4,
             "duplicatedLines": 53,
             "duplicatedTokens": 486,
-            "percentage": 10.45,
-            "percentageTokens": 12.44,
+            "percentage": 10.35,
+            "percentageTokens": 12.36,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "apps/recipes/services/sanitizer.py": {
+            "lines": 54,
+            "tokens": 427,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -702,28 +714,28 @@
           }
         },
         "total": {
-          "lines": 10573,
-          "tokens": 73652,
-          "sources": 58,
+          "lines": 10632,
+          "tokens": 74104,
+          "sources": 59,
           "clones": 8,
           "duplicatedLines": 125,
           "duplicatedTokens": 976,
           "percentage": 1.18,
-          "percentageTokens": 1.33,
+          "percentageTokens": 1.32,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 10573,
-      "tokens": 73652,
-      "sources": 58,
+      "lines": 10632,
+      "tokens": 74104,
+      "sources": 59,
       "clones": 8,
       "duplicatedLines": 125,
       "duplicatedTokens": 976,
       "percentage": 1.18,
-      "percentageTokens": 1.33,
+      "percentageTokens": 1.32,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -736,32 +748,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/recipes/services/scraper.py",
-        "start": 414,
-        "end": 428,
+        "start": 419,
+        "end": 433,
         "startLoc": {
-          "line": 414,
+          "line": 419,
           "column": 9,
-          "position": 3151
+          "position": 3176
         },
         "endLoc": {
-          "line": 428,
+          "line": 433,
           "column": 7,
-          "position": 3288
+          "position": 3313
         }
       },
       "secondFile": {
         "name": "apps/recipes/services/scraper.py",
-        "start": 231,
-        "end": 245,
+        "start": 233,
+        "end": 247,
         "startLoc": {
-          "line": 231,
+          "line": 233,
           "column": 9,
-          "position": 1463
+          "position": 1478
         },
         "endLoc": {
-          "line": 245,
+          "line": 247,
           "column": 6,
-          "position": 1600
+          "position": 1615
         }
       }
     },
@@ -787,17 +799,17 @@
       },
       "secondFile": {
         "name": "apps/recipes/services/scraper.py",
-        "start": 412,
-        "end": 420,
+        "start": 417,
+        "end": 425,
         "startLoc": {
-          "line": 412,
+          "line": 417,
           "column": 28,
-          "position": 3131
+          "position": 3156
         },
         "endLoc": {
-          "line": 420,
+          "line": 425,
           "column": 8,
-          "position": 3220
+          "position": 3245
         }
       }
     },
@@ -823,17 +835,17 @@
       },
       "secondFile": {
         "name": "apps/recipes/services/scraper.py",
-        "start": 420,
-        "end": 437,
+        "start": 425,
+        "end": 442,
         "startLoc": {
-          "line": 420,
+          "line": 425,
           "column": 8,
-          "position": 3221
+          "position": 3246
         },
         "endLoc": {
-          "line": 437,
+          "line": 442,
           "column": 3,
-          "position": 3344
+          "position": 3369
         }
       }
     },
