@@ -421,17 +421,17 @@ class NoProfileTests(TestCase):
     def test_favorites_requires_profile(self):
         """Favorites endpoints require a selected profile."""
         response = self.client.get("/api/favorites/")
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 401)
 
     def test_collections_requires_profile(self):
         """Collections endpoints require a selected profile."""
         response = self.client.get("/api/collections/")
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 401)
 
     def test_history_requires_profile(self):
         """History endpoints require a selected profile."""
         response = self.client.get("/api/history/")
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 401)
 
 
 class QuantityTidyingTests(TestCase):
