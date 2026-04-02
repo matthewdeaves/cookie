@@ -209,9 +209,7 @@ Cookie.app = (function() {
 
             var href = target.getAttribute('href');
             if (href
-                && href.indexOf('http') !== 0
-                && href.indexOf('javascript:') !== 0
-                && href.charAt(0) !== '#'
+                && href.charAt(0) === '/'
                 && !target.getAttribute('target')) {
                 e.preventDefault();
                 window.location.href = href;
