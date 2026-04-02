@@ -14,12 +14,13 @@
     <div class="container container-wide p-4">
         <!-- Page title -->
         <h2 class="section-title mb-4">Settings</h2>
-        <!-- Tab toggle (6 tabs) -->
+        <!-- Tab toggle -->
         <div class="flex justify-center mb-6">
-            <div class="tab-toggle tab-toggle-6">
+            <div class="tab-toggle {% if is_admin %}tab-toggle-6{% else %}tab-toggle-1{% endif %}">
                 <button type="button" class="tab-toggle-btn active" data-tab="general">
                     General
                 </button>
+                {% if is_admin %}
                 <button type="button" class="tab-toggle-btn" data-tab="prompts">
                     AI Prompts
                 </button>
@@ -35,11 +36,13 @@
                 <button type="button" class="tab-toggle-btn tab-danger" data-tab="danger">
                     Danger Zone
                 </button>
+                {% endif %}
             </div>
         </div>
 
         <!-- General Tab Content -->
         <div id="tab-general" class="tab-content">
+            {% if is_admin %}
             <div class="card">
                 <h2 class="settings-section-title">OpenRouter API</h2>
 
@@ -93,6 +96,7 @@
                     <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" class="link">openrouter.ai/keys</a>
                 </p>
             </div>
+            {% endif %}
 
             {% if is_admin %}
             <!-- AI Quota Config (admin, passkey mode only — hidden by default, shown by JS) -->
@@ -167,6 +171,7 @@
             </div>
         </div>
 
+        {% if is_admin %}
         <!-- Prompts Tab Content -->
         <div id="tab-prompts" class="tab-content hidden">
             <!-- Info banner -->
@@ -377,8 +382,10 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 
+    {% if is_admin %}
     <!-- Delete Profile Modal -->
     <div id="delete-profile-modal" class="modal-overlay hidden">
         <div class="modal">
@@ -478,10 +485,12 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
+{% if is_admin %}
 <!-- HTML Templates for JavaScript rendering -->
 <template id="template-source-item">
     <div class="source-item">
@@ -567,14 +576,17 @@
         </div>
     </div>
 </template>
+{% endif %}
 
 <!-- Settings page modules (load order matters) -->
 <script src="{% static 'legacy/js/pages/settings-core.js' %}"></script>
 <script src="{% static 'legacy/js/pages/settings-general.js' %}"></script>
+{% if is_admin %}
 <script src="{% static 'legacy/js/pages/settings-prompts.js' %}"></script>
 <script src="{% static 'legacy/js/pages/settings-sources.js' %}"></script>
 <script src="{% static 'legacy/js/pages/settings-selectors.js' %}"></script>
 <script src="{% static 'legacy/js/pages/settings-users.js' %}"></script>
 <script src="{% static 'legacy/js/pages/settings-danger.js' %}"></script>
+{% endif %}
 <script src="{% static 'legacy/js/pages/settings-init.js' %}"></script>
 {% endblock %}

@@ -398,21 +398,23 @@ def settings(request):
     """Settings screen - AI prompts and sources configuration."""
     profile = request.profile
 
-    # Get app settings
-    app_settings = AppSettings.get()
+    is_admin = getattr(request, "is_admin", False)
 
-    # Check if AI features are available
-    ai_available = _is_ai_available()
-
-    # Get all AI prompts
-    prompts = list(AIPrompt.objects.all().order_by("name"))
-
-    # Get available models from OpenRouter
-    try:
-        service = OpenRouterService()
-        models = service.get_available_models()
-    except (AIUnavailableError, AIResponseError):
+    # Only load admin-specific data for admin users
+    if is_admin:
+        app_settings = AppSettings.get()
+        ai_available = _is_ai_available()
+        prompts = list(AIPrompt.objects.all().order_by("name"))
+        try:
+            service = OpenRouterService()
+            models = service.get_available_models()
+        except (AIUnavailableError, AIResponseError):
+            models = []
+    else:
+        ai_available = False
+        prompts = []
         models = []
+        app_settings = None
 
     return render(
         request,
@@ -427,8 +429,8 @@ def settings(request):
             },
             "current_profile_id": profile.id,
             "ai_available": ai_available,
-            "is_admin": getattr(request, "is_admin", False),
-            "default_model": app_settings.default_ai_model,
+            "is_admin": is_admin,
+            "default_model": app_settings.default_ai_model if app_settings else "",
             "prompts": prompts,
             "models": models,
         },
