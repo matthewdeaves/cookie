@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-02T17:27:43.809Z",
+    "detectionDate": "2026-04-02T20:49:28.743Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -401,14 +401,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/app.js": {
-            "lines": 231,
-            "tokens": 1769,
+            "lines": 229,
+            "tokens": 1741,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 10,
             "duplicatedTokens": 106,
-            "percentage": 4.33,
-            "percentageTokens": 5.99,
+            "percentage": 4.37,
+            "percentageTokens": 6.09,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -438,8 +438,8 @@
           }
         },
         "total": {
-          "lines": 7064,
-          "tokens": 54869,
+          "lines": 7062,
+          "tokens": 54841,
           "sources": 36,
           "clones": 33,
           "duplicatedLines": 282,
@@ -452,8 +452,8 @@
       }
     },
     "total": {
-      "lines": 7064,
-      "tokens": 54869,
+      "lines": 7062,
+      "tokens": 54841,
       "sources": 36,
       "clones": 33,
       "duplicatedLines": 282,
