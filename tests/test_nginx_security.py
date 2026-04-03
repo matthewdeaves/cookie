@@ -124,6 +124,8 @@ class TestNginxSecurityHeaders:
         ("Permissions-Policy", "camera="),
         ("Cross-Origin-Opener-Policy", "same-origin"),
         ("Cross-Origin-Resource-Policy", "same-origin"),
+        ("Cross-Origin-Embedder-Policy", "credentialless"),
+        ("X-XSS-Protection", "0"),
         ("X-Permitted-Cross-Domain-Policies", "none"),
     ]
 
