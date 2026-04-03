@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-03T07:17:20.622Z",
+    "detectionDate": "2026-04-03T07:36:14.122Z",
     "formats": {
       "python": {
         "sources": {
@@ -29,8 +29,8 @@
             "newClones": 0
           },
           "cookie/settings.py": {
-            "lines": 272,
-            "tokens": 1570,
+            "lines": 281,
+            "tokens": 1594,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -714,13 +714,13 @@
           }
         },
         "total": {
-          "lines": 10636,
-          "tokens": 74156,
+          "lines": 10645,
+          "tokens": 74180,
           "sources": 59,
           "clones": 8,
           "duplicatedLines": 125,
           "duplicatedTokens": 976,
-          "percentage": 1.18,
+          "percentage": 1.17,
           "percentageTokens": 1.32,
           "newDuplicatedLines": 0,
           "newClones": 0
@@ -728,13 +728,13 @@
       }
     },
     "total": {
-      "lines": 10636,
-      "tokens": 74156,
+      "lines": 10645,
+      "tokens": 74180,
       "sources": 59,
       "clones": 8,
       "duplicatedLines": 125,
       "duplicatedTokens": 976,
-      "percentage": 1.18,
+      "percentage": 1.17,
       "percentageTokens": 1.32,
       "newDuplicatedLines": 0,
       "newClones": 0
