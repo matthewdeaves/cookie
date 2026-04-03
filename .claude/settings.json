@@ -13,6 +13,11 @@
             "type": "command",
             "command": ".claude/hooks/ios9-css-check.sh",
             "statusMessage": "Checking iOS 9 CSS compatibility..."
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/unsafe-template-check.sh",
+            "statusMessage": "Checking for unsafe template patterns..."
           }
         ]
       },
@@ -28,6 +33,11 @@
             "type": "command",
             "command": ".claude/hooks/ios9-css-check.sh",
             "statusMessage": "Checking iOS 9 CSS compatibility..."
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/unsafe-template-check.sh",
+            "statusMessage": "Checking for unsafe template patterns..."
           }
         ]
       },

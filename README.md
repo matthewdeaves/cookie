@@ -34,6 +34,7 @@ Clone and run the development stack:
 ```bash
 git clone https://github.com/matthewdeaves/cookie.git
 cd cookie
+bin/dev setup   # Install pre-commit hooks (requires: pip install pre-commit)
 bin/dev up
 ```
 

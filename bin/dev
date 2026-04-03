@@ -28,6 +28,7 @@ usage() {
     echo "  makemigrations Create new migrations"
     echo "  npm <cmd>      Run npm command in frontend container"
     echo "  frontend-logs  View frontend logs"
+    echo "  setup          Install pre-commit hooks and dev tooling"
     echo "  status         Show container status"
     echo ""
     echo "Examples:"
@@ -93,6 +94,20 @@ case "${1:-}" in
         ;;
     frontend-logs)
         docker compose logs -f frontend
+        ;;
+    setup)
+        echo -e "${GREEN}Setting up development environment...${NC}"
+        if command -v pre-commit >/dev/null 2>&1; then
+            echo -e "${GREEN}Installing pre-commit hooks...${NC}"
+            pre-commit install --install-hooks
+            pre-commit install --hook-type commit-msg
+            pre-commit install --hook-type pre-push
+            echo -e "${GREEN}Pre-commit hooks installed.${NC}"
+        else
+            echo -e "${RED}pre-commit not found. Install with: pip install pre-commit${NC}"
+            exit 1
+        fi
+        echo -e "${GREEN}Setup complete.${NC}"
         ;;
     status)
         docker compose ps
