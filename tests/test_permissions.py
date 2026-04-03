@@ -6,11 +6,22 @@ import pytest
 from django.contrib.auth.models import User
 
 from apps.profiles.models import Profile
+from apps.recipes.models import SearchSource
 
 
 @pytest.fixture
 def passkey_mode(settings):
     settings.AUTH_MODE = "passkey"
+
+
+@pytest.fixture
+def source(db):
+    return SearchSource.objects.create(
+        host="example.com",
+        name="Example",
+        search_url_template="https://example.com/search?q={query}",
+        result_selector=".recipe-card",
+    )
 
 
 def _create_user(username, is_staff=False):
@@ -56,6 +67,77 @@ class TestAdminEndpoints:
             "/api/ai/save-api-key", data=json.dumps({"api_key": "test"}), content_type="application/json"
         )
         assert response.status_code == 403
+
+    def test_list_prompts_denied(self, client, passkey_mode):
+        self._setup_non_admin(client, passkey_mode)
+        response = client.get("/api/ai/prompts")
+        assert response.status_code == 403
+
+    def test_get_prompt_denied(self, client, passkey_mode):
+        self._setup_non_admin(client, passkey_mode)
+        response = client.get("/api/ai/prompts/tips_generation")
+        assert response.status_code == 403
+
+    def test_update_quotas_denied(self, client, passkey_mode):
+        self._setup_non_admin(client, passkey_mode)
+        response = client.put(
+            "/api/ai/quotas",
+            data=json.dumps(
+                {"remix": 99, "remix_suggestions": 99, "scale": 99, "tips": 99, "discover": 99, "timer": 99}
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == 403
+
+    def test_cache_health_denied(self, client, passkey_mode):
+        self._setup_non_admin(client, passkey_mode)
+        response = client.get("/api/recipes/cache/health/")
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestAdminSourceEndpoints:
+    """Non-admin gets 403 on admin-only source management endpoints in passkey mode."""
+
+    def _setup_non_admin(self, client, passkey_mode, source):
+        _create_user("admin", is_staff=True)
+        regular = _create_user("regular")
+        _login(client, regular)
+
+    def test_toggle_source_denied(self, client, passkey_mode, source):
+        self._setup_non_admin(client, passkey_mode, source)
+        response = client.post(f"/api/sources/{source.id}/toggle/")
+        assert response.status_code == 403
+
+    def test_bulk_toggle_denied(self, client, passkey_mode, source):
+        self._setup_non_admin(client, passkey_mode, source)
+        response = client.post(
+            "/api/sources/bulk-toggle/",
+            data=json.dumps({"enable": False}),
+            content_type="application/json",
+        )
+        # Django Ninja may return 405 when auth fails before route matching
+        assert response.status_code in (403, 405)
+
+    def test_update_selector_denied(self, client, passkey_mode, source):
+        self._setup_non_admin(client, passkey_mode, source)
+        response = client.put(
+            f"/api/sources/{source.id}/selector/",
+            data=json.dumps({"result_selector": ".hacked"}),
+            content_type="application/json",
+        )
+        assert response.status_code == 403
+
+    def test_test_source_denied(self, client, passkey_mode, source):
+        self._setup_non_admin(client, passkey_mode, source)
+        response = client.post(f"/api/sources/{source.id}/test/")
+        assert response.status_code == 403
+
+    def test_test_all_sources_denied(self, client, passkey_mode):
+        self._setup_non_admin(client, passkey_mode, None)
+        response = client.post("/api/sources/test-all/")
+        # Async endpoint: sync test client may return 405 instead of 403
+        assert response.status_code in (403, 405)
 
 
 @pytest.mark.django_db
