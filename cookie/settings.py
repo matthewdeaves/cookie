@@ -158,6 +158,8 @@ STORAGES = {
     },
 }
 
+WHITENOISE_ROOT = BASE_DIR / "rootfiles"
+
 MEDIA_URL = "/media/"
 data_dir = os.environ.get("DATA_DIR", str(BASE_DIR))
 MEDIA_ROOT = Path(data_dir) / "data" / "media" if not DEBUG else BASE_DIR / "media"
