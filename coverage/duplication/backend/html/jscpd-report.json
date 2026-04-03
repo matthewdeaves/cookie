@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-03T17:52:03.911Z",
+    "detectionDate": "2026-04-03T19:50:55.906Z",
     "formats": {
       "python": {
         "sources": {
@@ -30,7 +30,7 @@
           },
           "cookie/settings.py": {
             "lines": 281,
-            "tokens": 1594,
+            "tokens": 1596,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -52,9 +52,21 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/core/management/commands/createsuperuser.py": {
+            "lines": 21,
+            "tokens": 71,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/core/management/commands/cookie_admin.py": {
-            "lines": 493,
-            "tokens": 4670,
+            "lines": 550,
+            "tokens": 5149,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -473,8 +485,8 @@
             "newClones": 0
           },
           "apps/core/passkey_api.py": {
-            "lines": 454,
-            "tokens": 3509,
+            "lines": 452,
+            "tokens": 3486,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -714,28 +726,28 @@
           }
         },
         "total": {
-          "lines": 10645,
-          "tokens": 74180,
-          "sources": 59,
+          "lines": 10721,
+          "tokens": 74709,
+          "sources": 60,
           "clones": 8,
           "duplicatedLines": 125,
           "duplicatedTokens": 976,
           "percentage": 1.17,
-          "percentageTokens": 1.32,
+          "percentageTokens": 1.31,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 10645,
-      "tokens": 74180,
-      "sources": 59,
+      "lines": 10721,
+      "tokens": 74709,
+      "sources": 60,
       "clones": 8,
       "duplicatedLines": 125,
       "duplicatedTokens": 976,
       "percentage": 1.17,
-      "percentageTokens": 1.32,
+      "percentageTokens": 1.31,
       "newDuplicatedLines": 0,
       "newClones": 0
     }

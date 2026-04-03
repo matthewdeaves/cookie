@@ -1,20 +1,20 @@
 {
-  "total_size_kb": 547.22,
-  "total_gzip_kb": 167.72,
-  "js_size_kb": 502.07,
-  "js_gzip_kb": 159.61,
+  "total_size_kb": 545.85,
+  "total_gzip_kb": 166.66,
+  "js_size_kb": 500.7,
+  "js_gzip_kb": 158.54,
   "css_size_kb": 45.15,
   "css_gzip_kb": 8.11,
   "files": [
     {
       "name": "index-D9lWcK8Y.js",
-      "size_kb": 327.85,
-      "gzip_kb": 103.99
+      "size_kb": 327.81,
+      "gzip_kb": 103.96
     },
     {
       "name": "Settings-D13moPUp.js",
-      "size_kb": 46.91,
-      "gzip_kb": 10.75
+      "size_kb": 46.86,
+      "gzip_kb": 10.72
     },
     {
       "name": "index-CyWAt24E.css",
@@ -23,143 +23,143 @@
     },
     {
       "name": "utils-BLF3P5np.js",
-      "size_kb": 26.64,
-      "gzip_kb": 8.59
+      "size_kb": 26.6,
+      "gzip_kb": 8.55
     },
     {
       "name": "RecipeDetail-CDoBaFp1.js",
-      "size_kb": 24.31,
-      "gzip_kb": 6.67
+      "size_kb": 24.26,
+      "gzip_kb": 6.63
     },
     {
       "name": "PlayMode-FuxwOFY5.js",
-      "size_kb": 17.45,
-      "gzip_kb": 6.44
+      "size_kb": 17.41,
+      "gzip_kb": 6.4
     },
     {
       "name": "Home-DeBW6LUZ.js",
-      "size_kb": 9.51,
-      "gzip_kb": 2.98
+      "size_kb": 9.47,
+      "gzip_kb": 2.95
     },
     {
       "name": "Search-CmC3A3X6.js",
-      "size_kb": 8.68,
-      "gzip_kb": 3.17
+      "size_kb": 8.64,
+      "gzip_kb": 3.14
     },
     {
       "name": "Collections-Az6qSch3.js",
-      "size_kb": 5.76,
-      "gzip_kb": 1.93
+      "size_kb": 5.72,
+      "gzip_kb": 1.89
     },
     {
       "name": "NavHeader-BA8Pwx6k.js",
-      "size_kb": 5.74,
-      "gzip_kb": 2.11
+      "size_kb": 5.69,
+      "gzip_kb": 2.07
     },
     {
       "name": "CollectionDetail-DopgwICd.js",
-      "size_kb": 4.77,
-      "gzip_kb": 1.66
+      "size_kb": 4.72,
+      "gzip_kb": 1.62
     },
     {
       "name": "ProfileSelector-MBbxASSY.js",
-      "size_kb": 4.34,
-      "gzip_kb": 1.64
+      "size_kb": 4.29,
+      "gzip_kb": 1.6
     },
     {
       "name": "AllRecipes-D2Ywl700.js",
-      "size_kb": 3.37,
-      "gzip_kb": 1.39
+      "size_kb": 3.32,
+      "gzip_kb": 1.35
     },
     {
       "name": "Skeletons-CiMyUVwM.js",
-      "size_kb": 2.82,
-      "gzip_kb": 0.78
+      "size_kb": 2.78,
+      "gzip_kb": 0.74
     },
     {
       "name": "PasskeyRegister-CG1Rwtee.js",
-      "size_kb": 2.35,
-      "gzip_kb": 1.07
+      "size_kb": 2.3,
+      "gzip_kb": 1.04
     },
     {
       "name": "RecipeCard-BmmVq9XM.js",
-      "size_kb": 2.28,
-      "gzip_kb": 1.01
+      "size_kb": 2.23,
+      "gzip_kb": 0.97
     },
     {
       "name": "PasskeyLogin-CI8nw2Bj.js",
-      "size_kb": 2.19,
-      "gzip_kb": 1.03
+      "size_kb": 2.14,
+      "gzip_kb": 0.99
     },
     {
       "name": "Favorites-CrupVQz1.js",
-      "size_kb": 2.02,
-      "gzip_kb": 0.93
+      "size_kb": 1.97,
+      "gzip_kb": 0.9
     },
     {
       "name": "webauthn-DFqsj4VV.js",
-      "size_kb": 1.2,
-      "gzip_kb": 0.54
+      "size_kb": 1.16,
+      "gzip_kb": 0.51
     },
     {
       "name": "formatting-DF7Ng_zK.js",
-      "size_kb": 0.75,
-      "gzip_kb": 0.48
+      "size_kb": 0.7,
+      "gzip_kb": 0.44
     },
     {
       "name": "sparkles-v_MapqWc.js",
-      "size_kb": 0.53,
-      "gzip_kb": 0.31
+      "size_kb": 0.48,
+      "gzip_kb": 0.28
     },
     {
       "name": "external-link-CUwTwwT3.js",
-      "size_kb": 0.37,
-      "gzip_kb": 0.27
+      "size_kb": 0.32,
+      "gzip_kb": 0.23
     },
     {
       "name": "trash-2-BZp-wbps.js",
-      "size_kb": 0.37,
-      "gzip_kb": 0.25
+      "size_kb": 0.32,
+      "gzip_kb": 0.21
     },
     {
       "name": "folder-plus-mqciEw-C.js",
-      "size_kb": 0.34,
-      "gzip_kb": 0.25
-    },
-    {
-      "name": "globe-DvmkWd0R.js",
-      "size_kb": 0.27,
+      "size_kb": 0.29,
       "gzip_kb": 0.22
     },
     {
+      "name": "globe-DvmkWd0R.js",
+      "size_kb": 0.23,
+      "gzip_kb": 0.18
+    },
+    {
       "name": "chevron-up-CnBYFF2V.js",
-      "size_kb": 0.25,
-      "gzip_kb": 0.21
+      "size_kb": 0.2,
+      "gzip_kb": 0.17
     },
     {
       "name": "play-DYHAKunH.js",
-      "size_kb": 0.23,
-      "gzip_kb": 0.21
+      "size_kb": 0.19,
+      "gzip_kb": 0.18
     },
     {
       "name": "search-cmhfUk_s.js",
-      "size_kb": 0.21,
-      "gzip_kb": 0.2
-    },
-    {
-      "name": "loader-circle-DHXve-g2.js",
-      "size_kb": 0.19,
-      "gzip_kb": 0.18
+      "size_kb": 0.17,
+      "gzip_kb": 0.16
     },
     {
       "name": "plus-DKp-c8mT.js",
-      "size_kb": 0.19,
-      "gzip_kb": 0.18
+      "size_kb": 0.15,
+      "gzip_kb": 0.14
     },
     {
       "name": "x-cfXkdGlB.js",
-      "size_kb": 0.18,
-      "gzip_kb": 0.18
+      "size_kb": 0.15,
+      "gzip_kb": 0.15
+    },
+    {
+      "name": "loader-circle-DHXve-g2.js",
+      "size_kb": 0.14,
+      "gzip_kb": 0.15
     }
   ],
   "rating": "B"
