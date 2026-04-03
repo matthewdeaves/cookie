@@ -7,6 +7,8 @@ Usage:
     manage.py cookie_admin status [--json]
     manage.py cookie_admin audit [--lines N] [--json]
     manage.py cookie_admin list-users [--active-only] [--admins-only] [--json]
+    manage.py cookie_admin create-user <username> [--admin] [--json]
+    manage.py cookie_admin delete-user <username> [--json]
     manage.py cookie_admin promote <username> [--json]
     manage.py cookie_admin demote <username> [--json]
     manage.py cookie_admin activate <username> [--json]
@@ -47,6 +49,17 @@ class Command(BaseCommand):
         ls.add_argument("--active-only", action="store_true")
         ls.add_argument("--admins-only", action="store_true")
         ls.add_argument("--json", action="store_true", dest="as_json")
+
+        # create-user
+        cu = sub.add_parser("create-user", help="Create a headless user (no passkey)")
+        cu.add_argument("username")
+        cu.add_argument("--admin", action="store_true", help="Grant admin privileges")
+        cu.add_argument("--json", action="store_true", dest="as_json")
+
+        # delete-user
+        du = sub.add_parser("delete-user", help="Delete a user and their profile")
+        du.add_argument("username")
+        du.add_argument("--json", action="store_true", dest="as_json")
 
         # promote
         p = sub.add_parser("promote", help="Grant admin privileges")
@@ -377,6 +390,50 @@ class Command(BaseCommand):
         active = users.filter(is_active=True).count()
         admins = users.filter(is_staff=True).count()
         self.stdout.write(f"\nTotal: {users.count()} users ({active} active, {admins} admin)")
+
+    def _handle_create_user(self, options):
+        from apps.profiles.models import Profile
+
+        username = options["username"]
+        is_admin = options.get("admin", False)
+
+        if User.objects.filter(username=username).exists():
+            self._error(f"User '{username}' already exists.", options)
+
+        user = User.objects.create_user(
+            username=username,
+            password=None,
+            email="",
+            is_active=True,
+            is_staff=is_admin,
+        )
+        user.set_unusable_password()
+        user.save(update_fields=["password"])
+
+        profile_count = Profile.objects.count()
+        Profile.objects.create(
+            user=user,
+            name=f"User {profile_count + 1}",
+            avatar_color=Profile.next_avatar_color(),
+        )
+
+        role = "admin" if is_admin else "regular"
+        self._success(
+            f"Created {role} user '{username}'.",
+            options,
+            {"user": self._user_dict(user)},
+        )
+
+    def _handle_delete_user(self, options):
+        user = self._get_user(options["username"], options)
+        username = user.username
+        user_data = self._user_dict(user)
+        user.delete()
+        self._success(
+            f"Deleted user '{username}' and associated data.",
+            options,
+            {"deleted_user": user_data},
+        )
 
     def _handle_promote(self, options):
         user = self._get_user(options["username"], options)

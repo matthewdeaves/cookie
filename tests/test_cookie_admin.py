@@ -69,6 +69,44 @@ class TestCookieAdminUserManagement:
         assert "alice" in text
         assert "bob" in text
 
+    def test_create_user_regular(self, passkey_mode):
+        """create-user creates a regular user with profile."""
+        _, data = _call("create-user", "testuser", as_json=True)
+        assert data["ok"] is True
+        assert data["user"]["username"] == "testuser"
+        assert data["user"]["is_admin"] is False
+        user = User.objects.get(username="testuser")
+        assert user.is_active is True
+        assert user.is_staff is False
+        assert not user.has_usable_password()
+        assert hasattr(user, "profile")
+
+    def test_create_user_admin(self, passkey_mode):
+        """create-user --admin creates an admin user."""
+        _, data = _call("create-user", "adminuser", "--admin", as_json=True)
+        assert data["ok"] is True
+        assert data["user"]["is_admin"] is True
+        assert User.objects.get(username="adminuser").is_staff is True
+
+    def test_create_user_duplicate_refused(self, passkey_mode):
+        """create-user refuses to create a duplicate username."""
+        _make_user("alice")
+        with pytest.raises(SystemExit):
+            _call("create-user", "alice", as_json=True)
+
+    def test_delete_user(self, passkey_mode):
+        """delete-user removes user and profile."""
+        _make_user("alice")
+        _, data = _call("delete-user", "alice", as_json=True)
+        assert data["ok"] is True
+        assert data["deleted_user"]["username"] == "alice"
+        assert not User.objects.filter(username="alice").exists()
+
+    def test_delete_user_nonexistent(self, passkey_mode):
+        """delete-user on nonexistent user fails."""
+        with pytest.raises(SystemExit):
+            _call("delete-user", "nobody", as_json=True)
+
     def test_promote(self, passkey_mode):
         """promote sets is_staff=True."""
         _make_user("alice")
