@@ -179,7 +179,8 @@ class TestRegisterVerify:
         assert WebAuthnCredential.objects.count() == 1
 
     @patch("apps.core.passkey_api.verify_registration_response")
-    def test_first_user_gets_is_staff(self, mock_verify, anon_client, passkey_mode):
+    def test_first_user_not_staff(self, mock_verify, anon_client, passkey_mode):
+        """First user is NOT auto-promoted to admin. Use cookie_admin promote instead."""
         mock_verify.return_value = SimpleNamespace(
             credential_id=b"\x01\x02\x03",
             credential_public_key=b"\x04\x05\x06",
@@ -192,12 +193,13 @@ class TestRegisterVerify:
 
         assert resp.status_code == 201
         user = User.objects.first()
-        assert user.is_staff is True
+        assert user.is_staff is False
         data = resp.json()
-        assert data["user"]["is_admin"] is True
+        assert data["user"]["is_admin"] is False
 
     @patch("apps.core.passkey_api.verify_registration_response")
-    def test_second_user_not_staff(self, mock_verify, anon_client, passkey_mode):
+    def test_new_user_not_staff_when_others_exist(self, mock_verify, anon_client, passkey_mode):
+        """New users are never auto-promoted, regardless of existing user count."""
         _make_user("pk_existing")
 
         mock_verify.return_value = SimpleNamespace(

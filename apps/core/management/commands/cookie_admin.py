@@ -14,6 +14,7 @@ Usage:
     manage.py cookie_admin set-unlimited <username> [--json]
     manage.py cookie_admin remove-unlimited <username> [--json]
     manage.py cookie_admin usage [--username <name>] [--json]
+    manage.py cookie_admin create-session <username> [--ttl N] [--json]
 """
 
 import json
@@ -81,6 +82,12 @@ class Command(BaseCommand):
         us = sub.add_parser("usage", help="Show AI usage for today")
         us.add_argument("--username", required=False, help="Show usage for a specific user")
         us.add_argument("--json", action="store_true", dest="as_json")
+
+        # create-session
+        cs = sub.add_parser("create-session", help="Create a Django session for a user (pentest/automation)")
+        cs.add_argument("username")
+        cs.add_argument("--ttl", type=int, default=3600, help="Session TTL in seconds (default 3600)")
+        cs.add_argument("--json", action="store_true", dest="as_json")
 
     def handle(self, *args, **options):
         if settings.AUTH_MODE != "passkey":
@@ -492,3 +499,53 @@ class Command(BaseCommand):
             suffix = "" if u["is_exempt"] else f"/{limits[feature]}"
             self.stdout.write(f"  {feature}: {count}{suffix}")
         self.stdout.write("")
+
+    def _handle_create_session(self, options):
+        import datetime
+        import logging
+
+        from django.contrib.auth import BACKEND_SESSION_KEY, HASH_SESSION_KEY, SESSION_KEY
+        from django.contrib.sessions.backends.db import SessionStore
+        from django.utils import timezone
+
+        security_logger = logging.getLogger("security")
+
+        user = self._get_user(options["username"], options)
+        if not user.is_active:
+            self._error(f"User '{user.username}' is inactive.", options)
+
+        profile = getattr(user, "profile", None)
+        if profile is None:
+            self._error(f"User '{user.username}' has no profile.", options)
+
+        ttl = options.get("ttl", 3600)
+        if ttl < 60 or ttl > 86400:
+            self._error("TTL must be between 60 and 86400 seconds.", options)
+
+        # Create session with Django auth keys (same as django.contrib.auth.login())
+        session = SessionStore()
+        session[SESSION_KEY] = str(user.pk)
+        session[BACKEND_SESSION_KEY] = "django.contrib.auth.backends.ModelBackend"
+        session[HASH_SESSION_KEY] = user.get_session_auth_hash()
+        session["profile_id"] = profile.id
+        session.set_expiry(ttl)
+        session.create()
+
+        security_logger.info(
+            "CLI session created: user_id=%s, username=%s, ttl=%ds",
+            user.pk,
+            user.username,
+            ttl,
+        )
+
+        self._success(
+            f"Session created for '{user.username}' (expires in {ttl}s).",
+            options,
+            {
+                "session_key": session.session_key,
+                "profile_id": profile.id,
+                "user": self._user_dict(user),
+                "expires_in_seconds": ttl,
+                "expires_at": (timezone.now() + datetime.timedelta(seconds=ttl)).isoformat(),
+            },
+        )

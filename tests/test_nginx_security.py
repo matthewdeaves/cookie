@@ -45,6 +45,20 @@ class TestNginxDotfileBlocking:
         assert "return 404" in block.group(1)
 
 
+class TestNginxSourcemapBlocking:
+    """Sourcemap files must return 404."""
+
+    def test_sourcemap_block_rule_exists(self, nginx_config):
+        assert re.search(r"location\s+~\*\s+\\\.map\$", nginx_config), (
+            "Missing sourcemap blocking rule (location ~* \\.map$)"
+        )
+
+    def test_sourcemap_block_returns_404(self, nginx_config):
+        block = re.search(r"location\s+~\*\s+\\\.map\$\s*\{(.*?)\}", nginx_config, re.DOTALL)
+        assert block, "Sourcemap blocking location block not found"
+        assert "return 404" in block.group(1)
+
+
 class TestNginxSensitiveExtensions:
     """Sensitive file extensions must return 404."""
 

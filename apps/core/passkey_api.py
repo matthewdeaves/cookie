@@ -155,15 +155,13 @@ def register_verify(request):
 @transaction.atomic
 def _create_passkey_user_and_profile(verification, transports=None):
     """Create User, Profile, and WebAuthnCredential atomically."""
-    is_first_user = not User.objects.filter(is_active=True).exists()
-
     username = f"pk_{uuid.uuid4().hex[:8]}"
     user = User.objects.create_user(
         username=username,
         password=None,
         email="",
         is_active=True,
-        is_staff=is_first_user,
+        is_staff=False,
     )
     user.set_unusable_password()
     user.save(update_fields=["password"])

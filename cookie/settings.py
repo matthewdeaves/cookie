@@ -70,11 +70,11 @@ DEVICE_CODE_EXPIRY_SECONDS = int(os.environ.get("DEVICE_CODE_EXPIRY_SECONDS", "6
 DEVICE_CODE_MAX_ATTEMPTS = int(os.environ.get("DEVICE_CODE_MAX_ATTEMPTS", "5"))
 
 INSTALLED_APPS = [
+    "apps.core",  # before django.contrib.auth to override createsuperuser
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.staticfiles",
-    "apps.core",
     "apps.profiles",
     "apps.recipes",
     "apps.ai",

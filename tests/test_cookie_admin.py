@@ -12,6 +12,7 @@ import pytest
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.management import call_command
+from django.core.management.base import CommandError
 
 from apps.profiles.models import Profile
 
@@ -312,3 +313,61 @@ class TestListUsersUnlimited:
         users_by_name = {u["username"]: u for u in data["users"]}
         assert users_by_name["normal"]["unlimited_ai"] is False
         assert users_by_name["vip"]["unlimited_ai"] is True
+
+
+@pytest.mark.django_db
+class TestCreateSession:
+    """cookie_admin create-session creates a Django session for a user."""
+
+    def test_create_session_basic(self, passkey_mode):
+        user = _make_user("alice")
+        _, data = _call("create-session", "alice", as_json=True)
+
+        assert data["ok"] is True
+        assert "session_key" in data
+        assert len(data["session_key"]) > 0
+        assert data["user"]["username"] == "alice"
+        assert data["expires_in_seconds"] == 3600
+        assert data["profile_id"] == user.profile.id
+
+        # Verify session exists in DB with correct auth keys
+        from django.contrib.sessions.models import Session
+
+        session = Session.objects.get(pk=data["session_key"])
+        decoded = session.get_decoded()
+        assert str(decoded.get("_auth_user_id")) == str(user.pk)
+        assert decoded.get("profile_id") == user.profile.id
+
+    def test_create_session_custom_ttl(self, passkey_mode):
+        _make_user("alice")
+        _, data = _call("create-session", "alice", "--ttl", "120", as_json=True)
+
+        assert data["ok"] is True
+        assert data["expires_in_seconds"] == 120
+
+    def test_create_session_inactive_user_refused(self, passkey_mode):
+        _make_user("alice", is_active=False)
+        with pytest.raises(SystemExit):
+            _call("create-session", "alice", as_json=True)
+
+    def test_create_session_nonexistent_user(self, passkey_mode):
+        with pytest.raises(SystemExit):
+            _call("create-session", "nobody", as_json=True)
+
+    def test_create_session_ttl_too_short(self, passkey_mode):
+        _make_user("alice")
+        with pytest.raises(SystemExit):
+            _call("create-session", "alice", "--ttl", "10", as_json=True)
+
+    def test_create_session_ttl_too_long(self, passkey_mode):
+        _make_user("alice")
+        with pytest.raises(SystemExit):
+            _call("create-session", "alice", "--ttl", "100000", as_json=True)
+
+
+class TestCreateSuperuserBlocked:
+    """Django's createsuperuser must be blocked."""
+
+    def test_createsuperuser_raises_error(self):
+        with pytest.raises(CommandError, match="createsuperuser is disabled"):
+            call_command("createsuperuser")
