@@ -195,6 +195,15 @@ CSRF_FAILURE_VIEW = "apps.core.views.csrf_failure"
 # Cross-Origin-Opener-Policy: applies to all Django-served responses including WhiteNoise static files
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
 
+# Referrer-Policy: strict-origin-when-cross-origin is the browser default and suits an SPA
+# (sends origin on cross-origin requests, full URL on same-origin). Set explicitly to match
+# Cloudflare's header and avoid duplicate Referrer-Policy values in responses.
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+# X-Frame-Options: DENY is correct (CSP frame-ancestors 'self' is the modern equivalent).
+# Set explicitly to avoid Cloudflare adding a conflicting SAMEORIGIN value.
+X_FRAME_OPTIONS = "DENY"
+
 # Production security hardening (inactive in development)
 if not DEBUG:
     SECURE_HSTS_SECONDS = 63072000  # 2 years, matching nginx.prod.conf
