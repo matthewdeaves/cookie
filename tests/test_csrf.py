@@ -13,7 +13,6 @@ and reject requests without valid CSRF credentials.
 import json
 
 import pytest
-from django.middleware.csrf import _get_new_csrf_string, _mask_cipher_secret
 from django.test import Client
 
 from apps.profiles.models import Profile
@@ -31,18 +30,15 @@ def test_profile(db):
     return Profile.objects.create(name="Test User", avatar_color="#d97850")
 
 
-def _get_csrf_token_and_set_cookie(client):
-    """Generate a CSRF token and set it as a cookie on the client.
+def _get_csrf_token(client):
+    """Obtain a CSRF token via the public mode endpoint.
 
-    Django Ninja marks views as csrf_exempt at the view level, so
-    CsrfViewMiddleware won't set the cookie automatically. Instead,
-    SessionAuth's check_csrf() validates the token directly.
-    We generate a token and set the cookie manually, as a browser would
-    have it set from a previous non-API page load.
+    Hits /api/system/mode/ which calls Django's get_token(), setting the
+    csrftoken cookie exactly as the real frontend would receive it.
+    Returns the token value from the cookie.
     """
-    token = _mask_cipher_secret(_get_new_csrf_string())
-    client.cookies["csrftoken"] = token
-    return token
+    client.get("/api/system/mode/")
+    return client.cookies["csrftoken"].value
 
 
 @pytest.mark.django_db
@@ -79,7 +75,7 @@ class TestCsrfOnAuthenticatedEndpoints:
         session["profile_id"] = test_profile.id
         session.save()
 
-        token = _get_csrf_token_and_set_cookie(csrf_client)
+        token = _get_csrf_token(csrf_client)
 
         # POST with CSRF token in header -- should not be rejected for CSRF
         # (may return 400 for bad confirmation, which is fine)
@@ -98,7 +94,7 @@ class TestCsrfOnAuthenticatedEndpoints:
         session.save()
 
         # Set a valid cookie but send a different token in the header
-        _get_csrf_token_and_set_cookie(csrf_client)
+        _get_csrf_token(csrf_client)
 
         response = csrf_client.post(
             "/api/system/reset/",
@@ -155,7 +151,7 @@ class TestCsrfWithValidToken:
         session["profile_id"] = test_profile.id
         session.save()
 
-        token = _get_csrf_token_and_set_cookie(csrf_client)
+        token = _get_csrf_token(csrf_client)
 
         # POST with CSRF token -- should pass CSRF validation
         response = csrf_client.post(
@@ -173,7 +169,7 @@ class TestCsrfWithValidToken:
         session["profile_id"] = test_profile.id
         session.save()
 
-        token = _get_csrf_token_and_set_cookie(csrf_client)
+        token = _get_csrf_token(csrf_client)
 
         # Multiple POSTs with same token should all pass CSRF
         for _ in range(3):
