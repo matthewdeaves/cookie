@@ -284,9 +284,10 @@ def list_history(request, limit: int = 6):
     """
     Get recently viewed recipes for the current profile.
 
-    Returns up to 6 most recent recipes by default.
+    Returns up to 6 most recent recipes by default (max 100).
     """
     profile = get_current_profile(request)
+    limit = min(max(limit, 1), 100)
     return RecipeViewHistory.objects.filter(profile=profile).select_related("recipe")[:limit]
 
 

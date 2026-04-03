@@ -178,6 +178,9 @@ def list_recipes(
     if not profile:
         return []
 
+    limit = min(max(limit, 1), 100)
+    offset = max(offset, 0)
+
     # Only show recipes owned by this profile
     qs = Recipe.objects.filter(profile=profile).order_by("-scraped_at")
 
