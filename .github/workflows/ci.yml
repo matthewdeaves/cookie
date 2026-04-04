@@ -1256,6 +1256,16 @@ jobs:
           SECRET_KEY: ci-test-secret-key-not-for-production  # pragma: allowlist secret
           SECURE_SSL_REDIRECT: "false"
 
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+
   gitleaks:
     name: Secret Scanning (Gitleaks)
     runs-on: ubuntu-latest
@@ -1282,7 +1292,7 @@ jobs:
   ci-success:
     name: CI Success
     runs-on: ubuntu-latest
-    needs: [frontend-lint, frontend-typecheck, frontend-test, backend-test, backend-lint, backend-complexity, frontend-complexity, frontend-duplication, backend-duplication, legacy-lint, legacy-duplication, frontend-security, backend-security, secrets-detection, frontend-bundle, migration-check, trivy-scan, semgrep, hadolint, django-deploy-check, gitleaks]
+    needs: [frontend-lint, frontend-typecheck, frontend-test, backend-test, backend-lint, backend-complexity, frontend-complexity, frontend-duplication, backend-duplication, legacy-lint, legacy-duplication, frontend-security, backend-security, secrets-detection, frontend-bundle, migration-check, trivy-scan, semgrep, hadolint, django-deploy-check, gitleaks, dependency-review]
     if: always()
     steps:
       - name: Check all jobs passed
