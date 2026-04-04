@@ -1223,28 +1223,28 @@ async function request&lt;T&gt;(
 &nbsp;
 export const api = {
   ai: {
-    status: <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >r</span>equest&lt;AIStatus&gt;('/ai/status'),</span>
+<span class="fstat-no" title="function not covered" >    status: () =&gt; <span class="cstat-no" title="statement not covered" >r</span>equest&lt;AIStatus&gt;('/ai/status'),</span>
 &nbsp;
-    testApiKey: <span class="fstat-no" title="function not covered" >(a</span>piKey: string) =&gt;
+<span class="fstat-no" title="function not covered" >    testApiKey: (a</span>piKey: string) =&gt;
 <span class="cstat-no" title="statement not covered" >      request&lt;TestApiKeyResponse&gt;('/ai/test-api-key', {</span>
         method: 'POST',
         body: JSON.stringify({ api_key: apiKey }),
       }),
 &nbsp;
-    saveApiKey: <span class="fstat-no" title="function not covered" >(a</span>piKey: string) =&gt;
+<span class="fstat-no" title="function not covered" >    saveApiKey: (a</span>piKey: string) =&gt;
 <span class="cstat-no" title="statement not covered" >      request&lt;SaveApiKeyResponse&gt;('/ai/save-api-key', {</span>
         method: 'POST',
         body: JSON.stringify({ api_key: apiKey }),
       }),
 &nbsp;
-    models: <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >r</span>equest&lt;AIModel[]&gt;('/ai/models'),</span>
+<span class="fstat-no" title="function not covered" >    models: () =&gt; <span class="cstat-no" title="statement not covered" >r</span>equest&lt;AIModel[]&gt;('/ai/models'),</span>
 &nbsp;
     prompts: {
-      list: <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >r</span>equest&lt;AIPrompt[]&gt;('/ai/prompts'),</span>
+<span class="fstat-no" title="function not covered" >      list: () =&gt; <span class="cstat-no" title="statement not covered" >r</span>equest&lt;AIPrompt[]&gt;('/ai/prompts'),</span>
 &nbsp;
-      get: <span class="fstat-no" title="function not covered" >(p</span>romptType: string) =&gt; <span class="cstat-no" title="statement not covered" >request&lt;AIPrompt&gt;(`/ai/prompts/${promptType}`),</span>
+<span class="fstat-no" title="function not covered" >      get: (p</span>romptType: string) =&gt; <span class="cstat-no" title="statement not covered" >request&lt;AIPrompt&gt;(`/ai/prompts/${promptType}`),</span>
 &nbsp;
-      update: <span class="fstat-no" title="function not covered" >(p</span>romptType: string, data: AIPromptUpdate) =&gt;
+<span class="fstat-no" title="function not covered" >      update: (p</span>romptType: string, data: AIPromptUpdate) =&gt;
 <span class="cstat-no" title="statement not covered" >        request&lt;AIPrompt&gt;(`/ai/prompts/${promptType}`, {</span>
           method: 'PUT',
           body: JSON.stringify(data),
@@ -1252,13 +1252,13 @@ export const api = {
     },
 &nbsp;
     remix: {
-      getSuggestions: <span class="fstat-no" title="function not covered" >(r</span>ecipeId: number) =&gt;
+<span class="fstat-no" title="function not covered" >      getSuggestions: (r</span>ecipeId: number) =&gt;
 <span class="cstat-no" title="statement not covered" >        request&lt;RemixSuggestionsResponse&gt;('/ai/remix-suggestions', {</span>
           method: 'POST',
           body: JSON.stringify({ recipe_id: recipeId }),
         }),
 &nbsp;
-      create: <span class="fstat-no" title="function not covered" >(r</span>ecipeId: number, modification: string, profileId: number) =&gt;
+<span class="fstat-no" title="function not covered" >      create: (r</span>ecipeId: number, modification: string, profileId: number) =&gt;
 <span class="cstat-no" title="statement not covered" >        request&lt;RemixResponse&gt;('/ai/remix', {</span>
           method: 'POST',
           body: JSON.stringify({
@@ -1269,7 +1269,7 @@ export const api = {
         }),
     },
 &nbsp;
-    scale: <span class="fstat-no" title="function not covered" >(r</span>ecipeId: number, targetServings: number, profileId: number, unitSystem: string = <span class="branch-0 cbranch-no" title="branch not covered" >'metric') =&gt;</span>
+<span class="fstat-no" title="function not covered" >    scale: (r</span>ecipeId: number, targetServings: number, profileId: number, unitSystem: string = <span class="branch-0 cbranch-no" title="branch not covered" >'metric') =&gt;</span>
 <span class="cstat-no" title="statement not covered" >      request&lt;ScaleResponse&gt;('/ai/scale', {</span>
         method: 'POST',
         body: JSON.stringify({
@@ -1280,16 +1280,16 @@ export const api = {
         }),
       }),
 &nbsp;
-    tips: <span class="fstat-no" title="function not covered" >(r</span>ecipeId: number, regenerate: boolean = <span class="branch-0 cbranch-no" title="branch not covered" >false) =&gt;</span>
+<span class="fstat-no" title="function not covered" >    tips: (r</span>ecipeId: number, regenerate: boolean = <span class="branch-0 cbranch-no" title="branch not covered" >false) =&gt;</span>
 <span class="cstat-no" title="statement not covered" >      request&lt;TipsResponse&gt;('/ai/tips', {</span>
         method: 'POST',
         body: JSON.stringify({ recipe_id: recipeId, regenerate }),
       }),
 &nbsp;
-    discover: <span class="fstat-no" title="function not covered" >(p</span>rofileId: number, refresh = <span class="branch-0 cbranch-no" title="branch not covered" >false) =&gt;</span>
+<span class="fstat-no" title="function not covered" >    discover: (p</span>rofileId: number, refresh = <span class="branch-0 cbranch-no" title="branch not covered" >false) =&gt;</span>
 <span class="cstat-no" title="statement not covered" >      request&lt;DiscoverResponse&gt;(`/ai/discover/${profileId}/${refresh ? '?refresh=true' : ''}`),</span>
 &nbsp;
-    timerName: <span class="fstat-no" title="function not covered" >(s</span>tepText: string, durationMinutes: number) =&gt;
+<span class="fstat-no" title="function not covered" >    timerName: (s</span>tepText: string, durationMinutes: number) =&gt;
 <span class="cstat-no" title="statement not covered" >      request&lt;TimerNameResponse&gt;('/ai/timer-name', {</span>
         method: 'POST',
         body: JSON.stringify({
@@ -1299,8 +1299,8 @@ export const api = {
       }),
 &nbsp;
     quotas: {
-      get: <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >r</span>equest&lt;QuotaResponse&gt;('/ai/quotas'),</span>
-      update: <span class="fstat-no" title="function not covered" >(l</span>imits: QuotaLimits) =&gt;
+<span class="fstat-no" title="function not covered" >      get: () =&gt; <span class="cstat-no" title="statement not covered" >r</span>equest&lt;QuotaResponse&gt;('/ai/quotas'),</span>
+<span class="fstat-no" title="function not covered" >      update: (l</span>imits: QuotaLimits) =&gt;
 <span class="cstat-no" title="statement not covered" >        request&lt;QuotaResponse&gt;('/ai/quotas', {</span>
           method: 'PUT',
           body: JSON.stringify(limits),
@@ -1335,16 +1335,16 @@ export const api = {
         method: 'POST',
       }),
 &nbsp;
-    deletionPreview: <span class="fstat-no" title="function not covered" >(i</span>d: number) =&gt;
+<span class="fstat-no" title="function not covered" >    deletionPreview: (i</span>d: number) =&gt;
 <span class="cstat-no" title="statement not covered" >      request&lt;DeletionPreview&gt;(`/profiles/${id}/deletion-preview/`),</span>
 &nbsp;
-    setUnlimited: <span class="fstat-no" title="function not covered" >(i</span>d: number, unlimited: boolean) =&gt;
+<span class="fstat-no" title="function not covered" >    setUnlimited: (i</span>d: number, unlimited: boolean) =&gt;
 <span class="cstat-no" title="statement not covered" >      request&lt;{ id: number; name: string; unlimited_ai: boolean }&gt;(</span>
         `/profiles/${id}/set-unlimited/`,
         { method: 'POST', body: JSON.stringify({ unlimited }) },
       ),
 &nbsp;
-    rename: <span class="fstat-no" title="function not covered" >(i</span>d: number, name: string) =&gt;
+<span class="fstat-no" title="function not covered" >    rename: (i</span>d: number, name: string) =&gt;
 <span class="cstat-no" title="statement not covered" >      request&lt;{ id: number; name: string; avatar_color: string }&gt;(</span>
         `/profiles/${id}/rename/`,
         { method: 'PATCH', body: JSON.stringify({ name }) },
@@ -1420,7 +1420,7 @@ export const api = {
     list: (limit: number = 50, offset: number = 0) =&gt;
       request&lt;Recipe[]&gt;(`/recipes/?limit=${limit}&amp;offset=${offset}`),
 &nbsp;
-    get: <span class="fstat-no" title="function not covered" >(i</span>d: number) =&gt; <span class="cstat-no" title="statement not covered" >request&lt;RecipeDetail&gt;(`/recipes/${id}/`),</span>
+<span class="fstat-no" title="function not covered" >    get: (i</span>d: number) =&gt; <span class="cstat-no" title="statement not covered" >request&lt;RecipeDetail&gt;(`/recipes/${id}/`),</span>
 &nbsp;
     search: (query: string, sources?: string, page: number = 1, signal?: AbortSignal) =&gt; {
       const params = new URLSearchParams({ q: query, page: String(page) })
@@ -1436,19 +1436,19 @@ export const api = {
   },
 &nbsp;
   sources: {
-    list: <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >r</span>equest&lt;Source[]&gt;('/sources/'),</span>
+<span class="fstat-no" title="function not covered" >    list: () =&gt; <span class="cstat-no" title="statement not covered" >r</span>equest&lt;Source[]&gt;('/sources/'),</span>
 &nbsp;
-    get: <span class="fstat-no" title="function not covered" >(i</span>d: number) =&gt; <span class="cstat-no" title="statement not covered" >request&lt;Source&gt;(`/sources/${id}/`),</span>
+<span class="fstat-no" title="function not covered" >    get: (i</span>d: number) =&gt; <span class="cstat-no" title="statement not covered" >request&lt;Source&gt;(`/sources/${id}/`),</span>
 &nbsp;
-    enabledCount: <span class="fstat-no" title="function not covered" >() =&gt;</span>
+<span class="fstat-no" title="function not covered" >    enabledCount: () =&gt;</span>
 <span class="cstat-no" title="statement not covered" >      request&lt;{ enabled: number; total: number }&gt;('/sources/enabled-count/'),</span>
 &nbsp;
-    toggle: <span class="fstat-no" title="function not covered" >(i</span>d: number) =&gt;
+<span class="fstat-no" title="function not covered" >    toggle: (i</span>d: number) =&gt;
 <span class="cstat-no" title="statement not covered" >      request&lt;{ id: number; is_enabled: boolean }&gt;(`/sources/${id}/toggle/`, {</span>
         method: 'POST',
       }),
 &nbsp;
-    bulkToggle: <span class="fstat-no" title="function not covered" >(e</span>nable: boolean) =&gt;
+<span class="fstat-no" title="function not covered" >    bulkToggle: (e</span>nable: boolean) =&gt;
 <span class="cstat-no" title="statement not covered" >      request&lt;{ updated_count: number; is_enabled: boolean }&gt;(</span>
         '/sources/bulk-toggle/',
         {
@@ -1457,7 +1457,7 @@ export const api = {
         }
       ),
 &nbsp;
-    updateSelector: <span class="fstat-no" title="function not covered" >(i</span>d: number, selector: string) =&gt;
+<span class="fstat-no" title="function not covered" >    updateSelector: (i</span>d: number, selector: string) =&gt;
 <span class="cstat-no" title="statement not covered" >      request&lt;{ id: number; result_selector: string }&gt;(</span>
         `/sources/${id}/selector/`,
         {
@@ -1466,23 +1466,23 @@ export const api = {
         }
       ),
 &nbsp;
-    test: <span class="fstat-no" title="function not covered" >(i</span>d: number) =&gt;
+<span class="fstat-no" title="function not covered" >    test: (i</span>d: number) =&gt;
 <span class="cstat-no" title="statement not covered" >      request&lt;SourceTestResult&gt;(`/sources/${id}/test/`, {</span>
         method: 'POST',
       }),
 &nbsp;
-    testAll: <span class="fstat-no" title="function not covered" >() =&gt;</span>
+<span class="fstat-no" title="function not covered" >    testAll: () =&gt;</span>
 <span class="cstat-no" title="statement not covered" >      request&lt;TestAllSourcesResult&gt;('/sources/test-all/', {</span>
         method: 'POST',
       }),
   },
 &nbsp;
   system: {
-    mode: <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >r</span>equest&lt;ModeResponse&gt;('/system/mode/'),</span>
+<span class="fstat-no" title="function not covered" >    mode: () =&gt; <span class="cstat-no" title="statement not covered" >r</span>equest&lt;ModeResponse&gt;('/system/mode/'),</span>
 &nbsp;
-    resetPreview: <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >r</span>equest&lt;ResetPreview&gt;('/system/reset-preview/'),</span>
+<span class="fstat-no" title="function not covered" >    resetPreview: () =&gt; <span class="cstat-no" title="statement not covered" >r</span>equest&lt;ResetPreview&gt;('/system/reset-preview/'),</span>
 &nbsp;
-    reset: <span class="fstat-no" title="function not covered" >(c</span>onfirmationText: string) =&gt;
+<span class="fstat-no" title="function not covered" >    reset: (c</span>onfirmationText: string) =&gt;
 <span class="cstat-no" title="statement not covered" >      request&lt;ResetResult&gt;('/system/reset/', {</span>
         method: 'POST',
         body: JSON.stringify({ confirmation_text: confirmationText }),
@@ -1490,67 +1490,67 @@ export const api = {
   },
 &nbsp;
   auth: {
-    logout: <span class="fstat-no" title="function not covered" >() =&gt;</span>
+<span class="fstat-no" title="function not covered" >    logout: () =&gt;</span>
 <span class="cstat-no" title="statement not covered" >      request&lt;{ message: string }&gt;('/auth/logout/', {</span>
         method: 'POST',
       }),
 &nbsp;
-    me: <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >r</span>equest&lt;PasskeyAuthResponse&gt;('/auth/me/'),</span>
+<span class="fstat-no" title="function not covered" >    me: () =&gt; <span class="cstat-no" title="statement not covered" >r</span>equest&lt;PasskeyAuthResponse&gt;('/auth/me/'),</span>
   },
 &nbsp;
   passkey: {
-    registerOptions: <span class="fstat-no" title="function not covered" >() =&gt;</span>
+<span class="fstat-no" title="function not covered" >    registerOptions: () =&gt;</span>
 <span class="cstat-no" title="statement not covered" >      request&lt;Record&lt;string, unknown&gt;&gt;('/auth/passkey/register/options/', {</span>
         method: 'POST',
       }),
 &nbsp;
-    registerVerify: <span class="fstat-no" title="function not covered" >(c</span>redential: Record&lt;string, unknown&gt;) =&gt;
+<span class="fstat-no" title="function not covered" >    registerVerify: (c</span>redential: Record&lt;string, unknown&gt;) =&gt;
 <span class="cstat-no" title="statement not covered" >      request&lt;PasskeyAuthResponse&gt;('/auth/passkey/register/verify/', {</span>
         method: 'POST',
         body: JSON.stringify(credential),
       }),
 &nbsp;
-    loginOptions: <span class="fstat-no" title="function not covered" >() =&gt;</span>
+<span class="fstat-no" title="function not covered" >    loginOptions: () =&gt;</span>
 <span class="cstat-no" title="statement not covered" >      request&lt;Record&lt;string, unknown&gt;&gt;('/auth/passkey/login/options/', {</span>
         method: 'POST',
       }),
 &nbsp;
-    loginVerify: <span class="fstat-no" title="function not covered" >(c</span>redential: Record&lt;string, unknown&gt;) =&gt;
+<span class="fstat-no" title="function not covered" >    loginVerify: (c</span>redential: Record&lt;string, unknown&gt;) =&gt;
 <span class="cstat-no" title="statement not covered" >      request&lt;PasskeyAuthResponse&gt;('/auth/passkey/login/verify/', {</span>
         method: 'POST',
         body: JSON.stringify(credential),
       }),
 &nbsp;
-    listCredentials: <span class="fstat-no" title="function not covered" >() =&gt;</span>
+<span class="fstat-no" title="function not covered" >    listCredentials: () =&gt;</span>
 <span class="cstat-no" title="statement not covered" >      request&lt;PasskeyCredentialList&gt;('/auth/passkey/credentials/'),</span>
 &nbsp;
-    addCredentialOptions: <span class="fstat-no" title="function not covered" >() =&gt;</span>
+<span class="fstat-no" title="function not covered" >    addCredentialOptions: () =&gt;</span>
 <span class="cstat-no" title="statement not covered" >      request&lt;Record&lt;string, unknown&gt;&gt;('/auth/passkey/credentials/add/options/', {</span>
         method: 'POST',
       }),
 &nbsp;
-    addCredentialVerify: <span class="fstat-no" title="function not covered" >(c</span>redential: Record&lt;string, unknown&gt;) =&gt;
+<span class="fstat-no" title="function not covered" >    addCredentialVerify: (c</span>redential: Record&lt;string, unknown&gt;) =&gt;
 <span class="cstat-no" title="statement not covered" >      request&lt;{ credential: PasskeyCredential }&gt;('/auth/passkey/credentials/add/verify/', {</span>
         method: 'POST',
         body: JSON.stringify(credential),
       }),
 &nbsp;
-    deleteCredential: <span class="fstat-no" title="function not covered" >(c</span>redentialId: number) =&gt;
+<span class="fstat-no" title="function not covered" >    deleteCredential: (c</span>redentialId: number) =&gt;
 <span class="cstat-no" title="statement not covered" >      request&lt;{ message: string }&gt;(`/auth/passkey/credentials/${credentialId}/`, {</span>
         method: 'DELETE',
       }),
   },
 &nbsp;
   device: {
-    requestCode: <span class="fstat-no" title="function not covered" >() =&gt;</span>
+<span class="fstat-no" title="function not covered" >    requestCode: () =&gt;</span>
 <span class="cstat-no" title="statement not covered" >      request&lt;DeviceCodeResponse&gt;('/auth/device/code/', {</span>
         method: 'POST',
       }),
 &nbsp;
-    poll: <span class="fstat-no" title="function not covered" >() =&gt;</span>
+<span class="fstat-no" title="function not covered" >    poll: () =&gt;</span>
 <span class="cstat-no" title="statement not covered" >      request&lt;DevicePollResponse&gt;('/auth/device/poll/'),</span>
 &nbsp;
-    authorize: <span class="fstat-no" title="function not covered" >(c</span>ode: string) =&gt;
+<span class="fstat-no" title="function not covered" >    authorize: (c</span>ode: string) =&gt;
 <span class="cstat-no" title="statement not covered" >      request&lt;{ message: string }&gt;('/auth/device/authorize/', {</span>
         method: 'POST',
         body: JSON.stringify({ code }),
@@ -1564,7 +1564,7 @@ export const api = {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-03T21:38:35.042Z
+                at 2026-04-04T06:13:46.810Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -347,7 +347,7 @@
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">76x</span>
+<span class="cline-any cline-yes">74x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -570,17 +570,17 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { api } from './api/client'
 &nbsp;
 const ProfileSelector = lazy(() =&gt; import('./screens/ProfileSelector'))
-const PasskeyLogin = lazy(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/PasskeyLogin'))</span>
-const PasskeyRegister = lazy(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/PasskeyRegister'))</span>
-const Home = lazy(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/Home'))</span>
-const Search = lazy(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/Search'))</span>
-const RecipeDetail = lazy(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/RecipeDetail'))</span>
-const PlayMode = lazy(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/PlayMode'))</span>
-const Favorites = lazy(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/Favorites'))</span>
-const AllRecipes = lazy(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/AllRecipes'))</span>
-const Collections = lazy(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/Collections'))</span>
-const CollectionDetail = lazy(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/CollectionDetail'))</span>
-const Settings = lazy(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/Settings'))</span>
+const PasskeyLogin = <span class="fstat-no" title="function not covered" >lazy(() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/PasskeyLogin'))</span>
+const PasskeyRegister = <span class="fstat-no" title="function not covered" >lazy(() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/PasskeyRegister'))</span>
+const Home = <span class="fstat-no" title="function not covered" >lazy(() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/Home'))</span>
+const Search = <span class="fstat-no" title="function not covered" >lazy(() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/Search'))</span>
+const RecipeDetail = <span class="fstat-no" title="function not covered" >lazy(() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/RecipeDetail'))</span>
+const PlayMode = <span class="fstat-no" title="function not covered" >lazy(() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/PlayMode'))</span>
+const Favorites = <span class="fstat-no" title="function not covered" >lazy(() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/Favorites'))</span>
+const AllRecipes = <span class="fstat-no" title="function not covered" >lazy(() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/AllRecipes'))</span>
+const Collections = <span class="fstat-no" title="function not covered" >lazy(() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/Collections'))</span>
+const CollectionDetail = <span class="fstat-no" title="function not covered" >lazy(() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/CollectionDetail'))</span>
+const Settings = <span class="fstat-no" title="function not covered" >lazy(() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('./screens/Settings'))</span>
 // PairDevice and PasskeyManage are now inline tabs in Settings
 &nbsp;
 function LoadingFallback() {
@@ -614,7 +614,7 @@ function AppLayout() {
         setMode(data.mode === 'passkey' ? <span class="branch-0 cbranch-no" title="branch not covered" >'passkey' : '</span>home')
         setVersion(data.version || 'dev')
       })
-      .catch(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etMode('home'))</span>
+      .<span class="fstat-no" title="function not covered" >catch(() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etMode('home'))</span>
   }, [])
 &nbsp;
   if (mode === null) {
@@ -657,7 +657,7 @@ function AppLayout() {
 }
 &nbsp;
 function <span class="fstat-no" title="function not covered" >AuthProfileBridge({</span> children }: { children: React.ReactNode }) {
-  const { profile: authProfile, isLoading <span class="cstat-no" title="statement not covered" >} = useAuth()</span>
+  const { profile: authProfile, <span class="cstat-no" title="statement not covered" >isLoading } = useAuth()</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  if (isLoading) {</span>
 <span class="cstat-no" title="statement not covered" >    return &lt;LoadingFallback /&gt;</span>
@@ -667,7 +667,7 @@ function <span class="fstat-no" title="function not covered" >AuthProfileBridge(
 }
 &nbsp;
 function <span class="fstat-no" title="function not covered" >ProtectedRoute({</span> children }: { children: React.ReactNode }) {
-  const { profile, loading <span class="cstat-no" title="statement not covered" >} = useProfile()</span>
+  const { profile, <span class="cstat-no" title="statement not covered" >loading } = useProfile()</span>
   const <span class="cstat-no" title="statement not covered" >location = useLocation()</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  if (loading) {</span>
@@ -817,7 +817,7 @@ export const router = createBrowserRouter([
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-03T21:38:35.098Z
+                at 2026-04-04T06:13:46.868Z
             </div>
         <script src="../prettify.js"></script>
         <script>

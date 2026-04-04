@@ -257,16 +257,16 @@ export function <span class="fstat-no" title="function not covered" >useWakeLock
   const <span class="cstat-no" title="statement not covered" >videoRef = useRef&lt;HTMLVideoElement | null&gt;(null)</span>
   const <span class="cstat-no" title="statement not covered" >usingFallbackRef = useRef(false)</span>
 &nbsp;
-  const <span class="cstat-no" title="statement not covered" >startVideoFallback = useCallback(<span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
+  const <span class="cstat-no" title="statement not covered" >startVideoFallback = <span class="fstat-no" title="function not covered" >useCallback(() =&gt; {</span></span>
 <span class="cstat-no" title="statement not covered" >    if (videoRef.current) <span class="cstat-no" title="statement not covered" >return</span></span>
     const <span class="cstat-no" title="statement not covered" >video = createSilentVideo()</span>
 <span class="cstat-no" title="statement not covered" >    document.body.appendChild(video)</span>
 <span class="cstat-no" title="statement not covered" >    videoRef.current = video</span>
-<span class="cstat-no" title="statement not covered" >    video.play().catch(<span class="fstat-no" title="function not covered" >() =&gt; {</span>})</span>
+<span class="cstat-no" title="statement not covered" >    video.play().<span class="fstat-no" title="function not covered" >catch(() =&gt; {</span>})</span>
 <span class="cstat-no" title="statement not covered" >    usingFallbackRef.current = true</span>
   }, [])
 &nbsp;
-  const <span class="cstat-no" title="statement not covered" >stopVideoFallback = useCallback(<span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
+  const <span class="cstat-no" title="statement not covered" >stopVideoFallback = <span class="fstat-no" title="function not covered" >useCallback(() =&gt; {</span></span>
 <span class="cstat-no" title="statement not covered" >    if (videoRef.current) {</span>
 <span class="cstat-no" title="statement not covered" >      videoRef.current.pause()</span>
 <span class="cstat-no" title="statement not covered" >      videoRef.current.remove()</span>
@@ -275,7 +275,7 @@ export function <span class="fstat-no" title="function not covered" >useWakeLock
 <span class="cstat-no" title="statement not covered" >    usingFallbackRef.current = false</span>
   }, [])
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
 <span class="cstat-no" title="statement not covered" >    if (!enabled) {</span>
 <span class="cstat-no" title="statement not covered" >      releaseNativeWakeLock(wakeLockRef.current)</span>
 <span class="cstat-no" title="statement not covered" >      wakeLockRef.current = null</span>
@@ -289,10 +289,10 @@ export function <span class="fstat-no" title="function not covered" >useWakeLock
       const sentinel = <span class="cstat-no" title="statement not covered" >await requestNativeWakeLock()</span>
 <span class="cstat-no" title="statement not covered" >      if (sentinel) {</span>
 <span class="cstat-no" title="statement not covered" >        wakeLockRef.current = sentinel</span>
-<span class="cstat-no" title="statement not covered" >        sentinel.addEventListener('release', <span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
+<span class="cstat-no" title="statement not covered" >        sentinel.addEventListener(<span class="fstat-no" title="function not covered" >'release', () =&gt; {</span></span>
 <span class="cstat-no" title="statement not covered" >          wakeLockRef.current = null</span>
         })
-<span class="cstat-no" title="statement not covered" >      } else if (mounted) {</span>
+      } else if (<span class="cstat-no" title="statement not covered" >mounted) {</span>
 <span class="cstat-no" title="statement not covered" >        startVideoFallback()</span>
       }
     }
@@ -305,7 +305,7 @@ export function <span class="fstat-no" title="function not covered" >useWakeLock
           const sentinel = <span class="cstat-no" title="statement not covered" >await requestNativeWakeLock()</span>
 <span class="cstat-no" title="statement not covered" >          if (sentinel) {</span>
 <span class="cstat-no" title="statement not covered" >            wakeLockRef.current = sentinel</span>
-<span class="cstat-no" title="statement not covered" >            sentinel.addEventListener('release', <span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
+<span class="cstat-no" title="statement not covered" >            sentinel.addEventListener(<span class="fstat-no" title="function not covered" >'release', () =&gt; {</span></span>
 <span class="cstat-no" title="statement not covered" >              wakeLockRef.current = null</span>
             })
           }
@@ -315,7 +315,7 @@ export function <span class="fstat-no" title="function not covered" >useWakeLock
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    document.addEventListener('visibilitychange', handleVisibilityChange)</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return <span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >    return () =&gt; {</span></span>
 <span class="cstat-no" title="statement not covered" >      mounted = false</span>
 <span class="cstat-no" title="statement not covered" >      releaseNativeWakeLock(wakeLockRef.current)</span>
 <span class="cstat-no" title="statement not covered" >      wakeLockRef.current = null</span>
@@ -331,7 +331,7 @@ export function <span class="fstat-no" title="function not covered" >useWakeLock
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-03T21:38:35.042Z
+                at 2026-04-04T06:13:46.810Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
