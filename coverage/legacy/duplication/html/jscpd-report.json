@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-04T16:01:41.471Z",
+    "detectionDate": "2026-04-04T17:06:38.489Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -65,14 +65,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/settings-general.js": {
-            "lines": 330,
-            "tokens": 2733,
+            "lines": 475,
+            "tokens": 4155,
             "sources": 1,
-            "clones": 3,
-            "duplicatedLines": 19,
-            "duplicatedTokens": 203,
-            "percentage": 5.76,
-            "percentageTokens": 7.43,
+            "clones": 7,
+            "duplicatedLines": 39,
+            "duplicatedTokens": 425,
+            "percentage": 8.21,
+            "percentageTokens": 10.23,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -438,28 +438,28 @@
           }
         },
         "total": {
-          "lines": 7062,
-          "tokens": 54841,
+          "lines": 7207,
+          "tokens": 56263,
           "sources": 36,
-          "clones": 33,
-          "duplicatedLines": 282,
-          "duplicatedTokens": 2489,
-          "percentage": 3.99,
-          "percentageTokens": 4.54,
+          "clones": 35,
+          "duplicatedLines": 292,
+          "duplicatedTokens": 2600,
+          "percentage": 4.05,
+          "percentageTokens": 4.62,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7062,
-      "tokens": 54841,
+      "lines": 7207,
+      "tokens": 56263,
       "sources": 36,
-      "clones": 33,
-      "duplicatedLines": 282,
-      "duplicatedTokens": 2489,
-      "percentage": 3.99,
-      "percentageTokens": 4.54,
+      "clones": 35,
+      "duplicatedLines": 292,
+      "duplicatedTokens": 2600,
+      "percentage": 4.05,
+      "percentageTokens": 4.62,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -678,6 +678,78 @@
           "line": 225,
           "column": 6,
           "position": 1811
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 6,
+      "fragment": ") {\n        var pageEl = document.querySelector('[data-page=\"settings\"]');\n        var profileId = pageEl ? pageEl.getAttribute('data-profile-id') : null;\n        if (!profileId) return;\n\n        deleteAccountBtn",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
+        "start": 358,
+        "end": 363,
+        "startLoc": {
+          "line": 358,
+          "column": 2,
+          "position": 2942
+        },
+        "endLoc": {
+          "line": 363,
+          "column": 17,
+          "position": 2997
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
+        "start": 133,
+        "end": 138,
+        "startLoc": {
+          "line": 133,
+          "column": 6,
+          "position": 1046
+        },
+        "endLoc": {
+          "line": 138,
+          "column": 4,
+          "position": 1101
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 6,
+      "fragment": "() {\n        var pageEl = document.querySelector('[data-page=\"settings\"]');\n        var profileId = pageEl ? pageEl.getAttribute('data-profile-id') : null;\n        if (!profileId) return;\n\n        confirmDeleteAccountBtn",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
+        "start": 446,
+        "end": 451,
+        "startLoc": {
+          "line": 446,
+          "column": 27,
+          "position": 3906
+        },
+        "endLoc": {
+          "line": 451,
+          "column": 24,
+          "position": 3962
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
+        "start": 358,
+        "end": 138,
+        "startLoc": {
+          "line": 358,
+          "column": 25,
+          "position": 2941
+        },
+        "endLoc": {
+          "line": 138,
+          "column": 4,
+          "position": 1101
         }
       }
     },

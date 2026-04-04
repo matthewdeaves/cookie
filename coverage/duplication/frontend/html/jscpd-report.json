@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-04T16:01:46.243Z",
+    "detectionDate": "2026-04-04T17:06:27.326Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -209,8 +209,8 @@
             "newClones": 0
           },
           "src/components/settings/SettingsGeneral.tsx": {
-            "lines": 41,
-            "tokens": 240,
+            "lines": 68,
+            "tokens": 459,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -271,6 +271,18 @@
           "src/components/settings/PasskeyItem.tsx": {
             "lines": 0,
             "tokens": 11,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/settings/DeleteAccountSection.tsx": {
+            "lines": 17,
+            "tokens": 113,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -894,9 +906,9 @@
           }
         },
         "total": {
-          "lines": 3233,
-          "tokens": 24639,
-          "sources": 74,
+          "lines": 3277,
+          "tokens": 24971,
+          "sources": 75,
           "clones": 0,
           "duplicatedLines": 0,
           "duplicatedTokens": 0,
@@ -1113,8 +1125,8 @@
             "newClones": 0
           },
           "src/components/settings/SettingsGeneral.tsx": {
-            "lines": 109,
-            "tokens": 787,
+            "lines": 118,
+            "tokens": 890,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1181,6 +1193,18 @@
             "duplicatedTokens": 90,
             "percentage": 22.45,
             "percentageTokens": 26.24,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/settings/DeleteAccountSection.tsx": {
+            "lines": 79,
+            "tokens": 633,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -1822,14 +1846,14 @@
           }
         },
         "total": {
-          "lines": 7146,
-          "tokens": 55772,
-          "sources": 76,
+          "lines": 7234,
+          "tokens": 56508,
+          "sources": 77,
           "clones": 6,
           "duplicatedLines": 61,
           "duplicatedTokens": 583,
-          "percentage": 0.85,
-          "percentageTokens": 1.05,
+          "percentage": 0.84,
+          "percentageTokens": 1.03,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -2200,13 +2224,13 @@
       }
     },
     "total": {
-      "lines": 13378,
-      "tokens": 105159,
-      "sources": 179,
+      "lines": 13510,
+      "tokens": 106227,
+      "sources": 181,
       "clones": 8,
       "duplicatedLines": 120,
       "duplicatedTokens": 877,
-      "percentage": 0.9,
+      "percentage": 0.89,
       "percentageTokens": 0.83,
       "newDuplicatedLines": 0,
       "newClones": 0
