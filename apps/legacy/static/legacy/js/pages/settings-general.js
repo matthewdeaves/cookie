@@ -324,8 +324,153 @@
         });
     }
 
+    // --- Delete My Account (non-admin passkey users) ---
+
+    var deleteAccountBtn;
+    var deleteAccountModal;
+    var cancelDeleteAccountBtn;
+    var confirmDeleteAccountBtn;
+    var deleteAccountBtnText;
+
+    function initDeleteAccount() {
+        deleteAccountBtn = document.getElementById('delete-my-account-btn');
+        deleteAccountModal = document.getElementById('delete-account-modal');
+        cancelDeleteAccountBtn = document.getElementById('cancel-delete-account-btn');
+        confirmDeleteAccountBtn = document.getElementById('confirm-delete-account-btn');
+        deleteAccountBtnText = document.getElementById('delete-account-btn-text');
+
+        if (!deleteAccountBtn) return;
+
+        deleteAccountBtn.addEventListener('click', handleDeleteAccountClick);
+        if (cancelDeleteAccountBtn) {
+            cancelDeleteAccountBtn.addEventListener('click', hideDeleteAccountModal);
+        }
+        if (confirmDeleteAccountBtn) {
+            confirmDeleteAccountBtn.addEventListener('click', handleConfirmDeleteAccount);
+        }
+        if (deleteAccountModal) {
+            deleteAccountModal.addEventListener('click', function(e) {
+                if (e.target === deleteAccountModal) hideDeleteAccountModal();
+            });
+        }
+    }
+
+    function handleDeleteAccountClick() {
+        var pageEl = document.querySelector('[data-page="settings"]');
+        var profileId = pageEl ? pageEl.getAttribute('data-profile-id') : null;
+        if (!profileId) return;
+
+        deleteAccountBtn.disabled = true;
+
+        Cookie.ajax.get('/api/profiles/' + profileId + '/deletion-preview/', function(err, preview) {
+            deleteAccountBtn.disabled = false;
+
+            if (err) {
+                Cookie.toast.error('Failed to load account info');
+                return;
+            }
+
+            renderDeleteAccountPreview(preview);
+            deleteAccountModal.classList.remove('hidden');
+        });
+    }
+
+    function isValidHexColor(str) {
+        return /^#[0-9a-fA-F]{3,8}$/.test(str);
+    }
+
+    function renderDeleteAccountPreview(preview) {
+        var infoEl = document.getElementById('delete-account-info');
+        var summaryEl = document.getElementById('delete-account-data-summary');
+
+        if (infoEl) {
+            // Build profile preview with DOM methods to avoid innerHTML XSS
+            while (infoEl.firstChild) infoEl.removeChild(infoEl.firstChild);
+
+            var row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.cssText = 'display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;margin-bottom:12px;';
+
+            var avatar = document.createElement('div');
+            avatar.style.cssText = 'width:48px;height:48px;border-radius:50%;margin-right:12px;-webkit-flex-shrink:0;flex-shrink:0;';
+            var color = isValidHexColor(preview.profile.avatar_color) ? preview.profile.avatar_color : '#ccc';
+            avatar.style.backgroundColor = color;
+
+            var nameDiv = document.createElement('div');
+            nameDiv.style.fontWeight = '600';
+            nameDiv.textContent = preview.profile.name;
+
+            row.appendChild(avatar);
+            row.appendChild(nameDiv);
+            infoEl.appendChild(row);
+        }
+
+        if (summaryEl) {
+            var data = preview.data_to_delete;
+            var items = [];
+            if (data.remixes > 0) items.push(data.remixes + ' remixed recipe' + (data.remixes !== 1 ? 's' : ''));
+            if (data.favorites > 0) items.push(data.favorites + ' favorite' + (data.favorites !== 1 ? 's' : ''));
+            if (data.collections > 0) items.push(data.collections + ' collection' + (data.collections !== 1 ? 's' : ''));
+            if (data.view_history > 0) items.push(data.view_history + ' view history entries');
+            if (data.scaling_cache > 0 || data.discover_cache > 0) items.push('Cached AI data');
+
+            // Build with DOM methods instead of innerHTML
+            while (summaryEl.firstChild) summaryEl.removeChild(summaryEl.firstChild);
+
+            var heading = document.createElement('div');
+            heading.style.cssText = 'font-weight:500;margin-bottom:8px;';
+            heading.textContent = 'Data to be deleted:';
+            summaryEl.appendChild(heading);
+
+            var ul = document.createElement('ul');
+            ul.style.cssText = 'margin:0;padding-left:20px;';
+            if (items.length === 0) {
+                var li = document.createElement('li');
+                li.textContent = 'No associated data';
+                ul.appendChild(li);
+            } else {
+                for (var i = 0; i < items.length; i++) {
+                    var li = document.createElement('li');
+                    li.textContent = items[i];
+                    ul.appendChild(li);
+                }
+            }
+            summaryEl.appendChild(ul);
+        }
+    }
+
+    function hideDeleteAccountModal() {
+        if (deleteAccountModal) deleteAccountModal.classList.add('hidden');
+    }
+
+    function handleConfirmDeleteAccount() {
+        var pageEl = document.querySelector('[data-page="settings"]');
+        var profileId = pageEl ? pageEl.getAttribute('data-profile-id') : null;
+        if (!profileId) return;
+
+        confirmDeleteAccountBtn.disabled = true;
+        deleteAccountBtnText.textContent = 'Deleting...';
+
+        Cookie.ajax.delete('/api/profiles/' + profileId + '/', function(err) {
+            if (err) {
+                confirmDeleteAccountBtn.disabled = false;
+                deleteAccountBtnText.textContent = 'Delete My Account';
+                Cookie.toast.error('Failed to delete account');
+                return;
+            }
+
+            Cookie.toast.success('Account deleted');
+            setTimeout(function() {
+                window.location.href = '/';
+            }, 1000);
+        });
+    }
+
     // Register with core module
     Cookie.pages.settings.registerTab('general', {
-        init: init
+        init: function() {
+            init();
+            initDeleteAccount();
+        }
     });
 })();

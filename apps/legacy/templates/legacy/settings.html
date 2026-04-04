@@ -169,6 +169,31 @@
                     </div>
                 </div>
             </div>
+
+            {% if auth_mode == 'passkey' and not is_admin %}
+            <!-- Delete Account Section (non-admin passkey users) -->
+            <div class="card mt-4 danger-zone-card">
+                <div class="danger-header">
+                    <svg class="danger-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                        <path d="M12 9v4"></path>
+                        <path d="M12 17h.01"></path>
+                    </svg>
+                    <h2 class="settings-section-title danger-title">Delete Account</h2>
+                </div>
+                <p class="danger-description">Permanently delete your account and all associated data. This cannot be undone.</p>
+                <button type="button" class="btn btn-danger" id="delete-my-account-btn">
+                    <span class="btn-icon-wrapper">
+                        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                        </svg>
+                        <span>Delete My Account</span>
+                    </span>
+                </button>
+            </div>
+            {% endif %}
         </div>
 
         {% if is_admin %}
@@ -384,6 +409,48 @@
         </div>
         {% endif %}
     </div>
+
+    {% if auth_mode == 'passkey' and not is_admin %}
+    <!-- Delete Account Modal (non-admin) -->
+    <div id="delete-account-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header modal-header-danger">
+                <svg class="modal-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                    <path d="M12 9v4"></path>
+                    <path d="M12 17h.01"></path>
+                </svg>
+                <h3 class="modal-title">Delete Account?</h3>
+            </div>
+            <div class="modal-body">
+                <div id="delete-account-info" class="profile-preview">
+                    <!-- Populated by JavaScript -->
+                </div>
+                <div id="delete-account-data-summary" class="data-summary">
+                    <!-- Populated by JavaScript -->
+                </div>
+                <p class="warning-text">
+                    This action cannot be undone. All data will be permanently deleted.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancel-delete-account-btn">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-account-btn">
+                    <span class="btn-icon-wrapper">
+                        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                        </svg>
+                        <span id="delete-account-btn-text">Delete My Account</span>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     {% if is_admin %}
     <!-- Delete Profile Modal -->

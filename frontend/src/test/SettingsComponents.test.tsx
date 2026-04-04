@@ -114,6 +114,18 @@ vi.mock('../router', () => ({
   useMode: () => 'home',
 }))
 
+// Mock AuthContext
+vi.mock('../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: null,
+    profile: null,
+    isAdmin: false,
+    isLoading: false,
+    logout: vi.fn(),
+    refreshSession: vi.fn(),
+  }),
+}))
+
 // Mock AIStatusContext
 vi.mock('../contexts/AIStatusContext', () => ({
   useAIStatus: () => ({

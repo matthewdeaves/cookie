@@ -430,6 +430,7 @@ def settings(request):
             "current_profile_id": profile.id,
             "ai_available": ai_available,
             "is_admin": is_admin,
+            "auth_mode": django_settings.AUTH_MODE,
             "default_model": app_settings.default_ai_model if app_settings else "",
             "prompts": prompts,
             "models": models,

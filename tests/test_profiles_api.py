@@ -384,3 +384,66 @@ class TestRenameProfile:
             content_type="application/json",
         )
         assert response.status_code == 403
+
+
+# ── DELETE /api/profiles/{id}/ (passkey self-deletion) ──
+
+
+@pytest.mark.django_db
+class TestPasskeySelfDeletion:
+    def test_user_can_delete_own_account(self, client, settings):
+        """Regular user can delete their own account in passkey mode."""
+        settings.AUTH_MODE = "passkey"
+        user = _create_user("selfdelete")
+        profile_id = user.profile.id
+        user_id = user.id
+        _login(client, user)
+
+        response = client.delete(f"/api/profiles/{profile_id}/")
+        assert response.status_code == 204
+        assert not Profile.objects.filter(id=profile_id).exists()
+        assert not User.objects.filter(id=user_id).exists()
+
+    def test_user_cannot_delete_other_account(self, client, settings):
+        """Regular user cannot delete another user's account."""
+        settings.AUTH_MODE = "passkey"
+        user_a = _create_user("user_a")
+        user_b = _create_user("user_b")
+        _login(client, user_a)
+
+        response = client.delete(f"/api/profiles/{user_b.profile.id}/")
+        assert response.status_code == 404
+        assert Profile.objects.filter(id=user_b.profile.id).exists()
+        assert User.objects.filter(id=user_b.id).exists()
+
+    def test_admin_can_delete_any_account(self, client, settings):
+        """Admin can delete any user's account."""
+        settings.AUTH_MODE = "passkey"
+        admin = _create_user("admin", is_staff=True)
+        regular = _create_user("regular")
+        regular_profile_id = regular.profile.id
+        regular_user_id = regular.id
+        _login(client, admin)
+
+        response = client.delete(f"/api/profiles/{regular_profile_id}/")
+        assert response.status_code == 204
+        assert not Profile.objects.filter(id=regular_profile_id).exists()
+        assert not User.objects.filter(id=regular_user_id).exists()
+
+    def test_self_deletion_flushes_session(self, client, settings):
+        """Deleting own account flushes the session."""
+        settings.AUTH_MODE = "passkey"
+        user = _create_user("flushtest")
+        _login(client, user)
+
+        response = client.delete(f"/api/profiles/{user.profile.id}/")
+        assert response.status_code == 204
+        assert "profile_id" not in client.session
+
+    def test_unauthenticated_cannot_delete(self, client, settings):
+        """Unauthenticated request cannot delete any profile."""
+        settings.AUTH_MODE = "passkey"
+        user = _create_user("target")
+        response = client.delete(f"/api/profiles/{user.profile.id}/")
+        assert response.status_code == 401
+        assert Profile.objects.filter(id=user.profile.id).exists()
