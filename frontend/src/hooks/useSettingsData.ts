@@ -26,7 +26,7 @@ export interface SettingsData {
   setQuotaData: (data: QuotaResponse | null) => void
 }
 
-export function useSettingsData(): SettingsData {
+export function useSettingsData(isAdmin: boolean): SettingsData {
   const [aiStatus, setAiStatus] = useState<AIStatus | null>(null)
   const [prompts, setPrompts] = useState<AIPrompt[]>([])
   const [models, setModels] = useState<AIModel[]>([])
@@ -37,23 +37,25 @@ export function useSettingsData(): SettingsData {
 
   useEffect(() => {
     loadData()
-  }, [])
+  }, [isAdmin])
 
   const loadData = async () => {
     try {
-      const [statusData, promptsData, modelsData, sourcesData, profilesData] =
-        await Promise.all([
-          api.ai.status(),
-          api.ai.prompts.list(),
-          api.ai.models(),
-          api.sources.list(),
-          api.profiles.list(),
-        ])
-      setAiStatus(statusData)
-      setPrompts(promptsData)
-      setModels(modelsData)
-      setSources(sourcesData)
-      setProfiles(profilesData)
+      if (isAdmin) {
+        const [statusData, promptsData, modelsData, sourcesData, profilesData] =
+          await Promise.all([
+            api.ai.status(),
+            api.ai.prompts.list(),
+            api.ai.models(),
+            api.sources.list(),
+            api.profiles.list(),
+          ])
+        setAiStatus(statusData)
+        setPrompts(promptsData)
+        setModels(modelsData)
+        setSources(sourcesData)
+        setProfiles(profilesData)
+      }
 
       // Load quotas separately — 404 in home mode is expected
       try {

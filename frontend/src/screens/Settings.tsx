@@ -70,7 +70,7 @@ export default function Settings() {
   const currentProfileId = profile?.id
   const isAdmin = useIsAdmin()
   const mode = useMode()
-  const data = useSettingsData()
+  const data = useSettingsData(isAdmin)
 
   const [activeTab, setActiveTab] = useState<Tab>('general')
 
