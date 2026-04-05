@@ -124,6 +124,14 @@ vi.mock('../contexts/AuthContext', () => ({
     logout: vi.fn(),
     refreshSession: vi.fn(),
   }),
+  useOptionalAuth: () => ({
+    user: null,
+    profile: null,
+    isAdmin: false,
+    isLoading: false,
+    logout: vi.fn(),
+    refreshSession: vi.fn(),
+  }),
 }))
 
 // Mock AIStatusContext

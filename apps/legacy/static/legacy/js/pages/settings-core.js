@@ -164,6 +164,7 @@ Cookie.pages.settings = (function() {
         init: init,
         registerTab: registerTab,
         getState: getState,
-        getElements: getElements
+        getElements: getElements,
+        tabs: tabs
     };
 })();

@@ -230,15 +230,17 @@ class RecipeScraper:
 
     async def _fetch_with_redirects(self, url, profile, max_size, curl_resolve=None):
         """Fetch URL following redirects with per-hop SSRF validation and DNS pinning."""
+        from curl_cffi import CurlOpt
+
         current_url = url
         current_resolve = curl_resolve or []
         for _ in range(MAX_REDIRECT_HOPS):
-            async with AsyncSession(impersonate=profile) as session:
+            curl_opts = {CurlOpt.RESOLVE: current_resolve} if current_resolve else {}
+            async with AsyncSession(impersonate=profile, curl_options=curl_opts) as session:
                 response = await session.get(
                     current_url,
                     timeout=self.timeout,
                     allow_redirects=False,
-                    resolve=current_resolve,
                 )
 
                 if response.status_code in (301, 302, 303, 307, 308):
@@ -416,15 +418,17 @@ class RecipeScraper:
 
     async def _fetch_image_with_redirects(self, url, profile, curl_resolve=None):
         """Fetch image following redirects with per-hop SSRF validation and DNS pinning."""
+        from curl_cffi import CurlOpt
+
         current_url = url
         current_resolve = curl_resolve or []
         for _ in range(MAX_REDIRECT_HOPS):
-            async with AsyncSession(impersonate=profile) as session:
+            curl_opts = {CurlOpt.RESOLVE: current_resolve} if current_resolve else {}
+            async with AsyncSession(impersonate=profile, curl_options=curl_opts) as session:
                 response = await session.get(
                     current_url,
                     timeout=self.timeout,
                     allow_redirects=False,
-                    resolve=current_resolve,
                 )
 
                 if response.status_code in (301, 302, 303, 307, 308):

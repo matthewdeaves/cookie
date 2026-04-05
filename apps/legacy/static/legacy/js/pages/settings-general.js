@@ -59,7 +59,9 @@
             saveQuotasBtn.addEventListener('click', handleSaveQuotas);
         }
 
-        loadQuotas();
+        if (quotaConfigSection || quotaUsageSection) {
+            loadQuotas();
+        }
     }
 
     function updateApiKeyButtons() {

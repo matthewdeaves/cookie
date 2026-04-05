@@ -31,9 +31,20 @@
             });
         }
 
-        // Expose modal functions globally for onclick handlers
-        window.closeDeleteModal = closeDeleteModal;
-        window.executeDeleteProfile = executeDeleteProfile;
+        // Bind modal button listeners
+        if (confirmDeleteBtn) {
+            confirmDeleteBtn.addEventListener('click', executeDeleteProfile);
+        }
+        var cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        if (cancelDeleteBtn) {
+            cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+        }
+        // Close modal on overlay click
+        if (deleteModal) {
+            deleteModal.addEventListener('click', function(e) {
+                if (e.target === deleteModal) closeDeleteModal();
+            });
+        }
     }
 
     function loadProfiles() {

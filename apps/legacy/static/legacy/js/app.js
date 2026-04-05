@@ -121,7 +121,6 @@ Cookie.app = (function() {
     function setupProfileDropdown() {
         var dropdownBtn = document.getElementById('profile-dropdown-btn');
         var dropdownMenu = document.getElementById('profile-dropdown-menu');
-        var switchBtn = document.getElementById('switch-profile-btn');
         var logoutBtn = document.getElementById('logout-btn');
 
         if (!dropdownBtn || !dropdownMenu) return;
@@ -135,13 +134,6 @@ Cookie.app = (function() {
         document.addEventListener('click', function() {
             dropdownMenu.classList.add('hidden');
         });
-
-        if (switchBtn) {
-            switchBtn.addEventListener('click', function() {
-                Cookie.state.clearProfile();
-                window.location.href = '/legacy/';
-            });
-        }
 
         if (logoutBtn) {
             logoutBtn.addEventListener('click', function() {

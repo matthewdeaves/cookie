@@ -71,6 +71,7 @@ Cookie.pages.search = (function() {
 
         // Start search if not a URL
         if (!state.isUrl && state.query) {
+            state.selectedSource = null;
             searchRecipes(1, true);
         } else if (state.isUrl) {
             Cookie.utils.hideElement(elements.loading);
@@ -126,7 +127,6 @@ Cookie.pages.search = (function() {
         if (reset) {
             state.results = [];
             state.sites = {};
-            state.selectedSource = null;
             renderSourceFilters();
             Cookie.utils.showElement(elements.loading);
             Cookie.utils.hideElement(elements.resultsGrid);
@@ -342,9 +342,13 @@ Cookie.pages.search = (function() {
         if (!elements.searchCount) return;
 
         var total = 0;
-        for (var key in state.sites) {
-            if (state.sites.hasOwnProperty(key)) {
-                total += state.sites[key];
+        if (state.selectedSource && state.sites[state.selectedSource] !== undefined) {
+            total = state.sites[state.selectedSource];
+        } else {
+            for (var key in state.sites) {
+                if (state.sites.hasOwnProperty(key)) {
+                    total += state.sites[key];
+                }
             }
         }
 

@@ -2,7 +2,7 @@ import { ExternalLink, Moon, Sun } from 'lucide-react'
 import type { AIStatus, AIModel, QuotaResponse, QuotaLimits } from '../../api/client'
 import { useProfile } from '../../contexts/ProfileContext'
 import { useMode, useVersion } from '../../router'
-import { useAuth } from '../../contexts/AuthContext'
+import { useOptionalAuth } from '../../contexts/AuthContext'
 import { cn } from '../../lib/utils'
 import APIKeySection from './APIKeySection'
 import AIQuotaSection from './AIQuotaSection'
@@ -29,7 +29,8 @@ export default function SettingsGeneral({
   onQuotaSave,
 }: SettingsGeneralProps) {
   const { profile, theme, toggleTheme } = useProfile()
-  const { logout } = useAuth()
+  const auth = useOptionalAuth()
+  const logout = auth?.logout
   const mode = useMode()
   const version = useVersion()
 
@@ -112,7 +113,7 @@ export default function SettingsGeneral({
 
       {/* Delete account — passkey mode, non-admin users */}
       {mode === 'passkey' && !isAdmin && profile && (
-        <DeleteAccountSection profileId={profile.id} onDeleted={logout} />
+        <DeleteAccountSection profileId={profile.id} onDeleted={logout!} />
       )}
     </div>
   )

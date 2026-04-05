@@ -300,13 +300,20 @@ class RecipeSearch:
 
     async def _fetch_url(self, session: AsyncSession, url: str):
         """Fetch a URL with timeout handling, redirect validation, and size limits."""
+        from curl_cffi import CurlOpt
+
         current_url = url
-        current_resolve = []
+        current_resolve: list[str] = []
         for _ in range(MAX_REDIRECT_HOPS):
-            response = await asyncio.wait_for(
-                session.get(current_url, timeout=self.timeout, allow_redirects=False, resolve=current_resolve),
-                timeout=self.timeout + 5,
-            )
+            curl_opts = {CurlOpt.RESOLVE: current_resolve} if current_resolve else {}
+            async with AsyncSession(
+                impersonate=session._impersonate if hasattr(session, "_impersonate") else "chrome",
+                curl_options=curl_opts,
+            ) as pin_session:
+                response = await asyncio.wait_for(
+                    pin_session.get(current_url, timeout=self.timeout, allow_redirects=False),
+                    timeout=self.timeout + 5,
+                )
 
             if response.status_code in (301, 302, 303, 307, 308):
                 location = response.headers.get("location")

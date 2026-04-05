@@ -855,6 +855,10 @@
     color: #22c55e;
 }
 
+.status-warning {
+    color: #f59e0b;
+}
+
 .status-broken {
     color: #ef4444;
 }
@@ -1084,13 +1088,10 @@
     color: #ef4444;
 }
 
-.modal-header-danger > * + * {
-    margin-left: 0.5rem;
-}
-
 .modal-icon {
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
+    margin-right: 0.5rem;
 }
 
 .modal-title {
@@ -1280,6 +1281,7 @@
     color: #ef4444;
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
+    margin-right: 0.5rem;
 }
 
 .danger-title {

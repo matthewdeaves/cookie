@@ -99,6 +99,9 @@ function PromptModelControls({
           }
           className="w-full rounded-lg border border-border bg-input-background px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         >
+          {models.length === 0 && (
+            <option value={editForm.model}>{editForm.model}</option>
+          )}
           {models.map((model) => (
             <option key={model.id} value={model.id}>
               {model.name}

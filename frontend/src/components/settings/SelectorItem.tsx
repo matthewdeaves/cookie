@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Loader2, Play, CheckCircle, XCircle, HelpCircle } from 'lucide-react'
+import { AlertTriangle, Check, Loader2, Play, CheckCircle, XCircle, HelpCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type Source } from '../../api/client'
 
@@ -10,9 +10,10 @@ interface SelectorItemProps {
   sources: Source[]
 }
 
-function getSourceStatus(source: Source): 'working' | 'broken' | 'untested' {
+function getSourceStatus(source: Source): 'working' | 'warning' | 'broken' | 'untested' {
   if (!source.last_validated_at) return 'untested'
   if (source.needs_attention || source.consecutive_failures >= 3) return 'broken'
+  if (source.consecutive_failures > 0) return 'warning'
   return 'working'
 }
 
@@ -30,8 +31,9 @@ function formatRelativeTime(dateStr: string | null): string {
   return `${diffDays}d ago`
 }
 
-function StatusIcon({ status }: { status: 'working' | 'broken' | 'untested' }) {
+function StatusIcon({ status }: { status: 'working' | 'warning' | 'broken' | 'untested' }) {
   if (status === 'working') return <CheckCircle className="h-4 w-4 text-green-500" />
+  if (status === 'warning') return <AlertTriangle className="h-4 w-4 text-amber-500" />
   if (status === 'broken') return <XCircle className="h-4 w-4 text-red-500" />
   return <HelpCircle className="h-4 w-4 text-muted-foreground" />
 }

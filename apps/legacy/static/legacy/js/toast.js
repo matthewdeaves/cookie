@@ -63,9 +63,18 @@ Cookie.toast = (function() {
         init();
     }
 
+    /**
+     * Show info toast
+     * @param {string} message - Toast message
+     */
+    function info(message) {
+        show(message, 'info');
+    }
+
     return {
         show: show,
         success: success,
-        error: error
+        error: error,
+        info: info
     };
 })();

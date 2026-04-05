@@ -525,6 +525,11 @@
     color: white;
 }
 
+.toast-info {
+    background-color: #4a7da8;
+    color: white;
+}
+
 @-webkit-keyframes toast-in {
     from {
         opacity: 0;

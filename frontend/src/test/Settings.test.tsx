@@ -40,6 +40,16 @@ vi.mock('../contexts/AuthContext', () => ({
     register: vi.fn(),
     refreshSession: vi.fn(),
   }),
+  useOptionalAuth: () => ({
+    user: null,
+    profile: null,
+    isAdmin: false,
+    isLoading: false,
+    login: vi.fn(),
+    logout: vi.fn(),
+    register: vi.fn(),
+    refreshSession: vi.fn(),
+  }),
 }))
 
 // Mock child components

@@ -53,12 +53,13 @@ function SearchContent({ query, results, hasMore, sites, selectedSource, setSele
   }
 
   const allSourcesCount = Object.values(sites).reduce((sum, n) => sum + n, 0)
+  const displayCount = selectedSource ? (sites[selectedSource] || 0) : allSourcesCount
 
   return (
     <>
       {!loading && (
         <p className="mb-4 text-sm text-muted-foreground">
-          {allSourcesCount} {allSourcesCount === 1 ? 'result' : 'results'} found
+          {displayCount} {displayCount === 1 ? 'result' : 'results'} found
         </p>
       )}
       <SourceFilterChips sites={sites} selectedSource={selectedSource} onSelectSource={setSelectedSource} />

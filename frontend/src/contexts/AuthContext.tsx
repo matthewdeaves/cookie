@@ -22,6 +22,11 @@ export function useAuth() {
   return context
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- Safe variant for mode-conditional usage
+export function useOptionalAuth() {
+  return useContext(AuthContext)
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<PasskeyUser | null>(null)
   const [profile, setProfile] = useState<AuthProfile | null>(null)

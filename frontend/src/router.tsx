@@ -1,10 +1,11 @@
 import { createContext, lazy, Suspense, useContext, useState, useEffect } from 'react'
-import { createBrowserRouter, Outlet, Navigate, useLocation } from 'react-router-dom'
+import { createBrowserRouter, Outlet, Navigate, useLocation, useRouteError } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AIStatusProvider } from './contexts/AIStatusContext'
 import { ProfileProvider, useProfile } from './contexts/ProfileContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { api } from './api/client'
+import ErrorBoundary from './components/ErrorBoundary'
 
 const ProfileSelector = lazy(() => import('./screens/ProfileSelector'))
 const PasskeyLogin = lazy(() => import('./screens/PasskeyLogin'))
@@ -65,10 +66,12 @@ function AppLayout() {
         <AuthProvider>
           <AIStatusProvider>
             <AuthProfileBridge>
+              <ErrorBoundary>
               <Toaster position="top-center" richColors />
               <Suspense fallback={<LoadingFallback />}>
                 <Outlet />
               </Suspense>
+              </ErrorBoundary>
             </AuthProfileBridge>
           </AIStatusProvider>
         </AuthProvider>
@@ -82,10 +85,12 @@ function AppLayout() {
     <ModeContext.Provider value="home">
       <AIStatusProvider>
         <ProfileProvider>
+          <ErrorBoundary>
           <Toaster position="top-center" richColors />
           <Suspense fallback={<LoadingFallback />}>
             <Outlet />
           </Suspense>
+          </ErrorBoundary>
         </ProfileProvider>
       </AIStatusProvider>
     </ModeContext.Provider>
@@ -140,9 +145,46 @@ function RootRoute() {
   return <ProfileSelector />
 }
 
+function RouteErrorFallback() {
+  const error = useRouteError()
+  console.error('Route error:', error)
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 text-center shadow-lg">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+          <svg className="h-8 w-8 text-destructive" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+          </svg>
+        </div>
+        <h1 className="mb-2 text-xl font-semibold text-foreground">Something went wrong</h1>
+        <p className="mb-6 text-sm text-muted-foreground">
+          An unexpected error occurred. Please try again.
+        </p>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={() => window.location.href = '/'}
+            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Go Home
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full rounded-lg bg-muted px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export const router = createBrowserRouter([
   {
     element: <AppLayout />,
+    errorElement: <RouteErrorFallback />,
     children: [
       {
         path: '/',

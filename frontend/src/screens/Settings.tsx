@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import { useProfile } from '../contexts/ProfileContext'
 import { useMode } from '../router'
-import { useAuth } from '../contexts/AuthContext'
+import { useOptionalAuth } from '../contexts/AuthContext'
 import { useSettingsData } from '../hooks/useSettingsData'
 import NavHeader from '../components/NavHeader'
 import DeviceCodeEntry from '../components/DeviceCodeEntry'
@@ -31,9 +31,9 @@ type Tab = 'general' | 'passkeys' | 'pair-device' | 'prompts' | 'sources' | 'sel
 
 function useIsAdmin(): boolean {
   const mode = useMode()
-  const auth = useAuth()
+  const auth = useOptionalAuth()
   if (mode === 'passkey') {
-    return auth.isAdmin
+    return auth?.isAdmin ?? false
   }
   return true
 }

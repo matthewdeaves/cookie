@@ -102,7 +102,6 @@ export default function NavHeader() {
           profileName={profile.name}
           avatarColor={profile.avatar_color}
           mode={mode}
-          onSwitchProfile={handleLogout}
           onLogout={handleLogout}
         />
       </div>

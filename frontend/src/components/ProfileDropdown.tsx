@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { LogOut, Users, User } from 'lucide-react'
+import { LogOut, User } from 'lucide-react'
 
 interface ProfileDropdownProps {
   profileName: string
   avatarColor: string
   mode: string
-  onSwitchProfile: () => void
   onLogout: () => void
 }
 
@@ -17,7 +16,6 @@ export default function ProfileDropdown({
   profileName,
   avatarColor,
   mode,
-  onSwitchProfile,
   onLogout,
 }: ProfileDropdownProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -51,13 +49,6 @@ export default function ProfileDropdown({
 
       {dropdownOpen && (
         <div className="absolute right-0 top-full z-50 mt-1 w-44 rounded-lg border border-border bg-card py-1 shadow-lg">
-          <button
-            onClick={() => { setDropdownOpen(false); onSwitchProfile() }}
-            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-card-foreground hover:bg-muted"
-          >
-            <Users className="h-4 w-4" />
-            Switch profile
-          </button>
           <button
             onClick={() => { setDropdownOpen(false); onLogout() }}
             className="flex w-full items-center gap-2 px-3 py-2 text-sm text-card-foreground hover:bg-muted"

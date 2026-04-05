@@ -159,15 +159,17 @@ class SearchImageCache:
 
     async def _fetch_image_safe(self, url, profile, curl_resolve=None):
         """Fetch image following redirects with per-hop SSRF validation and DNS pinning."""
+        from curl_cffi import CurlOpt
+
         current_url = url
         current_resolve = curl_resolve or []
         for _ in range(MAX_REDIRECT_HOPS):
-            async with AsyncSession(impersonate=profile) as session:
+            curl_opts = {CurlOpt.RESOLVE: current_resolve} if current_resolve else {}
+            async with AsyncSession(impersonate=profile, curl_options=curl_opts) as session:
                 response = await session.get(
                     current_url,
                     timeout=self.DOWNLOAD_TIMEOUT,
                     allow_redirects=False,
-                    resolve=current_resolve,
                 )
 
                 if response.status_code in (301, 302, 303, 307, 308):

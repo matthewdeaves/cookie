@@ -11,10 +11,10 @@ from apps.recipes.models import Recipe, RecipeCollection, RecipeFavorite, Recipe
 class TestProfilesAPI:
     """Tests for the Profile API endpoints."""
 
-    def test_list_profiles_requires_auth(self, client):
-        """List profiles requires authentication."""
+    def test_list_profiles_no_auth_in_home_mode(self, client):
+        """List profiles is public in home mode (profile selection screen)."""
         response = client.get("/api/profiles/")
-        assert response.status_code == 401
+        assert response.status_code == 200
 
     def test_list_profiles(self, client):
         """List profiles returns profiles for authenticated user."""

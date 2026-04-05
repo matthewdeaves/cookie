@@ -122,12 +122,16 @@ def _check_profile_ownership(request, profile_id):
     return None
 
 
-@router.get("/", response=List[ProfileWithStatsSchema], auth=SessionAuth())
+@router.get(
+    "/",
+    response=List[ProfileWithStatsSchema],
+    auth=[SessionAuth()] if settings.AUTH_MODE == "passkey" else None,
+)
 def list_profiles(request):
     """List all profiles with stats.
 
     Passkey mode: returns only current user's profile (admin sees all).
-    Home mode: returns all profiles.
+    Home mode: returns all profiles (no auth required — this is the profile selection screen).
     """
     from apps.recipes.models import RecipeCollectionItem
 
