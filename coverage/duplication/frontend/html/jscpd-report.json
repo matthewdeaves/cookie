@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-04T17:06:27.326Z",
+    "detectionDate": "2026-04-05T12:07:47.887Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -210,7 +210,7 @@
           },
           "src/components/settings/SettingsGeneral.tsx": {
             "lines": 68,
-            "tokens": 459,
+            "tokens": 460,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -257,8 +257,8 @@
             "newClones": 0
           },
           "src/components/settings/PromptCard.tsx": {
-            "lines": 219,
-            "tokens": 1545,
+            "lines": 222,
+            "tokens": 1584,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -377,8 +377,8 @@
             "newClones": 0
           },
           "src/screens/Search.tsx": {
-            "lines": 145,
-            "tokens": 1347,
+            "lines": 146,
+            "tokens": 1373,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -725,8 +725,8 @@
             "newClones": 0
           },
           "src/components/ProfileDropdown.tsx": {
-            "lines": 24,
-            "tokens": 197,
+            "lines": 17,
+            "tokens": 140,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -749,8 +749,8 @@
             "newClones": 0
           },
           "src/components/NavHeader.tsx": {
-            "lines": 76,
-            "tokens": 611,
+            "lines": 75,
+            "tokens": 605,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -881,8 +881,8 @@
             "newClones": 0
           },
           "src/router.tsx": {
-            "lines": 52,
-            "tokens": 402,
+            "lines": 109,
+            "tokens": 909,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -906,8 +906,8 @@
           }
         },
         "total": {
-          "lines": 3277,
-          "tokens": 24971,
+          "lines": 3330,
+          "tokens": 25481,
           "sources": 75,
           "clones": 0,
           "duplicatedLines": 0,
@@ -1125,8 +1125,8 @@
             "newClones": 0
           },
           "src/components/settings/SettingsGeneral.tsx": {
-            "lines": 118,
-            "tokens": 890,
+            "lines": 119,
+            "tokens": 899,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1149,8 +1149,8 @@
             "newClones": 0
           },
           "src/components/settings/SelectorItem.tsx": {
-            "lines": 236,
-            "tokens": 1860,
+            "lines": 238,
+            "tokens": 1912,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1173,8 +1173,8 @@
             "newClones": 0
           },
           "src/components/settings/PromptCard.tsx": {
-            "lines": 319,
-            "tokens": 2197,
+            "lines": 322,
+            "tokens": 2236,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1282,7 +1282,7 @@
           },
           "src/screens/Settings.tsx": {
             "lines": 135,
-            "tokens": 1352,
+            "tokens": 1358,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1293,8 +1293,8 @@
             "newClones": 0
           },
           "src/screens/Search.tsx": {
-            "lines": 177,
-            "tokens": 1587,
+            "lines": 178,
+            "tokens": 1613,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1485,8 +1485,8 @@
             "newClones": 0
           },
           "src/contexts/AuthContext.tsx": {
-            "lines": 78,
-            "tokens": 597,
+            "lines": 83,
+            "tokens": 620,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1641,8 +1641,8 @@
             "newClones": 0
           },
           "src/components/ProfileDropdown.tsx": {
-            "lines": 71,
-            "tokens": 566,
+            "lines": 62,
+            "tokens": 491,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1665,8 +1665,8 @@
             "newClones": 0
           },
           "src/components/NavHeader.tsx": {
-            "lines": 110,
-            "tokens": 919,
+            "lines": 109,
+            "tokens": 913,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1809,8 +1809,8 @@
             "newClones": 0
           },
           "src/router.tsx": {
-            "lines": 248,
-            "tokens": 1835,
+            "lines": 290,
+            "tokens": 2216,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1846,14 +1846,14 @@
           }
         },
         "total": {
-          "lines": 7234,
-          "tokens": 56508,
+          "lines": 7278,
+          "tokens": 56963,
           "sources": 77,
           "clones": 6,
           "duplicatedLines": 61,
           "duplicatedTokens": 583,
           "percentage": 0.84,
-          "percentageTokens": 1.03,
+          "percentageTokens": 1.02,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -2224,14 +2224,14 @@
       }
     },
     "total": {
-      "lines": 13510,
-      "tokens": 106227,
+      "lines": 13607,
+      "tokens": 107192,
       "sources": 181,
       "clones": 8,
       "duplicatedLines": 120,
       "duplicatedTokens": 877,
-      "percentage": 0.89,
-      "percentageTokens": 0.83,
+      "percentage": 0.88,
+      "percentageTokens": 0.82,
       "newDuplicatedLines": 0,
       "newClones": 0
     }

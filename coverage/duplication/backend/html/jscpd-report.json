@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-04T17:06:43.816Z",
+    "detectionDate": "2026-04-05T12:07:45.441Z",
     "formats": {
       "python": {
         "sources": {
@@ -113,8 +113,8 @@
             "newClones": 0
           },
           "apps/recipes/services/search.py": {
-            "lines": 391,
-            "tokens": 2890,
+            "lines": 398,
+            "tokens": 2968,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -125,14 +125,14 @@
             "newClones": 0
           },
           "apps/recipes/services/scraper.py": {
-            "lines": 512,
-            "tokens": 3932,
+            "lines": 516,
+            "tokens": 3996,
             "sources": 1,
             "clones": 4,
-            "duplicatedLines": 53,
-            "duplicatedTokens": 486,
-            "percentage": 10.35,
-            "percentageTokens": 12.36,
+            "duplicatedLines": 59,
+            "duplicatedTokens": 582,
+            "percentage": 11.43,
+            "percentageTokens": 14.56,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -149,14 +149,14 @@
             "newClones": 0
           },
           "apps/recipes/services/image_cache.py": {
-            "lines": 303,
-            "tokens": 1909,
+            "lines": 305,
+            "tokens": 1941,
             "sources": 1,
             "clones": 2,
-            "duplicatedLines": 25,
-            "duplicatedTokens": 212,
-            "percentage": 8.25,
-            "percentageTokens": 11.11,
+            "duplicatedLines": 27,
+            "duplicatedTokens": 244,
+            "percentage": 8.85,
+            "percentageTokens": 12.57,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -413,8 +413,8 @@
             "newClones": 0
           },
           "apps/profiles/api.py": {
-            "lines": 360,
-            "tokens": 3094,
+            "lines": 364,
+            "tokens": 3116,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -726,28 +726,28 @@
           }
         },
         "total": {
-          "lines": 10781,
-          "tokens": 75172,
+          "lines": 10798,
+          "tokens": 75368,
           "sources": 60,
           "clones": 8,
-          "duplicatedLines": 125,
-          "duplicatedTokens": 976,
-          "percentage": 1.16,
-          "percentageTokens": 1.3,
+          "duplicatedLines": 129,
+          "duplicatedTokens": 1040,
+          "percentage": 1.19,
+          "percentageTokens": 1.38,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 10781,
-      "tokens": 75172,
+      "lines": 10798,
+      "tokens": 75368,
       "sources": 60,
       "clones": 8,
-      "duplicatedLines": 125,
-      "duplicatedTokens": 976,
-      "percentage": 1.16,
-      "percentageTokens": 1.3,
+      "duplicatedLines": 129,
+      "duplicatedTokens": 1040,
+      "percentage": 1.19,
+      "percentageTokens": 1.38,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -755,109 +755,109 @@
   "duplicates": [
     {
       "format": "python",
-      "lines": 15,
-      "fragment": "current_url = url\n        current_resolve = curl_resolve or []\n        for _ in range(MAX_REDIRECT_HOPS):\n            async with AsyncSession(impersonate=profile) as session:\n                response = await session.get(\n                    current_url,\n                    timeout=self.timeout,\n                    allow_redirects=False,\n                    resolve=current_resolve,\n                )\n\n                if response.status_code in (301, 302, 303, 307, 308):\n                    location = response.headers.get(\"location\")\n                    if not location:\n                        return",
+      "lines": 17,
+      "fragment": "from curl_cffi import CurlOpt\n\n        current_url = url\n        current_resolve = curl_resolve or []\n        for _ in range(MAX_REDIRECT_HOPS):\n            curl_opts = {CurlOpt.RESOLVE: current_resolve} if current_resolve else {}\n            async with AsyncSession(impersonate=profile, curl_options=curl_opts) as session:\n                response = await session.get(\n                    current_url,\n                    timeout=self.timeout,\n                    allow_redirects=False,\n                )\n\n                if response.status_code in (301, 302, 303, 307, 308):\n                    location = response.headers.get(\"location\")\n                    if not location:\n                        return",
       "tokens": 0,
       "firstFile": {
         "name": "apps/recipes/services/scraper.py",
-        "start": 419,
-        "end": 433,
+        "start": 421,
+        "end": 437,
         "startLoc": {
-          "line": 419,
+          "line": 421,
           "column": 9,
-          "position": 3176
+          "position": 3208
         },
         "endLoc": {
-          "line": 433,
+          "line": 437,
           "column": 7,
-          "position": 3313
+          "position": 3377
         }
       },
       "secondFile": {
         "name": "apps/recipes/services/scraper.py",
         "start": 233,
-        "end": 247,
+        "end": 249,
         "startLoc": {
           "line": 233,
           "column": 9,
           "position": 1478
         },
         "endLoc": {
-          "line": 247,
+          "line": 249,
           "column": 6,
-          "position": 1615
+          "position": 1647
         }
       }
     },
     {
       "format": "python",
-      "lines": 9,
-      "fragment": "(self, url, profile, curl_resolve=None):\n        \"\"\"Fetch image following redirects with per-hop SSRF validation and DNS pinning.\"\"\"\n        current_url = url\n        current_resolve = curl_resolve or []\n        for _ in range(MAX_REDIRECT_HOPS):\n            async with AsyncSession(impersonate=profile) as session:\n                response = await session.get(\n                    current_url,\n                    timeout=self.DOWNLOAD_TIMEOUT",
+      "lines": 12,
+      "fragment": "(self, url, profile, curl_resolve=None):\n        \"\"\"Fetch image following redirects with per-hop SSRF validation and DNS pinning.\"\"\"\n        from curl_cffi import CurlOpt\n\n        current_url = url\n        current_resolve = curl_resolve or []\n        for _ in range(MAX_REDIRECT_HOPS):\n            curl_opts = {CurlOpt.RESOLVE: current_resolve} if current_resolve else {}\n            async with AsyncSession(impersonate=profile, curl_options=curl_opts) as session:\n                response = await session.get(\n                    current_url,\n                    timeout=self.DOWNLOAD_TIMEOUT",
       "tokens": 0,
       "firstFile": {
         "name": "apps/recipes/services/image_cache.py",
         "start": 160,
-        "end": 168,
+        "end": 171,
         "startLoc": {
           "line": 160,
           "column": 18,
           "position": 890
         },
         "endLoc": {
-          "line": 168,
+          "line": 171,
           "column": 17,
-          "position": 979
+          "position": 1017
         }
       },
       "secondFile": {
         "name": "apps/recipes/services/scraper.py",
-        "start": 417,
-        "end": 425,
+        "start": 419,
+        "end": 242,
         "startLoc": {
-          "line": 417,
+          "line": 419,
           "column": 28,
-          "position": 3156
+          "position": 3188
         },
         "endLoc": {
-          "line": 425,
+          "line": 242,
           "column": 8,
-          "position": 3245
+          "position": 1585
         }
       }
     },
     {
       "format": "python",
-      "lines": 18,
-      "fragment": ",\n                    allow_redirects=False,\n                    resolve=current_resolve,\n                )\n\n                if response.status_code in (301, 302, 303, 307, 308):\n                    location = response.headers.get(\"location\")\n                    if not location:\n                        return None\n                    try:\n                        resolved = validate_redirect_url(location)\n                    except ValueError:\n                        return None\n                    current_url = location\n                    current_resolve = resolved.curl_resolve\n                    continue\n\n                if response.status_code in",
+      "lines": 17,
+      "fragment": ",\n                    allow_redirects=False,\n                )\n\n                if response.status_code in (301, 302, 303, 307, 308):\n                    location = response.headers.get(\"location\")\n                    if not location:\n                        return None\n                    try:\n                        resolved = validate_redirect_url(location)\n                    except ValueError:\n                        return None\n                    current_url = location\n                    current_resolve = resolved.curl_resolve\n                    continue\n\n                if response.status_code in",
       "tokens": 0,
       "firstFile": {
         "name": "apps/recipes/services/image_cache.py",
-        "start": 168,
-        "end": 185,
+        "start": 171,
+        "end": 187,
         "startLoc": {
-          "line": 168,
+          "line": 171,
           "column": 17,
-          "position": 980
+          "position": 1018
         },
         "endLoc": {
-          "line": 185,
+          "line": 187,
           "column": 3,
-          "position": 1103
+          "position": 1135
         }
       },
       "secondFile": {
         "name": "apps/recipes/services/scraper.py",
-        "start": 425,
-        "end": 442,
+        "start": 430,
+        "end": 446,
         "startLoc": {
-          "line": 425,
+          "line": 430,
           "column": 8,
-          "position": 3246
+          "position": 3316
         },
         "endLoc": {
-          "line": 442,
+          "line": 446,
           "column": 3,
-          "position": 3369
+          "position": 3433
         }
       }
     },
