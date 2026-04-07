@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88% </span>
+                <span class="strong">83.87% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>22/25</span>
+                <span class='fraction'>26/31</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">30% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/2</span>
+                <span class='fraction'>3/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88% </span>
+                <span class="strong">85.71% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>22/25</span>
+                <span class='fraction'>24/28</span>
             </div>
         
             
@@ -153,7 +153,11 @@
 <a name='L88'></a><a href='#L88'>88</a>
 <a name='L89'></a><a href='#L89'>89</a>
 <a name='L90'></a><a href='#L90'>90</a>
-<a name='L91'></a><a href='#L91'>91</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -192,9 +196,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">17x</span>
 <span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -210,6 +212,8 @@
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -222,9 +226,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">17x</span>
@@ -281,41 +289,45 @@ export function useSettingsData(isAdmin: boolean): SettingsData {
   const [loading, setLoading] = useState(true)
 &nbsp;
   useEffect(() =&gt; {
-    loadData()
-  }, [isAdmin])
-&nbsp;
-  const loadData = async () =&gt; {
-    try {
-      <span class="missing-if-branch" title="else path not taken" >E</span>if (isAdmin) {
-        const [statusData, promptsData, modelsData, sourcesData, profilesData] =
-          await Promise.all([
-            api.ai.status(),
-            api.ai.prompts.list(),
-            api.ai.models(),
-            api.sources.list(),
-            api.profiles.list(),
-          ])
-        setAiStatus(statusData)
-        setPrompts(promptsData)
-        setModels(modelsData)
-        setSources(sourcesData)
-        setProfiles(profilesData)
-      }
-&nbsp;
-      // Load quotas separately — 404 in home mode is expected
+    let cancelled = false
+    ;(async () =&gt; {
       try {
-        const quotas = await api.ai.quotas.get()
-<span class="cstat-no" title="statement not covered" >        setQuotaData(quotas)</span>
-      } catch {
-        // Quotas not available (e.g. home mode) — ignore
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (isAdmin) {
+          const [statusData, promptsData, modelsData, sourcesData, profilesData] =
+            await Promise.all([
+              api.ai.status(),
+              api.ai.prompts.list(),
+              api.ai.models(),
+              api.sources.list(),
+              api.profiles.list(),
+            ])
+          <span class="missing-if-branch" title="else path not taken" >E</span>if (!cancelled) {
+            setAiStatus(statusData)
+            setPrompts(promptsData)
+            setModels(modelsData)
+            setSources(sourcesData)
+            setProfiles(profilesData)
+          }
+        }
+&nbsp;
+        // Load quotas separately — 404 in home mode is expected
+        try {
+          const quotas = await api.ai.quotas.get()
+<span class="cstat-no" title="statement not covered" >          if (!cancelled) <span class="cstat-no" title="statement not covered" >setQuotaData(quotas)</span></span>
+        } catch {
+          // Quotas not available (e.g. home mode) — ignore
+        }
+      } catch (error) {
+<span class="cstat-no" title="statement not covered" >        if (!cancelled) {</span>
+<span class="cstat-no" title="statement not covered" >          console.error('Failed to load settings:', error)</span>
+<span class="cstat-no" title="statement not covered" >          toast.error('Failed to load settings')</span>
+        }
+      } finally {
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (!cancelled) setLoading(false)
       }
-    } catch (error) {
-<span class="cstat-no" title="statement not covered" >      console.error('Failed to load settings:', error)</span>
-<span class="cstat-no" title="statement not covered" >      toast.error('Failed to load settings')</span>
-    } finally {
-      setLoading(false)
-    }
-  }
+    })()
+    return () =&gt; { cancelled = true }
+  }, [isAdmin])
 &nbsp;
   return {
     aiStatus,
@@ -340,7 +352,7 @@ export function useSettingsData(isAdmin: boolean): SettingsData {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-07T17:40:56.821Z
+                at 2026-04-07T17:56:39.826Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-07T17:40:41.715Z",
+    "detectionDate": "2026-04-07T17:56:17.172Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -437,8 +437,8 @@
             "newClones": 0
           },
           "src/screens/PasskeyManage.tsx": {
-            "lines": 134,
-            "tokens": 994,
+            "lines": 145,
+            "tokens": 1131,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -677,8 +677,8 @@
             "newClones": 0
           },
           "src/components/RemixModal.tsx": {
-            "lines": 156,
-            "tokens": 1254,
+            "lines": 155,
+            "tokens": 1289,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -906,8 +906,8 @@
           }
         },
         "total": {
-          "lines": 3330,
-          "tokens": 25481,
+          "lines": 3340,
+          "tokens": 25653,
           "sources": 75,
           "clones": 0,
           "duplicatedLines": 0,
@@ -1269,14 +1269,14 @@
             "newClones": 0
           },
           "src/components/settings/AIQuotaSection.tsx": {
-            "lines": 76,
-            "tokens": 827,
+            "lines": 80,
+            "tokens": 873,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 11,
             "duplicatedTokens": 142,
-            "percentage": 14.47,
-            "percentageTokens": 17.17,
+            "percentage": 13.75,
+            "percentageTokens": 16.27,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -1353,14 +1353,14 @@
             "newClones": 0
           },
           "src/screens/PasskeyManage.tsx": {
-            "lines": 190,
-            "tokens": 1468,
+            "lines": 201,
+            "tokens": 1605,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 11,
             "duplicatedTokens": 90,
-            "percentage": 5.79,
-            "percentageTokens": 6.13,
+            "percentage": 5.47,
+            "percentageTokens": 5.61,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -1413,8 +1413,8 @@
             "newClones": 0
           },
           "src/screens/Favorites.tsx": {
-            "lines": 96,
-            "tokens": 821,
+            "lines": 98,
+            "tokens": 868,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1461,8 +1461,8 @@
             "newClones": 0
           },
           "src/screens/AllRecipes.tsx": {
-            "lines": 135,
-            "tokens": 1116,
+            "lines": 137,
+            "tokens": 1163,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1497,8 +1497,8 @@
             "newClones": 0
           },
           "src/contexts/AIStatusContext.tsx": {
-            "lines": 80,
-            "tokens": 626,
+            "lines": 108,
+            "tokens": 858,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1593,8 +1593,8 @@
             "newClones": 0
           },
           "src/components/RemixModal.tsx": {
-            "lines": 190,
-            "tokens": 1536,
+            "lines": 189,
+            "tokens": 1571,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1797,8 +1797,8 @@
             "newClones": 0
           },
           "src/components/AddToCollectionDropdown.tsx": {
-            "lines": 107,
-            "tokens": 885,
+            "lines": 108,
+            "tokens": 930,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1846,14 +1846,14 @@
           }
         },
         "total": {
-          "lines": 7278,
-          "tokens": 56964,
+          "lines": 7325,
+          "tokens": 57553,
           "sources": 77,
           "clones": 6,
           "duplicatedLines": 61,
           "duplicatedTokens": 583,
-          "percentage": 0.84,
-          "percentageTokens": 1.02,
+          "percentage": 0.83,
+          "percentageTokens": 1.01,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -1945,8 +1945,8 @@
             "newClones": 0
           },
           "src/hooks/useTipsPolling.ts": {
-            "lines": 115,
-            "tokens": 980,
+            "lines": 128,
+            "tokens": 1215,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1969,8 +1969,8 @@
             "newClones": 0
           },
           "src/hooks/useStoredProfile.ts": {
-            "lines": 91,
-            "tokens": 736,
+            "lines": 104,
+            "tokens": 894,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2005,8 +2005,8 @@
             "newClones": 0
           },
           "src/hooks/useSettingsData.ts": {
-            "lines": 89,
-            "tokens": 759,
+            "lines": 93,
+            "tokens": 819,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2041,8 +2041,8 @@
             "newClones": 0
           },
           "src/hooks/useRecipeDetail.ts": {
-            "lines": 85,
-            "tokens": 894,
+            "lines": 88,
+            "tokens": 945,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2077,8 +2077,8 @@
             "newClones": 0
           },
           "src/hooks/usePasskeys.ts": {
-            "lines": 71,
-            "tokens": 634,
+            "lines": 82,
+            "tokens": 771,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2089,8 +2089,8 @@
             "newClones": 0
           },
           "src/hooks/useHomeData.ts": {
-            "lines": 75,
-            "tokens": 731,
+            "lines": 79,
+            "tokens": 784,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2210,28 +2210,28 @@
           }
         },
         "total": {
-          "lines": 3001,
-          "tokens": 24765,
+          "lines": 3049,
+          "tokens": 25459,
           "sources": 29,
           "clones": 2,
           "duplicatedLines": 59,
           "duplicatedTokens": 294,
-          "percentage": 1.97,
-          "percentageTokens": 1.19,
+          "percentage": 1.94,
+          "percentageTokens": 1.15,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 13609,
-      "tokens": 107210,
+      "lines": 13714,
+      "tokens": 108665,
       "sources": 181,
       "clones": 8,
       "duplicatedLines": 120,
       "duplicatedTokens": 877,
       "percentage": 0.88,
-      "percentageTokens": 0.82,
+      "percentageTokens": 0.81,
       "newDuplicatedLines": 0,
       "newClones": 0
     }

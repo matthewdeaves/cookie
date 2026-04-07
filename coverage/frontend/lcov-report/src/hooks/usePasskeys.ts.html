@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">34.28% </span>
+                <span class="strong">36.95% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>12/35</span>
+                <span class='fraction'>17/46</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">9.09% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>2/22</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60% </span>
+                <span class="strong">57.14% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/5</span>
+                <span class='fraction'>4/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">34.28% </span>
+                <span class="strong">33.33% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>12/35</span>
+                <span class='fraction'>14/42</span>
             </div>
         
             
@@ -135,7 +135,18 @@
 <a name='L70'></a><a href='#L70'>70</a>
 <a name='L71'></a><a href='#L71'>71</a>
 <a name='L72'></a><a href='#L72'>72</a>
-<a name='L73'></a><a href='#L73'>73</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -150,6 +161,19 @@
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">2x</span>
@@ -159,8 +183,6 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -221,20 +243,31 @@ export default function usePasskeys() {
   const [error, setError] = useState('')
   const [adding, setAdding] = useState(false)
 &nbsp;
-  const loadCredentials = useCallback(async () =&gt; {
-    try {
-      const data = await api.passkey.listCredentials()
-      setCredentials(data.credentials)
+  const loadCredentials = useCallback(<span class="fstat-no" title="function not covered" >async () =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    try {</span>
+      const data = <span class="cstat-no" title="statement not covered" >await api.passkey.listCredentials()</span>
+<span class="cstat-no" title="statement not covered" >      setCredentials(data.credentials)</span>
     } catch (err) {
 <span class="cstat-no" title="statement not covered" >      setError(err instanceof Error ? err.message : 'Failed to load passkeys')</span>
     } finally {
-      setLoading(false)
+<span class="cstat-no" title="statement not covered" >      setLoading(false)</span>
     }
   }, [])
 &nbsp;
   useEffect(() =&gt; {
-    loadCredentials()
-  }, [loadCredentials])
+    let cancelled = false
+    ;(async () =&gt; {
+      try {
+        const data = await api.passkey.listCredentials()
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (!cancelled) setCredentials(data.credentials)
+      } catch (err) {
+<span class="cstat-no" title="statement not covered" >        if (!cancelled) <span class="cstat-no" title="statement not covered" >setError(err instanceof Error ? err.message : 'Failed to load passkeys')</span></span>
+      } finally {
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (!cancelled) setLoading(false)
+      }
+    })()
+    return () =&gt; { cancelled = true }
+  }, [])
 &nbsp;
   async function <span class="fstat-no" title="function not covered" >handleAdd() {</span>
 <span class="cstat-no" title="statement not covered" >    setError('')</span>
@@ -286,7 +319,7 @@ export default function usePasskeys() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-07T17:40:56.771Z
+                at 2026-04-07T17:56:39.766Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -299,25 +299,6 @@
 <span class="cline-any cline-yes">63x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">63x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">63x</span>
 <span class="cline-any cline-yes">19x</span>
 <span class="cline-any cline-yes">19x</span>
 <span class="cline-any cline-yes">19x</span>
@@ -343,6 +324,25 @@
 <span class="cline-any cline-yes">19x</span>
 <span class="cline-any cline-yes">19x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -461,25 +461,6 @@ export function useSearch(): UseSearchReturn {
 &nbsp;
   const prevQueryRef = useRef(query)
 &nbsp;
-  useEffect(() =&gt; {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!query) {
-<span class="cstat-no" title="statement not covered" >      navigate('/home')</span>
-<span class="cstat-no" title="statement not covered" >      return</span>
-    }
-    const abortController = new AbortController()
-    setResults([])
-    setPage(1)
-    setSites({})
-    setLoading(true)
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (prevQueryRef.current !== query) {
-<span class="cstat-no" title="statement not covered" >      setSelectedSource(null)</span>
-<span class="cstat-no" title="statement not covered" >      prevQueryRef.current = query</span>
-    }
-    searchRecipes(1, true, abortController.signal)
-    return () =&gt; { abortController.abort() }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate and searchRecipes are stable, only re-run when query or filter changes
-  }, [query, selectedSource])
-&nbsp;
   const applySearchResponse = (response: { results: SearchResult[]; sites: Record&lt;string, number&gt;; total: number; has_more: boolean }, pageNum: number, reset: boolean) =&gt; {
     if (reset) {
       setResults(response.results)
@@ -508,6 +489,25 @@ export function useSearch(): UseSearchReturn {
       }
     }
   }
+&nbsp;
+  useEffect(() =&gt; {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (!query) {
+<span class="cstat-no" title="statement not covered" >      navigate('/home')</span>
+<span class="cstat-no" title="statement not covered" >      return</span>
+    }
+    const abortController = new AbortController()
+    setResults([])
+    setPage(1)
+    setSites({})
+    setLoading(true)
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (prevQueryRef.current !== query) {
+<span class="cstat-no" title="statement not covered" >      setSelectedSource(null)</span>
+<span class="cstat-no" title="statement not covered" >      prevQueryRef.current = query</span>
+    }
+    searchRecipes(1, true, abortController.signal)
+    return () =&gt; { abortController.abort() }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate and searchRecipes are stable, only re-run when query or filter changes
+  }, [query, selectedSource])
 &nbsp;
   const handleSearchSubmit = (e: React.FormEvent) =&gt; {
     e.preventDefault()
@@ -559,7 +559,7 @@ export function useSearch(): UseSearchReturn {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-07T17:40:56.771Z
+                at 2026-04-07T17:56:39.766Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

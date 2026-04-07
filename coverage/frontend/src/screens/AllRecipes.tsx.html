@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">63.33% </span>
+                <span class="strong">65.71% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>19/30</span>
+                <span class='fraction'>23/35</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>6/10</span>
+                <span class='fraction'>8/16</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">63.63% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>7/11</span>
+                <span class='fraction'>8/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">62.06% </span>
+                <span class="strong">61.29% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>18/29</span>
+                <span class='fraction'>19/31</span>
             </div>
         
             
@@ -199,7 +199,9 @@
 <a name='L134'></a><a href='#L134'>134</a>
 <a name='L135'></a><a href='#L135'>135</a>
 <a name='L136'></a><a href='#L136'>136</a>
-<a name='L137'></a><a href='#L137'>137</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -217,18 +219,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">14x</span>
 <span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">14x</span>
@@ -352,20 +356,22 @@ export default function AllRecipes() {
   const [searchQuery, setSearchQuery] = useState('')
 &nbsp;
   useEffect(() =&gt; {
-    loadRecipes()
+    let cancelled = false
+    ;(async () =&gt; {
+      try {
+        const data = await api.recipes.list(1000)
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (!cancelled) setRecipes(data)
+      } catch (error) {
+<span class="cstat-no" title="statement not covered" >        if (!cancelled) {</span>
+<span class="cstat-no" title="statement not covered" >          console.error('Failed to load recipes:', error)</span>
+<span class="cstat-no" title="statement not covered" >          toast.error('Failed to load recipes')</span>
+        }
+      } finally {
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (!cancelled) setLoading(false)
+      }
+    })()
+    return () =&gt; { cancelled = true }
   }, [])
-&nbsp;
-  const loadRecipes = async () =&gt; {
-    try {
-      const data = await api.recipes.list(1000)
-      setRecipes(data)
-    } catch (error) {
-<span class="cstat-no" title="statement not covered" >      console.error('Failed to load recipes:', error)</span>
-<span class="cstat-no" title="statement not covered" >      toast.error('Failed to load recipes')</span>
-    } finally {
-      setLoading(false)
-    }
-  }
 &nbsp;
   const handleRecipeClick = <span class="fstat-no" title="function not covered" >async (r</span>ecipeId: number) =&gt; {
 <span class="cstat-no" title="statement not covered" >    try {</span>
@@ -478,7 +484,7 @@ function EmptyRecipes({ onImport }: { onImport: () =&gt; void }) {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-07T17:40:56.821Z
+                at 2026-04-07T17:56:39.826Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

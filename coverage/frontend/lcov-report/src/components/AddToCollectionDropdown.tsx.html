@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.71% </span>
+                <span class="strong">85.41% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>36/42</span>
+                <span class='fraction'>41/48</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">62.5% </span>
+                <span class="strong">54.54% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>10/16</span>
+                <span class='fraction'>12/22</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>10/10</span>
+                <span class='fraction'>11/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85% </span>
+                <span class="strong">83.33% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>34/40</span>
+                <span class='fraction'>35/42</span>
             </div>
         
             
@@ -171,7 +171,8 @@
 <a name='L106'></a><a href='#L106'>106</a>
 <a name='L107'></a><a href='#L107'>107</a>
 <a name='L108'></a><a href='#L108'>108</a>
-<a name='L109'></a><a href='#L109'>109</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -210,10 +211,7 @@
 <span class="cline-any cline-yes">47x</span>
 <span class="cline-any cline-yes">25x</span>
 <span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">47x</span>
+<span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">10x</span>
@@ -221,9 +219,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">47x</span>
@@ -316,23 +318,24 @@ export default function AddToCollectionDropdown({
 &nbsp;
   // Load collections when dropdown opens
   useEffect(() =&gt; {
-    if (isOpen) {
-      loadCollections()
-    }
+    if (!isOpen) return
+    let cancelled = false
+    ;(async () =&gt; {
+      setLoading(true)
+      try {
+        const data = await api.collections.list()
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (!cancelled) setCollections(data)
+      } catch (error) {
+<span class="cstat-no" title="statement not covered" >        if (!cancelled) {</span>
+<span class="cstat-no" title="statement not covered" >          console.error('Failed to load collections:', error)</span>
+<span class="cstat-no" title="statement not covered" >          toast.error('Failed to load collections')</span>
+        }
+      } finally {
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (!cancelled) setLoading(false)
+      }
+    })()
+    return () =&gt; { cancelled = true }
   }, [isOpen])
-&nbsp;
-  const loadCollections = async () =&gt; {
-    setLoading(true)
-    try {
-      const data = await api.collections.list()
-      setCollections(data)
-    } catch (error) {
-<span class="cstat-no" title="statement not covered" >      console.error('Failed to load collections:', error)</span>
-<span class="cstat-no" title="statement not covered" >      toast.error('Failed to load collections')</span>
-    } finally {
-      setLoading(false)
-    }
-  }
 &nbsp;
   const handleAddToCollection = async (collectionId: number) =&gt; {
     setAddingTo(collectionId)
@@ -394,7 +397,7 @@ export default function AddToCollectionDropdown({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-07T17:40:56.771Z
+                at 2026-04-07T17:56:39.766Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
