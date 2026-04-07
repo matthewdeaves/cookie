@@ -41,9 +41,28 @@ interface UseStoredProfileReturn {
  * Applies the theme class to the document element.
  */
 export function useStoredProfile(authProfile?: AuthProfile | null): UseStoredProfileReturn {
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
-  const [loading, setLoading] = useState(true)
+  const [profile, setProfile] = useState<Profile | null>(() =>
+    authProfile ? (authProfile as Profile) : null
+  )
+  const [theme, setTheme] = useState<'light' | 'dark'>(() =>
+    authProfile ? (authProfile.theme as 'light' | 'dark') : 'light'
+  )
+  const [loading, setLoading] = useState(authProfile === undefined)
+
+  // Sync auth profile changes to state (passkey mode)
+  useEffect(() => {
+    if (authProfile === undefined) return
+    const id = requestAnimationFrame(() => {
+      if (authProfile) {
+        setProfile(authProfile as Profile)
+        setTheme(authProfile.theme as 'light' | 'dark')
+      } else {
+        setProfile(null)
+      }
+      setLoading(false)
+    })
+    return () => cancelAnimationFrame(id)
+  }, [authProfile])
 
   // Apply theme class to document
   useEffect(() => {
@@ -54,27 +73,21 @@ export function useStoredProfile(authProfile?: AuthProfile | null): UseStoredPro
     }
   }, [theme])
 
-  // Restore profile from auth or localStorage
+  // Restore profile from localStorage (home mode only)
   useEffect(() => {
-    if (authProfile !== undefined) {
-      if (authProfile) {
-        setProfile(authProfile as Profile)
-        setTheme(authProfile.theme as 'light' | 'dark')
-      } else {
-        setProfile(null)
-      }
-      setLoading(false)
-      return
-    }
+    if (authProfile !== undefined) return
 
-    const restoreSession = async () => {
+    let cancelled = false
+    ;(async () => {
       try {
         const storedId = getStoredProfileId()
         if (storedId) {
           try {
             const restored = await api.profiles.select(storedId)
-            setProfile(restored)
-            setTheme(restored.theme as 'light' | 'dark')
+            if (!cancelled) {
+              setProfile(restored)
+              setTheme(restored.theme as 'light' | 'dark')
+            }
           } catch {
             clearProfileId()
           }
@@ -82,10 +95,10 @@ export function useStoredProfile(authProfile?: AuthProfile | null): UseStoredPro
       } catch (error) {
         console.error('Failed to restore session:', error)
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
-    }
-    restoreSession()
+    })()
+    return () => { cancelled = true }
   }, [authProfile])
 
   return { profile, setProfile, theme, setTheme, loading }

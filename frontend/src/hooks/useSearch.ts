@@ -70,25 +70,6 @@ export function useSearch(): UseSearchReturn {
 
   const prevQueryRef = useRef(query)
 
-  useEffect(() => {
-    if (!query) {
-      navigate('/home')
-      return
-    }
-    const abortController = new AbortController()
-    setResults([])
-    setPage(1)
-    setSites({})
-    setLoading(true)
-    if (prevQueryRef.current !== query) {
-      setSelectedSource(null)
-      prevQueryRef.current = query
-    }
-    searchRecipes(1, true, abortController.signal)
-    return () => { abortController.abort() }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate and searchRecipes are stable, only re-run when query or filter changes
-  }, [query, selectedSource])
-
   const applySearchResponse = (response: { results: SearchResult[]; sites: Record<string, number>; total: number; has_more: boolean }, pageNum: number, reset: boolean) => {
     if (reset) {
       setResults(response.results)
@@ -117,6 +98,25 @@ export function useSearch(): UseSearchReturn {
       }
     }
   }
+
+  useEffect(() => {
+    if (!query) {
+      navigate('/home')
+      return
+    }
+    const abortController = new AbortController()
+    setResults([])
+    setPage(1)
+    setSites({})
+    setLoading(true)
+    if (prevQueryRef.current !== query) {
+      setSelectedSource(null)
+      prevQueryRef.current = query
+    }
+    searchRecipes(1, true, abortController.signal)
+    return () => { abortController.abort() }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate and searchRecipes are stable, only re-run when query or filter changes
+  }, [query, selectedSource])
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()

@@ -24,8 +24,19 @@ export default function usePasskeys() {
   }, [])
 
   useEffect(() => {
-    loadCredentials()
-  }, [loadCredentials])
+    let cancelled = false
+    ;(async () => {
+      try {
+        const data = await api.passkey.listCredentials()
+        if (!cancelled) setCredentials(data.credentials)
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load passkeys')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   async function handleAdd() {
     setError('')

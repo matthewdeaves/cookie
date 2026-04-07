@@ -18,13 +18,17 @@ interface AIQuotaSectionProps {
 }
 
 export default function AIQuotaSection({ quotaData, onSave }: AIQuotaSectionProps) {
+  const defaultLimits: QuotaLimits = { remix: 0, remix_suggestions: 0, scale: 0, tips: 0, discover: 0, timer: 0 }
   const [limits, setLimits] = useState<QuotaLimits>(
-    quotaData?.limits ?? { remix: 0, remix_suggestions: 0, scale: 0, tips: 0, discover: 0, timer: 0 },
+    quotaData?.limits ?? defaultLimits,
   )
   const [saving, setSaving] = useState(false)
 
+  // Sync limits when quotaData loads from parent
   useEffect(() => {
-    if (quotaData?.limits) setLimits(quotaData.limits)
+    if (!quotaData?.limits) return
+    const id = requestAnimationFrame(() => setLimits(quotaData.limits))
+    return () => cancelAnimationFrame(id)
   }, [quotaData?.limits])
 
   const handleChange = (key: keyof QuotaLimits, value: string) => {

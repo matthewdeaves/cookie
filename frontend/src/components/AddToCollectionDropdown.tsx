@@ -35,23 +35,24 @@ export default function AddToCollectionDropdown({
 
   // Load collections when dropdown opens
   useEffect(() => {
-    if (isOpen) {
-      loadCollections()
-    }
+    if (!isOpen) return
+    let cancelled = false
+    ;(async () => {
+      setLoading(true)
+      try {
+        const data = await api.collections.list()
+        if (!cancelled) setCollections(data)
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to load collections:', error)
+          toast.error('Failed to load collections')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
   }, [isOpen])
-
-  const loadCollections = async () => {
-    setLoading(true)
-    try {
-      const data = await api.collections.list()
-      setCollections(data)
-    } catch (error) {
-      console.error('Failed to load collections:', error)
-      toast.error('Failed to load collections')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleAddToCollection = async (collectionId: number) => {
     setAddingTo(collectionId)

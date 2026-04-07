@@ -15,20 +15,22 @@ export default function AllRecipes() {
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
-    loadRecipes()
+    let cancelled = false
+    ;(async () => {
+      try {
+        const data = await api.recipes.list(1000)
+        if (!cancelled) setRecipes(data)
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to load recipes:', error)
+          toast.error('Failed to load recipes')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
   }, [])
-
-  const loadRecipes = async () => {
-    try {
-      const data = await api.recipes.list(1000)
-      setRecipes(data)
-    } catch (error) {
-      console.error('Failed to load recipes:', error)
-      toast.error('Failed to load recipes')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleRecipeClick = async (recipeId: number) => {
     try {

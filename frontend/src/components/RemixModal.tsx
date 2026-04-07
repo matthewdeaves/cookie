@@ -108,28 +108,27 @@ export default function RemixModal({
 
   // Load suggestions when modal opens
   useEffect(() => {
-    if (isOpen) {
-      loadSuggestions()
-    } else {
+    if (!isOpen) return
+    let cancelled = false
+    ;(async () => {
       setSuggestions([])
       setSelectedSuggestions([])
       setCustomInput('')
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- loadSuggestions is stable, only re-run when modal opens or recipe changes
+      setLoadingSuggestions(true)
+      try {
+        const response = await api.ai.remix.getSuggestions(recipe.id)
+        if (!cancelled) setSuggestions(response.suggestions)
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to load remix suggestions:', error)
+          handleQuotaError(error, 'Failed to load suggestions')
+        }
+      } finally {
+        if (!cancelled) setLoadingSuggestions(false)
+      }
+    })()
+    return () => { cancelled = true }
   }, [isOpen, recipe.id])
-
-  const loadSuggestions = async () => {
-    setLoadingSuggestions(true)
-    try {
-      const response = await api.ai.remix.getSuggestions(recipe.id)
-      setSuggestions(response.suggestions)
-    } catch (error) {
-      console.error('Failed to load remix suggestions:', error)
-      handleQuotaError(error, 'Failed to load suggestions')
-    } finally {
-      setLoadingSuggestions(false)
-    }
-  }
 
   const handleSuggestionClick = (suggestion: string) => {
     setSelectedSuggestions((prev) =>

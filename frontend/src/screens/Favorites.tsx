@@ -13,20 +13,22 @@ export default function Favorites() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadFavorites()
+    let cancelled = false
+    ;(async () => {
+      try {
+        const data = await api.favorites.list()
+        if (!cancelled) setFavorites(data)
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to load favorites:', error)
+          toast.error('Failed to load favorites')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
   }, [])
-
-  const loadFavorites = async () => {
-    try {
-      const data = await api.favorites.list()
-      setFavorites(data)
-    } catch (error) {
-      console.error('Failed to load favorites:', error)
-      toast.error('Failed to load favorites')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleRemoveFavorite = async (recipe: Recipe) => {
     try {

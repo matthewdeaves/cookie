@@ -33,25 +33,28 @@ export function useRecipeDetail() {
   })
 
   useEffect(() => {
-    if (recipeId) {
-      loadData()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- loadData is stable, only re-run when recipeId changes
+    if (!recipeId) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const recipeData = await api.recipes.get(recipeId)
+        if (!cancelled) {
+          setRecipe(recipeData)
+          setServings(recipeData.servings)
+          setScaledData(null)
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to load recipe:', error)
+          toast.error('Failed to load recipe')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when recipeId changes
   }, [recipeId])
-
-  const loadData = async () => {
-    try {
-      const recipeData = await api.recipes.get(recipeId)
-      setRecipe(recipeData)
-      setServings(recipeData.servings)
-      setScaledData(null)
-    } catch (error) {
-      console.error('Failed to load recipe:', error)
-      toast.error('Failed to load recipe')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const canShowServingAdjustment = aiStatus.available && recipe?.servings !== null
 

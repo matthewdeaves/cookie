@@ -67,11 +67,39 @@ export function AIStatusProvider({ children }: AIStatusProviderProps) {
   }, [])
 
   useEffect(() => {
-    refresh()
+    let cancelled = false
+    const doRefresh = async () => {
+      try {
+        const data: AIStatus = await api.ai.status()
+        if (!cancelled) {
+          setStatus({
+            available: data.available,
+            configured: data.configured,
+            valid: data.valid,
+            error: data.error,
+            errorCode: data.error_code,
+          })
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to fetch AI status:', error)
+          setStatus({
+            available: false,
+            configured: false,
+            valid: false,
+            error: 'Failed to check AI availability',
+            errorCode: 'connection_error',
+          })
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    doRefresh()
     // Refresh every 5 minutes
-    const interval = setInterval(refresh, 5 * 60 * 1000)
-    return () => clearInterval(interval)
-  }, [refresh])
+    const interval = setInterval(doRefresh, 5 * 60 * 1000)
+    return () => { cancelled = true; clearInterval(interval) }
+  }, [])
 
   return (
     <AIStatusContext.Provider value={{ ...status, loading, refresh }}>

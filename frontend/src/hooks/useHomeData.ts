@@ -11,26 +11,30 @@ export function useHomeData() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadData()
+    let cancelled = false
+    ;(async () => {
+      try {
+        const [favoritesData, historyData, recipesData] = await Promise.all([
+          api.favorites.list(),
+          api.history.list(6),
+          api.recipes.list(1000),
+        ])
+        if (!cancelled) {
+          setFavorites(favoritesData)
+          setHistory(historyData)
+          setRecipesCount(recipesData.length)
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to load data:', error)
+          toast.error('Failed to load recipes')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
   }, [])
-
-  const loadData = async () => {
-    try {
-      const [favoritesData, historyData, recipesData] = await Promise.all([
-        api.favorites.list(),
-        api.history.list(6),
-        api.recipes.list(1000),
-      ])
-      setFavorites(favoritesData)
-      setHistory(historyData)
-      setRecipesCount(recipesData.length)
-    } catch (error) {
-      console.error('Failed to load data:', error)
-      toast.error('Failed to load recipes')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const favoriteIds = useMemo(
     () => new Set(favorites.map((f) => f.recipe.id)),

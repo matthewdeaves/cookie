@@ -36,41 +36,45 @@ export function useSettingsData(isAdmin: boolean): SettingsData {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadData()
-  }, [isAdmin])
-
-  const loadData = async () => {
-    try {
-      if (isAdmin) {
-        const [statusData, promptsData, modelsData, sourcesData, profilesData] =
-          await Promise.all([
-            api.ai.status(),
-            api.ai.prompts.list(),
-            api.ai.models(),
-            api.sources.list(),
-            api.profiles.list(),
-          ])
-        setAiStatus(statusData)
-        setPrompts(promptsData)
-        setModels(modelsData)
-        setSources(sourcesData)
-        setProfiles(profilesData)
-      }
-
-      // Load quotas separately — 404 in home mode is expected
+    let cancelled = false
+    ;(async () => {
       try {
-        const quotas = await api.ai.quotas.get()
-        setQuotaData(quotas)
-      } catch {
-        // Quotas not available (e.g. home mode) — ignore
+        if (isAdmin) {
+          const [statusData, promptsData, modelsData, sourcesData, profilesData] =
+            await Promise.all([
+              api.ai.status(),
+              api.ai.prompts.list(),
+              api.ai.models(),
+              api.sources.list(),
+              api.profiles.list(),
+            ])
+          if (!cancelled) {
+            setAiStatus(statusData)
+            setPrompts(promptsData)
+            setModels(modelsData)
+            setSources(sourcesData)
+            setProfiles(profilesData)
+          }
+        }
+
+        // Load quotas separately — 404 in home mode is expected
+        try {
+          const quotas = await api.ai.quotas.get()
+          if (!cancelled) setQuotaData(quotas)
+        } catch {
+          // Quotas not available (e.g. home mode) — ignore
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to load settings:', error)
+          toast.error('Failed to load settings')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
       }
-    } catch (error) {
-      console.error('Failed to load settings:', error)
-      toast.error('Failed to load settings')
-    } finally {
-      setLoading(false)
-    }
-  }
+    })()
+    return () => { cancelled = true }
+  }, [isAdmin])
 
   return {
     aiStatus,
