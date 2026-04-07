@@ -85,12 +85,12 @@
         var suggestionsContainer = document.getElementById('remix-suggestions');
         if (!suggestionsContainer) return;
 
-        suggestionsContainer.innerHTML = '<div class="remix-loading"><div class="spinner"></div><span>Generating suggestions...</span></div>';
+        Cookie.utils.setHtml(suggestionsContainer, '<div class="remix-loading"><div class="spinner"></div><span>Generating suggestions...</span></div>');
 
         Cookie.ajax.post('/api/ai/remix-suggestions', { recipe_id: state.recipeId }, function(err, response) {
             if (err) {
                 var errorInfo = Cookie.aiError.handleError(err, 'Failed to load suggestions');
-                suggestionsContainer.innerHTML = '<p class="remix-error">' + Cookie.utils.escapeHtml(errorInfo.message) + '</p>';
+                Cookie.utils.setHtml(suggestionsContainer, '<p class="remix-error">' + Cookie.utils.escapeHtml(errorInfo.message) + '</p>');
                 Cookie.aiError.showError(err, 'Failed to load suggestions');
                 if (Cookie.aiError.shouldHideFeatures(err)) {
                     closeRemixModal();
@@ -110,7 +110,7 @@
         if (!suggestionsContainer) return;
 
         if (state.remixSuggestions.length === 0) {
-            suggestionsContainer.innerHTML = '<p class="remix-error">No suggestions available</p>';
+            Cookie.utils.setHtml(suggestionsContainer, '<p class="remix-error">No suggestions available</p>');
             return;
         }
 
@@ -119,7 +119,7 @@
             var suggestion = state.remixSuggestions[i];
             html += '<button type="button" class="remix-chip" data-suggestion="' + Cookie.utils.escapeHtml(suggestion) + '">' + Cookie.utils.escapeHtml(suggestion) + '</button>';
         }
-        suggestionsContainer.innerHTML = html;
+        Cookie.utils.setHtml(suggestionsContainer, html);
 
         var chips = suggestionsContainer.querySelectorAll('.remix-chip');
         for (var j = 0; j < chips.length; j++) {

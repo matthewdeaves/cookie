@@ -234,9 +234,23 @@ Cookie.utils = (function() {
         return new Date(normalized);
     }
 
+    /**
+     * Set innerHTML on an element (approved single chokepoint for innerHTML assignment).
+     * All dynamic HTML must be pre-escaped with escapeHtml() before passing here.
+     * Direct .innerHTML = assignment should not be used outside this function —
+     * grep for raw ".innerHTML =" to find violations during code review.
+     *
+     * @param {HTMLElement} el - The target element
+     * @param {string} html - Pre-escaped HTML string
+     */
+    function setHtml(el, html) {
+        if (el) el.innerHTML = html;
+    }
+
     // Public API
     return {
         escapeHtml: escapeHtml,
+        setHtml: setHtml,
         formatTime: formatTime,
         showElement: showElement,
         hideElement: hideElement,

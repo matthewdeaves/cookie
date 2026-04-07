@@ -635,7 +635,7 @@ Cookie.pages.detail = (function() {
 
                     if (timeChanged) {
                         var originalFormatted = Cookie.utils.formatTime(originalMinutes);
-                        valueEl.innerHTML = adjustedFormatted + ' <span class="time-was">(was ' + originalFormatted + ')</span>';
+                        Cookie.utils.setHtml(valueEl, adjustedFormatted + ' <span class="time-was">(was ' + originalFormatted + ')</span>');
                         valueEl.classList.add('time-adjusted');
                     } else {
                         // Time unchanged - just show the value, no "(was X)"
@@ -737,7 +737,7 @@ Cookie.pages.detail = (function() {
                 notesHtml += '<li>' + Cookie.utils.escapeHtml(scalingNotes[j]) + '</li>';
             }
             notesHtml += '</ul>';
-            notesContainer.innerHTML = notesHtml;
+            Cookie.utils.setHtml(notesContainer, notesHtml);
             notesContainer.classList.remove('hidden');
         } else {
             notesContainer.classList.add('hidden');
@@ -839,12 +839,12 @@ Cookie.pages.detail = (function() {
         if (!suggestionsContainer) return;
 
         // Show loading state
-        suggestionsContainer.innerHTML = '<div class="remix-loading"><div class="spinner"></div><span>Generating suggestions...</span></div>';
+        Cookie.utils.setHtml(suggestionsContainer, '<div class="remix-loading"><div class="spinner"></div><span>Generating suggestions...</span></div>');
 
         Cookie.ajax.post('/api/ai/remix-suggestions', { recipe_id: recipeId }, function(err, response) {
             if (err) {
                 var errorInfo = Cookie.aiError.handleError(err, 'Failed to load suggestions');
-                suggestionsContainer.innerHTML = '<p class="remix-error">' + Cookie.utils.escapeHtml(errorInfo.message) + '</p>';
+                Cookie.utils.setHtml(suggestionsContainer, '<p class="remix-error">' + Cookie.utils.escapeHtml(errorInfo.message) + '</p>');
                 Cookie.aiError.showError(err, 'Failed to load suggestions');
                 if (Cookie.aiError.shouldHideFeatures(err)) {
                     closeRemixModal();
@@ -866,7 +866,7 @@ Cookie.pages.detail = (function() {
         if (!suggestionsContainer) return;
 
         if (remixSuggestions.length === 0) {
-            suggestionsContainer.innerHTML = '<p class="remix-error">No suggestions available</p>';
+            Cookie.utils.setHtml(suggestionsContainer, '<p class="remix-error">No suggestions available</p>');
             return;
         }
 
@@ -875,7 +875,7 @@ Cookie.pages.detail = (function() {
             var suggestion = remixSuggestions[i];
             html += '<button type="button" class="remix-chip" data-suggestion="' + Cookie.utils.escapeHtml(suggestion) + '">' + Cookie.utils.escapeHtml(suggestion) + '</button>';
         }
-        suggestionsContainer.innerHTML = html;
+        Cookie.utils.setHtml(suggestionsContainer, html);
 
         // Add click listeners
         var chips = suggestionsContainer.querySelectorAll('.remix-chip');
@@ -1146,7 +1146,7 @@ Cookie.pages.detail = (function() {
         if (!tipsContent) return;
 
         if (!tips || tips.length === 0) {
-            tipsContent.innerHTML = '<p class="empty-text">No tips available for this recipe.</p>';
+            Cookie.utils.setHtml(tipsContent, '<p class="empty-text">No tips available for this recipe.</p>');
             tipsContent.classList.remove('hidden');
             return;
         }
@@ -1165,7 +1165,7 @@ Cookie.pages.detail = (function() {
         html += '<button type="button" id="regenerate-tips-btn" class="btn btn-secondary">Regenerate Tips</button>';
         html += '</div>';
 
-        tipsContent.innerHTML = html;
+        Cookie.utils.setHtml(tipsContent, html);
         tipsContent.classList.remove('hidden');
 
         // Re-bind regenerate button event listener

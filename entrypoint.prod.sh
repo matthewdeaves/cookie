@@ -62,7 +62,7 @@ echo "SECRET_KEY=${SECRET_KEY}" >> /etc/cron.d/cookie-cleanup
 echo "0 * * * * root cd /app && /usr/local/bin/python manage.py cleanup_device_codes >> /proc/1/fd/1 2>&1" >> /etc/cron.d/cookie-cleanup
 echo "15 3 * * * root cd /app && /usr/local/bin/python manage.py cleanup_sessions >> /proc/1/fd/1 2>&1" >> /etc/cron.d/cookie-cleanup
 echo "30 3 * * * root cd /app && /usr/local/bin/python manage.py cleanup_search_images >> /proc/1/fd/1 2>&1" >> /etc/cron.d/cookie-cleanup
-chmod 0644 /etc/cron.d/cookie-cleanup
+chmod 0600 /etc/cron.d/cookie-cleanup
 crontab /etc/cron.d/cookie-cleanup
 cron
 echo "Cron daemon started: device codes (hourly), sessions + images (daily 3am)"

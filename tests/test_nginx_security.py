@@ -130,7 +130,7 @@ class TestNginxSecurityHeaders:
     """Security headers must be present in the shared include."""
 
     REQUIRED_HEADERS = [
-        ("Strict-Transport-Security", r"max-age=\d+"),
+        ("Strict-Transport-Security", r"max-age=\d+.*preload"),
         ("X-Content-Type-Options", "nosniff"),
         ("X-Frame-Options", "SAMEORIGIN"),
         ("Content-Security-Policy", "default-src"),
@@ -211,3 +211,27 @@ class TestNginxRouting:
 
     def test_client_max_body_size(self, nginx_config):
         assert re.search(r"client_max_body_size\s+\d+m", nginx_config), "client_max_body_size must be set"
+
+
+ENTRYPOINT_PROD = Path(__file__).parent.parent / "entrypoint.prod.sh"
+
+
+class TestEntrypointSecurity:
+    """Security checks for production entrypoint script."""
+
+    @pytest.fixture
+    def entrypoint(self):
+        return ENTRYPOINT_PROD.read_text()
+
+    def test_cron_file_permissions_restrictive(self, entrypoint):
+        """Cron env file contains secrets — must not be world-readable."""
+        assert "chmod 0600 /etc/cron.d/cookie-cleanup" in entrypoint, (
+            "Cron file must use chmod 0600, not 0644 — it contains DATABASE_URL and SECRET_KEY"
+        )
+        assert "chmod 0644 /etc/cron.d/cookie-cleanup" not in entrypoint, (
+            "Cron file must not use world-readable 0644 permissions"
+        )
+
+    def test_secret_key_file_permissions(self, entrypoint):
+        """Generated secret key file must be owner-only."""
+        assert "chmod 600" in entrypoint, "SECRET_KEY file must have restrictive permissions"

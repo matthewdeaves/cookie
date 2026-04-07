@@ -52,7 +52,7 @@
 
         Cookie.ajax.get('/api/profiles/', function(err, result) {
             if (err) {
-                profilesList.innerHTML = '<div class="error-placeholder">Failed to load profiles</div>';
+                Cookie.utils.setHtml(profilesList, '<div class="error-placeholder">Failed to load profiles</div>');
                 return;
             }
 
@@ -130,7 +130,7 @@
             fragment.appendChild(clone);
         }
 
-        profilesList.innerHTML = '';
+        Cookie.utils.setHtml(profilesList, '');
         profilesList.appendChild(fragment);
     }
 
@@ -158,13 +158,13 @@
         var profile = preview.profile;
         var data = preview.data_to_delete;
 
-        deleteProfileInfo.innerHTML = [
+        Cookie.utils.setHtml(deleteProfileInfo, [
             '<div class="profile-avatar" data-avatar-color="' + Cookie.utils.escapeHtml(profile.avatar_color) + '"></div>',
             '<div>',
             '  <div class="profile-name">' + Cookie.utils.escapeHtml(profile.name) + '</div>',
             '  <div class="profile-meta">Created ' + Cookie.utils.formatDate(profile.created_at) + '</div>',
             '</div>'
-        ].join('');
+        ].join(''));
         var avatarEl = deleteProfileInfo.querySelector('[data-avatar-color]');
         if (avatarEl) {
             avatarEl.style.backgroundColor = avatarEl.getAttribute('data-avatar-color');
@@ -192,11 +192,11 @@
             summaryItems.push('No associated data');
         }
 
-        deleteDataSummary.innerHTML =
+        Cookie.utils.setHtml(deleteDataSummary,
             '<div class="summary-title">Data to be deleted:</div>' +
             '<ul class="summary-list">' + summaryItems.map(function(item) {
                 return '<li>' + item + '</li>';
-            }).join('') + '</ul>';
+            }).join('') + '</ul>');
     }
 
     function closeDeleteModal() {

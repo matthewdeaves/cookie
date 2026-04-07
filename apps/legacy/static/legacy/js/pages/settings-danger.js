@@ -60,7 +60,7 @@
         html += '<li>' + counts.view_history + ' view history entries</li>';
         html += '<li>' + (counts.ai_suggestions + counts.serving_adjustments) + ' cached AI entries</li>';
         html += '</ul>';
-        resetDataSummary.innerHTML = html;
+        Cookie.utils.setHtml(resetDataSummary, html);
     }
 
     function showResetStep2() {

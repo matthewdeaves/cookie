@@ -196,7 +196,7 @@ Cookie.pages.search = (function() {
         });
 
         if (sortedSites.length === 0) {
-            elements.sourceFilters.innerHTML = '';
+            Cookie.utils.setHtml(elements.sourceFilters, '');
             return;
         }
 
@@ -226,7 +226,7 @@ Cookie.pages.search = (function() {
             html += '</button>';
         }
 
-        elements.sourceFilters.innerHTML = html;
+        Cookie.utils.setHtml(elements.sourceFilters, html);
 
         // Add click handlers
         var chips = elements.sourceFilters.querySelectorAll('.chip');
@@ -270,7 +270,7 @@ Cookie.pages.search = (function() {
             for (var i = 0; i < state.results.length; i++) {
                 html += renderSearchResultCard(state.results[i]);
             }
-            elements.resultsGrid.innerHTML = html;
+            Cookie.utils.setHtml(elements.resultsGrid, html);
         } else {
             // Only render NEW results (from previousCount onwards)
             for (var j = previousCount; j < state.results.length; j++) {
@@ -414,8 +414,8 @@ Cookie.pages.search = (function() {
                     }
                     var parent = img.parentElement;
                     if (parent) {
-                        parent.innerHTML = '<div class="search-result-no-image"><span>' +
-                            Cookie.utils.escapeHtml(title || 'No image') + '</span></div>';
+                        Cookie.utils.setHtml(parent, '<div class="search-result-no-image"><span>' +
+                            Cookie.utils.escapeHtml(title || 'No image') + '</span></div>');
                     }
                 };
             })(images[i]);
@@ -524,8 +524,8 @@ Cookie.pages.search = (function() {
                     var imgContainer = card.querySelector('.search-result-image');
                     if (imgContainer) {
                         // Replace loading spinner with actual image
-                        imgContainer.innerHTML = '<img src="' + Cookie.utils.escapeHtml(result.cached_image_url) +
-                                                '" alt="' + Cookie.utils.escapeHtml(result.title) + '" loading="lazy">';
+                        Cookie.utils.setHtml(imgContainer, '<img src="' + Cookie.utils.escapeHtml(result.cached_image_url) +
+                                                '" alt="' + Cookie.utils.escapeHtml(result.title) + '" loading="lazy">');
                         // Attach error handler to new image
                         attachImageErrorHandlers(imgContainer);
                     }
@@ -583,7 +583,7 @@ Cookie.pages.search = (function() {
                 // 1. No image exists, OR
                 // 2. Image is WebP (iOS 9 can't display it anyway)
                 if (!existingImg || isWebPUrl(imageUrl)) {
-                    imgContainer.innerHTML = '<div class="image-loading-spinner"></div>';
+                    Cookie.utils.setHtml(imgContainer, '<div class="image-loading-spinner"></div>');
                 }
             }
         }
@@ -605,13 +605,13 @@ Cookie.pages.search = (function() {
                 var imgContainer = spinners[i].parentElement;
                 var title = card.querySelector('.search-result-title');
                 var alt = title ? title.textContent : '';
-                imgContainer.innerHTML = '<img src="' + Cookie.utils.escapeHtml(pending.imageUrl) +
-                    '" alt="' + Cookie.utils.escapeHtml(alt) + '" loading="lazy">';
+                Cookie.utils.setHtml(imgContainer, '<img src="' + Cookie.utils.escapeHtml(pending.imageUrl) +
+                    '" alt="' + Cookie.utils.escapeHtml(alt) + '" loading="lazy">');
                 // Attach error handler to fallback image
                 attachImageErrorHandlers(imgContainer);
             } else {
                 // No external URL available
-                spinners[i].parentElement.innerHTML = '<div class="search-result-no-image"><span>No image</span></div>';
+                Cookie.utils.setHtml(spinners[i].parentElement, '<div class="search-result-no-image"><span>No image</span></div>');
             }
         }
     }

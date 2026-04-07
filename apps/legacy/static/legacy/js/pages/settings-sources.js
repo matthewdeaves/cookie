@@ -40,7 +40,7 @@
 
         Cookie.ajax.get('/api/sources/', function(err, result) {
             if (err) {
-                sourcesList.innerHTML = '<div class="error-placeholder">Failed to load sources</div>';
+                Cookie.utils.setHtml(sourcesList, '<div class="error-placeholder">Failed to load sources</div>');
                 return;
             }
 
@@ -90,14 +90,14 @@
 
             var btn = clone.querySelector('[data-action="toggle-source"]');
             btn.setAttribute('data-source-id', source.id);
-            btn.innerHTML = source.is_enabled
+            Cookie.utils.setHtml(btn, source.is_enabled
                 ? '<svg class="toggle-icon toggle-on" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect><circle cx="16" cy="12" r="4" fill="var(--background)"></circle></svg>'
-                : '<svg class="toggle-icon toggle-off" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect><circle cx="8" cy="12" r="3"></circle></svg>';
+                : '<svg class="toggle-icon toggle-off" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect><circle cx="8" cy="12" r="3"></circle></svg>');
 
             fragment.appendChild(clone);
         }
 
-        sourcesList.innerHTML = '';
+        Cookie.utils.setHtml(sourcesList, '');
         sourcesList.appendChild(fragment);
     }
 

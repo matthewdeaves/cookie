@@ -49,7 +49,7 @@ Cookie.pages.playTimers = (function() {
         widget.className = 'timer-widget';
         widget.setAttribute('data-timer-id', timer.id);
 
-        widget.innerHTML = '<div class="timer-info">'
+        Cookie.utils.setHtml(widget, '<div class="timer-info">'
             + '<div class="timer-label">' + Cookie.utils.escapeHtml(timer.label) + '</div>'
             + '<div class="timer-time">' + timer.formatTime() + '</div>'
             + '</div>'
@@ -60,7 +60,7 @@ Cookie.pages.playTimers = (function() {
             + RESET_SVG + '</button>'
             + '<button type="button" class="timer-action-btn delete-btn" title="Delete">'
             + DELETE_SVG + '</button>'
-            + '</div>';
+            + '</div>');
 
         var pauseBtn = widget.querySelector('.pause-btn');
         var resetBtn = widget.querySelector('[title="Reset"]');
@@ -68,7 +68,7 @@ Cookie.pages.playTimers = (function() {
 
         pauseBtn.addEventListener('click', function() {
             timer.toggle();
-            pauseBtn.innerHTML = timer.isRunning ? PAUSE_SVG : PLAY_SVG;
+            Cookie.utils.setHtml(pauseBtn, timer.isRunning ? PAUSE_SVG : PLAY_SVG);
             pauseBtn.title = timer.isRunning ? 'Pause' : 'Start';
             if (timer.remaining <= 0) {
                 pauseBtn.disabled = true;
@@ -78,7 +78,7 @@ Cookie.pages.playTimers = (function() {
 
         resetBtn.addEventListener('click', function() {
             timer.reset();
-            pauseBtn.innerHTML = PLAY_SVG;
+            Cookie.utils.setHtml(pauseBtn, PLAY_SVG);
             pauseBtn.title = 'Start';
             pauseBtn.disabled = false;
             updateTimerCount();
@@ -105,7 +105,7 @@ Cookie.pages.playTimers = (function() {
             if (w) {
                 var pb = w.querySelector('.pause-btn');
                 if (pb) {
-                    pb.innerHTML = PLAY_SVG;
+                    Cookie.utils.setHtml(pb, PLAY_SVG);
                     pb.title = 'Done';
                     pb.disabled = true;
                 }

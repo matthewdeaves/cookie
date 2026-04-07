@@ -50,7 +50,7 @@
             clone.querySelector('[data-field="selector-value"]').textContent = source.result_selector || '(none)';
 
             var status = getSourceStatus(source);
-            clone.querySelector('[data-field="status-icon"]').innerHTML = getStatusIcon(status);
+            Cookie.utils.setHtml(clone.querySelector('[data-field="status-icon"]'), getStatusIcon(status));
 
             var failureWarning = clone.querySelector('[data-field="failure-warning"]');
             if (source.consecutive_failures >= 3) {
@@ -70,7 +70,7 @@
             fragment.appendChild(clone);
         }
 
-        selectorsList.innerHTML = '';
+        Cookie.utils.setHtml(selectorsList, '');
         selectorsList.appendChild(fragment);
     }
 

@@ -164,7 +164,7 @@
         if (!tipsContent) return;
 
         if (!tips || tips.length === 0) {
-            tipsContent.innerHTML = '<p class="empty-text">No tips available for this recipe.</p>';
+            Cookie.utils.setHtml(tipsContent, '<p class="empty-text">No tips available for this recipe.</p>');
             tipsContent.classList.remove('hidden');
             return;
         }
@@ -182,7 +182,7 @@
         html += '<button type="button" id="regenerate-tips-btn" class="btn btn-secondary">Regenerate Tips</button>';
         html += '</div>';
 
-        tipsContent.innerHTML = html;
+        Cookie.utils.setHtml(tipsContent, html);
         tipsContent.classList.remove('hidden');
 
         var regenerateBtn = document.getElementById('regenerate-tips-btn');

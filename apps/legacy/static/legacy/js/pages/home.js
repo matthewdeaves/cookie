@@ -196,7 +196,7 @@ Cookie.pages.home = (function() {
         var container = document.getElementById('discover-suggestions');
         if (!container) return;
 
-        container.innerHTML = '';
+        Cookie.utils.setHtml(container, '');
 
         for (var i = 0; i < suggestions.length; i++) {
             var suggestion = suggestions[i];
@@ -217,7 +217,7 @@ Cookie.pages.home = (function() {
         // Type label
         var typeLabel = getTypeLabel(suggestion.type);
 
-        card.innerHTML =
+        Cookie.utils.setHtml(card,
             '<div class="discover-card-header">' +
                 '<svg class="discover-card-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
                     '<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>' +
@@ -232,7 +232,7 @@ Cookie.pages.home = (function() {
                     '<line x1="21" y1="21" x2="16.65" y2="16.65"></line>' +
                 '</svg>' +
                 '<span>Search: ' + Cookie.utils.escapeHtml(suggestion.search_query) + '</span>' +
-            '</div>';
+            '</div>');
 
         card.addEventListener('click', function() {
             var query = this.getAttribute('data-search-query');

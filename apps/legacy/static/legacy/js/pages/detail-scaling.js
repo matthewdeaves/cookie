@@ -222,7 +222,7 @@
 
                     if (timeChanged) {
                         var originalFormatted = Cookie.utils.formatTime(originalMinutes);
-                        valueEl.innerHTML = adjustedFormatted + ' <span class="time-was">(was ' + originalFormatted + ')</span>';
+                        Cookie.utils.setHtml(valueEl, adjustedFormatted + ' <span class="time-was">(was ' + originalFormatted + ')</span>');
                         valueEl.classList.add('time-adjusted');
                     } else {
                         valueEl.textContent = adjustedFormatted;
@@ -308,7 +308,7 @@
                 notesHtml += '<li>' + Cookie.utils.escapeHtml(state.scalingNotes[j]) + '</li>';
             }
             notesHtml += '</ul>';
-            notesContainer.innerHTML = notesHtml;
+            Cookie.utils.setHtml(notesContainer, notesHtml);
             notesContainer.classList.remove('hidden');
         } else {
             notesContainer.classList.add('hidden');

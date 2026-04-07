@@ -395,8 +395,8 @@ Cookie.pages.settings = (function() {
     function loadSources() {
         Cookie.ajax.get('/api/sources/', function(err, result) {
             if (err) {
-                sourcesList.innerHTML = '<div class="error-placeholder">Failed to load sources</div>';
-                selectorsList.innerHTML = '<div class="error-placeholder">Failed to load sources</div>';
+                Cookie.utils.setHtml(sourcesList, '<div class="error-placeholder">Failed to load sources</div>');
+                Cookie.utils.setHtml(selectorsList, '<div class="error-placeholder">Failed to load sources</div>');
                 return;
             }
 
@@ -449,14 +449,14 @@ Cookie.pages.settings = (function() {
             // Set button attributes and icon
             var btn = clone.querySelector('[data-action="toggle-source"]');
             btn.setAttribute('data-source-id', source.id);
-            btn.innerHTML = source.is_enabled
+            Cookie.utils.setHtml(btn, source.is_enabled
                 ? '<svg class="toggle-icon toggle-on" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect><circle cx="16" cy="12" r="4" fill="var(--background)"></circle></svg>'
-                : '<svg class="toggle-icon toggle-off" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect><circle cx="8" cy="12" r="3"></circle></svg>';
+                : '<svg class="toggle-icon toggle-off" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect><circle cx="8" cy="12" r="3"></circle></svg>');
 
             fragment.appendChild(clone);
         }
 
-        sourcesList.innerHTML = '';
+        Cookie.utils.setHtml(sourcesList, '');
         sourcesList.appendChild(fragment);
         // Event listeners handled via delegation in setupSourcesTab()
     }
@@ -558,7 +558,7 @@ Cookie.pages.settings = (function() {
 
             // Set status icon
             var status = getSourceStatus(source);
-            clone.querySelector('[data-field="status-icon"]').innerHTML = getStatusIcon(status);
+            Cookie.utils.setHtml(clone.querySelector('[data-field="status-icon"]'), getStatusIcon(status));
 
             // Set failure warning
             var failureWarning = clone.querySelector('[data-field="failure-warning"]');
@@ -581,7 +581,7 @@ Cookie.pages.settings = (function() {
             fragment.appendChild(clone);
         }
 
-        selectorsList.innerHTML = '';
+        Cookie.utils.setHtml(selectorsList, '');
         selectorsList.appendChild(fragment);
         // Event listeners handled via delegation in setupSelectorsTab()
     }
@@ -768,7 +768,7 @@ Cookie.pages.settings = (function() {
     function loadProfiles() {
         Cookie.ajax.get('/api/profiles/', function(err, result) {
             if (err) {
-                profilesList.innerHTML = '<div class="error-placeholder">Failed to load profiles</div>';
+                Cookie.utils.setHtml(profilesList, '<div class="error-placeholder">Failed to load profiles</div>');
                 return;
             }
 
@@ -830,7 +830,7 @@ Cookie.pages.settings = (function() {
             fragment.appendChild(clone);
         }
 
-        profilesList.innerHTML = '';
+        Cookie.utils.setHtml(profilesList, '');
         profilesList.appendChild(fragment);
         // Event listeners handled via delegation in setupUsersTab()
     }
@@ -868,13 +868,13 @@ Cookie.pages.settings = (function() {
         var data = preview.data_to_delete;
 
         // Profile info
-        deleteProfileInfo.innerHTML = [
+        Cookie.utils.setHtml(deleteProfileInfo, [
             '<div class="profile-avatar" style="background-color: ' + Cookie.utils.escapeHtml(profile.avatar_color) + '"></div>',
             '<div>',
             '  <div class="profile-name">' + Cookie.utils.escapeHtml(profile.name) + '</div>',
             '  <div class="profile-meta">Created ' + Cookie.utils.formatDate(profile.created_at) + '</div>',
             '</div>'
-        ].join('');
+        ].join(''));
 
         // Data summary
         var summaryItems = [];
@@ -899,11 +899,11 @@ Cookie.pages.settings = (function() {
             summaryItems.push('No associated data');
         }
 
-        deleteDataSummary.innerHTML =
+        Cookie.utils.setHtml(deleteDataSummary,
             '<div class="summary-title">Data to be deleted:</div>' +
             '<ul class="summary-list">' + summaryItems.map(function(item) {
                 return '<li>' + item + '</li>';
-            }).join('') + '</ul>';
+            }).join('') + '</ul>');
     }
 
     /**
@@ -1034,7 +1034,7 @@ Cookie.pages.settings = (function() {
         html += '<li>' + counts.view_history + ' view history entries</li>';
         html += '<li>' + (counts.ai_suggestions + counts.serving_adjustments) + ' cached AI entries</li>';
         html += '</ul>';
-        resetDataSummary.innerHTML = html;
+        Cookie.utils.setHtml(resetDataSummary, html);
     }
 
     /**
