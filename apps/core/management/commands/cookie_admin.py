@@ -17,7 +17,7 @@ Usage:
     manage.py cookie_admin remove-unlimited <username> [--json]
     manage.py cookie_admin usage [--username <name>] [--json]
     manage.py cookie_admin create-session <username> [--ttl N] [--json]
-    manage.py cookie_admin reset [--json]
+    manage.py cookie_admin reset [--json --confirm]
 """
 
 import json
@@ -109,6 +109,7 @@ class Command(BaseCommand):
 
         # reset
         rs = sub.add_parser("reset", help="Factory reset: delete all data and re-seed defaults")
+        rs.add_argument("--confirm", action="store_true", help="Skip interactive prompt (required with --json)")
         rs.add_argument("--json", action="store_true", dest="as_json")
 
     def handle(self, *args, **options):
@@ -633,7 +634,10 @@ class Command(BaseCommand):
             SearchSource,
         )
 
-        if not options.get("as_json"):
+        if options.get("as_json"):
+            if not options.get("confirm"):
+                self._error("--confirm flag required for non-interactive reset. Usage: cookie_admin reset --json --confirm", options)
+        else:
             self.stderr.write("WARNING: This will permanently delete ALL data.")
             confirm = input("Type RESET to confirm: ")
             if confirm != "RESET":
