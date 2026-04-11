@@ -89,6 +89,9 @@ docker compose exec web python manage.py cookie_admin demote <pk_username> --jso
 docker compose exec web python manage.py cookie_admin deactivate <pk_username> --json
 docker compose exec web python manage.py cookie_admin activate <pk_username> --json
 
+# Factory reset (CLI-only in passkey mode — disabled in web UI)
+docker compose exec web python manage.py cookie_admin reset --json
+
 # Device code cleanup
 docker compose exec web python manage.py cleanup_device_codes --dry-run
 ```

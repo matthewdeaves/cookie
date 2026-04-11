@@ -3,6 +3,7 @@ Tests for system API endpoints (database reset).
 
 These tests verify the dangerous database reset functionality works correctly
 and safely, including proper confirmation requirements and data preservation.
+In passkey mode, reset endpoints are disabled (CLI-only).
 """
 
 import os
@@ -641,3 +642,65 @@ class TestResetDatabaseEdgeCases:
         )
         # Should return validation error
         assert response.status_code in [400, 422]
+
+
+@pytest.fixture
+def passkey_admin_client(db):
+    """Client authenticated as admin user in passkey mode."""
+    from django.contrib.auth.models import User
+    from django.contrib.auth import BACKEND_SESSION_KEY, HASH_SESSION_KEY, SESSION_KEY
+
+    user = User.objects.create_user(username="testadmin", password=None, is_staff=True)
+    user.set_unusable_password()
+    user.save()
+    profile = Profile.objects.create(name="Admin", avatar_color="#000000", user=user)
+
+    c = Client()
+    # Build a Django auth session manually (same as login())
+    c.get("/api/system/health/")
+    session = c.session
+    session[SESSION_KEY] = str(user.pk)
+    session[BACKEND_SESSION_KEY] = "django.contrib.auth.backends.ModelBackend"
+    session[HASH_SESSION_KEY] = user.get_session_auth_hash()
+    session["profile_id"] = profile.id
+    session.save()
+    c.cookies["sessionid"] = session.session_key
+    return c
+
+
+@pytest.mark.django_db
+class TestResetDisabledInPasskeyMode:
+    """Tests verifying reset endpoints are disabled in passkey mode."""
+
+    @patch.object(settings, "AUTH_MODE", "passkey")
+    def test_reset_preview_blocked_in_passkey_mode(self, passkey_admin_client):
+        """Reset preview returns 403 in passkey mode."""
+        response = passkey_admin_client.get("/api/system/reset-preview/")
+        assert response.status_code == 403
+        data = response.json()
+        assert data["error"] == "disabled"
+        assert "CLI" in data["message"]
+
+    @patch.object(settings, "AUTH_MODE", "passkey")
+    def test_reset_blocked_in_passkey_mode(self, passkey_admin_client):
+        """Reset POST returns 403 in passkey mode even with valid confirmation."""
+        response = passkey_admin_client.post(
+            "/api/system/reset/",
+            {"confirmation_text": "RESET"},
+            content_type="application/json",
+        )
+        assert response.status_code == 403
+        data = response.json()
+        assert data["error"] == "disabled"
+        assert "CLI" in data["message"]
+
+    @patch.object(settings, "AUTH_MODE", "passkey")
+    def test_reset_blocked_before_confirmation_check(self, passkey_admin_client):
+        """Passkey mode check happens before confirmation text validation."""
+        response = passkey_admin_client.post(
+            "/api/system/reset/",
+            {"confirmation_text": "wrong"},
+            content_type="application/json",
+        )
+        # Should be 403 (disabled), not 400 (invalid confirmation)
+        assert response.status_code == 403

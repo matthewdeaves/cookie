@@ -3,7 +3,7 @@
 # Dockerfiles install from requirements.lock for supply chain integrity.
 #
 # Runtime dependencies
-Django>=6.0,<7.0
+Django>=6.0.4,<7.0
 pygments>=2.20.0  # CVE-2026-4539 fix (transitive dep)
 dj-database-url>=3.1
 psycopg[binary]>=3.3

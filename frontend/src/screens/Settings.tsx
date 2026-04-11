@@ -47,7 +47,7 @@ function buildTabConfig(mode: string, isAdmin: boolean): TabConfig<Tab>[] {
     { id: 'sources', label: 'Sources', icon: Globe, visible: isAdmin },
     { id: 'selectors', label: 'Selectors', icon: Code, visible: isAdmin },
     { id: 'users', label: 'Users', icon: Users, visible: isAdmin },
-    { id: 'danger', label: 'Danger Zone', icon: AlertTriangle, visible: isAdmin, variant: 'destructive' as const },
+    { id: 'danger', label: 'Danger Zone', icon: AlertTriangle, visible: isAdmin && mode !== 'passkey', variant: 'destructive' as const },
   ]
 }
 
