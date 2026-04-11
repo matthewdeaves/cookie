@@ -132,7 +132,7 @@ class TestNginxSecurityHeaders:
     REQUIRED_HEADERS = [
         ("Strict-Transport-Security", r"max-age=\d+.*preload"),
         ("X-Content-Type-Options", "nosniff"),
-        ("X-Frame-Options", "SAMEORIGIN"),
+        ("X-Frame-Options", "DENY"),
         ("Content-Security-Policy", "default-src"),
         ("Referrer-Policy", "strict-origin"),
         ("Permissions-Policy", "camera="),
