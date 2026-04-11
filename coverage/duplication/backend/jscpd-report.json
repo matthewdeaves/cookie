@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-07T18:25:23.496Z",
+    "detectionDate": "2026-04-11T04:52:58.635Z",
     "formats": {
       "python": {
         "sources": {
@@ -65,14 +65,14 @@
             "newClones": 0
           },
           "apps/core/management/commands/cookie_admin.py": {
-            "lines": 607,
-            "tokens": 5592,
+            "lines": 704,
+            "tokens": 6317,
             "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
+            "clones": 1,
+            "duplicatedLines": 8,
+            "duplicatedTokens": 92,
+            "percentage": 1.14,
+            "percentageTokens": 1.46,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -629,14 +629,14 @@
             "newClones": 0
           },
           "apps/core/api.py": {
-            "lines": 244,
-            "tokens": 1711,
+            "lines": 265,
+            "tokens": 1888,
             "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
+            "clones": 1,
+            "duplicatedLines": 8,
+            "duplicatedTokens": 92,
+            "percentage": 3.02,
+            "percentageTokens": 4.87,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -726,28 +726,28 @@
           }
         },
         "total": {
-          "lines": 10798,
-          "tokens": 75368,
+          "lines": 10916,
+          "tokens": 76270,
           "sources": 60,
-          "clones": 8,
-          "duplicatedLines": 129,
-          "duplicatedTokens": 1040,
-          "percentage": 1.19,
-          "percentageTokens": 1.38,
+          "clones": 9,
+          "duplicatedLines": 137,
+          "duplicatedTokens": 1132,
+          "percentage": 1.26,
+          "percentageTokens": 1.48,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 10798,
-      "tokens": 75368,
+      "lines": 10916,
+      "tokens": 76270,
       "sources": 60,
-      "clones": 8,
-      "duplicatedLines": 129,
-      "duplicatedTokens": 1040,
-      "percentage": 1.19,
-      "percentageTokens": 1.38,
+      "clones": 9,
+      "duplicatedLines": 137,
+      "duplicatedTokens": 1132,
+      "percentage": 1.26,
+      "percentageTokens": 1.48,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -1038,6 +1038,42 @@
           "line": 115,
           "column": 6,
           "position": 726
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 9,
+      "fragment": "AIDiscoverySuggestion.objects.all().delete()\n        ServingAdjustment.objects.all().delete()\n        RecipeViewHistory.objects.all().delete()\n        RecipeCollectionItem.objects.all().delete()\n        RecipeCollection.objects.all().delete()\n        RecipeFavorite.objects.all().delete()\n        CachedSearchImage.objects.all().delete()\n\n        # Delete all recipes (this will cascade to related items)",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/core/api.py",
+        "start": 179,
+        "end": 187,
+        "startLoc": {
+          "line": 179,
+          "column": 9,
+          "position": 1293
+        },
+        "endLoc": {
+          "line": 187,
+          "column": 58,
+          "position": 1385
+        }
+      },
+      "secondFile": {
+        "name": "apps/core/management/commands/cookie_admin.py",
+        "start": 647,
+        "end": 654,
+        "startLoc": {
+          "line": 647,
+          "column": 9,
+          "position": 5859
+        },
+        "endLoc": {
+          "line": 654,
+          "column": 7,
+          "position": 5950
         }
       }
     }

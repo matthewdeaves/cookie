@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-07T18:25:25.537Z",
+    "detectionDate": "2026-04-11T04:52:42.446Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -1282,7 +1282,7 @@
           },
           "src/screens/Settings.tsx": {
             "lines": 135,
-            "tokens": 1359,
+            "tokens": 1367,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1847,7 +1847,7 @@
         },
         "total": {
           "lines": 7325,
-          "tokens": 57553,
+          "tokens": 57561,
           "sources": 77,
           "clones": 6,
           "duplicatedLines": 61,
@@ -2225,7 +2225,7 @@
     },
     "total": {
       "lines": 13714,
-      "tokens": 108665,
+      "tokens": 108673,
       "sources": 181,
       "clones": 8,
       "duplicatedLines": 120,
