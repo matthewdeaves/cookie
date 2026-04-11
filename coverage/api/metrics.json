@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-11T05:06:04.788156+00:00",
+  "generated_at": "2026-04-11T05:09:34.683473+00:00",
   "repo": "matthewdeaves/cookie",
   "coverage": {
     "frontend": {
@@ -34,7 +34,7 @@
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/duplication.svg"
     },
     "backend": {
-      "percentage": 1.26,
+      "percentage": 1.25,
       "clones_count": 9,
       "rating": "A",
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/backend-duplication.svg"

@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-11T05:02:52.201Z",
+    "detectionDate": "2026-04-11T05:06:13.856Z",
     "formats": {
       "python": {
         "sources": {
@@ -65,14 +65,14 @@
             "newClones": 0
           },
           "apps/core/management/commands/cookie_admin.py": {
-            "lines": 704,
-            "tokens": 6317,
+            "lines": 708,
+            "tokens": 6361,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 8,
             "duplicatedTokens": 92,
-            "percentage": 1.14,
-            "percentageTokens": 1.46,
+            "percentage": 1.13,
+            "percentageTokens": 1.45,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -726,13 +726,13 @@
           }
         },
         "total": {
-          "lines": 10916,
-          "tokens": 76270,
+          "lines": 10920,
+          "tokens": 76314,
           "sources": 60,
           "clones": 9,
           "duplicatedLines": 137,
           "duplicatedTokens": 1132,
-          "percentage": 1.26,
+          "percentage": 1.25,
           "percentageTokens": 1.48,
           "newDuplicatedLines": 0,
           "newClones": 0
@@ -740,13 +740,13 @@
       }
     },
     "total": {
-      "lines": 10916,
-      "tokens": 76270,
+      "lines": 10920,
+      "tokens": 76314,
       "sources": 60,
       "clones": 9,
       "duplicatedLines": 137,
       "duplicatedTokens": 1132,
-      "percentage": 1.26,
+      "percentage": 1.25,
       "percentageTokens": 1.48,
       "newDuplicatedLines": 0,
       "newClones": 0
@@ -1063,17 +1063,17 @@
       },
       "secondFile": {
         "name": "apps/core/management/commands/cookie_admin.py",
-        "start": 647,
-        "end": 654,
+        "start": 651,
+        "end": 658,
         "startLoc": {
-          "line": 647,
+          "line": 651,
           "column": 9,
-          "position": 5859
+          "position": 5903
         },
         "endLoc": {
-          "line": 654,
+          "line": 658,
           "column": 7,
-          "position": 5950
+          "position": 5994
         }
       }
     }
