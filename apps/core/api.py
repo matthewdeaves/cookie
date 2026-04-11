@@ -139,12 +139,13 @@ def get_reset_preview(request):
 
 
 @router.post("/reset/", response={200: ResetSuccessSchema, 400: ErrorSchema, 429: dict}, auth=AdminAuth())
-@ratelimit(key="ip", rate="1/m", method="POST", block=False)
+@ratelimit(key="ip", rate="1/h", method="POST", block=False)
 def reset_database(request, data: ResetConfirmSchema):
     """
     Completely reset the database to factory state.
 
     Requires confirmation_text="RESET" to proceed.
+    Rate limited to 1 request per hour per IP.
     """
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /system/reset/ from %s", request.META.get("REMOTE_ADDR"))
@@ -157,6 +158,14 @@ def reset_database(request, data: ResetConfirmSchema):
                 "message": "Type RESET to confirm",
             },
         )
+
+    client_ip = request.META.get("REMOTE_ADDR")
+    user_info = getattr(request, "auth", None)
+    security_logger.warning(
+        "DATABASE RESET initiated by %s from %s",
+        user_info,
+        client_ip,
+    )
 
     try:
         # 1. Clear database tables (order matters for FK constraints)
@@ -221,6 +230,12 @@ def reset_database(request, data: ResetConfirmSchema):
             call_command("seed_ai_prompts", verbosity=0)
         except Exception:
             logger.debug("seed_ai_prompts command not available, skipping")
+
+        security_logger.warning(
+            "DATABASE RESET completed successfully by %s from %s",
+            user_info,
+            client_ip,
+        )
 
         return {
             "success": True,
