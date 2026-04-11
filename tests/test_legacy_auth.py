@@ -158,7 +158,7 @@ class TestLegacyPasskeyMode:
         assert "settings-danger.js" not in content
 
     def test_admin_sees_all_tabs_and_content(self, client, passkey_mode):
-        """In passkey mode, admin user sees all admin tabs and content."""
+        """In passkey mode, admin user sees admin tabs but NOT danger zone (reset disabled)."""
         user = User.objects.create_user(username="admin2", password="!", is_active=True, is_staff=True)
         profile = Profile.objects.create(user=user, name="Admin2", avatar_color="#d97850")
 
@@ -170,11 +170,10 @@ class TestLegacyPasskeyMode:
         content = response.content.decode()
         assert 'data-tab="prompts"' in content
         assert 'data-tab="sources"' in content
-        assert 'data-tab="danger"' in content
+        assert 'data-tab="danger"' not in content  # Reset disabled in passkey mode
         assert 'id="tab-prompts"' in content
         assert 'id="api-key-input"' in content
         assert "settings-prompts.js" in content
-        assert "settings-danger.js" in content
 
 
 class TestLegacyRequireAdmin:

@@ -33,9 +33,11 @@
                 <button type="button" class="tab-toggle-btn" data-tab="users">
                     Users
                 </button>
+                {% if auth_mode != 'passkey' %}
                 <button type="button" class="tab-toggle-btn tab-danger" data-tab="danger">
                     Danger Zone
                 </button>
+                {% endif %}
                 {% endif %}
             </div>
         </div>
@@ -379,7 +381,8 @@
             </div>
         </div>
 
-        <!-- Danger Zone Tab Content -->
+        <!-- Danger Zone Tab Content (home mode only — disabled in passkey mode) -->
+        {% if auth_mode != 'passkey' %}
         <div id="tab-danger" class="tab-content hidden">
             <div class="card danger-zone-card">
                 <div class="danger-header">
@@ -411,6 +414,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
         {% endif %}
     </div>
 
@@ -497,7 +501,8 @@
         </div>
     </div>
 
-    <!-- Reset Database Modal - Step 1 -->
+    {% if auth_mode != 'passkey' %}
+    <!-- Reset Database Modal - Step 1 (home mode only) -->
     <div id="reset-modal-step1" class="modal-overlay hidden">
         <div class="modal">
             <div class="modal-header modal-header-danger">
@@ -556,6 +561,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
     {% endif %}
 </div>
 {% endblock %}
