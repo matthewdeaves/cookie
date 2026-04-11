@@ -409,3 +409,94 @@ class TestCreateSuperuserBlocked:
     def test_createsuperuser_raises_error(self):
         with pytest.raises(CommandError, match="createsuperuser is disabled"):
             call_command("createsuperuser")
+
+
+# ---------------------------------------------------------------------------
+# Factory reset (CLI-only in passkey mode)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestCookieAdminReset:
+    """Tests for the cookie_admin reset subcommand."""
+
+    def test_reset_json_requires_confirm_flag(self, passkey_mode):
+        """reset --json without --confirm should fail."""
+        with pytest.raises(SystemExit):
+            _call("reset", as_json=True)
+
+    def test_reset_json_with_confirm_deletes_data(self, passkey_mode):
+        """reset --json --confirm should delete all data and return success."""
+        from apps.recipes.models import Recipe, RecipeFavorite
+
+        user = _make_user("alice", is_staff=True)
+        recipe = Recipe.objects.create(
+            profile=user.profile,
+            title="Test Recipe",
+            host="test.com",
+            ingredients=["flour"],
+            instructions=["mix"],
+        )
+        RecipeFavorite.objects.create(profile=user.profile, recipe=recipe)
+
+        assert Recipe.objects.count() == 1
+        assert RecipeFavorite.objects.count() == 1
+        assert User.objects.count() >= 1
+
+        out = StringIO()
+        call_command("cookie_admin", "reset", "--json", "--confirm", stdout=out, stderr=StringIO())
+        result = json.loads(out.getvalue())
+
+        assert result["ok"] is True
+        assert "actions_performed" in result
+        assert Recipe.objects.count() == 0
+        assert RecipeFavorite.objects.count() == 0
+        assert User.objects.count() == 0  # passkey mode deletes users
+        assert Profile.objects.count() == 0
+
+    def test_reset_preserves_search_sources(self, passkey_mode):
+        """reset should preserve SearchSource configurations."""
+        from apps.recipes.models import SearchSource
+
+        _make_user("admin", is_staff=True)
+        source, _ = SearchSource.objects.get_or_create(
+            host="test.example.com",
+            defaults={
+                "name": "Test",
+                "search_url_template": "https://test.example.com/search?q={query}",
+                "result_selector": ".recipe",
+                "is_enabled": True,
+                "consecutive_failures": 5,
+                "needs_attention": True,
+            },
+        )
+
+        out = StringIO()
+        call_command("cookie_admin", "reset", "--json", "--confirm", stdout=out, stderr=StringIO())
+
+        source.refresh_from_db()
+        assert source.consecutive_failures == 0
+        assert source.needs_attention is False
+
+    def test_reset_clears_sessions(self, passkey_mode):
+        """reset should clear all sessions."""
+        from django.contrib.sessions.models import Session
+
+        _make_user("admin", is_staff=True)
+
+        # Create a session
+        from django.contrib.sessions.backends.db import SessionStore
+        s = SessionStore()
+        s["test"] = "value"
+        s.create()
+        assert Session.objects.count() >= 1
+
+        out = StringIO()
+        call_command("cookie_admin", "reset", "--json", "--confirm", stdout=out, stderr=StringIO())
+
+        assert Session.objects.count() == 0
+
+    def test_reset_not_available_in_home_mode(self):
+        """reset should fail in home mode (cookie_admin is passkey-only)."""
+        with pytest.raises(SystemExit):
+            _call("reset", as_json=True)

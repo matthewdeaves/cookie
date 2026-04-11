@@ -622,7 +622,7 @@ class Command(BaseCommand):
         from django.core.cache import cache
         from django.core.management import call_command
 
-        from apps.ai.models import AIDiscoverySuggestion, ServingAdjustment
+        from apps.ai.models import AIDiscoverySuggestion
         from apps.profiles.models import Profile
         from apps.recipes.models import (
             CachedSearchImage,
@@ -632,6 +632,7 @@ class Command(BaseCommand):
             RecipeFavorite,
             RecipeViewHistory,
             SearchSource,
+            ServingAdjustment,
         )
 
         if options.get("as_json"):
