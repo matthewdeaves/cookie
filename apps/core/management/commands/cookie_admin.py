@@ -17,15 +17,20 @@ Usage:
     manage.py cookie_admin remove-unlimited <username> [--json]
     manage.py cookie_admin usage [--username <name>] [--json]
     manage.py cookie_admin create-session <username> [--ttl N] [--json]
+    manage.py cookie_admin reset [--json]
 """
 
 import json
+import logging
 import os
+import shutil
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db.models import Count
+
+security_logger = logging.getLogger("security")
 
 
 class Command(BaseCommand):
@@ -101,6 +106,10 @@ class Command(BaseCommand):
         cs.add_argument("username")
         cs.add_argument("--ttl", type=int, default=3600, help="Session TTL in seconds (default 3600)")
         cs.add_argument("--json", action="store_true", dest="as_json")
+
+        # reset
+        rs = sub.add_parser("reset", help="Factory reset: delete all data and re-seed defaults")
+        rs.add_argument("--json", action="store_true", dest="as_json")
 
     def handle(self, *args, **options):
         if settings.AUTH_MODE != "passkey":
@@ -605,4 +614,92 @@ class Command(BaseCommand):
                 "expires_in_seconds": ttl,
                 "expires_at": (timezone.now() + datetime.timedelta(seconds=ttl)).isoformat(),
             },
+        )
+
+    def _handle_reset(self, options):
+        from django.contrib.sessions.models import Session
+        from django.core.cache import cache
+        from django.core.management import call_command
+
+        from apps.ai.models import AIDiscoverySuggestion, ServingAdjustment
+        from apps.profiles.models import Profile
+        from apps.recipes.models import (
+            CachedSearchImage,
+            Recipe,
+            RecipeCollection,
+            RecipeCollectionItem,
+            RecipeFavorite,
+            RecipeViewHistory,
+            SearchSource,
+        )
+
+        if not options.get("as_json"):
+            self.stderr.write("WARNING: This will permanently delete ALL data.")
+            confirm = input("Type RESET to confirm: ")
+            if confirm != "RESET":
+                self._error("Aborted.", options)
+
+        security_logger.warning("DATABASE RESET initiated via CLI (cookie_admin reset)")
+
+        actions = []
+
+        # Delete in FK-safe order
+        AIDiscoverySuggestion.objects.all().delete()
+        ServingAdjustment.objects.all().delete()
+        RecipeViewHistory.objects.all().delete()
+        RecipeCollectionItem.objects.all().delete()
+        RecipeCollection.objects.all().delete()
+        RecipeFavorite.objects.all().delete()
+        CachedSearchImage.objects.all().delete()
+        Recipe.objects.all().delete()
+        Profile.objects.all().delete()
+        actions.extend([
+            "Deleted all profiles",
+            "Deleted all recipes",
+            "Cleared favorites, collections, view history",
+            "Cleared AI suggestions and serving adjustments",
+        ])
+
+        if settings.AUTH_MODE == "passkey":
+            from apps.core.models import DeviceCode
+
+            DeviceCode.objects.all().delete()
+            User.objects.all().delete()
+            actions.append("Deleted all user accounts and device codes")
+
+        SearchSource.objects.all().update(
+            consecutive_failures=0,
+            needs_attention=False,
+            last_validated_at=None,
+        )
+        actions.append("Reset search source counters")
+
+        # Clear media
+        for subdir in ("recipe_images", "search_images"):
+            path = os.path.join(settings.MEDIA_ROOT, subdir)
+            if os.path.exists(path):
+                shutil.rmtree(path)
+                os.makedirs(path)
+        actions.append("Cleared recipe and search images")
+
+        cache.clear()
+        Session.objects.all().delete()
+        actions.extend(["Cleared application cache", "Cleared all sessions"])
+
+        call_command("migrate", verbosity=0)
+        actions.append("Re-ran migrations")
+
+        for cmd in ("seed_search_sources", "seed_ai_prompts"):
+            try:
+                call_command(cmd, verbosity=0)
+                actions.append(f"Seeded {cmd.replace('seed_', '')}")
+            except Exception:
+                pass
+
+        security_logger.warning("DATABASE RESET completed successfully via CLI")
+
+        self._success(
+            "Database reset complete.",
+            options,
+            {"actions_performed": actions},
         )

@@ -109,9 +109,11 @@ class ResetSuccessSchema(Schema):
     actions_performed: list[str]
 
 
-@router.get("/reset-preview/", response=ResetPreviewSchema, auth=AdminAuth())
+@router.get("/reset-preview/", response={200: ResetPreviewSchema, 403: ErrorSchema}, auth=AdminAuth())
 def get_reset_preview(request):
-    """Get summary of data that will be deleted on reset."""
+    """Get summary of data that will be deleted on reset. Disabled in passkey mode."""
+    if settings.AUTH_MODE == "passkey":
+        return Status(403, {"error": "disabled", "message": "Database reset is disabled in passkey mode. Use the CLI: python manage.py cookie_admin reset"})
     return {
         "data_counts": {
             "profiles": Profile.objects.count(),
@@ -138,14 +140,19 @@ def get_reset_preview(request):
     }
 
 
-@router.post("/reset/", response={200: ResetSuccessSchema, 400: ErrorSchema, 429: dict}, auth=AdminAuth())
-@ratelimit(key="ip", rate="1/m", method="POST", block=False)
+@router.post("/reset/", response={200: ResetSuccessSchema, 400: ErrorSchema, 403: ErrorSchema, 429: dict}, auth=AdminAuth())
+@ratelimit(key="ip", rate="1/h", method="POST", block=False)
 def reset_database(request, data: ResetConfirmSchema):
     """
     Completely reset the database to factory state.
 
     Requires confirmation_text="RESET" to proceed.
+    Rate limited to 1 request per hour per IP.
+    Disabled in passkey mode — use CLI: python manage.py cookie_admin reset
     """
+    if settings.AUTH_MODE == "passkey":
+        security_logger.warning("Blocked /system/reset/ attempt in passkey mode from %s", request.META.get("REMOTE_ADDR"))
+        return Status(403, {"error": "disabled", "message": "Database reset is disabled in passkey mode. Use the CLI: python manage.py cookie_admin reset"})
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /system/reset/ from %s", request.META.get("REMOTE_ADDR"))
         return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
@@ -157,6 +164,14 @@ def reset_database(request, data: ResetConfirmSchema):
                 "message": "Type RESET to confirm",
             },
         )
+
+    client_ip = request.META.get("REMOTE_ADDR")
+    user_info = getattr(request, "auth", None)
+    security_logger.warning(
+        "DATABASE RESET initiated by %s from %s",
+        user_info,
+        client_ip,
+    )
 
     try:
         # 1. Clear database tables (order matters for FK constraints)
@@ -221,6 +236,12 @@ def reset_database(request, data: ResetConfirmSchema):
             call_command("seed_ai_prompts", verbosity=0)
         except Exception:
             logger.debug("seed_ai_prompts command not available, skipping")
+
+        security_logger.warning(
+            "DATABASE RESET completed successfully by %s from %s",
+            user_info,
+            client_ip,
+        )
 
         return {
             "success": True,
