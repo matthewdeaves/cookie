@@ -3,7 +3,6 @@ import { Loader2, Search as SearchIcon } from 'lucide-react'
 import { type SearchResult } from '../api/client'
 import NavHeader from '../components/NavHeader'
 import SourceFilterChips from '../components/SourceFilterChips'
-import URLImportCard from '../components/URLImportCard'
 import { useSearch } from '../hooks/useSearch'
 
 export default function Search() {
@@ -39,7 +38,7 @@ function SearchForm({ searchInput, setSearchInput, onSubmit }: {
           type="text"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search recipes or paste a URL..."
+          placeholder="Search recipes..."
           className="w-full rounded-xl border border-border bg-input-background py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
@@ -47,11 +46,7 @@ function SearchForm({ searchInput, setSearchInput, onSubmit }: {
   )
 }
 
-function SearchContent({ query, results, hasMore, sites, selectedSource, setSelectedSource, loading, loadingMore, importing, isUrl, handleLoadMore, handleImport }: ReturnType<typeof useSearch>) {
-  if (isUrl) {
-    return <URLImportCard url={query} importing={importing === query} onImport={handleImport} />
-  }
-
+function SearchContent({ query, results, hasMore, sites, selectedSource, setSelectedSource, loading, loadingMore, importing, handleLoadMore, handleImport }: ReturnType<typeof useSearch>) {
   const allSourcesCount = Object.values(sites).reduce((sum, n) => sum + n, 0)
   const displayCount = selectedSource ? (sites[selectedSource] || 0) : allSourcesCount
 

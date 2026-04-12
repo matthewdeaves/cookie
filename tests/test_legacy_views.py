@@ -175,16 +175,17 @@ class TestLegacySearch:
         assert 'data-page="search"' in content
         assert "chocolate cake" in content
 
-    def test_search_url_import_mode(self, client):
-        """Search shows URL import card when query is a URL."""
+    def test_search_url_query_searches_normally(self, client):
+        """Search treats URL queries as normal search (no import card)."""
         profile = Profile.objects.create(name="Test", avatar_color="#d97850")
         client.post(f"/api/profiles/{profile.id}/select/")
 
         response = client.get("/legacy/search/?q=https://example.com/recipe")
         assert response.status_code == 200
         content = response.content.decode()
-        assert "Import Recipe from URL" in content
-        assert "url-import-card" in content
+        assert "Import Recipe from URL" not in content
+        assert "url-import-card" not in content
+        assert "source-filters" in content
 
     def test_search_not_url_mode(self, client):
         """Search shows regular search mode for non-URL queries."""

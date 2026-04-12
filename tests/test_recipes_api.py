@@ -287,34 +287,35 @@ class TestScrapeRecipe:
     @patch("apps.recipes.api.aget_current_profile_or_none")
     @patch("apps.recipes.api.RecipeScraper")
     async def test_scrape_recipe_success(self, mock_scraper_class, mock_get_profile):
-        """Test scraping a recipe successfully."""
+        """Test scraping a recipe from an allowed source domain."""
         from asgiref.sync import sync_to_async
         from apps.profiles.models import Profile
+        from apps.recipes.models import SearchSource
         from datetime import datetime
         from unittest.mock import AsyncMock
         from django.contrib.sessions.backends.db import SessionStore
 
-        # Create profile synchronously using sync_to_async
         @sync_to_async
-        def create_profile():
+        def setup():
             p = Profile.objects.create(name="Test User", avatar_color="#123456")
             s = SessionStore()
             s["profile_id"] = p.id
             s.create()
+            SearchSource.objects.get_or_create(
+                host="allrecipes.com",
+                defaults={"name": "AllRecipes", "search_url_template": "https://allrecipes.com/search?q={query}", "is_enabled": True},
+            )
             return p, s.session_key
 
-        test_profile, session_key = await create_profile()
+        test_profile, session_key = await setup()
 
-        # Mock the async profile lookup to return our test profile
         mock_get_profile.return_value = test_profile
 
-        # Create a simple object with all fields RecipeOut needs
-        # (avoids MagicMock's dynamic attribute creation issue)
         class MockRecipe:
             id = 1
-            source_url = "https://example.com/recipe/123"
-            canonical_url = "https://example.com/recipe/123"
-            host = "example.com"
+            source_url = "https://allrecipes.com/recipe/123"
+            canonical_url = "https://allrecipes.com/recipe/123"
+            host = "allrecipes.com"
             site_name = ""
             title = "Test Recipe"
             author = ""
@@ -361,14 +362,14 @@ class TestScrapeRecipe:
 
         response = await async_client.post(
             "/api/recipes/scrape/",
-            {"url": "https://example.com/recipe/123"},
+            {"url": "https://allrecipes.com/recipe/123"},
             content_type="application/json",
         )
 
         assert response.status_code == 201
         data = response.json()
         assert data["title"] == "Test Recipe"
-        assert data["host"] == "example.com"
+        assert data["host"] == "allrecipes.com"
 
     @patch("apps.recipes.api.aget_current_profile_or_none")
     @patch("apps.recipes.api.RecipeScraper")
@@ -377,17 +378,22 @@ class TestScrapeRecipe:
         from asgiref.sync import sync_to_async
         from apps.recipes.services.scraper import FetchError
         from apps.profiles.models import Profile
+        from apps.recipes.models import SearchSource
         from django.contrib.sessions.backends.db import SessionStore
 
         @sync_to_async
-        def create_profile():
+        def setup():
             p = Profile.objects.create(name="Test User", avatar_color="#123456")
             s = SessionStore()
             s["profile_id"] = p.id
             s.create()
+            SearchSource.objects.get_or_create(
+                host="allrecipes.com",
+                defaults={"name": "AllRecipes", "search_url_template": "https://allrecipes.com/search?q={query}", "is_enabled": True},
+            )
             return p, s.session_key
 
-        test_profile, session_key = await create_profile()
+        test_profile, session_key = await setup()
 
         # Mock the async profile lookup
         mock_get_profile.return_value = test_profile
@@ -404,7 +410,7 @@ class TestScrapeRecipe:
 
         response = await async_client.post(
             "/api/recipes/scrape/",
-            {"url": "https://example.com/recipe/123"},
+            {"url": "https://allrecipes.com/recipe/123"},
             content_type="application/json",
         )
 
@@ -419,17 +425,22 @@ class TestScrapeRecipe:
         from asgiref.sync import sync_to_async
         from apps.recipes.services.scraper import ParseError
         from apps.profiles.models import Profile
+        from apps.recipes.models import SearchSource
         from django.contrib.sessions.backends.db import SessionStore
 
         @sync_to_async
-        def create_profile():
+        def setup():
             p = Profile.objects.create(name="Test User", avatar_color="#123456")
             s = SessionStore()
             s["profile_id"] = p.id
             s.create()
+            SearchSource.objects.get_or_create(
+                host="allrecipes.com",
+                defaults={"name": "AllRecipes", "search_url_template": "https://allrecipes.com/search?q={query}", "is_enabled": True},
+            )
             return p, s.session_key
 
-        test_profile, session_key = await create_profile()
+        test_profile, session_key = await setup()
 
         # Mock the async profile lookup
         mock_get_profile.return_value = test_profile
@@ -446,13 +457,125 @@ class TestScrapeRecipe:
 
         response = await async_client.post(
             "/api/recipes/scrape/",
-            {"url": "https://example.com/recipe/123"},
+            {"url": "https://allrecipes.com/recipe/123"},
             content_type="application/json",
         )
 
         assert response.status_code == 400
         data = response.json()
         assert "no title" in data["detail"]
+
+    async def test_scrape_rejects_unknown_domain(self):
+        """Test scraping rejects URLs from domains not in search sources."""
+        from asgiref.sync import sync_to_async
+        from apps.profiles.models import Profile
+        from apps.recipes.models import SearchSource
+        from django.contrib.sessions.backends.db import SessionStore
+
+        @sync_to_async
+        def setup():
+            p = Profile.objects.create(name="Test User", avatar_color="#123456")
+            s = SessionStore()
+            s["profile_id"] = p.id
+            s.create()
+            SearchSource.objects.get_or_create(
+                host="allrecipes.com",
+                defaults={"name": "AllRecipes", "search_url_template": "https://allrecipes.com/search?q={query}", "is_enabled": True},
+            )
+            return p, s.session_key
+
+        _, session_key = await setup()
+
+        from django.test import AsyncClient
+        from django.conf import settings
+
+        async_client = AsyncClient()
+        async_client.cookies[settings.SESSION_COOKIE_NAME] = session_key
+
+        response = await async_client.post(
+            "/api/recipes/scrape/",
+            {"url": "https://evil.com/recipe/123"},
+            content_type="application/json",
+        )
+
+        assert response.status_code == 400
+        data = response.json()
+        assert "not a supported recipe source" in data["detail"]
+
+    async def test_scrape_rejects_disabled_source(self):
+        """Test scraping rejects URLs from disabled search sources."""
+        from asgiref.sync import sync_to_async
+        from apps.profiles.models import Profile
+        from apps.recipes.models import SearchSource
+        from django.contrib.sessions.backends.db import SessionStore
+
+        @sync_to_async
+        def setup():
+            p = Profile.objects.create(name="Test User", avatar_color="#123456")
+            s = SessionStore()
+            s["profile_id"] = p.id
+            s.create()
+            SearchSource.objects.get_or_create(
+                host="allrecipes.com",
+                defaults={"name": "AllRecipes", "search_url_template": "https://allrecipes.com/search?q={query}", "is_enabled": False},
+            )
+            return p, s.session_key
+
+        _, session_key = await setup()
+
+        from django.test import AsyncClient
+        from django.conf import settings
+
+        async_client = AsyncClient()
+        async_client.cookies[settings.SESSION_COOKIE_NAME] = session_key
+
+        response = await async_client.post(
+            "/api/recipes/scrape/",
+            {"url": "https://allrecipes.com/recipe/123"},
+            content_type="application/json",
+        )
+
+        assert response.status_code == 400
+        data = response.json()
+        assert "not a supported recipe source" in data["detail"]
+
+    async def test_scrape_accepts_www_prefix(self):
+        """Test scraping accepts URLs with www. prefix for known sources."""
+        from asgiref.sync import sync_to_async
+        from apps.profiles.models import Profile
+        from apps.recipes.models import SearchSource
+        from django.contrib.sessions.backends.db import SessionStore
+        from unittest.mock import AsyncMock
+
+        @sync_to_async
+        def setup():
+            p = Profile.objects.create(name="Test User", avatar_color="#123456")
+            s = SessionStore()
+            s["profile_id"] = p.id
+            s.create()
+            SearchSource.objects.get_or_create(
+                host="allrecipes.com",
+                defaults={"name": "AllRecipes", "search_url_template": "https://allrecipes.com/search?q={query}", "is_enabled": True},
+            )
+            return p, s.session_key
+
+        _, session_key = await setup()
+
+        from django.test import AsyncClient
+        from django.conf import settings
+
+        async_client = AsyncClient()
+        async_client.cookies[settings.SESSION_COOKIE_NAME] = session_key
+
+        # www.allrecipes.com should pass domain check (then fail at scraper level, but that's OK)
+        response = await async_client.post(
+            "/api/recipes/scrape/",
+            {"url": "https://www.allrecipes.com/recipe/123"},
+            content_type="application/json",
+        )
+
+        # Should NOT be 400 "not a supported recipe source" — domain check passed
+        assert response.status_code != 400 or "not a supported" not in response.json().get("detail", "")
 
     async def test_scrape_recipe_requires_auth(self):
         """Test scraping requires authentication (returns 401 without session)."""

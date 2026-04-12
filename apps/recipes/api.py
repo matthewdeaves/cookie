@@ -20,7 +20,7 @@ from django_ratelimit.core import is_ratelimited
 from apps.core.auth import AdminAuth, SessionAuth
 from apps.profiles.utils import aget_current_profile_or_none, get_current_profile_or_none
 
-from .models import Recipe
+from .models import Recipe, SearchSource
 from .services.image_cache import SearchImageCache
 from .services.scraper import RecipeScraper, FetchError, ParseError
 from .services.search import RecipeSearch
@@ -214,6 +214,21 @@ async def scrape_recipe(request, payload: ScrapeIn):
     profile = await aget_current_profile_or_none(request)
     if not profile:
         return Status(403, {"detail": "Profile required to scrape recipes"})
+
+    # Validate URL domain against enabled search sources
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(payload.url)
+        domain = (parsed.hostname or "").lower().removeprefix("www.")
+    except Exception:
+        return Status(400, {"detail": "Invalid URL"})
+
+    allowed_hosts = await sync_to_async(
+        lambda: set(SearchSource.objects.filter(is_enabled=True).values_list("host", flat=True))
+    )()
+    if domain not in allowed_hosts:
+        logger.warning(f"Scrape blocked: domain '{domain}' not in allowed sources")
+        return Status(400, {"detail": "URL domain is not a supported recipe source"})
 
     scraper = RecipeScraper()
     logger.info(f"Scrape request: {payload.url}")

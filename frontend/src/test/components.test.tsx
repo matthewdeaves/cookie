@@ -332,7 +332,7 @@ describe('Search', () => {
     })
   })
 
-  it('shows URL import card when query is a URL', async () => {
+  it('searches normally when query is a URL (no import card)', async () => {
     vi.mocked(api.recipes.search).mockResolvedValueOnce({
       results: [],
       total: 0,
@@ -344,54 +344,17 @@ describe('Search', () => {
     renderSearch('https://example.com/my-recipe')
 
     await waitFor(() => {
-      expect(screen.getByText('Import from example.com')).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Import Recipe' })).toBeInTheDocument()
-    })
-  })
-
-  it('imports recipe when import button is clicked', async () => {
-    vi.mocked(api.recipes.search).mockResolvedValueOnce({
-      results: [],
-      total: 0,
-      page: 1,
-      has_more: false,
-      sites: {},
-    })
-    vi.mocked(api.recipes.scrape).mockResolvedValueOnce({
-      id: 123,
-      title: 'Imported Recipe',
-      host: 'example.com',
-      canonical_url: 'https://example.com/recipe',
-      image: '',
-      image_url: '',
-      ingredients: [],
-      ingredient_groups: [],
-      instructions: [],
-      instructions_text: '',
-      nutrition: {},
-      servings: null,
-      prep_time: null,
-      cook_time: null,
-      total_time: null,
-      yields: '',
-      rating: null,
-      rating_count: null,
-      ai_tips: [],
-      scraped_at: '2024-01-01',
-    } as never)
-    vi.mocked(api.history.record).mockResolvedValueOnce({} as never)
-
-    renderSearch('https://example.com/recipe')
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Import Recipe' })).toBeInTheDocument()
+      expect(api.recipes.search).toHaveBeenCalledWith(
+        'https://example.com/my-recipe',
+        undefined,
+        1,
+        expect.any(AbortSignal),
+      )
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Import Recipe' }))
-
-    await waitFor(() => {
-      expect(api.recipes.scrape).toHaveBeenCalledWith('https://example.com/recipe')
-    })
+    // No import card should be shown
+    expect(screen.queryByText('Import from example.com')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Import Recipe' })).not.toBeInTheDocument()
   })
 
   // Note: Navigation to home is now handled via NavHeader which requires ProfileContext.

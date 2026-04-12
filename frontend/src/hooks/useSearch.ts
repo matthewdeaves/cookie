@@ -15,7 +15,6 @@ export interface UseSearchReturn {
   loading: boolean
   loadingMore: boolean
   importing: string | null
-  isUrl: boolean
   handleSearchSubmit: (e: React.FormEvent) => void
   handleLoadMore: () => void
   handleImport: (url: string) => Promise<void>
@@ -61,8 +60,6 @@ export function useSearch(): UseSearchReturn {
   const query = searchParams.get('q') || ''
   const state = useSearchState(query)
   const { selectedSource, setSelectedSource, setResults, setSites, setTotal, setHasMore, setPage, setLoading, setLoadingMore, setImporting, setSearchInput } = state
-
-  const isUrl = /^https?:\/\//i.test(query.trim())
 
   useEffect(() => {
     setSearchInput(query)
@@ -155,7 +152,6 @@ export function useSearch(): UseSearchReturn {
     loading: state.loading,
     loadingMore: state.loadingMore,
     importing: state.importing,
-    isUrl,
     handleSearchSubmit,
     handleLoadMore,
     handleImport,

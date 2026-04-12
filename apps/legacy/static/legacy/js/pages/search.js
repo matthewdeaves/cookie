@@ -10,7 +10,6 @@ Cookie.pages.search = (function() {
     // State
     var state = {
         query: '',
-        isUrl: false,
         results: [],
         sites: {},
         total: 0,
@@ -40,9 +39,7 @@ Cookie.pages.search = (function() {
         endOfResults: null,
         loadMoreBtn: null,
         sourceFilters: null,
-        searchCount: null,
-        importUrlBtn: null,
-        urlImportCard: null
+        searchCount: null
     };
 
     /**
@@ -51,9 +48,7 @@ Cookie.pages.search = (function() {
     function init() {
         // Get state from json_script elements (CSP-safe, no inline script)
         var queryEl = document.getElementById('search-query');
-        var isUrlEl = document.getElementById('search-is-url');
         state.query = queryEl ? JSON.parse(queryEl.textContent) : '';
-        state.isUrl = isUrlEl ? JSON.parse(isUrlEl.textContent) : false;
 
         // Get DOM elements
         elements.loading = document.getElementById('loading');
@@ -64,17 +59,13 @@ Cookie.pages.search = (function() {
         elements.loadMoreBtn = document.getElementById('load-more-btn');
         elements.sourceFilters = document.getElementById('source-filters');
         elements.searchCount = document.getElementById('search-count');
-        elements.importUrlBtn = document.getElementById('import-url-btn');
-        elements.urlImportCard = document.getElementById('url-import-card');
 
         setupEventListeners();
 
-        // Start search if not a URL
-        if (!state.isUrl && state.query) {
+        // Start search if we have a query
+        if (state.query) {
             state.selectedSource = null;
             searchRecipes(1, true);
-        } else if (state.isUrl) {
-            Cookie.utils.hideElement(elements.loading);
         }
     }
 
@@ -87,16 +78,6 @@ Cookie.pages.search = (function() {
             elements.loadMoreBtn.addEventListener('click', function() {
                 if (!state.loading && state.hasMore) {
                     searchRecipes(state.page + 1, false);
-                }
-            });
-        }
-
-        // URL import button
-        if (elements.importUrlBtn) {
-            elements.importUrlBtn.addEventListener('click', function() {
-                var url = this.getAttribute('data-url');
-                if (url) {
-                    importRecipe(url, this);
                 }
             });
         }

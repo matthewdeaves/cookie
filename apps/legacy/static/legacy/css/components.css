@@ -997,57 +997,6 @@
     cursor: not-allowed;
 }
 
-/* URL Import Card */
-.url-import-card {
-    display: -webkit-flex;
-    display: flex;
-    -webkit-align-items: flex-start;
-    align-items: flex-start;
-    padding: 1.5rem;
-    background-color: #ffffff;
-    border: 1px solid #e8e1d8;
-    border-radius: 0.75rem;
-    margin-bottom: 1.5rem;
-}
-
-.url-import-icon {
-    display: -webkit-flex;
-    display: flex;
-    -webkit-align-items: center;
-    align-items: center;
-    -webkit-justify-content: center;
-    justify-content: center;
-    width: 3rem;
-    height: 3rem;
-    background-color: rgba(107, 142, 95, 0.1);
-    border-radius: 50%;
-    color: #6b8e5f;
-    -webkit-flex-shrink: 0;
-    flex-shrink: 0;
-}
-
-.url-import-content {
-    -webkit-flex: 1;
-    flex: 1;
-    min-width: 0;
-}
-
-.url-import-title {
-    font-size: 1rem;
-    font-weight: 500;
-    color: #2d2520;
-    margin: 0 0 0.25rem 0;
-}
-
-.url-import-url {
-    font-size: 0.875rem;
-    color: #6b6560;
-    margin: 0 0 1rem 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
 /* Pagination */
 .pagination {
     display: -webkit-flex;

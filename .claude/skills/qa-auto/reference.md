@@ -158,7 +158,7 @@ Each feature uses a specific AI prompt stored in `AIPromptSettings`. All prompts
 | "All Sources" click | Filter resets, full results return, count shows total |
 | Load More | Additional results append without duplicates |
 | Empty search "xyznonexistent" | Empty state message, no errors |
-| URL paste | Detects URL, offers direct import |
+| URL paste | Treated as normal search query (no import card) |
 
 ### 3. Recipe Import & Detail
 

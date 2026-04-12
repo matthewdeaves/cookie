@@ -82,7 +82,7 @@ describe('Search', () => {
 
   it('renders search bar with query value', async () => {
     renderSearch()
-    const searchInput = screen.getByPlaceholderText('Search recipes or paste a URL...')
+    const searchInput = screen.getByPlaceholderText('Search recipes...')
     expect(searchInput).toBeInTheDocument()
     expect(searchInput).toHaveValue('pasta')
     await waitFor(() => {
@@ -104,7 +104,7 @@ describe('Search', () => {
       expect(mockSearch).toHaveBeenCalled()
     })
 
-    const searchInput = screen.getByPlaceholderText('Search recipes or paste a URL...')
+    const searchInput = screen.getByPlaceholderText('Search recipes...')
     fireEvent.change(searchInput, { target: { value: 'chicken' } })
     fireEvent.submit(searchInput.closest('form')!)
 
@@ -117,7 +117,7 @@ describe('Search', () => {
       expect(mockSearch).toHaveBeenCalled()
     })
 
-    const searchInput = screen.getByPlaceholderText('Search recipes or paste a URL...')
+    const searchInput = screen.getByPlaceholderText('Search recipes...')
     fireEvent.submit(searchInput.closest('form')!)
 
     expect(mockNavigate).not.toHaveBeenCalledWith(expect.stringContaining('/search'))
@@ -129,7 +129,7 @@ describe('Search', () => {
       expect(mockSearch).toHaveBeenCalled()
     })
 
-    const searchInput = screen.getByPlaceholderText('Search recipes or paste a URL...')
+    const searchInput = screen.getByPlaceholderText('Search recipes...')
     fireEvent.change(searchInput, { target: { value: '   ' } })
     fireEvent.submit(searchInput.closest('form')!)
 

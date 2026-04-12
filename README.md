@@ -171,7 +171,7 @@ Data is stored in two Docker volumes:
 
 ## Basic Usage
 
-1. **Import recipes**: Search across 15 sites or paste any recipe URL
+1. **Import recipes**: Search across 15 recipe sites and import with one tap
 2. **Organise**: Create profiles for family members, add recipes to collections
 3. **Cook**: Open a recipe and enter cooking mode for step-by-step guidance
 4. **AI features**: Add an OpenRouter API key in Settings to enable remix suggestions, cooking tips, and personalized discovery

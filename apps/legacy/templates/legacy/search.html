@@ -20,7 +20,7 @@
                     id="search-input"
                     name="q"
                     class="input search-input"
-                    placeholder="Search recipes or paste URL..."
+                    placeholder="Search recipes..."
                     value="{{ query }}"
                 >
             </div>
@@ -31,29 +31,8 @@
             <p class="search-count" id="search-count"></p>
         </div>
 
-        <!-- URL Import Card (shown when query is a URL) -->
-        {% if is_url %}
-        <div class="url-import-card" id="url-import-card">
-            <div class="url-import-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                </svg>
-            </div>
-            <div class="url-import-content">
-                <h2 class="url-import-title">Import Recipe from URL</h2>
-                <p class="url-import-url">{{ query }}</p>
-                <button type="button" id="import-url-btn" class="btn btn-primary" data-url="{{ query }}">
-                    Import Recipe
-                </button>
-            </div>
-        </div>
-        {% endif %}
-
         <!-- Source filter chips (populated via JS) -->
-        {% if not is_url %}
         <div class="source-filters mb-4" id="source-filters"></div>
-        {% endif %}
 
         <!-- Loading indicator -->
         <div id="loading" class="loading">
@@ -91,7 +70,6 @@
 
 <!-- Store query for JS (CSP-safe, no inline script) -->
 {{ query|json_script:"search-query" }}
-{{ is_url|json_script:"search-is-url" }}
 {% endblock %}
 
 {% block extra_js %}
