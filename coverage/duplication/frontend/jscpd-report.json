@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-11T05:45:58.411Z",
+    "detectionDate": "2026-04-12T10:47:08.666Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -377,8 +377,8 @@
             "newClones": 0
           },
           "src/screens/Search.tsx": {
-            "lines": 146,
-            "tokens": 1373,
+            "lines": 142,
+            "tokens": 1329,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -583,18 +583,6 @@
           "src/contexts/AIStatusContext.tsx": {
             "lines": 0,
             "tokens": 11,
-            "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
-          "src/components/URLImportCard.tsx": {
-            "lines": 1,
-            "tokens": 17,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -906,9 +894,9 @@
           }
         },
         "total": {
-          "lines": 3340,
-          "tokens": 25653,
-          "sources": 75,
+          "lines": 3335,
+          "tokens": 25592,
+          "sources": 74,
           "clones": 0,
           "duplicatedLines": 0,
           "duplicatedTokens": 0,
@@ -1293,8 +1281,8 @@
             "newClones": 0
           },
           "src/screens/Search.tsx": {
-            "lines": 178,
-            "tokens": 1613,
+            "lines": 173,
+            "tokens": 1561,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1499,18 +1487,6 @@
           "src/contexts/AIStatusContext.tsx": {
             "lines": 108,
             "tokens": 858,
-            "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
-          "src/components/URLImportCard.tsx": {
-            "lines": 73,
-            "tokens": 517,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1846,14 +1822,14 @@
           }
         },
         "total": {
-          "lines": 7325,
-          "tokens": 57561,
-          "sources": 77,
+          "lines": 7247,
+          "tokens": 56992,
+          "sources": 76,
           "clones": 6,
           "duplicatedLines": 61,
           "duplicatedTokens": 583,
-          "percentage": 0.83,
-          "percentageTokens": 1.01,
+          "percentage": 0.84,
+          "percentageTokens": 1.02,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -2029,8 +2005,8 @@
             "newClones": 0
           },
           "src/hooks/useSearch.ts": {
-            "lines": 162,
-            "tokens": 1697,
+            "lines": 158,
+            "tokens": 1668,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2210,23 +2186,23 @@
           }
         },
         "total": {
-          "lines": 3049,
-          "tokens": 25459,
+          "lines": 3045,
+          "tokens": 25430,
           "sources": 29,
           "clones": 2,
           "duplicatedLines": 59,
           "duplicatedTokens": 294,
           "percentage": 1.94,
-          "percentageTokens": 1.15,
+          "percentageTokens": 1.16,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 13714,
-      "tokens": 108673,
-      "sources": 181,
+      "lines": 13627,
+      "tokens": 108014,
+      "sources": 179,
       "clones": 8,
       "duplicatedLines": 120,
       "duplicatedTokens": 877,

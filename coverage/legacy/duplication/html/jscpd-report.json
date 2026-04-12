@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-11T05:46:00.015Z",
+    "detectionDate": "2026-04-12T10:47:07.444Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -101,14 +101,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/search.js": {
-            "lines": 630,
-            "tokens": 5137,
+            "lines": 611,
+            "tokens": 4935,
             "sources": 1,
             "clones": 4,
             "duplicatedLines": 35,
             "duplicatedTokens": 261,
-            "percentage": 5.56,
-            "percentageTokens": 5.08,
+            "percentage": 5.73,
+            "percentageTokens": 5.29,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -438,28 +438,28 @@
           }
         },
         "total": {
-          "lines": 7243,
-          "tokens": 56618,
+          "lines": 7224,
+          "tokens": 56416,
           "sources": 36,
           "clones": 35,
           "duplicatedLines": 292,
           "duplicatedTokens": 2600,
-          "percentage": 4.03,
-          "percentageTokens": 4.59,
+          "percentage": 4.04,
+          "percentageTokens": 4.61,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7243,
-      "tokens": 56618,
+      "lines": 7224,
+      "tokens": 56416,
       "sources": 36,
       "clones": 35,
       "duplicatedLines": 292,
       "duplicatedTokens": 2600,
-      "percentage": 4.03,
-      "percentageTokens": 4.59,
+      "percentage": 4.04,
+      "percentageTokens": 4.61,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -760,32 +760,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 493,
-        "end": 500,
+        "start": 474,
+        "end": 481,
         "startLoc": {
-          "line": 493,
+          "line": 474,
           "column": 13,
-          "position": 4043
+          "position": 3841
         },
         "endLoc": {
-          "line": 500,
+          "line": 481,
           "column": 3,
-          "position": 4111
+          "position": 3909
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 145,
-        "end": 152,
+        "start": 126,
+        "end": 133,
         "startLoc": {
-          "line": 145,
+          "line": 126,
           "column": 6,
-          "position": 1127
+          "position": 925
         },
         "endLoc": {
-          "line": 152,
+          "line": 133,
           "column": 6,
-          "position": 1195
+          "position": 993
         }
       }
     },
@@ -847,17 +847,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 617,
-        "end": 627,
+        "start": 598,
+        "end": 608,
         "startLoc": {
-          "line": 617,
+          "line": 598,
           "column": 5,
-          "position": 5044
+          "position": 4842
         },
         "endLoc": {
-          "line": 627,
+          "line": 608,
           "column": 7,
-          "position": 5105
+          "position": 4903
         }
       }
     },
@@ -920,16 +920,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
         "start": 238,
-        "end": 627,
+        "end": 608,
         "startLoc": {
           "line": 238,
           "column": 7,
           "position": 1652
         },
         "endLoc": {
-          "line": 627,
+          "line": 608,
           "column": 7,
-          "position": 5105
+          "position": 4903
         }
       }
     },
@@ -955,17 +955,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 616,
-        "end": 627,
+        "start": 597,
+        "end": 608,
         "startLoc": {
-          "line": 616,
+          "line": 597,
           "column": 9,
-          "position": 5041
+          "position": 4839
         },
         "endLoc": {
-          "line": 627,
+          "line": 608,
           "column": 7,
-          "position": 5105
+          "position": 4903
         }
       }
     },
@@ -1064,16 +1064,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
         "start": 424,
-        "end": 627,
+        "end": 608,
         "startLoc": {
           "line": 424,
           "column": 13,
           "position": 3280
         },
         "endLoc": {
-          "line": 627,
+          "line": 608,
           "column": 7,
-          "position": 5105
+          "position": 4903
         }
       }
     },
@@ -1352,16 +1352,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
         "start": 238,
-        "end": 627,
+        "end": 608,
         "startLoc": {
           "line": 238,
           "column": 7,
           "position": 1652
         },
         "endLoc": {
-          "line": 627,
+          "line": 608,
           "column": 7,
-          "position": 5105
+          "position": 4903
         }
       }
     },
@@ -1460,16 +1460,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/favorites.js",
         "start": 85,
-        "end": 627,
+        "end": 608,
         "startLoc": {
           "line": 85,
           "column": 6,
           "position": 554
         },
         "endLoc": {
-          "line": 627,
+          "line": 608,
           "column": 7,
-          "position": 5105
+          "position": 4903
         }
       }
     },
