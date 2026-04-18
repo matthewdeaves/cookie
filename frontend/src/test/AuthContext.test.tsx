@@ -34,12 +34,12 @@ describe('AuthContext', () => {
 
     expect(result.current.user).toBeNull()
     expect(result.current.profile).toBeNull()
-    expect(result.current.isAdmin).toBe(false)
   })
 
   it('restores session from /api/auth/me/', async () => {
+    // Spec 014-remove-is-staff: /auth/me no longer exposes is_admin.
     vi.mocked(api.auth.me).mockResolvedValue({
-      user: { id: 1, is_admin: true },
+      user: { id: 1 },
       profile: { id: 1, name: 'matt', avatar_color: '#d97850', theme: 'dark', unit_preference: 'metric' },
     })
 
@@ -49,14 +49,13 @@ describe('AuthContext', () => {
       expect(result.current.isLoading).toBe(false)
     })
 
-    expect(result.current.user?.is_admin).toBe(true)
-    expect(result.current.isAdmin).toBe(true)
+    expect(result.current.user?.id).toBe(1)
     expect(result.current.profile?.name).toBe('matt')
   })
 
   it('logout clears state', async () => {
     vi.mocked(api.auth.me).mockResolvedValue({
-      user: { id: 1, is_admin: true },
+      user: { id: 1 },
       profile: { id: 1, name: 'matt', avatar_color: '#d97850', theme: 'dark', unit_preference: 'metric' },
     })
     vi.mocked(api.auth.logout).mockResolvedValue({ message: 'ok' })

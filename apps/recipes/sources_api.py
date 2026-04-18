@@ -8,7 +8,7 @@ from typing import List, Optional
 from django.utils import timezone
 from ninja import Router, Schema, Status
 
-from apps.core.auth import AdminAuth, HomeOnlyAdminAuth, SessionAuth
+from apps.core.auth import HomeOnlyAuth, SessionAuth
 
 from .models import SearchSource
 from .services.search import RecipeSearch
@@ -98,7 +98,7 @@ def enabled_count(request):
 # Django's URL resolver doesn't shadow them with the str-typed path segment.
 
 
-@router.post("/bulk-toggle/", response={200: BulkToggleOut}, auth=HomeOnlyAdminAuth())
+@router.post("/bulk-toggle/", response={200: BulkToggleOut}, auth=HomeOnlyAuth())
 def bulk_toggle_sources(request, data: BulkToggleIn):
     """Enable or disable all sources at once."""
     updated = SearchSource.objects.all().update(is_enabled=data.enable)
@@ -108,7 +108,7 @@ def bulk_toggle_sources(request, data: BulkToggleIn):
     }
 
 
-@router.post("/test-all/", response={200: dict}, auth=HomeOnlyAdminAuth())
+@router.post("/test-all/", response={200: dict}, auth=HomeOnlyAuth())
 async def test_all_sources(request):
     """Test all enabled sources and return summary.
 
@@ -204,7 +204,7 @@ def get_source(request, source_id: int):
         )
 
 
-@router.post("/{source_id}/toggle/", response={200: SourceToggleOut, 404: ErrorOut}, auth=HomeOnlyAdminAuth())
+@router.post("/{source_id}/toggle/", response={200: SourceToggleOut, 404: ErrorOut}, auth=HomeOnlyAuth())
 def toggle_source(request, source_id: int):
     """Toggle a source's enabled status."""
     try:
@@ -225,7 +225,7 @@ def toggle_source(request, source_id: int):
         )
 
 
-@router.put("/{source_id}/selector/", response={200: SourceUpdateOut, 404: ErrorOut}, auth=HomeOnlyAdminAuth())
+@router.put("/{source_id}/selector/", response={200: SourceUpdateOut, 404: ErrorOut}, auth=HomeOnlyAuth())
 def update_selector(request, source_id: int, data: SourceUpdateIn):
     """Update a source's CSS selector."""
     try:
@@ -246,7 +246,7 @@ def update_selector(request, source_id: int, data: SourceUpdateIn):
         )
 
 
-@router.post("/{source_id}/test/", response={200: SourceTestOut, 404: ErrorOut, 500: ErrorOut}, auth=HomeOnlyAdminAuth())
+@router.post("/{source_id}/test/", response={200: SourceTestOut, 404: ErrorOut, 500: ErrorOut}, auth=HomeOnlyAuth())
 async def test_source(request, source_id: int):
     """Test a source by performing a sample search.
 

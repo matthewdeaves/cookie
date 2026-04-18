@@ -45,7 +45,6 @@ class TestAdminEndpoints:
     """Admin endpoints 404 in passkey mode regardless of caller (HomeOnlyAdminAuth)."""
 
     def _setup_non_admin(self, client, passkey_mode):
-        _create_user("admin", is_staff=True)
         regular = _create_user("regular")
         _login(client, regular)
 
@@ -100,7 +99,6 @@ class TestAdminSourceEndpoints:
     """Source admin endpoints 404 in passkey mode (HomeOnlyAdminAuth)."""
 
     def _setup_non_admin(self, client, passkey_mode, source):
-        _create_user("admin", is_staff=True)
         regular = _create_user("regular")
         _login(client, regular)
 
@@ -140,21 +138,22 @@ class TestAdminSourceEndpoints:
 
 @pytest.mark.django_db
 class TestProfileScoping:
-    def test_profiles_returns_own_only(self, client, passkey_mode):
+    """Spec 014-remove-is-staff FR-009: /api/profiles/ is 404 in passkey mode.
+
+    Passkey users get their profile via /auth/me; there is no list-all endpoint.
+    """
+
+    def test_profiles_list_returns_404_for_authed_user(self, client, passkey_mode):
         alice = _create_user("alice")
         _create_user("bob")
         _login(client, alice)
         response = client.get("/api/profiles/")
-        data = response.json()
-        assert len(data) == 1
-        assert data[0]["name"] == "alice"
+        assert response.status_code == 404
 
-    def test_admin_sees_all(self, client, passkey_mode):
-        admin = _create_user("admin", is_staff=True)
-        _create_user("bob")
-        _login(client, admin)
+    def test_profiles_list_returns_404_for_unauthed(self, client, passkey_mode):
+        _create_user("alice")
         response = client.get("/api/profiles/")
-        assert len(response.json()) == 2
+        assert response.status_code == 404
 
     def test_create_profile_404(self, client, passkey_mode):
         alice = _create_user("alice")

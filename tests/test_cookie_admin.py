@@ -1,8 +1,12 @@
 """Tests for the cookie_admin management command (passkey mode CLI).
 
-Covers core user management (list, promote, demote, activate, deactivate),
+Covers core user management (list, activate, deactivate),
 quota-related commands (set-unlimited, remove-unlimited, usage),
 status/audit, JSON output, and home-mode rejection.
+
+Admin privilege no longer exists (spec 014-remove-is-staff). promote/demote
+subcommands and the --admin flag are gone; list-users/status/audit outputs
+no longer carry admin/is_staff fields.
 """
 
 import json
@@ -59,34 +63,35 @@ def _call(subcommand, *args, as_json=False):
 
 @pytest.mark.django_db
 class TestCookieAdminUserManagement:
-    """Tests for list-users, promote, demote, activate, deactivate."""
+    """Tests for list-users, create-user, delete-user, activate, deactivate."""
 
     def test_list_users(self, passkey_mode):
         """list-users shows users."""
-        _make_user("alice", is_staff=True)
+        _make_user("alice")
         _make_user("bob")
         text, _ = _call("list-users")
         assert "alice" in text
         assert "bob" in text
 
-    def test_create_user_regular(self, passkey_mode):
-        """create-user creates a regular user with profile."""
+    def test_create_user(self, passkey_mode):
+        """create-user creates a regular user with profile. All users are peers."""
         _, data = _call("create-user", "testuser", as_json=True)
         assert data["ok"] is True
         assert data["user"]["username"] == "testuser"
-        assert data["user"]["is_admin"] is False
+        assert "is_admin" not in data["user"], (
+            "CLI output MUST NOT expose is_admin (spec 014-remove-is-staff, FR-014)"
+        )
         user = User.objects.get(username="testuser")
         assert user.is_active is True
-        assert user.is_staff is False
+        assert user.is_staff is False, "Created users MUST have is_staff=False (FR-022)"
         assert not user.has_usable_password()
         assert hasattr(user, "profile")
 
-    def test_create_user_admin(self, passkey_mode):
-        """create-user --admin creates an admin user."""
-        _, data = _call("create-user", "adminuser", "--admin", as_json=True)
-        assert data["ok"] is True
-        assert data["user"]["is_admin"] is True
-        assert User.objects.get(username="adminuser").is_staff is True
+    def test_create_user_rejects_admin_flag(self, passkey_mode):
+        """--admin flag no longer exists on create-user (FR-013)."""
+        # argparse treats unknown flags as errors
+        with pytest.raises((SystemExit, CommandError)):
+            call_command("cookie_admin", "create-user", "adminuser", "--admin", stderr=StringIO())
 
     def test_create_user_duplicate_refused(self, passkey_mode):
         """create-user refuses to create a duplicate username."""
@@ -102,30 +107,32 @@ class TestCookieAdminUserManagement:
         assert data["deleted_user"]["username"] == "alice"
         assert not User.objects.filter(username="alice").exists()
 
+    def test_delete_last_user_succeeds(self, passkey_mode):
+        """FR-015: delete-user on the sole remaining user MUST succeed (no admin floor)."""
+        _make_user("onlyuser")
+        _, data = _call("delete-user", "onlyuser", as_json=True)
+        assert data["ok"] is True
+        assert User.objects.count() == 0
+
     def test_delete_user_nonexistent(self, passkey_mode):
         """delete-user on nonexistent user fails."""
         with pytest.raises(SystemExit):
             _call("delete-user", "nobody", as_json=True)
 
-    def test_promote(self, passkey_mode):
-        """promote sets is_staff=True."""
-        _make_user("alice")
-        _call("promote", "alice")
-        assert User.objects.get(username="alice").is_staff is True
+    def test_promote_subcommand_removed(self, passkey_mode):
+        """FR-012: the promote subcommand is gone."""
+        with pytest.raises((SystemExit, CommandError)):
+            call_command("cookie_admin", "promote", "alice", stderr=StringIO())
 
-    def test_demote(self, passkey_mode):
-        """demote sets is_staff=False."""
-        _make_user("alice", is_staff=True)
-        _make_user("bob", is_staff=True)
-        _call("demote", "alice")
-        assert User.objects.get(username="alice").is_staff is False
-
-    def test_demote_last_admin_refused(self, passkey_mode):
-        """demote last admin is refused."""
-        _make_user("alice", is_staff=True)
-        with pytest.raises(SystemExit) as exc_info:
+    def test_demote_subcommand_removed(self, passkey_mode):
+        """FR-012: the demote subcommand is gone."""
+        with pytest.raises((SystemExit, CommandError)):
             call_command("cookie_admin", "demote", "alice", stderr=StringIO())
-        assert exc_info.value.code == 1
+
+    def test_list_users_admins_only_flag_removed(self, passkey_mode):
+        """FR-014: --admins-only flag no longer exists on list-users."""
+        with pytest.raises((SystemExit, CommandError)):
+            call_command("cookie_admin", "list-users", "--admins-only", stderr=StringIO())
 
     def test_deactivate_activate(self, passkey_mode):
         """deactivate/activate toggle is_active."""
@@ -146,25 +153,14 @@ class TestCookieAdminJsonOutput:
     """Tests for --json structured output on all subcommands."""
 
     def test_list_users_json(self, passkey_mode):
-        _make_user("alice", is_staff=True)
+        _make_user("alice")
         _, data = _call("list-users", as_json=True)
         assert data["ok"] is True
         assert len(data["users"]) == 1
         assert data["users"][0]["username"] == "alice"
-        assert data["users"][0]["is_admin"] is True
-
-    def test_promote_json(self, passkey_mode):
-        _make_user("alice")
-        _, data = _call("promote", "alice", as_json=True)
-        assert data["ok"] is True
-        assert data["user"]["is_admin"] is True
-
-    def test_demote_json(self, passkey_mode):
-        _make_user("alice", is_staff=True)
-        _make_user("bob", is_staff=True)
-        _, data = _call("demote", "alice", as_json=True)
-        assert data["ok"] is True
-        assert data["user"]["is_admin"] is False
+        assert "is_admin" not in data["users"][0], (
+            "list-users JSON MUST NOT expose is_admin (FR-014)"
+        )
 
     def test_deactivate_json(self, passkey_mode):
         _make_user("alice")
@@ -177,7 +173,7 @@ class TestCookieAdminJsonOutput:
         """Errors with --json return structured error."""
         out = StringIO()
         with pytest.raises(SystemExit):
-            call_command("cookie_admin", "promote", "nonexistent", "--json", stdout=out)
+            call_command("cookie_admin", "delete-user", "nonexistent", "--json", stdout=out)
         data = json.loads(out.getvalue())
         assert data["ok"] is False
         assert "not found" in data["error"]
@@ -193,19 +189,27 @@ class TestCookieAdminStatusAudit:
     """Tests for status and audit subcommands."""
 
     def test_status_text(self, passkey_mode):
-        _make_user("alice", is_staff=True)
+        _make_user("alice")
         text, _ = _call("status")
         assert "Auth mode:" in text
         assert "passkey" in text
         assert "Database:" in text
+        assert "admin" not in text.lower(), (
+            "status text MUST NOT mention admins (FR-016a)"
+        )
 
     def test_status_json(self, passkey_mode):
-        _make_user("alice", is_staff=True)
+        _make_user("alice")
         _, data = _call("status", as_json=True)
         assert data["ok"] is True
         assert data["auth_mode"] == "passkey"
         assert data["database"] == "ok"
-        assert data["users"]["admins"] == 1
+        assert data["users"]["total"] == 1
+        assert data["users"]["active"] == 1
+        assert "admins" not in data["users"], (
+            "status --json MUST NOT expose admin counts (FR-016a)"
+        )
+        assert "active_admins" not in data["users"]
         assert "openrouter" in data
         assert "webauthn" in data
 
@@ -215,12 +219,15 @@ class TestCookieAdminStatusAudit:
         assert data["events"] == []
 
     def test_audit_shows_recent_registration(self, passkey_mode):
-        _make_user("alice", is_staff=True)
+        _make_user("alice")
         _, data = _call("audit", as_json=True)
         assert data["ok"] is True
         reg_events = [e for e in data["events"] if e["type"] == "registration"]
         assert len(reg_events) == 1
         assert reg_events[0]["username"] == "alice"
+        assert "is_admin" not in reg_events[0], (
+            "audit events MUST NOT expose is_admin (FR-016a)"
+        )
 
     def test_audit_text(self, passkey_mode):
         _make_user("alice")
@@ -249,7 +256,8 @@ class TestCookieAdminHomeMode:
         settings.AUTH_MODE = "home"
 
     def test_all_subcommands_exit_code_2(self):
-        for subcmd in ["list-users", "promote alice", "demote alice"]:
+        """User-lifecycle subcommands in home mode exit with code 2 (AUTH_MODE guard)."""
+        for subcmd in ["list-users", "create-user alice", "delete-user alice"]:
             args = subcmd.split()
             with pytest.raises(SystemExit) as exc_info:
                 call_command("cookie_admin", *args, stderr=StringIO())
@@ -429,7 +437,7 @@ class TestCookieAdminReset:
         """reset --json --confirm should delete all data and return success."""
         from apps.recipes.models import Recipe, RecipeFavorite
 
-        user = _make_user("alice", is_staff=True)
+        user = _make_user("alice")
         recipe = Recipe.objects.create(
             profile=user.profile,
             title="Test Recipe",
@@ -458,7 +466,7 @@ class TestCookieAdminReset:
         """reset should preserve SearchSource configurations."""
         from apps.recipes.models import SearchSource
 
-        _make_user("admin", is_staff=True)
+        _make_user("admin")
         source, _ = SearchSource.objects.get_or_create(
             host="test.example.com",
             defaults={
@@ -482,7 +490,7 @@ class TestCookieAdminReset:
         """reset should clear all sessions."""
         from django.contrib.sessions.models import Session
 
-        _make_user("admin", is_staff=True)
+        _make_user("admin")
 
         # Create a session
         from django.contrib.sessions.backends.db import SessionStore

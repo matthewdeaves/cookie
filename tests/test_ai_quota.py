@@ -69,22 +69,41 @@ class TestCheckAndIncrementCycle:
 
 
 @pytest.mark.django_db
-class TestAdminBypass:
-    """Staff users always pass quota checks."""
+class TestIsStaffDoesNotBypass:
+    """After feature 014-remove-is-staff, `User.is_staff=True` grants NO privilege.
 
-    def test_admin_always_allowed(self, passkey_mode):
-        profile = _make_profile("admin", is_staff=True)
+    Quota bypass is controlled solely by `Profile.unlimited_ai`.
+    """
+
+    def test_is_staff_user_still_hits_quota(self, passkey_mode):
+        """is_staff=True with unlimited_ai=False must be rate-limited like any user."""
+        profile = _make_profile("staff_user", is_staff=True, unlimited_ai=False)
         app = AppSettings.get()
         app.daily_limit_remix = 1
         app.save()
 
-        # Increment well beyond the limit
-        for _ in range(5):
-            increment_quota(profile, "remix")
+        increment_quota(profile, "remix")
 
         allowed, info = check_quota(profile, "remix")
+        assert allowed is False
+        assert info["remaining"] == 0
+        assert info["limit"] == 1
+        assert info["used"] == 1
+
+    def test_reserve_does_not_bypass_for_is_staff(self, passkey_mode):
+        """reserve_quota must NOT short-circuit just because is_staff=True."""
+        profile = _make_profile("staff_user2", is_staff=True, unlimited_ai=False)
+        app = AppSettings.get()
+        app.daily_limit_remix = 1
+        app.save()
+
+        # First reserve succeeds (under limit)
+        allowed, info = reserve_quota(profile, "remix")
         assert allowed is True
-        assert info == {}
+        # Second reserve fails (over limit — is_staff bypass is gone)
+        allowed, info = reserve_quota(profile, "remix")
+        assert allowed is False
+        assert info["remaining"] == 0
 
 
 @pytest.mark.django_db
@@ -324,9 +343,9 @@ class TestSetUnlimitedEndpoint:
     def test_set_unlimited_endpoint(self, client, settings):
         """Home mode: functional test. The endpoint 404s in passkey mode (covered by test_gated_endpoints_passkey.py)."""
         settings.AUTH_MODE = "home"
-        admin = _make_profile("admin", is_staff=True)
+        caller = _make_profile("caller")
         target = _make_profile("target")
-        _login(client, admin.user)
+        _login(client, caller.user)
 
         response = client.post(
             f"/api/profiles/{target.id}/set-unlimited/",
@@ -362,9 +381,9 @@ class TestRenameEndpoint:
     def test_rename_endpoint(self, client, settings):
         """Home mode: functional test. The endpoint 404s in passkey mode (covered elsewhere)."""
         settings.AUTH_MODE = "home"
-        admin = _make_profile("admin", is_staff=True)
+        caller = _make_profile("caller")
         target = _make_profile("target")
-        _login(client, admin.user)
+        _login(client, caller.user)
 
         response = client.patch(
             f"/api/profiles/{target.id}/rename/",
@@ -395,9 +414,9 @@ class TestRenameEndpoint:
     def test_rename_rejects_empty_name(self, client, settings):
         """Home mode: functional test of rename validation."""
         settings.AUTH_MODE = "home"
-        admin = _make_profile("admin", is_staff=True)
+        caller = _make_profile("caller")
         target = _make_profile("target")
-        _login(client, admin.user)
+        _login(client, caller.user)
 
         response = client.patch(
             f"/api/profiles/{target.id}/rename/",
@@ -676,15 +695,18 @@ class TestReserveQuota:
             allowed, _ = reserve_quota(profile, "remix")
             assert allowed is True
 
-    def test_reserve_bypasses_for_admin(self, passkey_mode):
-        profile = _make_profile("adminuser", is_staff=True)
+    def test_reserve_does_not_bypass_for_is_staff(self, passkey_mode):
+        """is_staff=True is no longer a privilege signal (spec 014-remove-is-staff)."""
+        profile = _make_profile("staffuser", is_staff=True, unlimited_ai=False)
         app = AppSettings.get()
         app.daily_limit_remix = 1
         app.save()
 
-        for _ in range(5):
-            allowed, _ = reserve_quota(profile, "remix")
-            assert allowed is True
+        allowed, _ = reserve_quota(profile, "remix")
+        assert allowed is True
+        allowed, info = reserve_quota(profile, "remix")
+        assert allowed is False
+        assert info["remaining"] == 0
 
     def test_reserve_bypasses_for_unlimited(self, passkey_mode):
         profile = _make_profile("unlimiteduser", unlimited_ai=True)
@@ -719,9 +741,9 @@ class TestReleaseQuota:
         release_quota(profile, "remix")
         assert get_usage(profile.pk)["remix"] == 0
 
-    def test_release_does_nothing_for_admin(self, passkey_mode):
-        """Admin has no quota tracking — release is a no-op."""
-        profile = _make_profile("adminrelease", is_staff=True)
+    def test_release_does_nothing_for_unlimited(self, passkey_mode):
+        """unlimited_ai profiles have no quota tracking — release is a no-op."""
+        profile = _make_profile("unlimitedrelease", unlimited_ai=True)
         release_quota(profile, "remix")
         assert get_usage(profile.pk)["remix"] == 0
 

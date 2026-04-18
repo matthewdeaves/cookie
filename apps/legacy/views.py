@@ -45,9 +45,10 @@ def require_profile(view_func):
             if not request.profile.user or not request.profile.user.is_active:
                 request.session.pop("profile_id", None)
                 return redirect(redirect_target)
-            request.is_admin = request.profile.user.is_staff
-        else:
-            request.is_admin = True
+
+        # Admin UI is available in home mode only. Passkey mode users are peers;
+        # admin work is CLI-only (see spec 014-remove-is-staff, FR-005/FR-006).
+        request.is_admin = django_settings.AUTH_MODE == "home"
 
         return view_func(request, *args, **kwargs)
 

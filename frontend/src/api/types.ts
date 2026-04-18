@@ -354,7 +354,6 @@ export interface ModeResponse {
 
 export interface PasskeyUser {
   id: number
-  is_admin: boolean
 }
 
 export interface PasskeyAuthResponse {

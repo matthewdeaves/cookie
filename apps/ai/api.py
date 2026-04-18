@@ -20,7 +20,7 @@ from .services.selector import repair_selector, get_sources_needing_attention
 from .services.validator import ValidationError
 from .services.cache import is_ai_cache_hit
 from .services.quota import release_quota, reserve_quota
-from apps.core.auth import AdminAuth, HomeOnlyAdminAuth, SessionAuth
+from apps.core.auth import HomeOnlyAuth, SessionAuth
 
 security_logger = logging.getLogger("security")
 
@@ -168,7 +168,7 @@ def get_ai_status(request):
     return status
 
 
-@router.post("/test-api-key", response={200: TestApiKeyOut, 400: ErrorOut, 429: dict}, auth=HomeOnlyAdminAuth())
+@router.post("/test-api-key", response={200: TestApiKeyOut, 400: ErrorOut, 429: dict}, auth=HomeOnlyAuth())
 @ratelimit(key="ip", rate="20/h", method="POST", block=False)
 def test_api_key(request, data: TestApiKeyIn):
     """Test if an API key is valid."""
@@ -190,7 +190,7 @@ def test_api_key(request, data: TestApiKeyIn):
     }
 
 
-@router.post("/save-api-key", response={200: SaveApiKeyOut, 400: ErrorOut, 429: dict}, auth=HomeOnlyAdminAuth())
+@router.post("/save-api-key", response={200: SaveApiKeyOut, 400: ErrorOut, 429: dict}, auth=HomeOnlyAuth())
 @ratelimit(key="ip", rate="20/h", method="POST", block=False)
 def save_api_key(request, data: SaveApiKeyIn):
     """Save the OpenRouter API key."""
@@ -209,7 +209,7 @@ def save_api_key(request, data: SaveApiKeyIn):
     }
 
 
-@router.get("/prompts", response=List[PromptOut], auth=HomeOnlyAdminAuth())
+@router.get("/prompts", response=List[PromptOut], auth=HomeOnlyAuth())
 def list_prompts(request):
     """List all AI prompts."""
     prompts = AIPrompt.objects.all()
@@ -242,13 +242,13 @@ def _validate_model(model_id: str):
     return None
 
 
-@router.get("/prompts/{prompt_type}", response={200: PromptOut, 404: ErrorOut}, auth=HomeOnlyAdminAuth())
+@router.get("/prompts/{prompt_type}", response={200: PromptOut, 404: ErrorOut}, auth=HomeOnlyAuth())
 def get_prompt(request, prompt_type: str):
     """Get a specific AI prompt by type."""
     return _get_prompt_or_error(prompt_type)
 
 
-@router.put("/prompts/{prompt_type}", response={200: PromptOut, 404: ErrorOut, 422: ErrorOut}, auth=HomeOnlyAdminAuth())
+@router.put("/prompts/{prompt_type}", response={200: PromptOut, 404: ErrorOut, 422: ErrorOut}, auth=HomeOnlyAuth())
 def update_prompt(request, prompt_type: str, data: PromptUpdateIn):
     """Update a specific AI prompt."""
     result = _get_prompt_or_error(prompt_type)
@@ -462,7 +462,7 @@ class SourceNeedingAttentionOut(Schema):
 @router.post(
     "/repair-selector",
     response={200: SelectorRepairOut, 400: ErrorOut, 404: ErrorOut, 429: dict, 503: ErrorOut},
-    auth=HomeOnlyAdminAuth(),
+    auth=HomeOnlyAuth(),
 )
 @ratelimit(key="ip", rate="5/h", method="POST", block=False)
 @handle_ai_errors
@@ -515,7 +515,7 @@ def repair_selector_endpoint(request, data: SelectorRepairIn):
     }
 
 
-@router.get("/sources-needing-attention", response=List[SourceNeedingAttentionOut], auth=HomeOnlyAdminAuth())
+@router.get("/sources-needing-attention", response=List[SourceNeedingAttentionOut], auth=HomeOnlyAuth())
 def sources_needing_attention_endpoint(request):
     """List all SearchSources that need attention (broken selectors).
 

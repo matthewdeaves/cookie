@@ -17,7 +17,7 @@ from ninja.errors import HttpError
 
 from django_ratelimit.core import is_ratelimited
 
-from apps.core.auth import AdminAuth, HomeOnlyAdminAuth, SessionAuth
+from apps.core.auth import HomeOnlyAuth, SessionAuth
 from apps.profiles.utils import aget_current_profile_or_none, get_current_profile_or_none
 
 from .models import Recipe, SearchSource
@@ -368,9 +368,9 @@ def get_cache_health_dict() -> dict:
     }
 
 
-@router.get("/cache/health/", response={200: dict}, auth=HomeOnlyAdminAuth())
+@router.get("/cache/health/", response={200: dict}, auth=HomeOnlyAuth())
 def cache_health(request):
-    """Image-cache health check (home mode only; 404 in passkey mode via HomeOnlyAdminAuth)."""
+    """Image-cache health check (home mode only; 404 in passkey mode via HomeOnlyAuth)."""
     return get_cache_health_dict()
 
 

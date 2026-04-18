@@ -16,11 +16,11 @@
         <h2 class="section-title mb-4">Settings</h2>
         <!-- Tab toggle -->
         <div class="flex justify-center mb-6">
-            <div class="tab-toggle {% if is_admin and auth_mode == "home" %}tab-toggle-6{% else %}tab-toggle-1{% endif %}">
+            <div class="tab-toggle {% if is_admin %}tab-toggle-6{% else %}tab-toggle-1{% endif %}">
                 <button type="button" class="tab-toggle-btn active" data-tab="general">
                     General
                 </button>
-                {% if is_admin and auth_mode == "home" %}
+                {% if is_admin %}
                 <button type="button" class="tab-toggle-btn" data-tab="prompts">
                     AI Prompts
                 </button>
@@ -33,18 +33,16 @@
                 <button type="button" class="tab-toggle-btn" data-tab="users">
                     Users
                 </button>
-                {% if auth_mode != 'passkey' %}
                 <button type="button" class="tab-toggle-btn tab-danger" data-tab="danger">
                     Danger Zone
                 </button>
-                {% endif %}
                 {% endif %}
             </div>
         </div>
 
         <!-- General Tab Content -->
         <div id="tab-general" class="tab-content">
-            {% if is_admin and auth_mode == "home" %}
+            {% if is_admin %}
             <div class="card">
                 <h2 class="settings-section-title">OpenRouter API</h2>
 
@@ -100,7 +98,7 @@
             </div>
             {% endif %}
 
-            {% if is_admin and auth_mode == "home" %}
+            {% if is_admin %}
             <!-- AI Quota Config (admin, passkey mode only — hidden by default, shown by JS) -->
             <div id="quota-config-section" class="card mt-4 hidden">
                 <h2 class="settings-section-title">AI Quota Limits</h2>
@@ -172,7 +170,7 @@
                 </div>
             </div>
 
-            {% if auth_mode == 'passkey' and not is_admin %}
+            {% if not is_admin %}
             <!-- Delete Account Section (non-admin passkey users) -->
             <div class="card mt-4 danger-zone-card">
                 <div class="danger-header">
@@ -198,7 +196,7 @@
             {% endif %}
         </div>
 
-        {% if is_admin and auth_mode == "home" %}
+        {% if is_admin %}
         <!-- Prompts Tab Content -->
         <div id="tab-prompts" class="tab-content hidden">
             <!-- Info banner -->
@@ -381,8 +379,8 @@
             </div>
         </div>
 
-        <!-- Danger Zone Tab Content (home mode only — disabled in passkey mode) -->
-        {% if auth_mode != 'passkey' %}
+        <!-- Danger Zone Tab Content (home mode only — absent in passkey mode) -->
+        {% if is_admin %}
         <div id="tab-danger" class="tab-content hidden">
             <div class="card danger-zone-card">
                 <div class="danger-header">
@@ -418,7 +416,7 @@
         {% endif %}
     </div>
 
-    {% if auth_mode == 'passkey' and not is_admin %}
+    {% if not is_admin %}
     <!-- Delete Account Modal (non-admin) -->
     <div id="delete-account-modal" class="modal-overlay hidden">
         <div class="modal">
@@ -460,7 +458,7 @@
     </div>
     {% endif %}
 
-    {% if is_admin and auth_mode == "home" %}
+    {% if is_admin %}
     <!-- Delete Profile Modal -->
     <div id="delete-profile-modal" class="modal-overlay hidden">
         <div class="modal">
@@ -501,7 +499,7 @@
         </div>
     </div>
 
-    {% if auth_mode != 'passkey' %}
+    {% if is_admin %}
     <!-- Reset Database Modal - Step 1 (home mode only) -->
     <div id="reset-modal-step1" class="modal-overlay hidden">
         <div class="modal">
@@ -567,7 +565,7 @@
 {% endblock %}
 
 {% block extra_js %}
-{% if is_admin and auth_mode == "home" %}
+{% if is_admin %}
 <!-- HTML Templates for JavaScript rendering -->
 <template id="template-source-item">
     <div class="source-item">
@@ -658,7 +656,7 @@
 <!-- Settings page modules (load order matters) -->
 <script src="{% static 'legacy/js/pages/settings-core.js' %}"></script>
 <script src="{% static 'legacy/js/pages/settings-general.js' %}"></script>
-{% if is_admin and auth_mode == "home" %}
+{% if is_admin %}
 <script src="{% static 'legacy/js/pages/settings-prompts.js' %}"></script>
 <script src="{% static 'legacy/js/pages/settings-sources.js' %}"></script>
 <script src="{% static 'legacy/js/pages/settings-selectors.js' %}"></script>

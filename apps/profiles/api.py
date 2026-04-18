@@ -7,7 +7,9 @@ from django.db.models import Count, Q
 from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema, Status
 
-from apps.core.auth import AdminAuth, HomeOnlyAdminAuth, SessionAuth
+from ninja.errors import HttpError
+
+from apps.core.auth import HomeOnlyAuth
 from .models import Profile
 
 router = Router(tags=["profiles"])
@@ -87,52 +89,18 @@ class ErrorSchema(Schema):
     message: str
 
 
-def _resolve_authenticated_user(request):
-    """Resolve the authenticated user in passkey mode. Returns (user, profile) or (None, None)."""
-    user = getattr(request, "user", None)
-    if user and getattr(user, "is_authenticated", False):
-        try:
-            return user, user.profile
-        except Profile.DoesNotExist:
-            return None, None
-
-    # Fallback: resolve from session profile_id
-    profile_id = request.session.get("profile_id")
-    if profile_id:
-        try:
-            p = Profile.objects.select_related("user").get(id=profile_id)
-            if p.user and p.user.is_active:
-                return p.user, p
-        except Profile.DoesNotExist:
-            pass
-    return None, None
-
-
-def _check_profile_ownership(request, profile_id):
-    """In passkey mode, verify the user owns the profile (or is admin). Returns error tuple or None."""
-    if settings.AUTH_MODE != "passkey":
-        return None
-    user, own_profile = _resolve_authenticated_user(request)
-    if not user:
-        return Status(404, {"error": "not_found", "message": "Profile not found"})
-    if user.is_staff:
-        return None  # Admin can access any profile
-    if not own_profile or own_profile.id != profile_id:
-        return Status(404, {"error": "not_found", "message": "Profile not found"})
-    return None
-
-
-@router.get(
-    "/",
-    response=List[ProfileWithStatsSchema],
-    auth=[SessionAuth()] if settings.AUTH_MODE == "passkey" else None,
-)
+@router.get("/", response=List[ProfileWithStatsSchema])
 def list_profiles(request):
     """List all profiles with stats.
 
-    Passkey mode: returns only current user's profile (admin sees all).
-    Home mode: returns all profiles (no auth required — this is the profile selection screen).
+    Home mode only — this is the profile-selection screen and runs before any
+    session exists, so it uses `auth=None` + inline mode check rather than
+    HomeOnlyAuth (which would require a session). Returns 404 in passkey mode
+    (every /api/profiles/* endpoint is home-only per spec 014-remove-is-staff).
     """
+    if settings.AUTH_MODE != "home":
+        raise HttpError(404, "Not found")
+
     from apps.recipes.models import RecipeCollectionItem
 
     profiles = Profile.objects.annotate(
@@ -143,13 +111,6 @@ def list_profiles(request):
         scaling_cache_count=Count("serving_adjustments", distinct=True),
         discover_cache_count=Count("ai_discovery_suggestions", distinct=True),
     ).order_by("-created_at")
-
-    if settings.AUTH_MODE == "passkey":
-        user, _ = _resolve_authenticated_user(request)
-        if not user:
-            return []
-        if not user.is_staff:
-            profiles = profiles.filter(user=user)
 
     result = []
     for p in profiles:
@@ -181,11 +142,11 @@ def list_profiles(request):
 @router.post("/", response={201: ProfileOut, 404: ErrorSchema, 429: ErrorSchema})
 @ratelimit(key="ip", rate="10/h", method="POST", block=False)
 def create_profile(request, payload: ProfileIn):
-    """Create a new profile. Only available in home mode."""
+    """Create a new profile. Home mode only — profile creation flow runs pre-session."""
+    if settings.AUTH_MODE != "home":
+        raise HttpError(404, "Not found")
     if getattr(request, "limited", False):
         return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
-    if settings.AUTH_MODE != "home":
-        return Status(404, {"error": "not_found", "message": "Not found"})
     data = payload.dict()
     if not data.get("avatar_color"):
         data["avatar_color"] = Profile.next_avatar_color()
@@ -193,24 +154,18 @@ def create_profile(request, payload: ProfileIn):
     return Status(201, profile)
 
 
-@router.get("/{profile_id}/", response={200: ProfileOut, 404: ErrorSchema}, auth=SessionAuth())
+@router.get("/{profile_id}/", response={200: ProfileOut, 404: ErrorSchema}, auth=HomeOnlyAuth())
 def get_profile(request, profile_id: int):
-    """Get a profile by ID. Public mode: own profile only (admin: any)."""
-    ownership_error = _check_profile_ownership(request, profile_id)
-    if ownership_error:
-        return ownership_error
+    """Get a profile by ID. Home mode only (404 in passkey via HomeOnlyAuth)."""
     try:
         return Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
         return Status(404, {"error": "not_found", "message": "Profile not found"})
 
 
-@router.put("/{profile_id}/", response={200: ProfileOut, 404: ErrorSchema}, auth=SessionAuth())
+@router.put("/{profile_id}/", response={200: ProfileOut, 404: ErrorSchema}, auth=HomeOnlyAuth())
 def update_profile(request, profile_id: int, payload: ProfileIn):
-    """Update a profile. Public mode: own profile only (admin: any)."""
-    ownership_error = _check_profile_ownership(request, profile_id)
-    if ownership_error:
-        return ownership_error
+    """Update a profile. Home mode only (404 in passkey via HomeOnlyAuth)."""
     try:
         profile = Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
@@ -222,10 +177,10 @@ def update_profile(request, profile_id: int, payload: ProfileIn):
 
 
 @router.get(
-    "/{profile_id}/deletion-preview/", response={200: DeletionPreviewSchema, 404: ErrorSchema}, auth=SessionAuth()
+    "/{profile_id}/deletion-preview/", response={200: DeletionPreviewSchema, 404: ErrorSchema}, auth=HomeOnlyAuth()
 )
 def get_deletion_preview(request, profile_id: int):
-    """Get summary of data that will be deleted. Public mode: own profile only."""
+    """Get summary of data that will be deleted. Home mode only."""
     from apps.ai.models import AIDiscoverySuggestion
     from apps.recipes.models import (
         Recipe,
@@ -235,10 +190,6 @@ def get_deletion_preview(request, profile_id: int):
         RecipeViewHistory,
         ServingAdjustment,
     )
-
-    ownership_error = _check_profile_ownership(request, profile_id)
-    if ownership_error:
-        return ownership_error
 
     try:
         profile = Profile.objects.get(id=profile_id)
@@ -279,17 +230,10 @@ def get_deletion_preview(request, profile_id: int):
     }
 
 
-@router.delete("/{profile_id}/", response={204: None, 400: ErrorSchema, 404: ErrorSchema}, auth=SessionAuth())
+@router.delete("/{profile_id}/", response={204: None, 400: ErrorSchema, 404: ErrorSchema}, auth=HomeOnlyAuth())
 def delete_profile(request, profile_id: int):
-    """Delete a profile and ALL associated data.
-
-    In passkey mode: own profile only, also cascades to delete the Django User.
-    """
+    """Delete a profile and ALL associated data. Home mode only (404 in passkey via HomeOnlyAuth)."""
     from apps.recipes.models import Recipe
-
-    ownership_error = _check_profile_ownership(request, profile_id)
-    if ownership_error:
-        return ownership_error
 
     try:
         profile = Profile.objects.get(id=profile_id)
@@ -307,11 +251,7 @@ def delete_profile(request, profile_id: int):
         .values_list("image", flat=True)
     )
 
-    if settings.AUTH_MODE == "passkey" and profile.user:
-        profile.user.delete()
-        request.session.flush()
-    else:
-        profile.delete()
+    profile.delete()
 
     for image_path in remix_images:
         full_path = os.path.join(settings.MEDIA_ROOT, str(image_path))
@@ -326,9 +266,9 @@ def delete_profile(request, profile_id: int):
 
 @router.post("/{profile_id}/select/", response={200: ProfileOut, 404: dict})
 def select_profile(request, profile_id: int):
-    """Set a profile as the current profile. Only available in home mode."""
+    """Set a profile as the current profile. Home mode only (pre-session selection)."""
     if settings.AUTH_MODE != "home":
-        return Status(404, {"detail": "Not found"})
+        raise HttpError(404, "Not found")
     try:
         profile = Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
@@ -338,7 +278,7 @@ def select_profile(request, profile_id: int):
     return profile
 
 
-@router.post("/{profile_id}/set-unlimited/", response={200: dict, 404: ErrorSchema}, auth=HomeOnlyAdminAuth())
+@router.post("/{profile_id}/set-unlimited/", response={200: dict, 404: ErrorSchema}, auth=HomeOnlyAuth())
 def set_unlimited(request, profile_id: int, data: SetUnlimitedIn):
     """Set or revoke unlimited AI access for a profile. Admin only."""
     try:
@@ -350,7 +290,7 @@ def set_unlimited(request, profile_id: int, data: SetUnlimitedIn):
     return {"id": profile.id, "name": profile.name, "unlimited_ai": profile.unlimited_ai}
 
 
-@router.patch("/{profile_id}/rename/", response={200: dict, 400: ErrorSchema, 404: ErrorSchema}, auth=HomeOnlyAdminAuth())
+@router.patch("/{profile_id}/rename/", response={200: dict, 400: ErrorSchema, 404: ErrorSchema}, auth=HomeOnlyAuth())
 def rename_profile(request, profile_id: int, data: RenameIn):
     """Rename a profile. Admin only."""
     name = data.name.strip()

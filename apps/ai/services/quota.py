@@ -62,9 +62,6 @@ def check_quota(profile, feature: str) -> tuple[bool, dict]:
     if getattr(settings, "AUTH_MODE", "home") != "passkey":
         return (True, {})
 
-    if profile.user and profile.user.is_staff:
-        return (True, {})
-
     if profile.unlimited_ai:
         return (True, {})
 
@@ -102,9 +99,6 @@ def reserve_quota(profile, feature: str) -> tuple[bool, dict]:
     incremented. On AI failure, call release_quota() to roll back.
     """
     if getattr(settings, "AUTH_MODE", "home") != "passkey":
-        return (True, {})
-
-    if profile.user and profile.user.is_staff:
         return (True, {})
 
     if profile.unlimited_ai:
@@ -149,8 +143,6 @@ def reserve_quota(profile, feature: str) -> tuple[bool, dict]:
 def release_quota(profile, feature: str) -> None:
     """Roll back a reserved quota slot on AI operation failure (FR-009)."""
     if getattr(settings, "AUTH_MODE", "home") != "passkey":
-        return
-    if profile.user and profile.user.is_staff:
         return
     if profile.unlimited_ai:
         return

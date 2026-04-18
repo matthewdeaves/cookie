@@ -1,4 +1,9 @@
-"""Unit tests for HomeOnlyAdminAuth — the mode-gated AdminAuth subclass."""
+"""Unit tests for HomeOnlyAuth — the mode-gated SessionAuth subclass.
+
+HomeOnlyAuth replaces the pre-v1.43.0 pair (AdminAuth + HomeOnlyAdminAuth)
+after admin privilege was retired from the auth layer
+(spec 014-remove-is-staff).
+"""
 
 import logging
 from unittest.mock import MagicMock, patch
@@ -7,7 +12,7 @@ import pytest
 from django.test import RequestFactory, override_settings
 from ninja.errors import HttpError
 
-from apps.core.auth import AdminAuth, HomeOnlyAdminAuth
+from apps.core.auth import HomeOnlyAuth, SessionAuth
 
 
 @pytest.fixture
@@ -17,18 +22,18 @@ def request_factory():
 
 @override_settings(AUTH_MODE="passkey")
 def test_passkey_mode_raises_404_before_auth(request_factory, caplog):
-    """In passkey mode, HomeOnlyAdminAuth raises 404 before cookie extraction.
+    """In passkey mode, HomeOnlyAuth raises 404 before cookie extraction.
 
-    AdminAuth.authenticate() MUST NOT run; no auth-failure log line MUST appear.
+    SessionAuth.__call__ MUST NOT run; no auth-failure log line MUST appear.
     """
     caplog.set_level(logging.WARNING, logger="security")
-    auth = HomeOnlyAdminAuth()
+    auth = HomeOnlyAuth()
     request = request_factory.get("/api/ai/save-api-key")
 
-    with patch.object(AdminAuth, "authenticate") as mocked_authenticate:
+    with patch.object(SessionAuth, "__call__") as mocked_call:
         with pytest.raises(HttpError) as exc_info:
             auth(request)
-        mocked_authenticate.assert_not_called()
+        mocked_call.assert_not_called()
 
     assert exc_info.value.status_code == 404
     assert exc_info.value.message == "Not found"
@@ -40,13 +45,13 @@ def test_passkey_mode_raises_404_before_auth(request_factory, caplog):
 
 
 @override_settings(AUTH_MODE="home")
-def test_home_mode_delegates_to_adminauth(request_factory):
-    """In home mode, HomeOnlyAdminAuth.__call__ delegates to AdminAuth.__call__."""
-    auth = HomeOnlyAdminAuth()
+def test_home_mode_delegates_to_sessionauth(request_factory):
+    """In home mode, HomeOnlyAuth.__call__ delegates to SessionAuth.__call__."""
+    auth = HomeOnlyAuth()
     request = request_factory.get("/api/ai/save-api-key")
 
-    sentinel = MagicMock(name="adminauth_result")
-    with patch.object(AdminAuth, "__call__", return_value=sentinel) as mocked_call:
+    sentinel = MagicMock(name="sessionauth_result")
+    with patch.object(SessionAuth, "__call__", return_value=sentinel) as mocked_call:
         result = auth(request)
 
     mocked_call.assert_called_once_with(request)
@@ -56,7 +61,7 @@ def test_home_mode_delegates_to_adminauth(request_factory):
 @override_settings(AUTH_MODE="unrecognised-value")
 def test_unrecognised_mode_also_raises_404(request_factory):
     """Any value other than 'home' produces 404 (defensive default)."""
-    auth = HomeOnlyAdminAuth()
+    auth = HomeOnlyAuth()
     request = request_factory.get("/api/ai/save-api-key")
 
     with pytest.raises(HttpError) as exc_info:

@@ -61,15 +61,15 @@ class TestLegacyPasskeyMode:
         assert response.status_code == 302
         assert response.url == "/legacy/pair/"
 
-    def test_require_profile_staff_in_passkey_sees_no_admin_ui(self, client, passkey_mode):
-        """In passkey mode the admin UI is hidden for ALL callers (v1.42.0 lockdown).
+    def test_require_profile_passkey_sees_no_admin_ui(self, client, passkey_mode):
+        """In passkey mode the admin UI is hidden for ALL callers (spec 014-remove-is-staff).
 
         Operators manage via `python manage.py cookie_admin`. The settings page
-        still loads (200), but admin-only blocks are template-gated by the new
-        `is_admin and auth_mode == "home"` combined check.
+        still loads (200), but admin-only blocks are template-gated by
+        `{% if is_admin %}` which is derived from `auth_mode == "home"` only.
         """
-        user = User.objects.create_user(username="admin", password="!", is_active=True, is_staff=True)
-        profile = Profile.objects.create(user=user, name="Admin", avatar_color="#d97850")
+        user = User.objects.create_user(username="user1", password="!", is_active=True)
+        profile = Profile.objects.create(user=user, name="User1", avatar_color="#d97850")
 
         session = client.session
         session["profile_id"] = profile.id
@@ -162,15 +162,15 @@ class TestLegacyPasskeyMode:
         assert "settings-users.js" not in content
         assert "settings-danger.js" not in content
 
-    def test_admin_sees_no_admin_tabs_in_passkey_mode(self, client, passkey_mode):
-        """v1.42.0 lockdown: passkey admins see ZERO admin tabs (CLI-only).
+    def test_passkey_user_sees_no_admin_tabs(self, client, passkey_mode):
+        """Spec 014-remove-is-staff: passkey users are peers; zero admin UI.
 
-        The `{% if is_admin %}` guards in settings.html were tightened to
-        `{% if is_admin and auth_mode == "home" %}`, so every admin-only
-        section is suppressed in passkey mode regardless of `is_staff`.
+        `is_admin` is derived purely from `auth_mode == "home"`. In passkey
+        mode every `{% if is_admin %}` block is suppressed regardless of
+        any per-user flag state.
         """
-        user = User.objects.create_user(username="admin2", password="!", is_active=True, is_staff=True)
-        profile = Profile.objects.create(user=user, name="Admin2", avatar_color="#d97850")
+        user = User.objects.create_user(username="user2", password="!", is_active=True)
+        profile = Profile.objects.create(user=user, name="User2", avatar_color="#d97850")
 
         session = client.session
         session["profile_id"] = profile.id

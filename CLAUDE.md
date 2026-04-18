@@ -19,6 +19,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-18
 - Python 3.14, TypeScript 5.9, ES5 (legacy) + Django 5.0, Django Ninja 1.0+, curl_cffi >=0.7, django-ratelimit 4.1, py-webauthn 2.x, Pillow (018-security-hardening)
 - Python 3.14 (backend), TypeScript 5.9 (modern frontend), ES5 (legacy frontend) + Django 5.0, Django Ninja 1.0+, `django-ratelimit` 4.1, py-webauthn 2.x (passkey mode only), React 19, Vite 7, Vitest 4, React Testing Library (existing) (013-admin-home-only)
 - PostgreSQL 16+ (no schema changes; reads/writes existing `AppSettings`, `AIPrompt`, `SearchSource`, `Profile`, `User` tables) (013-admin-home-only)
+- Python 3.14 (backend), TypeScript 5.9 (modern frontend), ES5 (legacy frontend) + Django 5.0, Django Ninja 1.0+, py-webauthn 2.x (passkey mode only), React 19, Vite 7, Vitest 4, React Testing Library, pytest 8 (014-remove-is-staff)
+- PostgreSQL 16+ (no schema changes). `User.is_staff` column remains on the default Django User model (AbstractUser); value becomes always-False for application-created users. (014-remove-is-staff)
 
 ## Project Structure
 
@@ -68,24 +70,24 @@ Cookie supports two authentication modes via `AUTH_MODE` environment variable:
 - **`passkey`**: WebAuthn passkey-only authentication. No username, email, or password. Device code flow for legacy devices.
 
 ### Key Files
-- `apps/core/auth.py` — `SessionAuth` (mode-aware), `AdminAuth`, and `HomeOnlyAdminAuth` (raises 404 in non-home modes BEFORE auth runs; used by 18 admin endpoints)
+- `apps/core/auth.py` — `SessionAuth` (mode-aware) and `HomeOnlyAuth` (raises 404 in non-home modes BEFORE auth runs; used by 22 admin + profile endpoints)
 - `apps/core/auth_api.py` — Shared auth endpoints: logout, me (passkey mode)
 - `apps/core/passkey_api.py` — Passkey endpoints: register, login, credential management (passkey mode)
 - `apps/core/device_code_api.py` — Device code flow: code generation, polling, authorization (passkey mode)
 - `apps/core/management/commands/cookie_admin.py` — Admin CLI. User-lifecycle subcommands are passkey-only; app-config subcommands (api key, prompts, sources, quotas, rename, reset) work in both modes.
 - `apps/core/management/commands/cleanup_device_codes.py` — Clean up expired device codes
 
-### Admin surface by mode (v1.42.0+)
+### Admin surface by mode (v1.43.0+)
 - **Home mode**: web admin UI fully available to any profile. CLI is equivalent.
-- **Passkey mode**: web admin surface is gone — all 18 admin endpoints return 404, settings UI hides admin sections in both frontends. Admins operate via `cookie_admin` CLI.
+- **Passkey mode**: all passkey users are peers — there is no in-app admin privilege. All 18 admin endpoints + all `/api/profiles/*` endpoints return 404; settings UI hides admin sections in both frontends. App configuration is reached exclusively via `cookie_admin` CLI. `is_staff` on the User model is inert and always `False` for application-created users.
 
 ### Admin CLI
 All subcommands support `--json` for automation-friendly output.
 ```bash
 # --- User lifecycle (requires AUTH_MODE=passkey) ---
 docker compose exec web python manage.py cookie_admin list-users --json
-docker compose exec web python manage.py cookie_admin promote <pk_username> --json
-docker compose exec web python manage.py cookie_admin demote <pk_username> --json
+docker compose exec web python manage.py cookie_admin create-user <pk_username> --json
+docker compose exec web python manage.py cookie_admin delete-user <pk_username> --json
 docker compose exec web python manage.py cookie_admin deactivate <pk_username> --json
 docker compose exec web python manage.py cookie_admin activate <pk_username> --json
 
@@ -151,9 +153,9 @@ This project has a constitution at `.specify/memory/constitution.md` that define
 - **Speckit workflow**: Feature specifications, plans, and tasks live in `.specify/` (tracked in git). Use `/speckit.*` commands for structured feature development. The constitution is the source of truth for project values.
 
 ## Recent Changes
+- 014-remove-is-staff: Added Python 3.14 (backend), TypeScript 5.9 (modern frontend), ES5 (legacy frontend) + Django 5.0, Django Ninja 1.0+, py-webauthn 2.x (passkey mode only), React 19, Vite 7, Vitest 4, React Testing Library, pytest 8
 - 013-admin-home-only: Added Python 3.14 (backend), TypeScript 5.9 (modern frontend), ES5 (legacy frontend) + Django 5.0, Django Ninja 1.0+, `django-ratelimit` 4.1, py-webauthn 2.x (passkey mode only), React 19, Vite 7, Vitest 4, React Testing Library (existing)
 - 018-security-hardening: Added Python 3.14, TypeScript 5.9, ES5 (legacy) + Django 5.0, Django Ninja 1.0+, curl_cffi >=0.7, django-ratelimit 4.1, py-webauthn 2.x, Pillow
-- 017-ai-quotas: Added Python 3.14 (backend), TypeScript 5.9 (modern frontend), ES5 (legacy frontend) + Django 5.0, Django Ninja 1.0+, React 19, Vite 7, django-ratelimit 4.1
 
 
 <!-- MANUAL ADDITIONS START -->
