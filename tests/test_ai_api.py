@@ -150,7 +150,7 @@ class TestTestApiKey:
             data=json.dumps({"api_key": "sk-test"}),
             content_type="application/json",
         )
-        assert response.status_code == 403
+        assert response.status_code == 404  # Gated endpoint returns 404 in passkey mode
 
     @patch("apps.ai.api.OpenRouterService.test_connection", return_value=(True, "Valid key"))
     def test_valid_key(self, mock_conn, auth_client):
@@ -197,7 +197,7 @@ class TestSaveApiKey:
             data=json.dumps({"api_key": "sk-test"}),
             content_type="application/json",
         )
-        assert response.status_code == 403
+        assert response.status_code == 404  # Gated endpoint returns 404 in passkey mode
 
     @patch("apps.ai.api.OpenRouterService.invalidate_key_cache")
     def test_saves_key(self, mock_invalidate, auth_client):
@@ -287,7 +287,7 @@ class TestPrompts:
             data=json.dumps({"is_active": False}),
             content_type="application/json",
         )
-        assert response.status_code == 403
+        assert response.status_code == 404  # Gated endpoint returns 404 in passkey mode
 
 
 # ── GET /api/ai/models ──
@@ -523,7 +523,7 @@ class TestRepairSelectorEndpoint:
             data=json.dumps({"source_id": 1, "html_sample": "<div>test</div>"}),
             content_type="application/json",
         )
-        assert response.status_code == 403
+        assert response.status_code == 404  # Gated endpoint returns 404 in passkey mode
 
     @patch("apps.ai.api.repair_selector")
     def test_success(self, mock_repair, auth_client, search_source):
@@ -577,7 +577,7 @@ class TestSourcesNeedingAttention:
         regular = _create_user("regular")
         _login(client, regular)
         response = client.get("/api/ai/sources-needing-attention")
-        assert response.status_code == 403
+        assert response.status_code == 404  # Gated endpoint returns 404 in passkey mode
 
     @patch("apps.ai.api.get_sources_needing_attention")
     def test_returns_sources(self, mock_get, auth_client, search_source):

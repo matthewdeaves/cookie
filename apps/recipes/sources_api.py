@@ -8,7 +8,7 @@ from typing import List, Optional
 from django.utils import timezone
 from ninja import Router, Schema, Status
 
-from apps.core.auth import AdminAuth, SessionAuth
+from apps.core.auth import AdminAuth, HomeOnlyAdminAuth, SessionAuth
 
 from .models import SearchSource
 from .services.search import RecipeSearch
@@ -94,44 +94,11 @@ def enabled_count(request):
     }
 
 
-@router.get("/{source_id}/", response={200: SourceOut, 404: ErrorOut}, auth=SessionAuth())
-def get_source(request, source_id: int):
-    """Get a single search source by ID."""
-    try:
-        source = SearchSource.objects.get(id=source_id)
-        return source
-    except SearchSource.DoesNotExist:
-        return Status(
-            404,
-            {
-                "error": "not_found",
-                "message": f"Source {source_id} not found",
-            },
-        )
+# Static paths registered before parametrized `/{source_id}/*` patterns so that
+# Django's URL resolver doesn't shadow them with the str-typed path segment.
 
 
-@router.post("/{source_id}/toggle/", response={200: SourceToggleOut, 404: ErrorOut}, auth=AdminAuth())
-def toggle_source(request, source_id: int):
-    """Toggle a source's enabled status."""
-    try:
-        source = SearchSource.objects.get(id=source_id)
-        source.is_enabled = not source.is_enabled
-        source.save()
-        return {
-            "id": source.id,
-            "is_enabled": source.is_enabled,
-        }
-    except SearchSource.DoesNotExist:
-        return Status(
-            404,
-            {
-                "error": "not_found",
-                "message": f"Source {source_id} not found",
-            },
-        )
-
-
-@router.post("/bulk-toggle/", response={200: BulkToggleOut}, auth=AdminAuth())
+@router.post("/bulk-toggle/", response={200: BulkToggleOut}, auth=HomeOnlyAdminAuth())
 def bulk_toggle_sources(request, data: BulkToggleIn):
     """Enable or disable all sources at once."""
     updated = SearchSource.objects.all().update(is_enabled=data.enable)
@@ -141,106 +108,7 @@ def bulk_toggle_sources(request, data: BulkToggleIn):
     }
 
 
-@router.put("/{source_id}/selector/", response={200: SourceUpdateOut, 404: ErrorOut}, auth=AdminAuth())
-def update_selector(request, source_id: int, data: SourceUpdateIn):
-    """Update a source's CSS selector."""
-    try:
-        source = SearchSource.objects.get(id=source_id)
-        source.result_selector = data.result_selector
-        source.save()
-        return {
-            "id": source.id,
-            "result_selector": source.result_selector,
-        }
-    except SearchSource.DoesNotExist:
-        return Status(
-            404,
-            {
-                "error": "not_found",
-                "message": f"Source {source_id} not found",
-            },
-        )
-
-
-@router.post("/{source_id}/test/", response={200: SourceTestOut, 404: ErrorOut, 500: ErrorOut}, auth=AdminAuth())
-async def test_source(request, source_id: int):
-    """Test a source by performing a sample search.
-
-    Uses "chicken" as a test query and checks if results are returned.
-    Updates the source's validation status based on the result.
-    """
-    from asgiref.sync import sync_to_async
-
-    try:
-        source = await sync_to_async(SearchSource.objects.get)(id=source_id)
-    except SearchSource.DoesNotExist:
-        return Status(
-            404,
-            {
-                "error": "not_found",
-                "message": f"Source {source_id} not found",
-            },
-        )
-
-    # Test with a common search query
-    test_query = "chicken"
-    search = RecipeSearch()
-
-    try:
-        # Search only this specific source
-        results = await search.search(
-            query=test_query,
-            sources=[source.host],
-            page=1,
-            per_page=5,
-        )
-
-        result_count = len(results.get("results", []))
-        sample_titles = [r.get("title", "")[:50] for r in results.get("results", [])[:3]]
-
-        # Update source validation status
-        if result_count > 0:
-            source.consecutive_failures = 0
-            source.needs_attention = False
-            source.last_validated_at = timezone.now()
-            await sync_to_async(source.save)()
-
-            return {
-                "success": True,
-                "message": f'Found {result_count} results for "{test_query}"',
-                "results_count": result_count,
-                "sample_results": sample_titles,
-            }
-        else:
-            source.consecutive_failures += 1
-            source.needs_attention = source.consecutive_failures >= 3
-            source.last_validated_at = timezone.now()
-            await sync_to_async(source.save)()
-
-            return {
-                "success": False,
-                "message": f'No results found for "{test_query}". The selector may need updating.',
-                "results_count": 0,
-                "sample_results": [],
-            }
-
-    except Exception as e:
-        # Update failure count
-        source.consecutive_failures += 1
-        source.needs_attention = source.consecutive_failures >= 3
-        source.last_validated_at = timezone.now()
-        await sync_to_async(source.save)()
-
-        return Status(
-            500,
-            {
-                "error": "test_failed",
-                "message": f"Test failed: {str(e)}",
-            },
-        )
-
-
-@router.post("/test-all/", response={200: dict}, auth=AdminAuth())
+@router.post("/test-all/", response={200: dict}, auth=HomeOnlyAdminAuth())
 async def test_all_sources(request):
     """Test all enabled sources and return summary.
 
@@ -318,3 +186,139 @@ async def test_all_sources(request):
             )
 
     return results
+
+
+@router.get("/{source_id}/", response={200: SourceOut, 404: ErrorOut}, auth=SessionAuth())
+def get_source(request, source_id: int):
+    """Get a single search source by ID."""
+    try:
+        source = SearchSource.objects.get(id=source_id)
+        return source
+    except SearchSource.DoesNotExist:
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Source {source_id} not found",
+            },
+        )
+
+
+@router.post("/{source_id}/toggle/", response={200: SourceToggleOut, 404: ErrorOut}, auth=HomeOnlyAdminAuth())
+def toggle_source(request, source_id: int):
+    """Toggle a source's enabled status."""
+    try:
+        source = SearchSource.objects.get(id=source_id)
+        source.is_enabled = not source.is_enabled
+        source.save()
+        return {
+            "id": source.id,
+            "is_enabled": source.is_enabled,
+        }
+    except SearchSource.DoesNotExist:
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Source {source_id} not found",
+            },
+        )
+
+
+@router.put("/{source_id}/selector/", response={200: SourceUpdateOut, 404: ErrorOut}, auth=HomeOnlyAdminAuth())
+def update_selector(request, source_id: int, data: SourceUpdateIn):
+    """Update a source's CSS selector."""
+    try:
+        source = SearchSource.objects.get(id=source_id)
+        source.result_selector = data.result_selector
+        source.save()
+        return {
+            "id": source.id,
+            "result_selector": source.result_selector,
+        }
+    except SearchSource.DoesNotExist:
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Source {source_id} not found",
+            },
+        )
+
+
+@router.post("/{source_id}/test/", response={200: SourceTestOut, 404: ErrorOut, 500: ErrorOut}, auth=HomeOnlyAdminAuth())
+async def test_source(request, source_id: int):
+    """Test a source by performing a sample search.
+
+    Uses "chicken" as a test query and checks if results are returned.
+    Updates the source's validation status based on the result.
+    """
+    from asgiref.sync import sync_to_async
+
+    try:
+        source = await sync_to_async(SearchSource.objects.get)(id=source_id)
+    except SearchSource.DoesNotExist:
+        return Status(
+            404,
+            {
+                "error": "not_found",
+                "message": f"Source {source_id} not found",
+            },
+        )
+
+    # Test with a common search query
+    test_query = "chicken"
+    search = RecipeSearch()
+
+    try:
+        # Search only this specific source
+        results = await search.search(
+            query=test_query,
+            sources=[source.host],
+            page=1,
+            per_page=5,
+        )
+
+        result_count = len(results.get("results", []))
+        sample_titles = [r.get("title", "")[:50] for r in results.get("results", [])[:3]]
+
+        # Update source validation status
+        if result_count > 0:
+            source.consecutive_failures = 0
+            source.needs_attention = False
+            source.last_validated_at = timezone.now()
+            await sync_to_async(source.save)()
+
+            return {
+                "success": True,
+                "message": f'Found {result_count} results for "{test_query}"',
+                "results_count": result_count,
+                "sample_results": sample_titles,
+            }
+        else:
+            source.consecutive_failures += 1
+            source.needs_attention = source.consecutive_failures >= 3
+            source.last_validated_at = timezone.now()
+            await sync_to_async(source.save)()
+
+            return {
+                "success": False,
+                "message": f'No results found for "{test_query}". The selector may need updating.',
+                "results_count": 0,
+                "sample_results": [],
+            }
+
+    except Exception as e:
+        # Update failure count
+        source.consecutive_failures += 1
+        source.needs_attention = source.consecutive_failures >= 3
+        source.last_validated_at = timezone.now()
+        await sync_to_async(source.save)()
+
+        return Status(
+            500,
+            {
+                "error": "test_failed",
+                "message": f"Test failed: {str(e)}",
+            },
+        )

@@ -42,43 +42,43 @@ def _login(client, user):
 
 @pytest.mark.django_db
 class TestAdminEndpoints:
-    """Non-admin gets 403 (forbidden) on admin endpoints."""
+    """Admin endpoints 404 in passkey mode regardless of caller (HomeOnlyAdminAuth)."""
 
     def _setup_non_admin(self, client, passkey_mode):
         _create_user("admin", is_staff=True)
         regular = _create_user("regular")
         _login(client, regular)
 
-    def test_system_reset_denied(self, client, passkey_mode):
+    def test_system_reset_404(self, client, passkey_mode):
         self._setup_non_admin(client, passkey_mode)
         response = client.post(
             "/api/system/reset/", data=json.dumps({"confirmation_text": "RESET"}), content_type="application/json"
         )
-        assert response.status_code == 403
+        assert response.status_code == 404
 
-    def test_reset_preview_denied(self, client, passkey_mode):
+    def test_reset_preview_404(self, client, passkey_mode):
         self._setup_non_admin(client, passkey_mode)
         response = client.get("/api/system/reset-preview/")
-        assert response.status_code == 403
+        assert response.status_code == 404
 
-    def test_save_api_key_denied(self, client, passkey_mode):
+    def test_save_api_key_404(self, client, passkey_mode):
         self._setup_non_admin(client, passkey_mode)
         response = client.post(
             "/api/ai/save-api-key", data=json.dumps({"api_key": "test"}), content_type="application/json"
         )
-        assert response.status_code == 403
+        assert response.status_code == 404
 
-    def test_list_prompts_denied(self, client, passkey_mode):
+    def test_list_prompts_404(self, client, passkey_mode):
         self._setup_non_admin(client, passkey_mode)
         response = client.get("/api/ai/prompts")
-        assert response.status_code == 403
+        assert response.status_code == 404
 
-    def test_get_prompt_denied(self, client, passkey_mode):
+    def test_get_prompt_404(self, client, passkey_mode):
         self._setup_non_admin(client, passkey_mode)
         response = client.get("/api/ai/prompts/tips_generation")
-        assert response.status_code == 403
+        assert response.status_code == 404
 
-    def test_update_quotas_denied(self, client, passkey_mode):
+    def test_update_quotas_404(self, client, passkey_mode):
         self._setup_non_admin(client, passkey_mode)
         response = client.put(
             "/api/ai/quotas",
@@ -87,57 +87,55 @@ class TestAdminEndpoints:
             ),
             content_type="application/json",
         )
-        assert response.status_code == 403
+        assert response.status_code == 404
 
-    def test_cache_health_denied(self, client, passkey_mode):
+    def test_cache_health_404(self, client, passkey_mode):
         self._setup_non_admin(client, passkey_mode)
         response = client.get("/api/recipes/cache/health/")
-        assert response.status_code == 403
+        assert response.status_code == 404
 
 
 @pytest.mark.django_db
 class TestAdminSourceEndpoints:
-    """Non-admin gets 403 on admin-only source management endpoints in passkey mode."""
+    """Source admin endpoints 404 in passkey mode (HomeOnlyAdminAuth)."""
 
     def _setup_non_admin(self, client, passkey_mode, source):
         _create_user("admin", is_staff=True)
         regular = _create_user("regular")
         _login(client, regular)
 
-    def test_toggle_source_denied(self, client, passkey_mode, source):
+    def test_toggle_source_404(self, client, passkey_mode, source):
         self._setup_non_admin(client, passkey_mode, source)
         response = client.post(f"/api/sources/{source.id}/toggle/")
-        assert response.status_code == 403
+        assert response.status_code == 404
 
-    def test_bulk_toggle_denied(self, client, passkey_mode, source):
+    def test_bulk_toggle_404(self, client, passkey_mode, source):
         self._setup_non_admin(client, passkey_mode, source)
         response = client.post(
             "/api/sources/bulk-toggle/",
             data=json.dumps({"enable": False}),
             content_type="application/json",
         )
-        # Django Ninja may return 405 when auth fails before route matching
-        assert response.status_code in (403, 405)
+        assert response.status_code == 404
 
-    def test_update_selector_denied(self, client, passkey_mode, source):
+    def test_update_selector_404(self, client, passkey_mode, source):
         self._setup_non_admin(client, passkey_mode, source)
         response = client.put(
             f"/api/sources/{source.id}/selector/",
             data=json.dumps({"result_selector": ".hacked"}),
             content_type="application/json",
         )
-        assert response.status_code == 403
+        assert response.status_code == 404
 
-    def test_test_source_denied(self, client, passkey_mode, source):
+    def test_test_source_404(self, client, passkey_mode, source):
         self._setup_non_admin(client, passkey_mode, source)
         response = client.post(f"/api/sources/{source.id}/test/")
-        assert response.status_code == 403
+        assert response.status_code == 404
 
-    def test_test_all_sources_denied(self, client, passkey_mode):
+    def test_test_all_sources_404(self, client, passkey_mode):
         self._setup_non_admin(client, passkey_mode, None)
         response = client.post("/api/sources/test-all/")
-        # Async endpoint: sync test client may return 405 instead of 403
-        assert response.status_code in (403, 405)
+        assert response.status_code == 404
 
 
 @pytest.mark.django_db

@@ -27,7 +27,7 @@ from apps.recipes.models import (
     CachedSearchImage,
 )
 from apps.ai.models import AIDiscoverySuggestion, AIPrompt
-from apps.core.auth import AdminAuth, SessionAuth
+from apps.core.auth import AdminAuth, HomeOnlyAdminAuth, SessionAuth
 
 router = Router(tags=["system"])
 
@@ -47,7 +47,9 @@ def get_mode(request):
     from django.middleware.csrf import get_token
 
     get_token(request)  # Forces Django to set the CSRF cookie
-    result = {"mode": settings.AUTH_MODE, "version": settings.COOKIE_VERSION}
+    # `version` was removed in v1.42.0 to eliminate deployment fingerprinting.
+    # Operators check the version via `python manage.py cookie_admin status --json`.
+    result = {"mode": settings.AUTH_MODE}
     if settings.AUTH_MODE == "passkey":
         result["registration_enabled"] = True
     return result
@@ -109,11 +111,9 @@ class ResetSuccessSchema(Schema):
     actions_performed: list[str]
 
 
-@router.get("/reset-preview/", response={200: ResetPreviewSchema, 403: ErrorSchema}, auth=AdminAuth())
+@router.get("/reset-preview/", response={200: ResetPreviewSchema}, auth=HomeOnlyAdminAuth())
 def get_reset_preview(request):
-    """Get summary of data that will be deleted on reset. Disabled in passkey mode."""
-    if settings.AUTH_MODE == "passkey":
-        return Status(403, {"error": "disabled", "message": "Database reset is disabled in passkey mode. Use the CLI: python manage.py cookie_admin reset"})
+    """Get summary of data that will be deleted on reset. Home mode only — 404 in passkey mode."""
     return {
         "data_counts": {
             "profiles": Profile.objects.count(),
@@ -140,7 +140,7 @@ def get_reset_preview(request):
     }
 
 
-@router.post("/reset/", response={200: ResetSuccessSchema, 400: ErrorSchema, 403: ErrorSchema, 429: dict}, auth=AdminAuth())
+@router.post("/reset/", response={200: ResetSuccessSchema, 400: ErrorSchema, 429: dict}, auth=HomeOnlyAdminAuth())
 @ratelimit(key="ip", rate="1/h", method="POST", block=False)
 def reset_database(request, data: ResetConfirmSchema):
     """
@@ -148,11 +148,8 @@ def reset_database(request, data: ResetConfirmSchema):
 
     Requires confirmation_text="RESET" to proceed.
     Rate limited to 1 request per hour per IP.
-    Disabled in passkey mode — use CLI: python manage.py cookie_admin reset
+    Home mode only — 404 in passkey mode (use CLI: python manage.py cookie_admin reset).
     """
-    if settings.AUTH_MODE == "passkey":
-        security_logger.warning("Blocked /system/reset/ attempt in passkey mode from %s", request.META.get("REMOTE_ADDR"))
-        return Status(403, {"error": "disabled", "message": "Database reset is disabled in passkey mode. Use the CLI: python manage.py cookie_admin reset"})
     if getattr(request, "limited", False):
         security_logger.warning("Rate limit hit: /system/reset/ from %s", request.META.get("REMOTE_ADDR"))
         return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
@@ -189,14 +186,6 @@ def reset_database(request, data: ResetConfirmSchema):
 
         # Delete all profiles
         Profile.objects.all().delete()
-
-        # In passkey mode, also delete all user accounts and device codes
-        if settings.AUTH_MODE == "passkey":
-            from django.contrib.auth.models import User
-            from apps.core.models import DeviceCode
-
-            DeviceCode.objects.all().delete()
-            User.objects.all().delete()
 
         # Reset SearchSource failure counters (keep selectors)
         SearchSource.objects.all().update(

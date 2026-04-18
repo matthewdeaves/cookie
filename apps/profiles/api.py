@@ -7,7 +7,7 @@ from django.db.models import Count, Q
 from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema, Status
 
-from apps.core.auth import AdminAuth, SessionAuth
+from apps.core.auth import AdminAuth, HomeOnlyAdminAuth, SessionAuth
 from .models import Profile
 
 router = Router(tags=["profiles"])
@@ -338,7 +338,7 @@ def select_profile(request, profile_id: int):
     return profile
 
 
-@router.post("/{profile_id}/set-unlimited/", response={200: dict, 404: ErrorSchema}, auth=AdminAuth())
+@router.post("/{profile_id}/set-unlimited/", response={200: dict, 404: ErrorSchema}, auth=HomeOnlyAdminAuth())
 def set_unlimited(request, profile_id: int, data: SetUnlimitedIn):
     """Set or revoke unlimited AI access for a profile. Admin only."""
     try:
@@ -350,7 +350,7 @@ def set_unlimited(request, profile_id: int, data: SetUnlimitedIn):
     return {"id": profile.id, "name": profile.name, "unlimited_ai": profile.unlimited_ai}
 
 
-@router.patch("/{profile_id}/rename/", response={200: dict, 400: ErrorSchema, 404: ErrorSchema}, auth=AdminAuth())
+@router.patch("/{profile_id}/rename/", response={200: dict, 400: ErrorSchema, 404: ErrorSchema}, auth=HomeOnlyAdminAuth())
 def rename_profile(request, profile_id: int, data: RenameIn):
     """Rename a profile. Admin only."""
     name = data.name.strip()

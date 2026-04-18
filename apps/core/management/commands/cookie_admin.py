@@ -1,23 +1,40 @@
-"""Admin CLI tool for managing Cookie in passkey mode.
+"""Admin CLI for Cookie. Covers user lifecycle (passkey mode) and app config (either mode).
 
-All subcommands support --json for structured output, making this tool
-suitable for automation via SSM, scripts, or AI assistants.
+All subcommands support --json for structured output.
 
-Usage:
-    manage.py cookie_admin status [--json]
-    manage.py cookie_admin audit [--lines N] [--json]
-    manage.py cookie_admin list-users [--active-only] [--admins-only] [--json]
-    manage.py cookie_admin create-user <username> [--admin] [--json]
-    manage.py cookie_admin delete-user <username> [--json]
-    manage.py cookie_admin promote <username> [--json]
-    manage.py cookie_admin demote <username> [--json]
-    manage.py cookie_admin activate <username> [--json]
-    manage.py cookie_admin deactivate <username> [--json]
-    manage.py cookie_admin set-unlimited <username> [--json]
-    manage.py cookie_admin remove-unlimited <username> [--json]
-    manage.py cookie_admin usage [--username <name>] [--json]
-    manage.py cookie_admin create-session <username> [--ttl N] [--json]
-    manage.py cookie_admin reset [--json --confirm]
+Passkey-only (require AUTH_MODE=passkey — operate on Django User / DeviceCode):
+    cookie_admin list-users [--active-only] [--admins-only] [--json]
+    cookie_admin create-user <username> [--admin] [--json]
+    cookie_admin delete-user <username> [--json]
+    cookie_admin promote <username> [--json]
+    cookie_admin demote <username> [--json]
+    cookie_admin activate <username> [--json]
+    cookie_admin deactivate <username> [--json]
+    cookie_admin set-unlimited <username> [--json]
+    cookie_admin remove-unlimited <username> [--json]
+    cookie_admin usage [--username <name>] [--json]
+    cookie_admin create-session <username> [--ttl N] [--json]
+
+Mode-agnostic (operate on AppSettings / AIPrompt / SearchSource / Profile):
+    cookie_admin status [--json]                       # adds a 'cache' block in --json
+    cookie_admin audit [--lines N] [--json]
+    cookie_admin reset [--json --confirm]
+    cookie_admin set-api-key [--key KEY | --stdin]
+    cookie_admin test-api-key [--key KEY | --stdin] [--json]
+    cookie_admin set-default-model <model_id> [--json]
+    cookie_admin prompts list [--json]
+    cookie_admin prompts show <prompt_type> [--json]
+    cookie_admin prompts set <prompt_type> [--system-file PATH] [--user-file PATH]
+                                            [--model MODEL] [--active {true,false}] [--json]
+    cookie_admin sources list [--attention] [--json]
+    cookie_admin sources toggle <source_id> [--json]
+    cookie_admin sources toggle-all {--enable | --disable} [--json]
+    cookie_admin sources set-selector <source_id> --selector CSS [--json]
+    cookie_admin sources test [--id N | --all] [--json]
+    cookie_admin sources repair <source_id> [--json]
+    cookie_admin quota show [--json]
+    cookie_admin quota set {remix|remix-suggestions|scale|tips|discover|timer} <N> [--json]
+    cookie_admin rename <user_or_profile> --name NEW [--json]
 """
 
 import json
@@ -34,7 +51,16 @@ security_logger = logging.getLogger("security")
 
 
 class Command(BaseCommand):
-    help = "Manage Cookie app and user accounts (passkey mode only). All subcommands support --json."
+    help = "Manage Cookie app config, users, and data. User-lifecycle subcommands require passkey mode; others work in either mode. All subcommands support --json."
+
+    # Subcommands that operate on Django User / DeviceCode require AUTH_MODE=passkey.
+    # App-config subcommands (AppSettings / AIPrompt / SearchSource / Profile) work in either mode.
+    PASSKEY_ONLY_SUBCOMMANDS = frozenset({
+        "list-users", "create-user", "delete-user",
+        "promote", "demote", "activate", "deactivate",
+        "set-unlimited", "remove-unlimited",
+        "usage", "create-session",
+    })
 
     def add_arguments(self, parser):
         parser.add_argument("--json", action="store_true", dest="as_json", help="Output as JSON (all subcommands)")
@@ -112,15 +138,109 @@ class Command(BaseCommand):
         rs.add_argument("--confirm", action="store_true", help="Skip interactive prompt (required with --json)")
         rs.add_argument("--json", action="store_true", dest="as_json")
 
-    def handle(self, *args, **options):
-        if settings.AUTH_MODE != "passkey":
-            self._error("cookie_admin is only available in passkey mode (AUTH_MODE=passkey).", options, code=2)
+        # set-api-key
+        sak = sub.add_parser("set-api-key", help="Set the OpenRouter API key in AppSettings")
+        sak_group = sak.add_mutually_exclusive_group(required=True)
+        sak_group.add_argument("--key", help="API key (avoid in shared shells)")
+        sak_group.add_argument("--stdin", action="store_true", help="Read key from standard input")
+        sak.add_argument("--json", action="store_true", dest="as_json")
 
+        # test-api-key
+        tak = sub.add_parser("test-api-key", help="Validate an OpenRouter API key without saving")
+        tak_group = tak.add_mutually_exclusive_group(required=True)
+        tak_group.add_argument("--key")
+        tak_group.add_argument("--stdin", action="store_true")
+        tak.add_argument("--json", action="store_true", dest="as_json")
+
+        # set-default-model
+        sdm = sub.add_parser("set-default-model", help="Set the default AI model id in AppSettings")
+        sdm.add_argument("model_id")
+        sdm.add_argument("--json", action="store_true", dest="as_json")
+
+        # prompts
+        pr = sub.add_parser("prompts", help="AI prompt management")
+        pr_sub = pr.add_subparsers(dest="prompts_action")
+        pr_list = pr_sub.add_parser("list", help="List AI prompts")
+        pr_list.add_argument("--json", action="store_true", dest="as_json")
+        pr_show = pr_sub.add_parser("show", help="Show one AI prompt by type")
+        pr_show.add_argument("prompt_type")
+        pr_show.add_argument("--json", action="store_true", dest="as_json")
+        pr_set = pr_sub.add_parser("set", help="Update an AI prompt's fields (file-based content)")
+        pr_set.add_argument("prompt_type")
+        pr_set.add_argument("--system-file", dest="system_file", help="Path to new system prompt (UTF-8)")
+        pr_set.add_argument("--user-file", dest="user_file", help="Path to new user template (UTF-8)")
+        pr_set.add_argument("--model", dest="model", help="Model id (must be in AIPrompt.AVAILABLE_MODELS)")
+        pr_set.add_argument("--active", dest="active", choices=["true", "false"], help="Set is_active")
+        pr_set.add_argument("--json", action="store_true", dest="as_json")
+
+        # sources
+        sr = sub.add_parser("sources", help="Search-source management")
+        sr_sub = sr.add_subparsers(dest="sources_action")
+        sr_list = sr_sub.add_parser("list", help="List search sources")
+        sr_list.add_argument("--attention", action="store_true", help="Only sources flagged needs_attention")
+        sr_list.add_argument("--json", action="store_true", dest="as_json")
+        sr_tog = sr_sub.add_parser("toggle", help="Flip a source's enabled state")
+        sr_tog.add_argument("source_id", type=int)
+        sr_tog.add_argument("--json", action="store_true", dest="as_json")
+        sr_tall = sr_sub.add_parser("toggle-all", help="Set every source's enabled state")
+        sr_tall_group = sr_tall.add_mutually_exclusive_group(required=True)
+        sr_tall_group.add_argument("--enable", action="store_true")
+        sr_tall_group.add_argument("--disable", action="store_true")
+        sr_tall.add_argument("--json", action="store_true", dest="as_json")
+        sr_sel = sr_sub.add_parser("set-selector", help="Overwrite a source's CSS selector")
+        sr_sel.add_argument("source_id", type=int)
+        sr_sel.add_argument("--selector", required=True)
+        sr_sel.add_argument("--json", action="store_true", dest="as_json")
+        sr_test = sr_sub.add_parser("test", help="Run the health-check on one source or all")
+        sr_test_group = sr_test.add_mutually_exclusive_group(required=True)
+        sr_test_group.add_argument("--id", dest="source_id", type=int)
+        sr_test_group.add_argument("--all", action="store_true", dest="test_all")
+        sr_test.add_argument("--json", action="store_true", dest="as_json")
+        sr_rep = sr_sub.add_parser("repair", help="AI-assisted selector regeneration (requires API key)")
+        sr_rep.add_argument("source_id", type=int)
+        sr_rep.add_argument("--json", action="store_true", dest="as_json")
+
+        # quota
+        qt = sub.add_parser("quota", help="AI daily quota limits")
+        qt_sub = qt.add_subparsers(dest="quota_action")
+        qt_show = qt_sub.add_parser("show", help="Show all six daily limits")
+        qt_show.add_argument("--json", action="store_true", dest="as_json")
+        qt_set = qt_sub.add_parser("set", help="Set one daily limit")
+        qt_set.add_argument(
+            "feature",
+            choices=["remix", "remix-suggestions", "scale", "tips", "discover", "timer"],
+        )
+        qt_set.add_argument("value", type=int)
+        qt_set.add_argument("--json", action="store_true", dest="as_json")
+
+        # rename
+        rn = sub.add_parser(
+            "rename",
+            help="Rename a profile (passkey: by user_id|username; home: by profile_id)",
+        )
+        rn.add_argument("target", help="User id/username (passkey) or Profile id (home)")
+        rn.add_argument("--name", required=True, help="New profile name")
+        rn.add_argument("--json", action="store_true", dest="as_json")
+
+    def handle(self, *args, **options):
         subcommand = options.get("subcommand")
         if not subcommand:
             self._error("No subcommand provided. Use --help for usage.", options, code=1)
 
-        handler = getattr(self, f"_handle_{subcommand.replace('-', '_')}", None)
+        if subcommand in self.PASSKEY_ONLY_SUBCOMMANDS and settings.AUTH_MODE != "passkey":
+            self._error(f"'{subcommand}' requires AUTH_MODE=passkey.", options, code=2)
+
+        # Nested-subcommand dispatch (prompts/sources/quota have per-action handlers).
+        NESTED = {"prompts": "prompts_action", "sources": "sources_action", "quota": "quota_action"}
+        if subcommand in NESTED:
+            action = options.get(NESTED[subcommand])
+            if not action:
+                self._error(f"'{subcommand}' requires an action (see --help).", options, code=1)
+            handler_name = f"_handle_{subcommand}_{action.replace('-', '_')}"
+        else:
+            handler_name = f"_handle_{subcommand.replace('-', '_')}"
+
+        handler = getattr(self, handler_name, None)
         if handler:
             handler(options)
         else:
@@ -243,6 +363,15 @@ class Command(BaseCommand):
             "session_cleanup": cache.get(SESS_KEY) or "never run",
             "search_image_cleanup": cache.get(IMG_KEY) or "never run",
         }
+
+        # Cache (image-cache health) — parity with the now-gated
+        # GET /api/recipes/cache/health/ endpoint.
+        try:
+            from apps.recipes.api import get_cache_health_dict
+
+            status["cache"] = get_cache_health_dict()
+        except Exception as e:
+            status["cache"] = {"status": f"error: {e}"}
 
         return status
 
@@ -698,8 +827,10 @@ class Command(BaseCommand):
             try:
                 call_command(cmd, verbosity=0)
                 actions.append(f"Seeded {cmd.replace('seed_', '')}")
-            except Exception:
-                pass
+            except Exception as exc:
+                # Seed commands are optional (may not be installed in every deployment);
+                # log at debug level so operators can diagnose if a reset doesn't repopulate.
+                logging.getLogger(__name__).debug("seed command %s skipped: %s", cmd, exc)
 
         security_logger.warning("DATABASE RESET completed successfully via CLI")
 
@@ -707,4 +838,380 @@ class Command(BaseCommand):
             "Database reset complete.",
             options,
             {"actions_performed": actions},
+        )
+
+    # ------------------------------------------------------------------ #
+    # New subcommands (added in v1.42.0 — admin-surface lockdown feature) #
+    # ------------------------------------------------------------------ #
+
+    def _read_key(self, options):
+        """Return a non-empty API key read from --key or stdin. Errors on empty."""
+        import sys
+
+        if options.get("stdin"):
+            value = sys.stdin.read().strip()
+        else:
+            value = (options.get("key") or "").strip()
+        if not value:
+            self._error("API key must be a non-empty value.", options, code=2)
+        return value
+
+    def _handle_set_api_key(self, options):
+        from apps.core.models import AppSettings
+
+        value = self._read_key(options)
+        app = AppSettings.get()
+        app.openrouter_api_key = value
+        app.save()
+        security_logger.warning("cookie_admin set-api-key: key changed")
+        self._success("API key saved.", options, {"saved": True})
+
+    def _handle_test_api_key(self, options):
+        from apps.ai.services.openrouter import OpenRouterService
+
+        value = self._read_key(options)
+        try:
+            ok, reason = OpenRouterService.test_connection(value)
+        except Exception as exc:
+            ok, reason = False, str(exc)
+        if options.get("as_json"):
+            self.stdout.write(json.dumps({"ok": True, "valid": ok, "reason": reason}))
+        else:
+            self.stdout.write("valid" if ok else f"invalid: {reason}")
+        if not ok:
+            raise SystemExit(1)
+
+    def _handle_set_default_model(self, options):
+        from apps.ai.models import AIPrompt
+        from apps.core.models import AppSettings
+
+        model_id = options["model_id"]
+        valid = {m[0] for m in AIPrompt.AVAILABLE_MODELS}
+        if model_id not in valid:
+            self._error(
+                f"Unknown model '{model_id}'. Valid: {sorted(valid)}",
+                options,
+                code=2,
+            )
+        app = AppSettings.get()
+        app.default_ai_model = model_id
+        app.save()
+        security_logger.warning("cookie_admin set-default-model: %s", model_id)
+        self._success(f"Default model set to {model_id}.", options, {"default_ai_model": model_id})
+
+    def _handle_prompts_list(self, options):
+        from apps.ai.models import AIPrompt
+
+        rows = list(
+            AIPrompt.objects.order_by("prompt_type").values(
+                "prompt_type", "name", "model", "is_active"
+            )
+        )
+        if options.get("as_json"):
+            self.stdout.write(json.dumps({"ok": True, "prompts": rows}))
+            return
+        for r in rows:
+            self.stdout.write(
+                f"{r['prompt_type']:<22} model={r['model']:<35} active={r['is_active']}  name={r['name']!r}"
+            )
+
+    def _handle_prompts_show(self, options):
+        from apps.ai.models import AIPrompt
+
+        try:
+            p = AIPrompt.objects.get(prompt_type=options["prompt_type"])
+        except AIPrompt.DoesNotExist:
+            self._error(f"Prompt '{options['prompt_type']}' not found.", options, code=2)
+        payload = {
+            "prompt_type": p.prompt_type,
+            "name": p.name,
+            "description": p.description,
+            "model": p.model,
+            "is_active": p.is_active,
+            "system_prompt": p.system_prompt,
+            "user_prompt_template": p.user_prompt_template,
+        }
+        if options.get("as_json"):
+            self.stdout.write(json.dumps({"ok": True, "prompt": payload}))
+            return
+        self.stdout.write(f"prompt_type: {p.prompt_type}")
+        self.stdout.write(f"name:        {p.name}")
+        self.stdout.write(f"description: {p.description}")
+        self.stdout.write(f"model:       {p.model}")
+        self.stdout.write(f"is_active:   {p.is_active}")
+        self.stdout.write("system_prompt:")
+        self.stdout.write(p.system_prompt)
+        self.stdout.write("user_prompt_template:")
+        self.stdout.write(p.user_prompt_template)
+
+    def _handle_prompts_set(self, options):
+        from apps.ai.models import AIPrompt
+
+        prompt_type = options["prompt_type"]
+        try:
+            prompt = AIPrompt.objects.get(prompt_type=prompt_type)
+        except AIPrompt.DoesNotExist:
+            self._error(f"Prompt '{prompt_type}' not found.", options, code=2)
+
+        # Read files FIRST (before any DB write) so a missing file doesn't leave
+        # a half-updated row.
+        updated_fields = []
+        new_system = new_user = None
+        if options.get("system_file"):
+            new_system = self._read_text_file(options["system_file"], options)
+            updated_fields.append("system_prompt")
+        if options.get("user_file"):
+            new_user = self._read_text_file(options["user_file"], options)
+            updated_fields.append("user_prompt_template")
+        if options.get("model"):
+            valid = {m[0] for m in AIPrompt.AVAILABLE_MODELS}
+            if options["model"] not in valid:
+                self._error(
+                    f"Unknown model '{options['model']}'. Valid: {sorted(valid)}",
+                    options,
+                    code=2,
+                )
+            updated_fields.append("model")
+        if options.get("active"):
+            updated_fields.append("is_active")
+        if not updated_fields:
+            self._error("prompts set: specify at least one of --system-file, --user-file, --model, --active.", options, code=2)
+
+        if new_system is not None:
+            prompt.system_prompt = new_system
+        if new_user is not None:
+            prompt.user_prompt_template = new_user
+        if options.get("model"):
+            prompt.model = options["model"]
+        if options.get("active"):
+            prompt.is_active = options["active"] == "true"
+        prompt.save()
+
+        security_logger.warning(
+            "cookie_admin prompts set %s: fields=%s", prompt_type, updated_fields
+        )
+        self._success(
+            f"Prompt {prompt_type} updated: fields={updated_fields}",
+            options,
+            {"prompt_type": prompt_type, "updated_fields": updated_fields},
+        )
+
+    def _read_text_file(self, path, options):
+        try:
+            with open(path, encoding="utf-8") as fh:
+                return fh.read()
+        except (OSError, UnicodeDecodeError) as exc:
+            self._error(f"Cannot read file '{path}': {exc}", options, code=2)
+
+    def _handle_sources_list(self, options):
+        from apps.recipes.models import SearchSource
+
+        qs = SearchSource.objects.order_by("name")
+        if options.get("attention"):
+            qs = qs.filter(needs_attention=True)
+        rows = [
+            {
+                "id": s.id,
+                "name": s.name,
+                "host": s.host,
+                "url": s.search_url_template,
+                "enabled": s.is_enabled,
+                "needs_attention": s.needs_attention,
+                "selector": s.result_selector,
+            }
+            for s in qs
+        ]
+        if options.get("as_json"):
+            self.stdout.write(json.dumps({"ok": True, "sources": rows}))
+            return
+        for r in rows:
+            self.stdout.write(
+                f"{r['id']:>3}  enabled={r['enabled']}  attention={r['needs_attention']}  {r['name']}  {r['host']}"
+            )
+
+    def _handle_sources_toggle(self, options):
+        from apps.recipes.models import SearchSource
+
+        sid = options["source_id"]
+        try:
+            source = SearchSource.objects.get(id=sid)
+        except SearchSource.DoesNotExist:
+            self._error(f"Source {sid} not found.", options, code=1)
+        source.is_enabled = not source.is_enabled
+        source.save(update_fields=["is_enabled"])
+        security_logger.warning("cookie_admin sources toggle %d: %s", sid, source.is_enabled)
+        self._success(
+            f"Source {sid} ({source.name}): enabled={source.is_enabled}",
+            options,
+            {"source_id": sid, "enabled": source.is_enabled},
+        )
+
+    def _handle_sources_toggle_all(self, options):
+        from apps.recipes.models import SearchSource
+
+        value = bool(options.get("enable"))
+        count = SearchSource.objects.all().update(is_enabled=value)
+        security_logger.warning("cookie_admin sources toggle-all: enabled=%s count=%d", value, count)
+        self._success(
+            f"Set enabled={value} for {count} sources.",
+            options,
+            {"enabled": value, "count": count},
+        )
+
+    def _handle_sources_set_selector(self, options):
+        from apps.recipes.models import SearchSource
+
+        sid = options["source_id"]
+        selector = options["selector"].strip()
+        if not selector:
+            self._error("--selector must be a non-empty string.", options, code=2)
+        try:
+            source = SearchSource.objects.get(id=sid)
+        except SearchSource.DoesNotExist:
+            self._error(f"Source {sid} not found.", options, code=1)
+        source.result_selector = selector
+        source.save(update_fields=["result_selector"])
+        security_logger.warning("cookie_admin sources set-selector %d", sid)
+        self._success(
+            f"Source {sid} ({source.name}): selector updated.",
+            options,
+            {"source_id": sid, "selector": selector},
+        )
+
+    def _handle_sources_test(self, options):
+        import asyncio
+
+        from apps.recipes.models import SearchSource
+        from apps.recipes.services.source_health import check_all_sources, check_source
+
+        if options.get("test_all"):
+            results = asyncio.run(check_all_sources())
+        else:
+            sid = options["source_id"]
+            try:
+                source = SearchSource.objects.get(id=sid)
+            except SearchSource.DoesNotExist:
+                self._error(f"Source {sid} not found.", options, code=1)
+            results = [asyncio.run(check_source(source))]
+
+        ok_count = sum(1 for r in results if r["ok"])
+        fail_count = len(results) - ok_count
+        if options.get("as_json"):
+            self.stdout.write(json.dumps({"ok": True, "results": results, "summary": {"ok": ok_count, "failed": fail_count}}))
+            return
+        for r in results:
+            marker = "[OK]  " if r["ok"] else "[FAIL]"
+            self.stdout.write(f"{marker} Source {r['source_id']} ({r['name']}) — {r['message']}")
+        self.stdout.write(f"{ok_count} ok / {fail_count} failed")
+
+    def _handle_sources_repair(self, options):
+        from apps.ai.services.selector import repair_selector
+        from apps.core.models import AppSettings
+        from apps.recipes.models import SearchSource
+
+        if not AppSettings.get().openrouter_api_key:
+            self._error(
+                "sources repair requires OPENROUTER_API_KEY or AppSettings.openrouter_api_key to be set.",
+                options,
+                code=2,
+            )
+        sid = options["source_id"]
+        try:
+            source = SearchSource.objects.get(id=sid)
+        except SearchSource.DoesNotExist:
+            self._error(f"Source {sid} not found.", options, code=1)
+        try:
+            result = repair_selector(source_id=sid, html_sample=None, auto_update=False)
+        except Exception as exc:
+            self._error(f"repair failed: {exc}", options, code=1)
+        security_logger.warning("cookie_admin sources repair %d", sid)
+        self._success(
+            f"Source {sid} ({source.name}): selector repaired.",
+            options,
+            {"source_id": sid, "result": result},
+        )
+
+    def _handle_quota_show(self, options):
+        from apps.core.models import AppSettings
+
+        app = AppSettings.get()
+        data = {
+            "remix": app.daily_limit_remix,
+            "remix_suggestions": app.daily_limit_remix_suggestions,
+            "scale": app.daily_limit_scale,
+            "tips": app.daily_limit_tips,
+            "discover": app.daily_limit_discover,
+            "timer": app.daily_limit_timer,
+        }
+        if options.get("as_json"):
+            self.stdout.write(json.dumps({"ok": True, "quotas": data}))
+            return
+        for name, value in data.items():
+            self.stdout.write(f"{name:<18} = {value}")
+
+    def _handle_quota_set(self, options):
+        from apps.core.models import AppSettings
+
+        value = options["value"]
+        if value < 0:
+            self._error("Quota value must be a non-negative integer.", options, code=2)
+        feature = options["feature"]
+        field = {
+            "remix": "daily_limit_remix",
+            "remix-suggestions": "daily_limit_remix_suggestions",
+            "scale": "daily_limit_scale",
+            "tips": "daily_limit_tips",
+            "discover": "daily_limit_discover",
+            "timer": "daily_limit_timer",
+        }[feature]
+        app = AppSettings.get()
+        setattr(app, field, value)
+        app.save()
+        security_logger.warning("cookie_admin quota set %s=%d", feature, value)
+        self._success(f"quota.{feature} = {value}", options, {feature: value})
+
+    def _handle_rename(self, options):
+        from apps.profiles.models import Profile
+
+        target = options["target"]
+        new_name = (options["name"] or "").strip()
+        if not new_name:
+            self._error("--name must be a non-empty value.", options, code=2)
+        max_len = Profile._meta.get_field("name").max_length
+        if len(new_name) > max_len:
+            self._error(f"--name exceeds max length {max_len}.", options, code=2)
+
+        if settings.AUTH_MODE == "passkey":
+            user = None
+            if target.isdigit():
+                try:
+                    user = User.objects.get(pk=int(target))
+                except User.DoesNotExist:
+                    pass
+            if user is None:
+                try:
+                    user = User.objects.get(username=target)
+                except User.DoesNotExist:
+                    self._error(f"No user found for '{target}'.", options, code=1)
+            profile = getattr(user, "profile", None)
+            if profile is None:
+                self._error(f"User '{target}' has no profile.", options, code=1)
+        else:
+            if not target.isdigit():
+                self._error("home mode: positional arg must be a Profile id (integer).", options, code=2)
+            try:
+                profile = Profile.objects.get(pk=int(target))
+            except Profile.DoesNotExist:
+                self._error(f"No profile with id {target}.", options, code=1)
+
+        old_name = profile.name
+        profile.name = new_name
+        profile.save(update_fields=["name"])
+        security_logger.warning(
+            "cookie_admin rename profile_id=%d: %s → %s", profile.id, old_name, new_name
+        )
+        self._success(
+            f"Profile renamed: {old_name} → {new_name} (profile_id={profile.id})",
+            options,
+            {"profile_id": profile.id, "old_name": old_name, "new_name": new_name},
         )

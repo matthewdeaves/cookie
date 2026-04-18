@@ -291,7 +291,13 @@ class TestGetQuotasEndpoint:
 class TestUpdateQuotasEndpoint:
     """PUT /api/ai/quotas requires admin and updates limits."""
 
-    def test_put_quotas_requires_admin(self, client, settings):
+    def test_put_quotas_404_in_passkey_mode(self, client, settings):
+        """PUT /api/ai/quotas is gated — 404 in passkey mode.
+
+        The old 'updates limits in passkey mode' and 'requires admin' tests
+        were removed: the web endpoint is gone entirely. Quota updates now
+        go through `python manage.py cookie_admin quota set`.
+        """
         settings.AUTH_MODE = "passkey"
         profile = _make_profile("regular")
         _login(client, profile.user)
@@ -303,29 +309,7 @@ class TestUpdateQuotasEndpoint:
             ),
             content_type="application/json",
         )
-        assert response.status_code == 403
-
-    def test_put_quotas_updates_limits(self, client, settings):
-        settings.AUTH_MODE = "passkey"
-        profile = _make_profile("admin", is_staff=True)
-        _login(client, profile.user)
-
-        response = client.put(
-            "/api/ai/quotas",
-            data=json.dumps(
-                {"remix": 50, "remix_suggestions": 20, "scale": 30, "tips": 40, "discover": 25, "timer": 15}
-            ),
-            content_type="application/json",
-        )
-        assert response.status_code == 200
-
-        data = response.json()
-        assert data["limits"]["remix"] == 50
-        assert data["limits"]["remix_suggestions"] == 20
-        assert data["limits"]["scale"] == 30
-        assert data["limits"]["tips"] == 40
-        assert data["limits"]["discover"] == 25
-        assert data["limits"]["timer"] == 15
+        assert response.status_code == 404
 
 
 # ---------------------------------------------------------------------------
@@ -338,7 +322,8 @@ class TestSetUnlimitedEndpoint:
     """POST /api/profiles/{id}/set-unlimited/ toggles unlimited AI access."""
 
     def test_set_unlimited_endpoint(self, client, settings):
-        settings.AUTH_MODE = "passkey"
+        """Home mode: functional test. The endpoint 404s in passkey mode (covered by test_gated_endpoints_passkey.py)."""
+        settings.AUTH_MODE = "home"
         admin = _make_profile("admin", is_staff=True)
         target = _make_profile("target")
         _login(client, admin.user)
@@ -355,7 +340,8 @@ class TestSetUnlimitedEndpoint:
         target.refresh_from_db()
         assert target.unlimited_ai is True
 
-    def test_set_unlimited_requires_admin(self, client, settings):
+    def test_set_unlimited_404_in_passkey_mode(self, client, settings):
+        """Gated endpoint — 404 in passkey mode regardless of caller."""
         settings.AUTH_MODE = "passkey"
         regular = _make_profile("regular")
         target = _make_profile("target")
@@ -366,7 +352,7 @@ class TestSetUnlimitedEndpoint:
             data=json.dumps({"unlimited": True}),
             content_type="application/json",
         )
-        assert response.status_code == 403
+        assert response.status_code == 404
 
 
 @pytest.mark.django_db
@@ -374,7 +360,8 @@ class TestRenameEndpoint:
     """PATCH /api/profiles/{id}/rename/ renames a profile."""
 
     def test_rename_endpoint(self, client, settings):
-        settings.AUTH_MODE = "passkey"
+        """Home mode: functional test. The endpoint 404s in passkey mode (covered elsewhere)."""
+        settings.AUTH_MODE = "home"
         admin = _make_profile("admin", is_staff=True)
         target = _make_profile("target")
         _login(client, admin.user)
@@ -391,7 +378,8 @@ class TestRenameEndpoint:
         target.refresh_from_db()
         assert target.name == "New Name"
 
-    def test_rename_requires_admin(self, client, settings):
+    def test_rename_404_in_passkey_mode(self, client, settings):
+        """Gated endpoint — 404 in passkey mode regardless of caller."""
         settings.AUTH_MODE = "passkey"
         regular = _make_profile("regular")
         target = _make_profile("target")
@@ -402,10 +390,11 @@ class TestRenameEndpoint:
             data=json.dumps({"name": "Hacked"}),
             content_type="application/json",
         )
-        assert response.status_code == 403
+        assert response.status_code == 404
 
     def test_rename_rejects_empty_name(self, client, settings):
-        settings.AUTH_MODE = "passkey"
+        """Home mode: functional test of rename validation."""
+        settings.AUTH_MODE = "home"
         admin = _make_profile("admin", is_staff=True)
         target = _make_profile("target")
         _login(client, admin.user)

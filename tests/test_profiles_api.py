@@ -266,7 +266,8 @@ class TestSetUnlimited:
         )
         assert response.status_code == 404
 
-    def test_passkey_non_admin_denied(self, client, settings):
+    def test_passkey_404_for_all_callers(self, client, settings):
+        """Endpoint is gated — 404 in passkey mode regardless of caller."""
         settings.AUTH_MODE = "passkey"
         regular = _create_user("regular")
         _login(client, regular)
@@ -275,7 +276,7 @@ class TestSetUnlimited:
             data=json.dumps({"unlimited": True}),
             content_type="application/json",
         )
-        assert response.status_code == 403
+        assert response.status_code == 404
 
 
 # ── PATCH /api/profiles/{id}/rename/ ──
@@ -374,7 +375,8 @@ class TestRenameProfile:
         )
         assert response.status_code == 404
 
-    def test_passkey_non_admin_denied(self, client, settings):
+    def test_passkey_404_for_all_callers(self, client, settings):
+        """Endpoint is gated — 404 in passkey mode regardless of caller."""
         settings.AUTH_MODE = "passkey"
         regular = _create_user("regular")
         _login(client, regular)
@@ -383,7 +385,7 @@ class TestRenameProfile:
             data=json.dumps({"name": "New"}),
             content_type="application/json",
         )
-        assert response.status_code == 403
+        assert response.status_code == 404
 
 
 # ── DELETE /api/profiles/{id}/ (passkey self-deletion) ──
