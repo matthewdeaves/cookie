@@ -1,0 +1,7 @@
+# Cookie cleanup jobs — scheduled by supercronic
+# supercronic inherits env (SECRET_KEY, DATABASE_URL, DJANGO_SETTINGS_MODULE)
+# from the parent entrypoint process. NEVER add environment variables here.
+# See specs/015-security-review-fixes/research.md Decision 1.
+0  * * * * /usr/local/bin/python /app/manage.py cleanup_device_codes
+15 3 * * * /usr/local/bin/python /app/manage.py cleanup_sessions
+30 3 * * * /usr/local/bin/python /app/manage.py cleanup_search_images

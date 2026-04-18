@@ -139,12 +139,18 @@ def list_profiles(request):
     return result
 
 
-@router.post("/", response={201: ProfileOut, 404: ErrorSchema, 429: ErrorSchema})
+@router.post("/", response={201: ProfileOut, 403: ErrorSchema, 404: ErrorSchema, 429: ErrorSchema})
 @ratelimit(key="ip", rate="10/h", method="POST", block=False)
 def create_profile(request, payload: ProfileIn):
     """Create a new profile. Home mode only — profile creation flow runs pre-session."""
     if settings.AUTH_MODE != "home":
         raise HttpError(404, "Not found")
+    from django.middleware.csrf import CsrfViewMiddleware
+    csrf_middleware = CsrfViewMiddleware(lambda r: None)
+    csrf_middleware.process_request(request)
+    reason = csrf_middleware.process_view(request, None, (), {})
+    if reason:
+        return Status(403, {"error": "csrf_failed", "message": "CSRF token missing or invalid"})
     if getattr(request, "limited", False):
         return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
     data = payload.dict()
@@ -264,11 +270,17 @@ def delete_profile(request, profile_id: int):
     return Status(204, None)
 
 
-@router.post("/{profile_id}/select/", response={200: ProfileOut, 404: dict})
+@router.post("/{profile_id}/select/", response={200: ProfileOut, 403: dict, 404: dict})
 def select_profile(request, profile_id: int):
     """Set a profile as the current profile. Home mode only (pre-session selection)."""
     if settings.AUTH_MODE != "home":
         raise HttpError(404, "Not found")
+    from django.middleware.csrf import CsrfViewMiddleware
+    csrf_middleware = CsrfViewMiddleware(lambda r: None)
+    csrf_middleware.process_request(request)
+    reason = csrf_middleware.process_view(request, None, (), {})
+    if reason:
+        return Status(403, {"detail": "CSRF token missing or invalid"})
     try:
         profile = Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:

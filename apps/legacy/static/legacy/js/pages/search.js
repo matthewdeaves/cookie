@@ -257,7 +257,11 @@ Cookie.pages.search = (function() {
             for (var j = previousCount; j < state.results.length; j++) {
                 html += renderSearchResultCard(state.results[j]);
             }
-            elements.resultsGrid.innerHTML += html;
+            var wrapper = document.createElement('div');
+            Cookie.utils.setHtml(wrapper, html);
+            while (wrapper.firstChild) {
+                elements.resultsGrid.appendChild(wrapper.firstChild);
+            }
         }
 
         // Attach error handlers to newly rendered images

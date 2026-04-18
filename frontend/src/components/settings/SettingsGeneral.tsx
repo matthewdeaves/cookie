@@ -92,6 +92,12 @@ export default function SettingsGeneral({
       <div className="rounded-lg border border-border bg-card p-4">
         <h2 className="mb-4 text-lg font-medium text-foreground">About</h2>
         <div className="space-y-2 text-sm text-muted-foreground">
+          {mode === 'passkey' && profile && (
+            <div className="flex items-center justify-between">
+              <span>Account ID</span>
+              <span className="font-medium text-foreground">{profile.id}</span>
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <span>Version</span>
             <span className="font-medium text-foreground">{version}</span>

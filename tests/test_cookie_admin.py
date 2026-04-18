@@ -300,6 +300,33 @@ class TestSetUnlimitedCommand:
         assert data["username"] == "charlie"
         assert data["action"] == "set-unlimited"
 
+    def test_set_unlimited_by_profile_id(self, passkey_mode):
+        user = _make_user("diana")
+        pid = str(user.profile.id)
+        _, data = _call("set-unlimited", "--profile-id", pid, as_json=True)
+        assert data["ok"] is True
+        assert data["unlimited_ai"] is True
+        user.profile.refresh_from_db()
+        assert user.profile.unlimited_ai is True
+
+    def test_remove_unlimited_by_profile_id(self, passkey_mode):
+        user = _make_user("eve", unlimited_ai=True)
+        pid = str(user.profile.id)
+        _, data = _call("remove-unlimited", "--profile-id", pid, as_json=True)
+        assert data["ok"] is True
+        assert data["unlimited_ai"] is False
+        user.profile.refresh_from_db()
+        assert user.profile.unlimited_ai is False
+
+    def test_set_unlimited_both_args_errors(self, passkey_mode):
+        _make_user("frank")
+        with pytest.raises(SystemExit):
+            _call("set-unlimited", "frank", "--profile-id", "1", as_json=True)
+
+    def test_set_unlimited_profile_id_not_found(self, passkey_mode):
+        with pytest.raises(SystemExit):
+            _call("set-unlimited", "--profile-id", "99999", as_json=True)
+
 
 # ---------------------------------------------------------------------------
 # usage
@@ -367,7 +394,7 @@ class TestCreateSession:
 
     def test_create_session_basic(self, passkey_mode):
         user = _make_user("alice")
-        _, data = _call("create-session", "alice", as_json=True)
+        _, data = _call("create-session", "alice", "--confirm", as_json=True)
 
         assert data["ok"] is True
         assert "session_key" in data
@@ -386,7 +413,7 @@ class TestCreateSession:
 
     def test_create_session_custom_ttl(self, passkey_mode):
         _make_user("alice")
-        _, data = _call("create-session", "alice", "--ttl", "120", as_json=True)
+        _, data = _call("create-session", "alice", "--ttl", "120", "--confirm", as_json=True)
 
         assert data["ok"] is True
         assert data["expires_in_seconds"] == 120
@@ -394,21 +421,32 @@ class TestCreateSession:
     def test_create_session_inactive_user_refused(self, passkey_mode):
         _make_user("alice", is_active=False)
         with pytest.raises(SystemExit):
-            _call("create-session", "alice", as_json=True)
+            _call("create-session", "alice", "--confirm", as_json=True)
 
     def test_create_session_nonexistent_user(self, passkey_mode):
         with pytest.raises(SystemExit):
-            _call("create-session", "nobody", as_json=True)
+            _call("create-session", "nobody", "--confirm", as_json=True)
 
     def test_create_session_ttl_too_short(self, passkey_mode):
         _make_user("alice")
         with pytest.raises(SystemExit):
-            _call("create-session", "alice", "--ttl", "10", as_json=True)
+            _call("create-session", "alice", "--ttl", "10", "--confirm", as_json=True)
 
     def test_create_session_ttl_too_long(self, passkey_mode):
         _make_user("alice")
         with pytest.raises(SystemExit):
-            _call("create-session", "alice", "--ttl", "100000", as_json=True)
+            _call("create-session", "alice", "--ttl", "100000", "--confirm", as_json=True)
+
+    def test_create_session_json_without_confirm_errors(self, passkey_mode):
+        _make_user("alice")
+        with pytest.raises(SystemExit):
+            _call("create-session", "alice", as_json=True)
+
+    def test_create_session_json_with_confirm_succeeds(self, passkey_mode):
+        _make_user("alice")
+        _, data = _call("create-session", "alice", "--confirm", as_json=True)
+        assert data["ok"] is True
+        assert "session_key" in data
 
 
 class TestCreateSuperuserBlocked:

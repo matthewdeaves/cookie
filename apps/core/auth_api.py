@@ -31,6 +31,7 @@ def logout_view(request):
     username = getattr(request, "user", None)
     username = username.username if username and hasattr(username, "username") else "unknown"
     logout(request)
+    request.session.flush()
     security_logger.info("Logout: user=%s", username)
     return {"message": "Logged out successfully"}
 

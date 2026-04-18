@@ -54,24 +54,15 @@ python manage.py collectstatic --noinput
 # Ensure app user owns required directories
 chown -R app:app /app/staticfiles /app/data 2>/dev/null || true
 
-# Set up and start cron for device code cleanup (hourly)
-# Cron daemonizes itself — start it before supervised processes
-echo "DJANGO_SETTINGS_MODULE=cookie.settings" > /etc/cron.d/cookie-cleanup
-echo "DATABASE_URL=${DATABASE_URL}" >> /etc/cron.d/cookie-cleanup
-echo "SECRET_KEY=${SECRET_KEY}" >> /etc/cron.d/cookie-cleanup
-echo "0 * * * * root cd /app && /usr/local/bin/python manage.py cleanup_device_codes >> /proc/1/fd/1 2>&1" >> /etc/cron.d/cookie-cleanup
-echo "15 3 * * * root cd /app && /usr/local/bin/python manage.py cleanup_sessions >> /proc/1/fd/1 2>&1" >> /etc/cron.d/cookie-cleanup
-echo "30 3 * * * root cd /app && /usr/local/bin/python manage.py cleanup_search_images >> /proc/1/fd/1 2>&1" >> /etc/cron.d/cookie-cleanup
-chmod 0600 /etc/cron.d/cookie-cleanup
-crontab /etc/cron.d/cookie-cleanup
-cron
-echo "Cron daemon started: device codes (hourly), sessions + images (daily 3am)"
+# Validate crontab before starting supercronic (preflight)
+echo "Validating crontab..."
+supercronic -test /app/crontab || { echo "FATAL: crontab validation failed — check /app/crontab syntax"; exit 1; }
 
-# Process supervision: if either process exits, terminate the other and exit
+# Process supervision: if any process exits, terminate the others and exit
 cleanup() {
     echo "Shutting down..."
-    kill -TERM "$GUNICORN_PID" "$NGINX_PID" 2>/dev/null
-    wait "$GUNICORN_PID" "$NGINX_PID" 2>/dev/null
+    kill -TERM "$GUNICORN_PID" "$NGINX_PID" "$SUPERCRONIC_PID" 2>/dev/null
+    wait "$GUNICORN_PID" "$NGINX_PID" "$SUPERCRONIC_PID" 2>/dev/null
     exit 0
 }
 trap cleanup SIGTERM SIGINT
@@ -91,12 +82,17 @@ su -s /bin/bash app -c "gunicorn \
     cookie.wsgi:application" &
 GUNICORN_PID=$!
 
+# Start supercronic as the non-root app user (inherits env from this entrypoint)
+echo "Starting supercronic (device codes hourly, sessions + images daily 3am)..."
+su -s /bin/bash app -c "supercronic /app/crontab" &
+SUPERCRONIC_PID=$!
+
 # Start Nginx in background (requires root for port 80)
 echo "Starting Nginx on 0.0.0.0:80..."
 nginx -g 'daemon off;' &
 NGINX_PID=$!
 
-# Wait for either process to exit, then terminate the other
+# Wait for any process to exit, then terminate the others
 wait -n
 echo "Process exited unexpectedly, shutting down..."
 cleanup
