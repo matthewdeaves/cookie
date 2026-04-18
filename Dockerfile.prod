@@ -19,7 +19,19 @@ COPY frontend/ .
 RUN npm run build
 
 # ===========================================
-# Stage 2: Python Dependencies
+# Stage 2: Build supercronic from source (Go 1.26.2 — fixes CVE-2026-32280, CVE-2026-32282, CVE-2026-33810)
+# ===========================================
+# golang:1.26.2-bookworm - update digest when upgrading
+FROM golang:1.26.2-bookworm@sha256:4f4ab2c90005e7e63cb631f0b4427f05422f241622ee3ec4727cc5febbf83e34 AS supercronic-builder
+
+ARG SUPERCRONIC_VERSION=v0.2.44
+RUN git clone --branch "${SUPERCRONIC_VERSION}" --depth 1 \
+        https://github.com/aptible/supercronic.git /src/supercronic \
+    && cd /src/supercronic \
+    && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /usr/local/bin/supercronic .
+
+# ===========================================
+# Stage 3: Python Dependencies
 # ===========================================
 # python:3.14-slim - update digest when upgrading
 FROM python:3.14-slim@sha256:71b358f8bff55413f4a6b95af80acb07ab97b5636cd3b869f35c3680d31d1650 AS python-deps
@@ -40,7 +52,7 @@ COPY requirements.lock .
 RUN pip install --no-cache-dir --require-hashes -r requirements.lock
 
 # ===========================================
-# Stage 3: Production Image
+# Stage 4: Production Image
 # ===========================================
 # python:3.14-slim - update digest when upgrading
 FROM python:3.14-slim@sha256:71b358f8bff55413f4a6b95af80acb07ab97b5636cd3b869f35c3680d31d1650 AS production
@@ -55,21 +67,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && rm -f /etc/nginx/sites-enabled/default
 
-# Install supercronic v0.2.44 — replaces Debian cron (see specs/015-security-review-fixes)
-# Upstream SHA1: amd64=6eb0a8e1e6673675dc67668c1a9b6409f79c37bc arm64=6c6cba4cde1dd4a1dd1e7fb23498cde1b57c226c
-ARG TARGETARCH
-ENV SUPERCRONIC_VERSION=v0.2.44 \
-    SUPERCRONIC_SHA256_AMD64=6feff7d5eba16a89cf229b7eb644cfae2f03a32c62ca320f17654659315275b6 \
-    SUPERCRONIC_SHA256_ARM64=ec29b3129ab20100971d21d391150d50398e5caaa33b8652eab919e2c5143057
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-RUN ARCH="${TARGETARCH:-amd64}" \
-    && if [ "$ARCH" = "arm64" ]; then EXPECTED_SHA256="$SUPERCRONIC_SHA256_ARM64"; \
-       else EXPECTED_SHA256="$SUPERCRONIC_SHA256_AMD64"; fi \
-    && curl -fsSL -o /usr/local/bin/supercronic \
-       "https://github.com/aptible/supercronic/releases/download/${SUPERCRONIC_VERSION}/supercronic-linux-${ARCH}" \
-    && echo "${EXPECTED_SHA256}  /usr/local/bin/supercronic" | sha256sum -c - \
-    && chmod +x /usr/local/bin/supercronic
-SHELL ["/bin/sh", "-c"]
+# Copy supercronic built from source (Go 1.26.2, no known CVEs)
+COPY --from=supercronic-builder /usr/local/bin/supercronic /usr/local/bin/supercronic
 
 # Security: Create non-root user
 RUN useradd --create-home --shell /bin/bash app
