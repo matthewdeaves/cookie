@@ -4,7 +4,7 @@ AI quota management API endpoints.
 
 from ninja import Router, Schema, Status
 
-from apps.core.auth import AdminAuth, SessionAuth
+from apps.core.auth import AdminAuth, HomeOnlyAdminAuth, SessionAuth
 from apps.core.models import AppSettings
 
 from .services.quota import get_usage, _next_midnight_utc_iso, ALL_FEATURES, FEATURE_LIMIT_FIELDS
@@ -78,7 +78,7 @@ def get_quotas(request):
     return _build_quota_response(profile, app_settings)
 
 
-@router.put("/quotas", response={200: QuotaResponse, 404: ErrorOut}, auth=AdminAuth())
+@router.put("/quotas", response={200: QuotaResponse, 404: ErrorOut}, auth=HomeOnlyAdminAuth())
 def update_quotas(request, data: QuotaLimitsIn):
     """Update AI quota limits (admin only)."""
     from django.conf import settings as django_settings

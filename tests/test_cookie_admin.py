@@ -496,7 +496,289 @@ class TestCookieAdminReset:
 
         assert Session.objects.count() == 0
 
-    def test_reset_not_available_in_home_mode(self):
-        """reset should fail in home mode (cookie_admin is passkey-only)."""
-        with pytest.raises(SystemExit):
-            _call("reset", as_json=True)
+    def test_reset_works_in_home_mode(self, settings):
+        """reset is mode-agnostic after v1.42.0 — works in both modes."""
+        settings.AUTH_MODE = "home"
+        # Should NOT raise: reset is available in home mode now that cookie_admin's
+        # blanket passkey-only guard was replaced by a per-subcommand allowlist.
+        text, payload = _call("reset", "--confirm", as_json=True)
+        assert payload["ok"] is True
+
+
+# ---------------------------------------------------------------------------
+# v1.42.0 — new subcommands (admin-surface lockdown feature)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def home_mode(settings):
+    settings.AUTH_MODE = "home"
+
+
+@pytest.fixture
+def security_log_capture(caplog):
+    """Capture records from the `security` logger (which has propagate=False).
+
+    The standard `caplog` fixture attaches to the root logger; our `security`
+    logger doesn't propagate, so we attach caplog's handler directly to it.
+    """
+    import logging
+
+    security = logging.getLogger("security")
+    security.addHandler(caplog.handler)
+    security.setLevel(logging.WARNING)
+    try:
+        yield caplog
+    finally:
+        security.removeHandler(caplog.handler)
+
+
+@pytest.mark.django_db
+class TestSetApiKey:
+    def test_set_api_key_by_flag(self, security_log_capture, home_mode):
+        from apps.core.models import AppSettings
+
+        _call("set-api-key", "--key", "sk-test-1234")
+        app = AppSettings.get()
+        assert app.openrouter_api_key == "sk-test-1234"
+        # Security log hit, but value NEVER in log record
+        assert any("set-api-key" in r.getMessage() for r in security_log_capture.records)
+        assert not any("sk-test-1234" in r.getMessage() for r in security_log_capture.records)
+
+    def test_set_api_key_rejects_empty_key(self, home_mode):
+        with pytest.raises(SystemExit) as exc_info:
+            _call("set-api-key", "--key", "   ")
+        assert exc_info.value.code == 2
+
+    def test_set_api_key_rejects_empty_stdin(self, home_mode, monkeypatch):
+        import io
+
+        monkeypatch.setattr("sys.stdin", io.StringIO(""))
+        with pytest.raises(SystemExit) as exc_info:
+            call_command("cookie_admin", "set-api-key", "--stdin", stdout=StringIO(), stderr=StringIO())
+        assert exc_info.value.code == 2
+
+
+@pytest.mark.django_db
+class TestSetDefaultModel:
+    def test_set_default_model_valid(self, security_log_capture, home_mode):
+        from apps.ai.models import AIPrompt
+        from apps.core.models import AppSettings
+
+        valid_model = AIPrompt.AVAILABLE_MODELS[0][0]
+        _call("set-default-model", valid_model)
+        app = AppSettings.get()
+        assert app.default_ai_model == valid_model
+        assert any("set-default-model" in r.getMessage() for r in security_log_capture.records)
+
+    def test_set_default_model_invalid(self, home_mode):
+        with pytest.raises(SystemExit) as exc_info:
+            _call("set-default-model", "fake/does-not-exist")
+        assert exc_info.value.code == 2
+
+
+@pytest.mark.django_db
+class TestPromptsSubcommands:
+    def _make_prompt(self, prompt_type="recipe_remix"):
+        from apps.ai.models import AIPrompt
+
+        # Seeded prompts may already exist; update_or_create avoids unique-key conflicts.
+        obj, _ = AIPrompt.objects.update_or_create(
+            prompt_type=prompt_type,
+            defaults={
+                "name": "Test",
+                "description": "test desc",
+                "system_prompt": "system",
+                "user_prompt_template": "user {x}",
+                "model": "anthropic/claude-haiku-4.5",
+                "is_active": True,
+            },
+        )
+        return obj
+
+    def test_prompts_list_json(self, home_mode):
+        self._make_prompt("recipe_remix")
+        self._make_prompt("tips_generation")
+        text, payload = _call("prompts", "list", as_json=True)
+        assert payload["ok"] is True
+        types = {p["prompt_type"] for p in payload["prompts"]}
+        assert {"recipe_remix", "tips_generation"} <= types
+
+    def test_prompts_show_unknown(self, home_mode):
+        with pytest.raises(SystemExit) as exc_info:
+            _call("prompts", "show", "no-such-type")
+        assert exc_info.value.code == 2
+
+    def test_prompts_set_model_only(self, security_log_capture, home_mode):
+        self._make_prompt("recipe_remix")
+        from apps.ai.models import AIPrompt
+
+        new_model = AIPrompt.AVAILABLE_MODELS[1][0]
+        _call("prompts", "set", "recipe_remix", "--model", new_model)
+        prompt = AIPrompt.objects.get(prompt_type="recipe_remix")
+        assert prompt.model == new_model
+        assert prompt.system_prompt == "system"  # unchanged
+        assert any("prompts set" in r.getMessage() for r in security_log_capture.records)
+
+    def test_prompts_set_requires_at_least_one_flag(self, home_mode):
+        self._make_prompt("recipe_remix")
+        with pytest.raises(SystemExit) as exc_info:
+            _call("prompts", "set", "recipe_remix")
+        assert exc_info.value.code == 2
+
+    def test_prompts_set_missing_file(self, home_mode, tmp_path):
+        self._make_prompt("recipe_remix")
+        missing = tmp_path / "does-not-exist-xyz.txt"
+        with pytest.raises(SystemExit) as exc_info:
+            _call(
+                "prompts",
+                "set",
+                "recipe_remix",
+                "--system-file",
+                str(missing),
+            )
+        assert exc_info.value.code == 2
+
+
+@pytest.mark.django_db
+class TestSourcesSubcommands:
+    def _make_source(self, name="Example"):
+        from apps.recipes.models import SearchSource
+
+        # host is unique; use update_or_create to avoid conflicts with seeded sources.
+        obj, _ = SearchSource.objects.update_or_create(
+            host=f"{name.lower()}.example.com",
+            defaults={
+                "name": name,
+                "search_url_template": f"https://{name.lower()}.example.com/search?q={{query}}",
+                "result_selector": ".recipe-card",
+                "is_enabled": True,
+            },
+        )
+        return obj
+
+    def test_sources_list_json(self, home_mode):
+        self._make_source("Alpha")
+        self._make_source("Beta")
+        text, payload = _call("sources", "list", as_json=True)
+        names = {s["name"] for s in payload["sources"]}
+        assert {"Alpha", "Beta"} <= names
+
+    def test_sources_toggle(self, security_log_capture, home_mode):
+        source = self._make_source("Gamma")
+        _call("sources", "toggle", str(source.id))
+        source.refresh_from_db()
+        assert source.is_enabled is False
+        assert any("sources toggle" in r.getMessage() for r in security_log_capture.records)
+
+    def test_sources_toggle_unknown(self, home_mode):
+        with pytest.raises(SystemExit) as exc_info:
+            _call("sources", "toggle", "99999")
+        assert exc_info.value.code == 1
+
+    def test_sources_toggle_all_disable(self, home_mode):
+        self._make_source("Alpha")
+        self._make_source("Beta")
+        text, payload = _call("sources", "toggle-all", "--disable", as_json=True)
+        assert payload["enabled"] is False
+        assert payload["count"] >= 2
+
+    def test_sources_set_selector(self, home_mode):
+        source = self._make_source("Delta")
+        _call("sources", "set-selector", str(source.id), "--selector", "article.recipe h1")
+        source.refresh_from_db()
+        assert source.result_selector == "article.recipe h1"
+
+    def test_sources_set_selector_empty(self, home_mode):
+        source = self._make_source("Echo")
+        with pytest.raises(SystemExit) as exc_info:
+            _call("sources", "set-selector", str(source.id), "--selector", "  ")
+        assert exc_info.value.code == 2
+
+    def test_sources_repair_requires_api_key(self, home_mode):
+        """repair must fail cleanly with no DB write when no API key is configured."""
+        from apps.core.models import AppSettings
+
+        app = AppSettings.get()
+        # Force-wipe the key by writing directly to the private field
+        app._openrouter_api_key = ""
+        app.save()
+        source = self._make_source("Foxtrot")
+        with pytest.raises(SystemExit) as exc_info:
+            _call("sources", "repair", str(source.id))
+        assert exc_info.value.code == 2
+
+
+@pytest.mark.django_db
+class TestQuotaSubcommands:
+    def test_quota_show(self, home_mode):
+        text, payload = _call("quota", "show", as_json=True)
+        assert "remix" in payload["quotas"]
+        assert all(isinstance(v, int) for v in payload["quotas"].values())
+
+    def test_quota_set(self, security_log_capture, home_mode):
+        from apps.core.models import AppSettings
+
+        _call("quota", "set", "tips", "42")
+        app = AppSettings.get()
+        assert app.daily_limit_tips == 42
+        assert any("quota set" in r.getMessage() for r in security_log_capture.records)
+
+    def test_quota_set_negative_rejected(self, home_mode):
+        with pytest.raises(SystemExit) as exc_info:
+            _call("quota", "set", "tips", "-1")
+        assert exc_info.value.code == 2
+
+
+@pytest.mark.django_db
+class TestRenameSubcommand:
+    def test_rename_home_mode_by_profile_id(self, security_log_capture, home_mode):
+        profile = Profile.objects.create(name="Old", avatar_color="#fff")
+        _call("rename", str(profile.id), "--name", "New")
+        profile.refresh_from_db()
+        assert profile.name == "New"
+        assert any("rename profile_id" in r.getMessage() for r in security_log_capture.records)
+
+    def test_rename_home_mode_requires_profile_id(self, home_mode):
+        with pytest.raises(SystemExit) as exc_info:
+            _call("rename", "alice", "--name", "Bob")
+        assert exc_info.value.code == 2  # home mode: positional must be integer
+
+    def test_rename_passkey_by_username(self, security_log_capture, passkey_mode):
+        user = _make_user("alice")
+        _call("rename", "alice", "--name", "Alice Prime")
+        user.profile.refresh_from_db()
+        assert user.profile.name == "Alice Prime"
+
+    def test_rename_empty_name(self, home_mode):
+        profile = Profile.objects.create(name="X", avatar_color="#fff")
+        with pytest.raises(SystemExit) as exc_info:
+            _call("rename", str(profile.id), "--name", "   ")
+        assert exc_info.value.code == 2
+
+
+@pytest.mark.django_db
+class TestStatusCacheBlock:
+    def test_status_json_includes_cache(self, passkey_mode):
+        text, payload = _call("status", as_json=True)
+        assert "cache" in payload
+        assert "cache_stats" in payload["cache"]
+
+
+@pytest.mark.django_db
+class TestModeAgnosticSubcommandsInHomeMode:
+    """New subcommands work in home mode (no PASSKEY_ONLY guard)."""
+
+    def test_quota_show_in_home(self, settings):
+        settings.AUTH_MODE = "home"
+        _call("quota", "show")
+
+    def test_sources_list_in_home(self, settings):
+        settings.AUTH_MODE = "home"
+        _call("sources", "list")
+
+    def test_set_default_model_in_home(self, settings):
+        from apps.ai.models import AIPrompt
+
+        settings.AUTH_MODE = "home"
+        _call("set-default-model", AIPrompt.AVAILABLE_MODELS[0][0])

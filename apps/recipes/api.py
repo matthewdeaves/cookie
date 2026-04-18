@@ -17,7 +17,7 @@ from ninja.errors import HttpError
 
 from django_ratelimit.core import is_ratelimited
 
-from apps.core.auth import AdminAuth, SessionAuth
+from apps.core.auth import AdminAuth, HomeOnlyAdminAuth, SessionAuth
 from apps.profiles.utils import aget_current_profile_or_none, get_current_profile_or_none
 
 from .models import Recipe, SearchSource
@@ -347,15 +347,8 @@ async def search_recipes(
     return results
 
 
-@router.get("/cache/health/", response={200: dict}, auth=AdminAuth())
-def cache_health(request):
-    """
-    Health check endpoint for image cache monitoring.
-
-    Returns cache statistics and status for monitoring the background
-    image caching system. Use this to verify caching is working correctly
-    and to track cache hit rates.
-    """
+def get_cache_health_dict() -> dict:
+    """Compute the image-cache health payload. Shared by the HTTP handler and the CLI."""
     from apps.recipes.models import CachedSearchImage
 
     total = CachedSearchImage.objects.count()
@@ -373,6 +366,12 @@ def cache_health(request):
             "success_rate": f"{(success / total * 100):.1f}%" if total > 0 else "N/A",
         },
     }
+
+
+@router.get("/cache/health/", response={200: dict}, auth=HomeOnlyAdminAuth())
+def cache_health(request):
+    """Image-cache health check (home mode only; 404 in passkey mode via HomeOnlyAdminAuth)."""
+    return get_cache_health_dict()
 
 
 # Dynamic routes with {recipe_id} must come last

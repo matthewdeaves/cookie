@@ -61,8 +61,13 @@ class TestLegacyPasskeyMode:
         assert response.status_code == 302
         assert response.url == "/legacy/pair/"
 
-    def test_require_profile_sets_is_admin_for_staff(self, client, passkey_mode):
-        """In passkey mode, staff user sees admin-only quota config."""
+    def test_require_profile_staff_in_passkey_sees_no_admin_ui(self, client, passkey_mode):
+        """In passkey mode the admin UI is hidden for ALL callers (v1.42.0 lockdown).
+
+        Operators manage via `python manage.py cookie_admin`. The settings page
+        still loads (200), but admin-only blocks are template-gated by the new
+        `is_admin and auth_mode == "home"` combined check.
+        """
         user = User.objects.create_user(username="admin", password="!", is_active=True, is_staff=True)
         profile = Profile.objects.create(user=user, name="Admin", avatar_color="#d97850")
 
@@ -73,8 +78,8 @@ class TestLegacyPasskeyMode:
         response = client.get("/legacy/settings/")
         assert response.status_code == 200
         content = response.content.decode()
-        # Admin-only quota config section is rendered for staff users
-        assert "quota-config-section" in content
+        # Admin-only quota config section is NOT rendered in passkey mode
+        assert "quota-config-section" not in content
 
     def test_require_profile_non_staff_not_admin(self, client, passkey_mode, passkey_profile):
         """In passkey mode, non-staff user does not see admin-only quota config."""
@@ -157,8 +162,13 @@ class TestLegacyPasskeyMode:
         assert "settings-users.js" not in content
         assert "settings-danger.js" not in content
 
-    def test_admin_sees_all_tabs_and_content(self, client, passkey_mode):
-        """In passkey mode, admin user sees admin tabs but NOT danger zone (reset disabled)."""
+    def test_admin_sees_no_admin_tabs_in_passkey_mode(self, client, passkey_mode):
+        """v1.42.0 lockdown: passkey admins see ZERO admin tabs (CLI-only).
+
+        The `{% if is_admin %}` guards in settings.html were tightened to
+        `{% if is_admin and auth_mode == "home" %}`, so every admin-only
+        section is suppressed in passkey mode regardless of `is_staff`.
+        """
         user = User.objects.create_user(username="admin2", password="!", is_active=True, is_staff=True)
         profile = Profile.objects.create(user=user, name="Admin2", avatar_color="#d97850")
 
@@ -168,12 +178,14 @@ class TestLegacyPasskeyMode:
 
         response = client.get("/legacy/settings/")
         content = response.content.decode()
-        assert 'data-tab="prompts"' in content
-        assert 'data-tab="sources"' in content
-        assert 'data-tab="danger"' not in content  # Reset disabled in passkey mode
-        assert 'id="tab-prompts"' in content
-        assert 'id="api-key-input"' in content
-        assert "settings-prompts.js" in content
+        assert 'data-tab="prompts"' not in content
+        assert 'data-tab="sources"' not in content
+        assert 'data-tab="selectors"' not in content
+        assert 'data-tab="users"' not in content
+        assert 'data-tab="danger"' not in content
+        assert 'id="tab-prompts"' not in content
+        assert 'id="api-key-input"' not in content
+        assert "settings-prompts.js" not in content
 
 
 class TestLegacyRequireAdmin:

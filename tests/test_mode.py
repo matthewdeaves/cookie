@@ -53,12 +53,23 @@ class TestHomeModeDefaults:
         assert response.json()["name"] == "Charlie"
 
     def test_mode_endpoint_returns_home(self, client):
-        """T018: GET /api/system/mode/ returns correct mode."""
+        """T018: GET /api/system/mode/ returns correct mode without version fingerprint."""
         response = client.get("/api/system/mode/")
         assert response.status_code == 200
         data = response.json()
         assert data["mode"] == "home"
-        assert "version" in data
+        # version key removed in v1.42.0 to eliminate fingerprinting
+        assert "version" not in data
+
+    def test_mode_endpoint_passkey_has_no_version(self, client, settings):
+        """GET /api/system/mode/ in passkey mode also omits version."""
+        settings.AUTH_MODE = "passkey"
+        response = client.get("/api/system/mode/")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["mode"] == "passkey"
+        assert data.get("registration_enabled") is True
+        assert "version" not in data
 
     def test_session_cookie_age(self):
         """T062b: SESSION_COOKIE_AGE remains 43200 (12 hours)."""

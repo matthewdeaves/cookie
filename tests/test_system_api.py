@@ -670,37 +670,32 @@ def passkey_admin_client(db):
 
 @pytest.mark.django_db
 class TestResetDisabledInPasskeyMode:
-    """Tests verifying reset endpoints are disabled in passkey mode."""
+    """Reset endpoints 404 in passkey mode (gated by HomeOnlyAdminAuth)."""
 
     @patch.object(settings, "AUTH_MODE", "passkey")
-    def test_reset_preview_blocked_in_passkey_mode(self, passkey_admin_client):
-        """Reset preview returns 403 in passkey mode."""
+    def test_reset_preview_404_in_passkey_mode(self, passkey_admin_client):
+        """Reset preview returns 404 in passkey mode (endpoint is gone)."""
         response = passkey_admin_client.get("/api/system/reset-preview/")
-        assert response.status_code == 403
-        data = response.json()
-        assert data["error"] == "disabled"
-        assert "CLI" in data["message"]
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Not found"}
 
     @patch.object(settings, "AUTH_MODE", "passkey")
-    def test_reset_blocked_in_passkey_mode(self, passkey_admin_client):
-        """Reset POST returns 403 in passkey mode even with valid confirmation."""
+    def test_reset_404_in_passkey_mode(self, passkey_admin_client):
+        """Reset POST returns 404 in passkey mode even with valid confirmation."""
         response = passkey_admin_client.post(
             "/api/system/reset/",
             {"confirmation_text": "RESET"},
             content_type="application/json",
         )
-        assert response.status_code == 403
-        data = response.json()
-        assert data["error"] == "disabled"
-        assert "CLI" in data["message"]
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Not found"}
 
     @patch.object(settings, "AUTH_MODE", "passkey")
-    def test_reset_blocked_before_confirmation_check(self, passkey_admin_client):
-        """Passkey mode check happens before confirmation text validation."""
+    def test_reset_404_before_confirmation_check(self, passkey_admin_client):
+        """Mode gate fires before any handler body runs (including confirmation)."""
         response = passkey_admin_client.post(
             "/api/system/reset/",
             {"confirmation_text": "wrong"},
             content_type="application/json",
         )
-        # Should be 403 (disabled), not 400 (invalid confirmation)
-        assert response.status_code == 403
+        assert response.status_code == 404

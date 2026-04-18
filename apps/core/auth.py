@@ -10,6 +10,8 @@ from ninja.security import APIKeyCookie
 
 from apps.profiles.models import Profile
 
+__all__ = ["SessionAuth", "AdminAuth", "HomeOnlyAdminAuth"]
+
 security_logger = logging.getLogger("security")
 
 
@@ -107,3 +109,18 @@ class AdminAuth(SessionAuth):
                 raise HttpError(403, "Admin access required")
             return profile
         return self._authenticate_home(request)
+
+
+class HomeOnlyAdminAuth(AdminAuth):
+    """AdminAuth gated by AUTH_MODE=home.
+
+    Raises 404 before any cookie extraction or AdminAuth.authenticate() call when
+    AUTH_MODE != "home". Probes from passkey deployments are indistinguishable
+    from hits on a never-existed path: same status, same body, no security-log
+    auth-failure line.
+    """
+
+    def __call__(self, request: HttpRequest) -> Any:
+        if settings.AUTH_MODE != "home":
+            raise HttpError(404, "Not found")
+        return super().__call__(request)
