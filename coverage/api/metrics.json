@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-12T10:50:27.141423+00:00",
+  "generated_at": "2026-04-18T08:17:06.758415+00:00",
   "repo": "matthewdeaves/cookie",
   "coverage": {
     "frontend": {
@@ -66,8 +66,8 @@
     }
   },
   "bundle": {
-    "size_kb": 552.01,
-    "gzip_kb": 165.38,
+    "size_kb": 552.71,
+    "gzip_kb": 166.13,
     "rating": "B",
     "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/bundle-size.svg"
   },
