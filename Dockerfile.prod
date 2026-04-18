@@ -26,9 +26,10 @@ FROM golang:1.26.2-bookworm@sha256:4f4ab2c90005e7e63cb631f0b4427f05422f241622ee3
 
 ARG SUPERCRONIC_VERSION=v0.2.44
 RUN git clone --branch "${SUPERCRONIC_VERSION}" --depth 1 \
-        https://github.com/aptible/supercronic.git /src/supercronic \
-    && cd /src/supercronic \
-    && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /usr/local/bin/supercronic .
+        https://github.com/aptible/supercronic.git /src/supercronic
+
+WORKDIR /src/supercronic
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /usr/local/bin/supercronic .
 
 # ===========================================
 # Stage 3: Python Dependencies
