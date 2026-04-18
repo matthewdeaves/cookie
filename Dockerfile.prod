@@ -61,6 +61,7 @@ ARG TARGETARCH
 ENV SUPERCRONIC_VERSION=v0.2.44 \
     SUPERCRONIC_SHA256_AMD64=6feff7d5eba16a89cf229b7eb644cfae2f03a32c62ca320f17654659315275b6 \
     SUPERCRONIC_SHA256_ARM64=ec29b3129ab20100971d21d391150d50398e5caaa33b8652eab919e2c5143057
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN ARCH="${TARGETARCH:-amd64}" \
     && if [ "$ARCH" = "arm64" ]; then EXPECTED_SHA256="$SUPERCRONIC_SHA256_ARM64"; \
        else EXPECTED_SHA256="$SUPERCRONIC_SHA256_AMD64"; fi \
@@ -68,6 +69,7 @@ RUN ARCH="${TARGETARCH:-amd64}" \
        "https://github.com/aptible/supercronic/releases/download/${SUPERCRONIC_VERSION}/supercronic-linux-${ARCH}" \
     && echo "${EXPECTED_SHA256}  /usr/local/bin/supercronic" | sha256sum -c - \
     && chmod +x /usr/local/bin/supercronic
+SHELL ["/bin/sh", "-c"]
 
 # Security: Create non-root user
 RUN useradd --create-home --shell /bin/bash app
