@@ -1,15 +1,15 @@
 {
-  "total_size_kb": 552.78,
-  "total_gzip_kb": 166.24,
-  "js_size_kb": 507.32,
-  "js_gzip_kb": 158.16,
+  "total_size_kb": 552.58,
+  "total_gzip_kb": 166.2,
+  "js_size_kb": 507.12,
+  "js_gzip_kb": 158.12,
   "css_size_kb": 45.46,
   "css_gzip_kb": 8.08,
   "files": [
     {
-      "name": "index-C9q_KeJp.js",
+      "name": "index-DJiWGIe2.js",
       "size_kb": 175.16,
-      "gzip_kb": 54.86
+      "gzip_kb": 54.85
     },
     {
       "name": "jsx-runtime-Bx9XTUcb.js",
@@ -17,9 +17,9 @@
       "gzip_kb": 33.99
     },
     {
-      "name": "Settings-h1hI0omt.js",
-      "size_kb": 50.4,
-      "gzip_kb": 10.99
+      "name": "Settings-4JAAE7NY.js",
+      "size_kb": 50.36,
+      "gzip_kb": 10.97
     },
     {
       "name": "index-ClrHLsxb.css",
@@ -37,7 +37,7 @@
       "gzip_kb": 8.46
     },
     {
-      "name": "RecipeDetail-CNTd5jxW.js",
+      "name": "RecipeDetail-dlGuZerR.js",
       "size_kb": 25.53,
       "gzip_kb": 6.61
     },
@@ -47,32 +47,32 @@
       "gzip_kb": 6.35
     },
     {
-      "name": "router--H0jBA7I.js",
-      "size_kb": 10.01,
-      "gzip_kb": 2.97
-    },
-    {
-      "name": "Home-8FqnqbiM.js",
+      "name": "Home-kMzAdtTv.js",
       "size_kb": 9.9,
       "gzip_kb": 2.98
     },
     {
-      "name": "Search-D5-QOC5l.js",
+      "name": "router-BYVl7oDl.js",
+      "size_kb": 9.84,
+      "gzip_kb": 2.94
+    },
+    {
+      "name": "Search-D8p4kWru.js",
       "size_kb": 7.27,
       "gzip_kb": 2.64
     },
     {
-      "name": "Collections-BhB6VaPk.js",
+      "name": "Collections-DhQI4-la.js",
       "size_kb": 5.94,
       "gzip_kb": 1.9
     },
     {
-      "name": "NavHeader-CNiEh63t.js",
+      "name": "NavHeader-DgULup4m.js",
       "size_kb": 5.36,
       "gzip_kb": 2
     },
     {
-      "name": "CollectionDetail-CevpN2ul.js",
+      "name": "CollectionDetail-D8EI488z.js",
       "size_kb": 4.86,
       "gzip_kb": 1.61
     },
@@ -82,7 +82,7 @@
       "gzip_kb": 1.64
     },
     {
-      "name": "AllRecipes-CGrSCWt2.js",
+      "name": "AllRecipes-BhzsyApV.js",
       "size_kb": 3.48,
       "gzip_kb": 1.38
     },
@@ -102,7 +102,7 @@
       "gzip_kb": 1.08
     },
     {
-      "name": "RecipeCard-DiUJaXgF.js",
+      "name": "RecipeCard-DH8Ry28Y.js",
       "size_kb": 2.33,
       "gzip_kb": 0.99
     },
@@ -112,7 +112,7 @@
       "gzip_kb": 1.03
     },
     {
-      "name": "Favorites-DSDN6vIB.js",
+      "name": "Favorites-DakURUGA.js",
       "size_kb": 2.08,
       "gzip_kb": 0.93
     },

@@ -37,19 +37,19 @@
 
     <div class="summary">
         <div class="stat">
-            <div class="stat-value rating-A">2.75</div>
+            <div class="stat-value rating-A">2.78</div>
             <div class="stat-label">Avg Cyclomatic Complexity</div>
         </div>
         <div class="stat">
-            <div class="stat-value rating-A">83.18</div>
+            <div class="stat-value rating-A">83.0</div>
             <div class="stat-label">Avg Maintainability Index</div>
         </div>
         <div class="stat">
-            <div class="stat-value">749</div>
+            <div class="stat-value">771</div>
             <div class="stat-label">Functions Analyzed</div>
         </div>
         <div class="stat">
-            <div class="stat-value">113</div>
+            <div class="stat-value">114</div>
             <div class="stat-label">Files Analyzed</div>
         </div>
     </div>
@@ -75,6 +75,13 @@
                 <td>C</td>
             </tr>
             <tr>
+                <td>apps/core/management/commands/cookie_admin.py</td>
+                <td>_handle_prompts_set</td>
+                <td>method</td>
+                <td class="complexity-high">13</td>
+                <td>C</td>
+            </tr>
+            <tr>
                 <td>apps/recipes/services/scraper.py</td>
                 <td>_fetch_image_with_redirects</td>
                 <td>method</td>
@@ -85,6 +92,13 @@
                 <td>apps/core/passkey_api.py</td>
                 <td>login_verify</td>
                 <td>function</td>
+                <td class="complexity-high">12</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>apps/core/management/commands/cookie_admin.py</td>
+                <td>_handle_rename</td>
+                <td>method</td>
                 <td class="complexity-high">12</td>
                 <td>C</td>
             </tr>
@@ -110,9 +124,9 @@
                 <td>B</td>
             </tr>
             <tr>
-                <td>apps/core/api.py</td>
-                <td>reset_database</td>
-                <td>function</td>
+                <td>apps/core/management/commands/cookie_admin.py</td>
+                <td>_collect_status</td>
+                <td>method</td>
                 <td class="complexity-medium">10</td>
                 <td>B</td>
             </tr>
@@ -147,13 +161,6 @@
             <tr>
                 <td>apps/core/auth.py</td>
                 <td>_authenticate_passkey</td>
-                <td>method</td>
-                <td class="complexity-medium">9</td>
-                <td>B</td>
-            </tr>
-            <tr>
-                <td>apps/core/management/commands/cookie_admin.py</td>
-                <td>_collect_status</td>
                 <td>method</td>
                 <td class="complexity-medium">9</td>
                 <td>B</td>
@@ -264,8 +271,22 @@
                 <td>B</td>
             </tr>
             <tr>
+                <td>apps/core/api.py</td>
+                <td>reset_database</td>
+                <td>function</td>
+                <td class="complexity-medium">8</td>
+                <td>B</td>
+            </tr>
+            <tr>
                 <td>apps/core/management/commands/cookie_admin.py</td>
                 <td>_handle_list_users</td>
+                <td>method</td>
+                <td class="complexity-medium">8</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/core/management/commands/cookie_admin.py</td>
+                <td>_handle_sources_test</td>
                 <td>method</td>
                 <td class="complexity-medium">8</td>
                 <td>B</td>
@@ -400,6 +421,13 @@
                 <td>apps/core/logging.py</td>
                 <td>JSONFormatter</td>
                 <td>class</td>
+                <td class="complexity-medium">7</td>
+                <td>B</td>
+            </tr>
+            <tr>
+                <td>apps/core/management/commands/cookie_admin.py</td>
+                <td>handle</td>
+                <td>method</td>
                 <td class="complexity-medium">7</td>
                 <td>B</td>
             </tr>
@@ -706,14 +734,14 @@
             </tr>
             <tr>
                 <td>apps/recipes/sources_api.py</td>
-                <td>test_source</td>
+                <td>test_all_sources</td>
                 <td>function</td>
                 <td class="complexity-low">5</td>
                 <td>A</td>
             </tr>
             <tr>
                 <td>apps/recipes/sources_api.py</td>
-                <td>test_all_sources</td>
+                <td>test_source</td>
                 <td>function</td>
                 <td class="complexity-low">5</td>
                 <td>A</td>
@@ -729,34 +757,6 @@
                 <td>apps/recipes/services/image_cache.py</td>
                 <td>_fetch_image</td>
                 <td>method</td>
-                <td class="complexity-low">5</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/recipes/services/image_cache.py</td>
-                <td>_looks_like_image</td>
-                <td>method</td>
-                <td class="complexity-low">5</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/recipes/services/scraper.py</td>
-                <td>RecipeScraper</td>
-                <td>class</td>
-                <td class="complexity-low">5</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/recipes/services/scraper.py</td>
-                <td>_parse_time</td>
-                <td>method</td>
-                <td class="complexity-low">5</td>
-                <td>A</td>
-            </tr>
-            <tr>
-                <td>apps/recipes/services/search_parsers.py</td>
-                <td>extract_title</td>
-                <td>function</td>
                 <td class="complexity-low">5</td>
                 <td>A</td>
             </tr>
@@ -776,8 +776,8 @@
             </tr>
             <tr>
                 <td>apps/core/management/commands/cookie_admin.py</td>
-                <td class="complexity-high">25.8</td>
-                <td>A</td>
+                <td class="complexity-high">7.9</td>
+                <td>C</td>
             </tr>
             <tr>
                 <td>apps/profiles/api.py</td>
@@ -816,12 +816,12 @@
             </tr>
             <tr>
                 <td>apps/recipes/api.py</td>
-                <td class="complexity-medium">44.7</td>
+                <td class="complexity-medium">43.7</td>
                 <td>A</td>
             </tr>
             <tr>
                 <td>apps/recipes/sources_api.py</td>
-                <td class="complexity-medium">47.1</td>
+                <td class="complexity-medium">47.9</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -855,11 +855,6 @@
                 <td>A</td>
             </tr>
             <tr>
-                <td>apps/core/api.py</td>
-                <td class="complexity-medium">57.0</td>
-                <td>A</td>
-            </tr>
-            <tr>
                 <td>apps/core/models.py</td>
                 <td class="complexity-medium">57.9</td>
                 <td>A</td>
@@ -877,6 +872,11 @@
             <tr>
                 <td>apps/ai/services/quota.py</td>
                 <td class="complexity-low">61.0</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/core/api.py</td>
+                <td class="complexity-low">62.4</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -936,7 +936,7 @@
             </tr>
             <tr>
                 <td>apps/core/auth.py</td>
-                <td class="complexity-low">66.7</td>
+                <td class="complexity-low">67.0</td>
                 <td>A</td>
             </tr>
             <tr>
@@ -957,6 +957,11 @@
             <tr>
                 <td>apps/core/auth_helpers.py</td>
                 <td class="complexity-low">72.3</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>apps/recipes/services/source_health.py</td>
+                <td class="complexity-low">75.5</td>
                 <td>A</td>
             </tr>
             <tr>

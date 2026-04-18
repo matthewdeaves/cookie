@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-18T09:01:29.407Z",
+    "detectionDate": "2026-04-18T11:32:26.390Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -869,8 +869,8 @@
             "newClones": 0
           },
           "src/router.tsx": {
-            "lines": 109,
-            "tokens": 909,
+            "lines": 99,
+            "tokens": 832,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -894,8 +894,8 @@
           }
         },
         "total": {
-          "lines": 3335,
-          "tokens": 25592,
+          "lines": 3325,
+          "tokens": 25515,
           "sources": 74,
           "clones": 0,
           "duplicatedLines": 0,
@@ -1269,8 +1269,8 @@
             "newClones": 0
           },
           "src/screens/Settings.tsx": {
-            "lines": 135,
-            "tokens": 1367,
+            "lines": 132,
+            "tokens": 1325,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1785,8 +1785,8 @@
             "newClones": 0
           },
           "src/router.tsx": {
-            "lines": 290,
-            "tokens": 2216,
+            "lines": 286,
+            "tokens": 2144,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1822,14 +1822,14 @@
           }
         },
         "total": {
-          "lines": 7247,
-          "tokens": 56992,
+          "lines": 7240,
+          "tokens": 56878,
           "sources": 76,
           "clones": 6,
           "duplicatedLines": 61,
           "duplicatedTokens": 583,
           "percentage": 0.84,
-          "percentageTokens": 1.02,
+          "percentageTokens": 1.03,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -2161,8 +2161,8 @@
             "newClones": 0
           },
           "src/api/types.ts": {
-            "lines": 404,
-            "tokens": 2303,
+            "lines": 403,
+            "tokens": 2297,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2186,8 +2186,8 @@
           }
         },
         "total": {
-          "lines": 3045,
-          "tokens": 25430,
+          "lines": 3044,
+          "tokens": 25424,
           "sources": 29,
           "clones": 2,
           "duplicatedLines": 59,
@@ -2200,8 +2200,8 @@
       }
     },
     "total": {
-      "lines": 13627,
-      "tokens": 108014,
+      "lines": 13609,
+      "tokens": 107817,
       "sources": 179,
       "clones": 8,
       "duplicatedLines": 120,
