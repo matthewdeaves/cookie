@@ -27,7 +27,7 @@ from apps.recipes.models import (
     CachedSearchImage,
 )
 from apps.ai.models import AIDiscoverySuggestion, AIPrompt
-from apps.core.auth import AdminAuth, HomeOnlyAdminAuth, SessionAuth
+from apps.core.auth import HomeOnlyAuth, SessionAuth
 
 router = Router(tags=["system"])
 
@@ -111,7 +111,7 @@ class ResetSuccessSchema(Schema):
     actions_performed: list[str]
 
 
-@router.get("/reset-preview/", response={200: ResetPreviewSchema}, auth=HomeOnlyAdminAuth())
+@router.get("/reset-preview/", response={200: ResetPreviewSchema}, auth=HomeOnlyAuth())
 def get_reset_preview(request):
     """Get summary of data that will be deleted on reset. Home mode only — 404 in passkey mode."""
     return {
@@ -140,7 +140,7 @@ def get_reset_preview(request):
     }
 
 
-@router.post("/reset/", response={200: ResetSuccessSchema, 400: ErrorSchema, 429: dict}, auth=HomeOnlyAdminAuth())
+@router.post("/reset/", response={200: ResetSuccessSchema, 400: ErrorSchema, 429: dict}, auth=HomeOnlyAuth())
 @ratelimit(key="ip", rate="1/h", method="POST", block=False)
 def reset_database(request, data: ResetConfirmSchema):
     """

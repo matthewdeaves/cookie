@@ -2,12 +2,13 @@
 
 All subcommands support --json for structured output.
 
+Admin privilege does not exist in passkey mode — all passkey users are peers.
+App configuration is reached exclusively via this CLI (spec 014-remove-is-staff).
+
 Passkey-only (require AUTH_MODE=passkey — operate on Django User / DeviceCode):
-    cookie_admin list-users [--active-only] [--admins-only] [--json]
-    cookie_admin create-user <username> [--admin] [--json]
+    cookie_admin list-users [--active-only] [--json]
+    cookie_admin create-user <username> [--json]
     cookie_admin delete-user <username> [--json]
-    cookie_admin promote <username> [--json]
-    cookie_admin demote <username> [--json]
     cookie_admin activate <username> [--json]
     cookie_admin deactivate <username> [--json]
     cookie_admin set-unlimited <username> [--json]
@@ -57,7 +58,7 @@ class Command(BaseCommand):
     # App-config subcommands (AppSettings / AIPrompt / SearchSource / Profile) work in either mode.
     PASSKEY_ONLY_SUBCOMMANDS = frozenset({
         "list-users", "create-user", "delete-user",
-        "promote", "demote", "activate", "deactivate",
+        "activate", "deactivate",
         "set-unlimited", "remove-unlimited",
         "usage", "create-session",
     })
@@ -78,29 +79,17 @@ class Command(BaseCommand):
         # list-users
         ls = sub.add_parser("list-users", help="List all users")
         ls.add_argument("--active-only", action="store_true")
-        ls.add_argument("--admins-only", action="store_true")
         ls.add_argument("--json", action="store_true", dest="as_json")
 
         # create-user
         cu = sub.add_parser("create-user", help="Create a headless user (no passkey)")
         cu.add_argument("username")
-        cu.add_argument("--admin", action="store_true", help="Grant admin privileges")
         cu.add_argument("--json", action="store_true", dest="as_json")
 
         # delete-user
         du = sub.add_parser("delete-user", help="Delete a user and their profile")
         du.add_argument("username")
         du.add_argument("--json", action="store_true", dest="as_json")
-
-        # promote
-        p = sub.add_parser("promote", help="Grant admin privileges")
-        p.add_argument("username")
-        p.add_argument("--json", action="store_true", dest="as_json")
-
-        # demote
-        d = sub.add_parser("demote", help="Revoke admin privileges")
-        d.add_argument("username")
-        d.add_argument("--json", action="store_true", dest="as_json")
 
         # activate
         a = sub.add_parser("activate", help="Reactivate a user account")
@@ -275,7 +264,6 @@ class Command(BaseCommand):
             "username": user.username,
             "user_id": user.pk,
             "passkeys": passkey_count,
-            "is_admin": user.is_staff,
             "is_active": user.is_active,
             "unlimited_ai": unlimited_ai,
             "date_joined": user.date_joined.strftime("%Y-%m-%d"),
@@ -326,7 +314,6 @@ class Command(BaseCommand):
         status["users"] = {
             "total": User.objects.count(),
             "active": User.objects.filter(is_active=True).count(),
-            "admins": User.objects.filter(is_staff=True, is_active=True).count(),
         }
 
         # Passkeys
@@ -383,7 +370,7 @@ class Command(BaseCommand):
         self.stdout.write(f"Auth mode:    {status['auth_mode']}")
         self.stdout.write(f"Database:     {status['database']}")
         self.stdout.write(f"Migrations:   {status['migrations']}")
-        self.stdout.write(f"Users:        {users['active']} active ({users['admins']} admin) / {users['total']} total")
+        self.stdout.write(f"Users:        {users['active']} active / {users['total']} total")
         self.stdout.write(f"Passkeys:     {status['passkeys']}")
         self.stdout.write(f"Device codes: {dc['pending']} pending, {dc['stale_expired']} stale")
         self.stdout.write(
@@ -440,7 +427,6 @@ class Command(BaseCommand):
                 "time": u.date_joined.isoformat(),
                 "type": "registration",
                 "username": u.username,
-                "is_admin": u.is_staff,
             }
             for u in recent_users
         ]
@@ -496,8 +482,6 @@ class Command(BaseCommand):
         users = User.objects.all().order_by("date_joined")
         if options.get("active_only"):
             users = users.filter(is_active=True)
-        if options.get("admins_only"):
-            users = users.filter(is_staff=True)
 
         users = users.annotate(passkey_count=Count("webauthn_credentials"))
 
@@ -507,7 +491,6 @@ class Command(BaseCommand):
                     "username": u.username,
                     "user_id": u.pk,
                     "passkeys": u.passkey_count,
-                    "is_admin": u.is_staff,
                     "is_active": u.is_active,
                     "unlimited_ai": getattr(getattr(u, "profile", None), "unlimited_ai", False),
                     "date_joined": u.date_joined.strftime("%Y-%m-%d"),
@@ -517,24 +500,23 @@ class Command(BaseCommand):
             self.stdout.write(json.dumps({"ok": True, "users": data}, indent=2))
             return
 
-        self.stdout.write(f"{'USERNAME':<15} {'ID':<6} {'PASSKEYS':<10} {'ADMIN':<7} {'ACTIVE':<8} {'JOINED'}")
-        self.stdout.write("-" * 65)
+        self.stdout.write(f"{'USERNAME':<15} {'ID':<6} {'PASSKEYS':<10} {'ACTIVE':<8} {'UNLIMITED':<10} {'JOINED'}")
+        self.stdout.write("-" * 70)
         for u in users:
+            unlimited = getattr(getattr(u, "profile", None), "unlimited_ai", False)
             self.stdout.write(
                 f"{u.username:<15} {u.pk:<6} {u.passkey_count:<10} "
-                f"{'yes' if u.is_staff else 'no':<7} "
                 f"{'yes' if u.is_active else 'no':<8} "
+                f"{'yes' if unlimited else 'no':<10} "
                 f"{u.date_joined.strftime('%Y-%m-%d')}"
             )
         active = users.filter(is_active=True).count()
-        admins = users.filter(is_staff=True).count()
-        self.stdout.write(f"\nTotal: {users.count()} users ({active} active, {admins} admin)")
+        self.stdout.write(f"\nTotal: {users.count()} users ({active} active)")
 
     def _handle_create_user(self, options):
         from apps.profiles.models import Profile
 
         username = options["username"]
-        is_admin = options.get("admin", False)
 
         if User.objects.filter(username=username).exists():
             self._error(f"User '{username}' already exists.", options)
@@ -544,7 +526,7 @@ class Command(BaseCommand):
             password=None,
             email="",
             is_active=True,
-            is_staff=is_admin,
+            is_staff=False,
         )
         user.set_unusable_password()
         user.save(update_fields=["password"])
@@ -556,9 +538,8 @@ class Command(BaseCommand):
             avatar_color=Profile.next_avatar_color(),
         )
 
-        role = "admin" if is_admin else "regular"
         self._success(
-            f"Created {role} user '{username}'.",
+            f"Created user '{username}'.",
             options,
             {"user": self._user_dict(user)},
         )
@@ -573,26 +554,6 @@ class Command(BaseCommand):
             options,
             {"deleted_user": user_data},
         )
-
-    def _handle_promote(self, options):
-        user = self._get_user(options["username"], options)
-        if user.is_staff:
-            self._success(f"User '{user.username}' is already an admin.", options, {"user": self._user_dict(user)})
-            return
-        user.is_staff = True
-        user.save(update_fields=["is_staff"])
-        self._success(f"'{user.username}' is now an admin.", options, {"user": self._user_dict(user)})
-
-    def _handle_demote(self, options):
-        user = self._get_user(options["username"], options)
-        if not user.is_staff:
-            self._success(f"User '{user.username}' is not an admin.", options, {"user": self._user_dict(user)})
-            return
-        if User.objects.filter(is_staff=True).count() <= 1:
-            self._error("Cannot demote the last remaining admin. Promote another user first.", options)
-        user.is_staff = False
-        user.save(update_fields=["is_staff"])
-        self._success(f"'{user.username}' is no longer an admin.", options, {"user": self._user_dict(user)})
 
     def _handle_activate(self, options):
         user = self._get_user(options["username"], options)
@@ -656,7 +617,7 @@ class Command(BaseCommand):
 
         if options.get("as_json"):
             json_users = [
-                {k: u[k] for k in ("username", "profile_name", "is_admin", "unlimited_ai", "usage")} for u in users_data
+                {k: u[k] for k in ("username", "profile_name", "unlimited_ai", "usage")} for u in users_data
             ]
             self.stdout.write(json.dumps({"ok": True, "date": today, "users": json_users}, indent=2))
             return
@@ -674,21 +635,15 @@ class Command(BaseCommand):
             {
                 "username": user.username,
                 "profile_name": profile.name,
-                "is_admin": user.is_staff,
                 "unlimited_ai": profile.unlimited_ai,
-                "is_exempt": user.is_staff or profile.unlimited_ai,
+                "is_exempt": profile.unlimited_ai,
                 "usage": get_usage(profile.pk),
             }
             for profile, user in profiles
         ]
 
     def _print_user_usage(self, u, limits, all_features):
-        tags = []
-        if u["is_admin"]:
-            tags.append("admin")
-        if u["unlimited_ai"]:
-            tags.append("unlimited")
-        tag_str = f" [{'/'.join(tags)}]" if tags else ""
+        tag_str = " [unlimited]" if u["unlimited_ai"] else ""
         self.stdout.write(f"{u['username']} ({u['profile_name']}){tag_str}")
         for feature in all_features:
             count = u["usage"][feature]

@@ -13,7 +13,7 @@ def require_passkey_mode(request):
 def passkey_user_profile_response(user, profile):
     """Build the standard passkey-mode user/profile response dict."""
     return {
-        "user": {"id": user.id, "is_admin": user.is_staff},
+        "user": {"id": user.id},
         "profile": {
             "id": profile.id,
             "name": profile.name,

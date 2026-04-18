@@ -5,7 +5,6 @@ import type { AuthProfile, PasskeyUser } from '../api/types'
 interface AuthContextType {
   user: PasskeyUser | null
   profile: AuthProfile | null
-  isAdmin: boolean
   isLoading: boolean
   logout: () => Promise<void>
   refreshSession: () => Promise<void>
@@ -72,7 +71,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         profile,
-        isAdmin: user?.is_admin ?? false,
         isLoading,
         logout,
         refreshSession,

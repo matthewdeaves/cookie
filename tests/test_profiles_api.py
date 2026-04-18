@@ -190,14 +190,16 @@ class TestDeletionPreview:
         response = client.get("/api/profiles/99999/deletion-preview/")
         assert response.status_code == 404
 
-    def test_passkey_owner_can_view(self, client, settings):
+    def test_passkey_owner_gets_404(self, client, settings):
+        """Spec 014-remove-is-staff FR-009: /api/profiles/* is 404 in passkey mode."""
         settings.AUTH_MODE = "passkey"
         user = _create_user("owner")
         _login(client, user)
         response = client.get(f"/api/profiles/{user.profile.id}/deletion-preview/")
-        assert response.status_code == 200
+        assert response.status_code == 404
 
-    def test_passkey_non_owner_denied(self, client, settings):
+    def test_passkey_non_owner_gets_404(self, client, settings):
+        """Spec 014-remove-is-staff FR-009: 404 regardless of caller."""
         settings.AUTH_MODE = "passkey"
         owner = _create_user("owner")
         other = _create_user("other")
@@ -205,13 +207,13 @@ class TestDeletionPreview:
         response = client.get(f"/api/profiles/{owner.profile.id}/deletion-preview/")
         assert response.status_code == 404
 
-    def test_passkey_admin_can_view_any(self, client, settings):
+    def test_passkey_mode_returns_404_even_for_owner(self, client, settings):
+        """Spec 014-remove-is-staff FR-009: /api/profiles/* is 404 in passkey mode."""
         settings.AUTH_MODE = "passkey"
-        admin = _create_user("admin", is_staff=True)
-        regular = _create_user("regular")
-        _login(client, admin)
-        response = client.get(f"/api/profiles/{regular.profile.id}/deletion-preview/")
-        assert response.status_code == 200
+        owner = _create_user("owner2")
+        _login(client, owner)
+        response = client.get(f"/api/profiles/{owner.profile.id}/deletion-preview/")
+        assert response.status_code == 404
 
 
 # ── POST /api/profiles/{id}/set-unlimited/ ──
@@ -392,60 +394,34 @@ class TestRenameProfile:
 
 
 @pytest.mark.django_db
-class TestPasskeySelfDeletion:
-    def test_user_can_delete_own_account(self, client, settings):
-        """Regular user can delete their own account in passkey mode."""
+class TestPasskeyProfileDeletionIsGated:
+    """Spec 014-remove-is-staff FR-009: DELETE /api/profiles/{id}/ is 404 in passkey mode.
+
+    Self-deletion is no longer a web-API operation in passkey mode. Operators
+    delete passkey users exclusively via `cookie_admin delete-user`.
+    """
+
+    def test_passkey_delete_own_returns_404(self, client, settings):
         settings.AUTH_MODE = "passkey"
         user = _create_user("selfdelete")
-        profile_id = user.profile.id
-        user_id = user.id
         _login(client, user)
+        response = client.delete(f"/api/profiles/{user.profile.id}/")
+        assert response.status_code == 404
+        # Profile NOT deleted — endpoint is gone, not executed
+        assert Profile.objects.filter(id=user.profile.id).exists()
 
-        response = client.delete(f"/api/profiles/{profile_id}/")
-        assert response.status_code == 204
-        assert not Profile.objects.filter(id=profile_id).exists()
-        assert not User.objects.filter(id=user_id).exists()
-
-    def test_user_cannot_delete_other_account(self, client, settings):
-        """Regular user cannot delete another user's account."""
+    def test_passkey_delete_other_returns_404(self, client, settings):
         settings.AUTH_MODE = "passkey"
         user_a = _create_user("user_a")
         user_b = _create_user("user_b")
         _login(client, user_a)
-
         response = client.delete(f"/api/profiles/{user_b.profile.id}/")
         assert response.status_code == 404
         assert Profile.objects.filter(id=user_b.profile.id).exists()
-        assert User.objects.filter(id=user_b.id).exists()
 
-    def test_admin_can_delete_any_account(self, client, settings):
-        """Admin can delete any user's account."""
-        settings.AUTH_MODE = "passkey"
-        admin = _create_user("admin", is_staff=True)
-        regular = _create_user("regular")
-        regular_profile_id = regular.profile.id
-        regular_user_id = regular.id
-        _login(client, admin)
-
-        response = client.delete(f"/api/profiles/{regular_profile_id}/")
-        assert response.status_code == 204
-        assert not Profile.objects.filter(id=regular_profile_id).exists()
-        assert not User.objects.filter(id=regular_user_id).exists()
-
-    def test_self_deletion_flushes_session(self, client, settings):
-        """Deleting own account flushes the session."""
-        settings.AUTH_MODE = "passkey"
-        user = _create_user("flushtest")
-        _login(client, user)
-
-        response = client.delete(f"/api/profiles/{user.profile.id}/")
-        assert response.status_code == 204
-        assert "profile_id" not in client.session
-
-    def test_unauthenticated_cannot_delete(self, client, settings):
-        """Unauthenticated request cannot delete any profile."""
+    def test_passkey_unauthenticated_delete_returns_404(self, client, settings):
         settings.AUTH_MODE = "passkey"
         user = _create_user("target")
         response = client.delete(f"/api/profiles/{user.profile.id}/")
-        assert response.status_code == 401
+        assert response.status_code == 404
         assert Profile.objects.filter(id=user.profile.id).exists()

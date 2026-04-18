@@ -10,7 +10,7 @@ from ninja.security import APIKeyCookie
 
 from apps.profiles.models import Profile
 
-__all__ = ["SessionAuth", "AdminAuth", "HomeOnlyAdminAuth"]
+__all__ = ["SessionAuth", "HomeOnlyAuth"]
 
 security_logger = logging.getLogger("security")
 
@@ -81,43 +81,16 @@ class SessionAuth(APIKeyCookie):
             return None
 
 
-class AdminAuth(SessionAuth):
-    """Admin-only authenticator.
+class HomeOnlyAuth(SessionAuth):
+    """SessionAuth gated by AUTH_MODE=home.
 
-    Home mode: identical to SessionAuth (no admin distinction). This is an
-    accepted design decision — home mode is intended for single-household use
-    where all profiles are trusted. Any profile holder can access admin
-    endpoints (e.g., /api/system/reset/, /api/ai/save-api-key). This matches
-    the constitution's Principle III: no authentication friction in home mode.
-
-    Passkey mode: resolves user first, then checks is_staff. Only users
-    promoted to admin via the cookie_admin CLI can access admin endpoints.
-    """
-
-    def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:
-        if settings.AUTH_MODE == "passkey":
-            profile = self._authenticate_passkey(request)
-            if profile is None:
-                return None  # 401 — not authenticated
-            user = getattr(request, "user", None)
-            if not user or not user.is_staff:
-                security_logger.warning(
-                    "Admin auth failure: %s from %s",
-                    request.path,
-                    request.META.get("REMOTE_ADDR"),
-                )
-                raise HttpError(403, "Admin access required")
-            return profile
-        return self._authenticate_home(request)
-
-
-class HomeOnlyAdminAuth(AdminAuth):
-    """AdminAuth gated by AUTH_MODE=home.
-
-    Raises 404 before any cookie extraction or AdminAuth.authenticate() call when
+    Raises 404 before any cookie extraction or session lookup when
     AUTH_MODE != "home". Probes from passkey deployments are indistinguishable
     from hits on a never-existed path: same status, same body, no security-log
     auth-failure line.
+
+    Applied to every endpoint whose functional scope is home-mode only
+    (the admin endpoints + the authenticated profile endpoints).
     """
 
     def __call__(self, request: HttpRequest) -> Any:

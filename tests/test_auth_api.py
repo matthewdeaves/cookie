@@ -90,31 +90,14 @@ class TestGetMe:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data["user"]["id"] == user.id
-        assert data["user"]["is_admin"] is False
+        assert "is_admin" not in data["user"], (
+            "/auth/me MUST NOT expose is_admin (spec 014-remove-is-staff, FR-010)"
+        )
         assert data["profile"]["id"] == profile.id
         assert data["profile"]["name"] == "Test User"
         assert data["profile"]["avatar_color"] == "#d97850"
         assert data["profile"]["theme"] == "dark"
         assert data["profile"]["unit_preference"] == "imperial"
-
-    def test_get_me_admin_user(self, client, db, settings):
-        """Admin user has is_admin=True in response."""
-        settings.AUTH_MODE = "passkey"
-        admin = User.objects.create_user(
-            username="admin",
-            password="adminpass",  # pragma: allowlist secret
-            is_staff=True,
-        )
-        profile = Profile.objects.create(user=admin, name="Admin", avatar_color="#aabbcc")
-        client.login(username="admin", password="adminpass")  # pragma: allowlist secret
-        session = client.session
-        session["profile_id"] = profile.id
-        session.save()
-
-        response = client.get("/api/auth/me/")
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert data["user"]["is_admin"] is True
 
     def test_get_me_requires_auth(self, client, settings):
         """Unauthenticated request returns 401."""

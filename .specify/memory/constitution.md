@@ -1,16 +1,15 @@
 <!--
 Sync Impact Report
-Version: 1.0.0 → 1.3.0
-Changed principles: III narrowed from 3 modes to 2 modes (removed public mode)
-Added: mode-specific endpoint/UI hiding rule, Responsible Development governance section
+Version: 1.3.0 → 1.4.0
+Changed principles: III — passkey-mode admin concept retired; all passkey users peers; CLI is the admin surface
 Follow-up TODOs: none
 -->
 
 # Cookie Project Constitution
 
-**Version**: 1.3.0
+**Version**: 1.4.0
 **Ratified**: 2026-03-24
-**Last Amended**: 2026-03-28
+**Last Amended**: 2026-04-18
 
 ## Preamble
 
@@ -92,9 +91,12 @@ environment variable (`AUTH_MODE`), with clean separation between them.
   Touch ID, Windows Hello). Legacy devices that lack WebAuthn support pair via
   a temporary device authorization code entered on an authenticated modern
   device. Zero personal information is stored — only a random UUID and public
-  keys. Site-wide settings (API keys, AI prompts, search sources, database
-  reset) are restricted to administrators. Admin promotion is done exclusively
-  via CLI.
+  keys. All passkey users are peers — there is no in-app admin privilege.
+  Site-wide settings (API keys, AI prompts, search sources, database reset,
+  profile management) are reached exclusively via the `cookie_admin` CLI and
+  are unreachable from the web UI. There is no `promote`/`demote` operation;
+  `is_staff` on the User model is inert and always `False` for
+  application-created users.
 - No password-based or email-based authentication mode exists. This is a
   deliberate security decision to eliminate password storage, brute-force
   vectors, and email verification attack surface.
@@ -263,6 +265,7 @@ keeps CI green for everyone.
 
 | Version | Date | Change | Type |
 |---------|------|--------|------|
+| 1.4.0 | 2026-04-18 | Principle III — passkey-mode admin concept retired. All passkey users are peers; site-wide settings are reached exclusively via `cookie_admin` CLI. `is_staff` retired as a privilege signal in application logic. | MINOR |
 | 1.3.0 | 2026-03-28 | Principle III narrowed from 3 modes (home, public, passkey) to 2 modes (home, passkey). Public mode (username/password/email) removed to reduce attack surface. | MINOR |
 | 1.2.0 | 2026-03-28 | Added Responsible Development section to Governance — developers must fix pre-existing issues as they work. | MINOR |
 | 1.1.0 | 2026-03-28 | Principle III expanded from "Dual-Mode" to "Multi-Mode" to add passkey authentication mode. | MINOR |

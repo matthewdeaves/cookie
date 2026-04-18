@@ -195,7 +195,9 @@ class TestRegisterVerify:
         user = User.objects.first()
         assert user.is_staff is False
         data = resp.json()
-        assert data["user"]["is_admin"] is False
+        assert "is_admin" not in data["user"], (
+            "/auth/me-style response MUST NOT expose is_admin (spec 014-remove-is-staff, FR-010)"
+        )
 
     @patch("apps.core.passkey_api.verify_registration_response")
     def test_new_user_not_staff_when_others_exist(self, mock_verify, anon_client, passkey_mode):

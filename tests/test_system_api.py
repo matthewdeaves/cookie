@@ -650,7 +650,7 @@ def passkey_admin_client(db):
     from django.contrib.auth.models import User
     from django.contrib.auth import BACKEND_SESSION_KEY, HASH_SESSION_KEY, SESSION_KEY
 
-    user = User.objects.create_user(username="testadmin", password=None, is_staff=True)
+    user = User.objects.create_user(username="testuser", password=None)
     user.set_unusable_password()
     user.save()
     profile = Profile.objects.create(name="Admin", avatar_color="#000000", user=user)
