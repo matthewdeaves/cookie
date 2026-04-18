@@ -21,6 +21,7 @@ Auto-generated from all feature plans. Last updated: 2026-04-18
 - PostgreSQL 16+ (no schema changes; reads/writes existing `AppSettings`, `AIPrompt`, `SearchSource`, `Profile`, `User` tables) (013-admin-home-only)
 - Python 3.14 (backend), TypeScript 5.9 (modern frontend), ES5 (legacy frontend) + Django 5.0, Django Ninja 1.0+, py-webauthn 2.x (passkey mode only), React 19, Vite 7, Vitest 4, React Testing Library, pytest 8 (014-remove-is-staff)
 - PostgreSQL 16+ (no schema changes). `User.is_staff` column remains on the default Django User model (AbstractUser); value becomes always-False for application-created users. (014-remove-is-staff)
+- Python 3.14 (backend), TypeScript 5.9 (modern frontend), ES5 (legacy frontend) + Django 5.0, Django Ninja 1.0+, py-webauthn 2.7+, React 19, Vite 7, supercronic v0.2.44 (new), ruff 0.15.9 (existing — reconfigured) (015-security-review-fixes)
 
 ## Project Structure
 
@@ -61,6 +62,7 @@ Rules:
 2. Before tagging, check the latest existing tag (`gh release list --limit 1`) and increment from there.
 3. Use `gh release create` with `--latest` so GitHub marks it correctly.
 4. Release notes must summarise what changed since the previous release, not per-commit.
+5. When tagging a release, update the compose image pin in `docker-compose.prod.yml` to match (`ghcr.io/matthewdeaves/cookie:vX.Y.Z`). Never ship `:latest` in production.
 
 ## Authentication
 
@@ -153,9 +155,9 @@ This project has a constitution at `.specify/memory/constitution.md` that define
 - **Speckit workflow**: Feature specifications, plans, and tasks live in `.specify/` (tracked in git). Use `/speckit.*` commands for structured feature development. The constitution is the source of truth for project values.
 
 ## Recent Changes
+- 015-security-review-fixes: Added Python 3.14 (backend), TypeScript 5.9 (modern frontend), ES5 (legacy frontend) + Django 5.0, Django Ninja 1.0+, py-webauthn 2.7+, React 19, Vite 7, supercronic v0.2.44 (new), ruff 0.15.9 (existing — reconfigured)
 - 014-remove-is-staff: Added Python 3.14 (backend), TypeScript 5.9 (modern frontend), ES5 (legacy frontend) + Django 5.0, Django Ninja 1.0+, py-webauthn 2.x (passkey mode only), React 19, Vite 7, Vitest 4, React Testing Library, pytest 8
 - 013-admin-home-only: Added Python 3.14 (backend), TypeScript 5.9 (modern frontend), ES5 (legacy frontend) + Django 5.0, Django Ninja 1.0+, `django-ratelimit` 4.1, py-webauthn 2.x (passkey mode only), React 19, Vite 7, Vitest 4, React Testing Library (existing)
-- 018-security-hardening: Added Python 3.14, TypeScript 5.9, ES5 (legacy) + Django 5.0, Django Ninja 1.0+, curl_cffi >=0.7, django-ratelimit 4.1, py-webauthn 2.x, Pillow
 
 
 <!-- MANUAL ADDITIONS START -->

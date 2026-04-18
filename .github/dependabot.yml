@@ -1,9 +1,8 @@
-# Dependabot configuration
-# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+# Dependabot configuration — 5 ecosystems, weekly Monday
+# See specs/015-security-review-fixes/contracts/dependabot-config.md
 
 version: 2
 updates:
-  # Python dependencies (pip)
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
@@ -12,21 +11,15 @@ updates:
       time: "09:00"
       timezone: "Australia/Sydney"
     open-pull-requests-limit: 5
+    assignees: ["matthewdeaves"]
+    labels: ["dependencies", "python"]
     commit-message:
       prefix: "deps(python):"
-    labels:
-      - "dependencies"
-      - "python"
-    # Group minor/patch updates to reduce PR noise
     groups:
-      python-minor:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
+      python:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
 
-  # JavaScript dependencies (npm)
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
@@ -35,30 +28,18 @@ updates:
       time: "09:00"
       timezone: "Australia/Sydney"
     open-pull-requests-limit: 5
+    assignees: ["matthewdeaves"]
+    labels: ["dependencies", "javascript"]
     commit-message:
       prefix: "deps(npm):"
-    labels:
-      - "dependencies"
-      - "javascript"
-    # Group minor/patch updates to reduce PR noise
     groups:
-      npm-minor:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-      # Keep React ecosystem updates together
-      react:
-        patterns:
-          - "react*"
-          - "@types/react*"
-        update-types:
-          - "major"
-          - "minor"
-          - "patch"
+      types:
+        patterns: ["@types/*"]
+      npm:
+        patterns: ["*"]
+        exclude-patterns: ["@types/*"]
+        update-types: ["minor", "patch"]
 
-  # Dockerfile base images (FROM statements)
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
@@ -67,13 +48,11 @@ updates:
       time: "09:00"
       timezone: "Australia/Sydney"
     open-pull-requests-limit: 3
+    assignees: ["matthewdeaves"]
+    labels: ["dependencies", "docker"]
     commit-message:
       prefix: "deps(docker):"
-    labels:
-      - "dependencies"
-      - "docker"
 
-  # Docker Compose images (image: directives)
   - package-ecosystem: "docker-compose"
     directory: "/"
     schedule:
@@ -82,13 +61,11 @@ updates:
       time: "09:00"
       timezone: "Australia/Sydney"
     open-pull-requests-limit: 3
+    assignees: ["matthewdeaves"]
+    labels: ["dependencies", "docker"]
     commit-message:
       prefix: "deps(docker):"
-    labels:
-      - "dependencies"
-      - "docker"
 
-  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -97,8 +74,7 @@ updates:
       time: "09:00"
       timezone: "Australia/Sydney"
     open-pull-requests-limit: 3
+    assignees: ["matthewdeaves"]
+    labels: ["dependencies", "github-actions"]
     commit-message:
       prefix: "ci:"
-    labels:
-      - "dependencies"
-      - "github-actions"

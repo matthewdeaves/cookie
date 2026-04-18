@@ -48,6 +48,7 @@ select = [
     "I",      # isort
     "B",      # flake8-bugbear
     "C4",     # flake8-comprehensions
+    "C90",    # mccabe complexity (Constitution Principle V: CC ≤ 15)
     "UP",     # pyupgrade
     "SIM",    # flake8-simplify
     "DJ",     # flake8-django
@@ -91,6 +92,9 @@ ignore = [
 fixable = ["ALL"]
 unfixable = []
 
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
 [tool.ruff.lint.isort]
 known-first-party = ["apps", "cookie"]
 known-third-party = ["django", "ninja"]
@@ -103,4 +107,4 @@ known-third-party = ["django", "ninja"]
 # Settings file has specific patterns
 "cookie/settings.py" = ["F401", "S105"]
 # Migration files are auto-generated
-"*/migrations/*.py" = ["S"]
+"*/migrations/*.py" = ["S", "C901"]

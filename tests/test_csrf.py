@@ -180,3 +180,24 @@ class TestCsrfWithValidToken:
                 headers={"X-CSRFToken": token},
             )
             assert response.status_code != 403
+
+
+@pytest.mark.django_db
+class TestCsrfOnPreSessionProfileEndpoints:
+    """CSRF must protect select_profile even though it uses auth=None (FR-010)."""
+
+    def test_select_profile_without_csrf_token_returns_403(self, csrf_client, test_profile):
+        response = csrf_client.post(
+            f"/api/profiles/{test_profile.id}/select/",
+            content_type="application/json",
+        )
+        assert response.status_code == 403
+
+    def test_select_profile_with_csrf_token_succeeds(self, csrf_client, test_profile):
+        token = _get_csrf_token(csrf_client)
+        response = csrf_client.post(
+            f"/api/profiles/{test_profile.id}/select/",
+            content_type="application/json",
+            headers={"X-CSRFToken": token},
+        )
+        assert response.status_code == 200

@@ -51,10 +51,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi8 \
     libpq5 \
     nginx \
-    cron \
     curl \
     && rm -rf /var/lib/apt/lists/* \
     && rm -f /etc/nginx/sites-enabled/default
+
+# Install supercronic v0.2.44 — replaces Debian cron (see specs/015-security-review-fixes)
+# Upstream SHA1: amd64=6eb0a8e1e6673675dc67668c1a9b6409f79c37bc arm64=6c6cba4cde1dd4a1dd1e7fb23498cde1b57c226c
+ARG TARGETARCH
+ENV SUPERCRONIC_VERSION=v0.2.44 \
+    SUPERCRONIC_SHA256_AMD64=6feff7d5eba16a89cf229b7eb644cfae2f03a32c62ca320f17654659315275b6 \
+    SUPERCRONIC_SHA256_ARM64=ec29b3129ab20100971d21d391150d50398e5caaa33b8652eab919e2c5143057
+RUN ARCH="${TARGETARCH:-amd64}" \
+    && if [ "$ARCH" = "arm64" ]; then EXPECTED_SHA256="$SUPERCRONIC_SHA256_ARM64"; \
+       else EXPECTED_SHA256="$SUPERCRONIC_SHA256_AMD64"; fi \
+    && curl -fsSL -o /usr/local/bin/supercronic \
+       "https://github.com/aptible/supercronic/releases/download/${SUPERCRONIC_VERSION}/supercronic-linux-${ARCH}" \
+    && echo "${EXPECTED_SHA256}  /usr/local/bin/supercronic" | sha256sum -c - \
+    && chmod +x /usr/local/bin/supercronic
 
 # Security: Create non-root user
 RUN useradd --create-home --shell /bin/bash app
@@ -76,6 +89,9 @@ COPY --from=frontend-builder --chown=app:app /frontend/dist /app/frontend/dist
 # Create necessary directories
 RUN mkdir -p /app/staticfiles /app/data/media && \
     chown -R app:app /app/staticfiles /app/data
+
+# Copy supercronic crontab (no secrets — schedule + command only)
+COPY --chown=app:app crontab /app/crontab
 
 # Copy nginx config
 COPY nginx/nginx.prod.conf /etc/nginx/nginx.conf

@@ -223,13 +223,17 @@ class TestEntrypointSecurity:
     def entrypoint(self):
         return ENTRYPOINT_PROD.read_text()
 
-    def test_cron_file_permissions_restrictive(self, entrypoint):
-        """Cron env file contains secrets — must not be world-readable."""
-        assert "chmod 0600 /etc/cron.d/cookie-cleanup" in entrypoint, (
-            "Cron file must use chmod 0600, not 0644 — it contains DATABASE_URL and SECRET_KEY"
+    def test_no_secrets_in_cron_config(self, entrypoint):
+        """Entrypoint must not write SECRET_KEY or DATABASE_URL to cron files.
+
+        After 015-security-review-fixes, supercronic inherits env from the
+        entrypoint process. No secrets are written to disk.
+        """
+        assert "/etc/cron.d/cookie-cleanup" not in entrypoint, (
+            "Entrypoint must not write /etc/cron.d/cookie-cleanup — use supercronic with inherited env"
         )
-        assert "chmod 0644 /etc/cron.d/cookie-cleanup" not in entrypoint, (
-            "Cron file must not use world-readable 0644 permissions"
+        assert "supercronic" in entrypoint, (
+            "Entrypoint must launch supercronic as the scheduler"
         )
 
     def test_secret_key_file_permissions(self, entrypoint):

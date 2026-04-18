@@ -154,6 +154,12 @@
             <div class="card mt-4">
                 <h2 class="settings-section-title">About</h2>
                 <div class="about-info">
+                    {% if auth_mode == 'passkey' %}
+                    <div class="about-row">
+                        <span class="about-label">Account ID</span>
+                        <span class="about-value">{{ current_profile_id }}</span>
+                    </div>
+                    {% endif %}
                     <div class="about-row">
                         <span class="about-label">Version</span>
                         <span class="about-value">{{ cookie_version }}</span>

@@ -103,12 +103,14 @@ class Command(BaseCommand):
 
         # set-unlimited
         su = sub.add_parser("set-unlimited", help="Grant unlimited AI access")
-        su.add_argument("username")
+        su.add_argument("username", nargs="?", default=None)
+        su.add_argument("--profile-id", type=int, dest="profile_id")
         su.add_argument("--json", action="store_true", dest="as_json")
 
         # remove-unlimited
         ru = sub.add_parser("remove-unlimited", help="Revoke unlimited AI access")
-        ru.add_argument("username")
+        ru.add_argument("username", nargs="?", default=None)
+        ru.add_argument("--profile-id", type=int, dest="profile_id")
         ru.add_argument("--json", action="store_true", dest="as_json")
 
         # usage
@@ -121,6 +123,7 @@ class Command(BaseCommand):
         cs.add_argument("username")
         cs.add_argument("--ttl", type=int, default=3600, help="Session TTL in seconds (default 3600)")
         cs.add_argument("--json", action="store_true", dest="as_json")
+        cs.add_argument("--confirm", action="store_true", help="Required for non-interactive (--json) mode")
 
         # reset
         rs = sub.add_parser("reset", help="Factory reset: delete all data and re-seed defaults")
@@ -581,8 +584,29 @@ class Command(BaseCommand):
             {"user": self._user_dict(user), "sessions_invalidated": count},
         )
 
+    def _resolve_user_by_username_or_profile_id(self, options):
+        from apps.profiles.models import Profile
+
+        username = options.get("username")
+        profile_id = options.get("profile_id")
+
+        if username and profile_id:
+            self._error("Pass either username or --profile-id, not both.", options)
+        if not username and not profile_id:
+            self._error("Must pass either username or --profile-id.", options)
+
+        if profile_id:
+            try:
+                profile = Profile.objects.select_related("user").get(id=profile_id)
+            except Profile.DoesNotExist:
+                self._error(f"Profile with id {profile_id} not found.", options)
+            if not profile.user:
+                self._error(f"Profile {profile_id} has no linked user.", options)
+            return profile.user
+        return self._get_user(username, options)
+
     def _handle_set_unlimited(self, options):
-        user = self._get_user(options["username"], options)
+        user = self._resolve_user_by_username_or_profile_id(options)
         profile = user.profile
         profile.unlimited_ai = True
         profile.save(update_fields=["unlimited_ai"])
@@ -593,7 +617,7 @@ class Command(BaseCommand):
         )
 
     def _handle_remove_unlimited(self, options):
-        user = self._get_user(options["username"], options)
+        user = self._resolve_user_by_username_or_profile_id(options)
         profile = user.profile
         profile.unlimited_ai = False
         profile.save(update_fields=["unlimited_ai"])
@@ -660,6 +684,13 @@ class Command(BaseCommand):
         from django.utils import timezone
 
         security_logger = logging.getLogger("security")
+
+        if options.get("as_json") and not options.get("confirm"):
+            self._error(
+                f"--confirm flag required for non-interactive create-session. "
+                f"Re-run with: cookie_admin create-session {options['username']} --json --confirm",
+                options,
+            )
 
         user = self._get_user(options["username"], options)
         if not user.is_active:
