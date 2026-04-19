@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-19T21:27:15.772Z",
+    "detectionDate": "2026-04-19T22:25:40.036Z",
     "formats": {
       "python": {
         "sources": {
@@ -461,14 +461,14 @@
             "newClones": 0
           },
           "apps/profiles/api.py": {
-            "lines": 318,
-            "tokens": 2775,
+            "lines": 303,
+            "tokens": 2536,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 16,
-            "duplicatedTokens": 194,
-            "percentage": 5.03,
-            "percentageTokens": 6.99,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -653,8 +653,8 @@
             "newClones": 0
           },
           "apps/core/auth.py": {
-            "lines": 98,
-            "tokens": 653,
+            "lines": 122,
+            "tokens": 732,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -774,28 +774,28 @@
           }
         },
         "total": {
-          "lines": 11645,
-          "tokens": 81866,
+          "lines": 11654,
+          "tokens": 81706,
           "sources": 64,
-          "clones": 11,
-          "duplicatedLines": 153,
-          "duplicatedTokens": 1279,
-          "percentage": 1.31,
-          "percentageTokens": 1.56,
+          "clones": 10,
+          "duplicatedLines": 145,
+          "duplicatedTokens": 1182,
+          "percentage": 1.24,
+          "percentageTokens": 1.45,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 11645,
-      "tokens": 81866,
+      "lines": 11654,
+      "tokens": 81706,
       "sources": 64,
-      "clones": 11,
-      "duplicatedLines": 153,
-      "duplicatedTokens": 1279,
-      "percentage": 1.31,
-      "percentageTokens": 1.56,
+      "clones": 10,
+      "duplicatedLines": 145,
+      "duplicatedTokens": 1182,
+      "percentage": 1.24,
+      "percentageTokens": 1.45,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -1086,42 +1086,6 @@
           "line": 115,
           "column": 6,
           "position": 726
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 9,
-      "fragment": "if settings.AUTH_MODE != \"home\":\n        raise HttpError(404, \"Not found\")\n    from django.middleware.csrf import CsrfViewMiddleware\n\n    csrf_middleware = CsrfViewMiddleware(lambda r: None)\n    csrf_middleware.process_request(request)\n    reason = csrf_middleware.process_view(request, None, (), {})\n    if reason:\n        return Status(403, {\"detail\"",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/profiles/api.py",
-        "start": 277,
-        "end": 285,
-        "startLoc": {
-          "line": 277,
-          "column": 5,
-          "position": 2227
-        },
-        "endLoc": {
-          "line": 285,
-          "column": 9,
-          "position": 2324
-        }
-      },
-      "secondFile": {
-        "name": "apps/profiles/api.py",
-        "start": 146,
-        "end": 154,
-        "startLoc": {
-          "line": 146,
-          "column": 5,
-          "position": 948
-        },
-        "endLoc": {
-          "line": 154,
-          "column": 8,
-          "position": 1045
         }
       }
     },
