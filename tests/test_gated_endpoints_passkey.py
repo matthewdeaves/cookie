@@ -189,3 +189,48 @@ class TestHomeOnlyRoutesHaveNoMethodLeak:
         assert "Allow" not in response.headers, (
             f"{verb} {path}: Allow header leaked route existence ({response.headers.get('Allow')!r})"
         )
+
+
+@pytest.mark.django_db
+class TestMixedAuthProfileEndpointsDoNotLeakViaPydantic422:
+    """Pentest round 5 / F2: pre-session profile endpoints (list/create/select)
+    must short-circuit to 404 in passkey mode BEFORE Pydantic body-schema
+    validation runs. Previously `auth=None` + inline `if AUTH_MODE != 'home'`
+    meant a malformed POST payload produced 422 "Unprocessable Entity", leaking
+    route existence and path-parameter shape to anonymous probes.
+
+    The fix replaces `auth=None` with `HomeOnlyAnonAuth()` so the path is
+    visible to HomeOnlyRouteGateMiddleware and gets short-circuited above the
+    URL dispatcher.
+    """
+
+    def test_post_create_profile_with_invalid_payload_is_404_not_422(self, client, passkey_mode):
+        response = client.post(
+            "/api/profiles/",
+            data=json.dumps({"not_a_real_field": "x"}),  # missing required "name"
+            content_type="application/json",
+        )
+        assert response.status_code == 404, (
+            f"POST /api/profiles/ leaked route existence via Pydantic 422 (got {response.status_code})"
+        )
+        assert response.json() == {"detail": "Not found"}
+
+    def test_post_create_profile_with_empty_body_is_404_not_422(self, client, passkey_mode):
+        response = client.post("/api/profiles/", data="{}", content_type="application/json")
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Not found"}
+
+    def test_post_select_profile_with_malformed_path_is_404(self, client, passkey_mode):
+        # {profile_id:int} — non-integer path param would produce a Pydantic
+        # coercion error without the middleware gate.
+        response = client.post(
+            "/api/profiles/not-a-number/select/",
+            content_type="application/json",
+        )
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Not found"}
+
+    def test_get_list_profiles_is_404(self, client, passkey_mode):
+        response = client.get("/api/profiles/")
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Not found"}

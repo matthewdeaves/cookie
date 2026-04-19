@@ -7,9 +7,7 @@ from django.db.models import Count, Q
 from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema, Status
 
-from ninja.errors import HttpError
-
-from apps.core.auth import HomeOnlyAuth
+from apps.core.auth import HomeOnlyAnonAuth, HomeOnlyAuth
 from .models import Profile
 
 router = Router(tags=["profiles"])
@@ -89,18 +87,15 @@ class ErrorSchema(Schema):
     message: str
 
 
-@router.get("/", response=List[ProfileWithStatsSchema])
+@router.get("/", response=List[ProfileWithStatsSchema], auth=HomeOnlyAnonAuth())
 def list_profiles(request):
     """List all profiles with stats.
 
-    Home mode only — this is the profile-selection screen and runs before any
-    session exists, so it uses `auth=None` + inline mode check rather than
-    HomeOnlyAuth (which would require a session). Returns 404 in passkey mode
-    (every /api/profiles/* endpoint is home-only per spec 014-remove-is-staff).
+    Home mode only — profile-selection screen, runs before any session exists.
+    HomeOnlyAnonAuth short-circuits to 404 in non-home modes via the route-gate
+    middleware (above URL dispatch), so probes cannot distinguish this path
+    from never-existed paths.
     """
-    if settings.AUTH_MODE != "home":
-        raise HttpError(404, "Not found")
-
     from apps.recipes.models import RecipeCollectionItem
 
     profiles = Profile.objects.annotate(
@@ -139,19 +134,14 @@ def list_profiles(request):
     return result
 
 
-@router.post("/", response={201: ProfileOut, 403: ErrorSchema, 404: ErrorSchema, 429: ErrorSchema})
+@router.post("/", response={201: ProfileOut, 404: ErrorSchema, 429: ErrorSchema}, auth=HomeOnlyAnonAuth())
 @ratelimit(key="ip", rate="10/h", method="POST", block=False)
 def create_profile(request, payload: ProfileIn):
-    """Create a new profile. Home mode only — profile creation flow runs pre-session."""
-    if settings.AUTH_MODE != "home":
-        raise HttpError(404, "Not found")
-    from django.middleware.csrf import CsrfViewMiddleware
+    """Create a new profile. Home mode only — profile creation flow runs pre-session.
 
-    csrf_middleware = CsrfViewMiddleware(lambda r: None)
-    csrf_middleware.process_request(request)
-    reason = csrf_middleware.process_view(request, None, (), {})
-    if reason:
-        return Status(403, {"error": "csrf_failed", "message": "CSRF token missing or invalid"})
+    CSRF is enforced by HomeOnlyAnonAuth (via APIKeyCookie._get_key); mode-gate
+    short-circuits passkey probes to 404 above URL dispatch.
+    """
     if getattr(request, "limited", False):
         return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
     data = payload.dict()
@@ -271,18 +261,13 @@ def delete_profile(request, profile_id: int):
     return Status(204, None)
 
 
-@router.post("/{profile_id}/select/", response={200: ProfileOut, 403: dict, 404: dict})
+@router.post("/{profile_id}/select/", response={200: ProfileOut, 404: dict}, auth=HomeOnlyAnonAuth())
 def select_profile(request, profile_id: int):
-    """Set a profile as the current profile. Home mode only (pre-session selection)."""
-    if settings.AUTH_MODE != "home":
-        raise HttpError(404, "Not found")
-    from django.middleware.csrf import CsrfViewMiddleware
+    """Set a profile as the current profile. Home mode only (pre-session selection).
 
-    csrf_middleware = CsrfViewMiddleware(lambda r: None)
-    csrf_middleware.process_request(request)
-    reason = csrf_middleware.process_view(request, None, (), {})
-    if reason:
-        return Status(403, {"detail": "CSRF token missing or invalid"})
+    CSRF is enforced by HomeOnlyAnonAuth (via APIKeyCookie._get_key); mode-gate
+    short-circuits passkey probes to 404 above URL dispatch.
+    """
     try:
         profile = Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:

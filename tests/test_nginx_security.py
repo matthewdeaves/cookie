@@ -289,6 +289,48 @@ class TestNginxErrorPagesDoNotLeakNginx:
         assert "security-headers.conf" in body, "`@not_found` must include the standard security headers."
 
 
+class TestNginxScannerBlocksSelfContainEmptyBody:
+    """Pentest round 5 / F1 defense-in-depth: scanner-blocking locations must
+    return an EXPLICIT empty body (`return 404 "";`) and include the security
+    headers directly — so a response cannot leak the stock nginx footer even
+    if a future edit moves or breaks the server-level `error_page 404
+    @not_found` inheritance. The @not_found named handler remains as the
+    primary defence for nginx-generated 4xx (e.g. autoindex 403 on /assets/,
+    /media/); this test covers the explicit `return 404;` blocks."""
+
+    # Match each block by a distinctive snippet that appears only in its
+    # location pattern, then grab the body between the outermost braces.
+    # (Using a permissive block-body regex so nested parens in the regex
+    # location patterns do not break the match.)
+    BLOCK_SIGNATURES = [
+        ("dotfile", r"location\s+~\s+/\\\.\(\?!well-known\)[^{]*\{([^}]*)\}"),
+        ("sourcemap", r"location\s+~\*\s+\\\.map\$[^{]*\{([^}]*)\}"),
+        ("sensitive-extensions", r"location\s+~\*\s+\\\.\(sql\|[^{]*\{([^}]*)\}"),
+        ("scanner-filenames", r"location\s+~\*\s+\^/\(Dockerfile\|[^{]*\{([^}]*)\}"),
+    ]
+
+    @pytest.mark.parametrize("label,block_regex", BLOCK_SIGNATURES)
+    def test_block_returns_explicit_empty_body(self, nginx_config, label, block_regex):
+        block_match = re.search(block_regex, nginx_config, re.DOTALL)
+        assert block_match, f"Scanner-block location not found: {label}"
+        body = block_match.group(1)
+        assert re.search(r'return\s+404\s+""\s*;', body), (
+            f"Scanner-block {label!r} must return an EXPLICIT empty body "
+            f'(`return 404 "";`) so the response does not depend on error_page '
+            f"inheritance. Got: {body!r}"
+        )
+
+    @pytest.mark.parametrize("label,block_regex", BLOCK_SIGNATURES)
+    def test_block_includes_security_headers(self, nginx_config, label, block_regex):
+        block_match = re.search(block_regex, nginx_config, re.DOTALL)
+        assert block_match, f"Scanner-block location not found: {label}"
+        body = block_match.group(1)
+        assert "security-headers.conf" in body, (
+            f"Scanner-block {label!r} must `include /etc/nginx/security-headers.conf` "
+            f"so the explicit-body 404 still carries HSTS/CSP/nosniff/etc. Got: {body!r}"
+        )
+
+
 ENTRYPOINT_PROD = Path(__file__).parent.parent / "entrypoint.prod.sh"
 
 

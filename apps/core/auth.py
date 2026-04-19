@@ -10,7 +10,7 @@ from ninja.security import APIKeyCookie
 
 from apps.profiles.models import Profile
 
-__all__ = ["SessionAuth", "HomeOnlyAuth"]
+__all__ = ["SessionAuth", "HomeOnlyAuth", "HomeOnlyAnonAuth"]
 
 security_logger = logging.getLogger("security")
 
@@ -97,3 +97,27 @@ class HomeOnlyAuth(SessionAuth):
         if settings.AUTH_MODE != "home":
             raise HttpError(404, "Not found")
         return super().__call__(request)
+
+
+class HomeOnlyAnonAuth(HomeOnlyAuth):
+    """Pre-session variant of HomeOnlyAuth for profile-selector endpoints.
+
+    Used on the three endpoints that MUST be reachable before any session
+    exists (list/create/select profile). Home mode: allows anonymous access
+    but still enforces CSRF on unsafe methods via APIKeyCookie._get_key.
+    Non-home modes: raises 404, same as HomeOnlyAuth.
+
+    Inheriting from HomeOnlyAuth means HomeOnlyRouteGateMiddleware includes
+    these paths in the passkey-mode route gate, short-circuiting probes to
+    404 above Django's URL dispatcher — so Pydantic body-schema validation
+    cannot leak route existence via 422 on a POST with an invalid payload
+    (pentest round 5 / F2).
+    """
+
+    def __call__(self, request: HttpRequest) -> Any:
+        if settings.AUTH_MODE != "home":
+            raise HttpError(404, "Not found")
+        # CSRF enforced here on unsafe methods; safe methods are no-ops.
+        # Raises HttpError(403) on CSRF failure. No cookie/session lookup.
+        self._get_key(request)
+        return True
