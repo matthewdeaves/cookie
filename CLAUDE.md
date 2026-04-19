@@ -62,7 +62,7 @@ Rules:
 2. Before tagging, check the latest existing tag (`gh release list --limit 1`) and increment from there.
 3. Use `gh release create` with `--latest` so GitHub marks it correctly.
 4. Release notes must summarise what changed since the previous release, not per-commit.
-5. When tagging a release, update the compose image pin in `docker-compose.prod.yml` to match (`ghcr.io/matthewdeaves/cookie:vX.Y.Z`). Never ship `:latest` in production.
+5. When tagging a release, update the compose image pin in `docker-compose.prod.yml` to match (`ghcr.io/matthewdeaves/cookie:X.Y.Z` — no `v` prefix; GHCR semver tags strip it via `type=semver,pattern={{version}}` in `.github/workflows/cd.yml`). Never ship `:latest` in production.
 
 ## Authentication
 
