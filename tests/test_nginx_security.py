@@ -223,6 +223,72 @@ class TestNginxRouting:
         )
 
 
+class TestNginxWebManifestMimeType:
+    """Pentest round 4 / L1: /site.webmanifest must be served with
+    application/manifest+json, not the http-level application/octet-stream
+    default. Under `X-Content-Type-Options: nosniff`, Chromium and Firefox
+    refuse to treat an octet-stream response as a PWA manifest, breaking
+    "Add to Home Screen"."""
+
+    def test_webmanifest_location_block_exists(self, nginx_config):
+        assert re.search(r"location\s+=\s+/site\.webmanifest\s*\{", nginx_config), (
+            "nginx.prod.conf must define `location = /site.webmanifest` so "
+            "the PWA manifest can set its own Content-Type."
+        )
+
+    def test_webmanifest_default_type_is_manifest_json(self, nginx_config):
+        block = re.search(
+            r"location\s+=\s+/site\.webmanifest\s*\{(.*?)\}",
+            nginx_config,
+            re.DOTALL,
+        )
+        assert block, "webmanifest location block not found"
+        body = block.group(1)
+        assert re.search(r"default_type\s+application/manifest\+json\s*;", body), (
+            "location = /site.webmanifest must set "
+            "`default_type application/manifest+json;` so browsers accept "
+            "the file as a PWA manifest under nosniff."
+        )
+
+
+class TestNginxErrorPagesDoNotLeakNginx:
+    """Pentest round 4 / L2: nginx's stock `<center>nginx</center>` error
+    body must not be served on 403 (directory-listing attempts on /assets/,
+    /media/) or 404 responses. Route both through an internal named handler
+    that emits an empty body instead."""
+
+    def test_error_page_403_rewritten_to_404(self, nginx_config):
+        assert re.search(
+            r"error_page\s+403\s+=404\s+@\w+\s*;",
+            nginx_config,
+        ), (
+            "nginx.prod.conf must rewrite 403 to 404 via a named location "
+            "so directory-listing 403s stop leaking the stock nginx error page."
+        )
+
+    def test_error_page_404_routed_to_named_handler(self, nginx_config):
+        assert re.search(r"error_page\s+404\s+@\w+\s*;", nginx_config), (
+            "nginx.prod.conf must route 404 to a named internal handler "
+            "so nginx-generated 404s stop leaking the stock nginx error page."
+        )
+
+    def test_named_error_handler_is_internal(self, nginx_config):
+        block = re.search(
+            r"location\s+@not_found\s*\{(.*?)\n\s*\}",
+            nginx_config,
+            re.DOTALL,
+        )
+        assert block, "Named `@not_found` error handler not found"
+        body = block.group(1)
+        assert re.search(r"^\s*internal\s*;", body, re.MULTILINE), (
+            "`@not_found` must be marked `internal;` so clients cannot hit it directly."
+        )
+        assert re.search(r'return\s+404\s+""\s*;', body), (
+            '`@not_found` must `return 404 "";` — empty body so the nginx signature cannot appear in the response body.'
+        )
+        assert "security-headers.conf" in body, "`@not_found` must include the standard security headers."
+
+
 ENTRYPOINT_PROD = Path(__file__).parent.parent / "entrypoint.prod.sh"
 
 
