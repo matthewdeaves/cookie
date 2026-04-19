@@ -63,6 +63,8 @@ Rules:
 3. Use `gh release create` with `--latest` so GitHub marks it correctly.
 4. Release notes must summarise what changed since the previous release, not per-commit.
 5. When tagging a release, update the compose image pin in `docker-compose.prod.yml` to match (`ghcr.io/matthewdeaves/cookie:X.Y.Z` — no `v` prefix; GHCR semver tags strip it via `type=semver,pattern={{version}}` in `.github/workflows/cd.yml`). Never ship `:latest` in production.
+6. **Every tag/release MUST be cut against a fully-green GitHub Actions state on `master`.** Before running `git tag` / `git push <tag>`:
+   - Run `gh run list --branch master --limit 10 --json name,status,conclusion` and verify every required workflow (CI, CD, Release) for the tip commit is `completed / success`. Treat `failure`, `cancelled`, or `in_progress` on any required workflow as a release blocker — investigate the root cause and fix it before tagging, even if local tests pass. A passing CD run for a previous tag is NOT a substitute for a passing CI run on master. After pushing the tag, run `gh run watch <CD run id> --exit-status` and also confirm the triggered CI / Release / CD workflows for the tag itself go green before announcing the release as shipped. If any job is red, do not mark the release as done — roll forward with a fix on master and, if the image is already built and broken in a way that affects users, cut a patch release.
 
 ## Authentication
 
