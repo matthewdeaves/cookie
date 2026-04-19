@@ -103,6 +103,14 @@ COPY nginx/security-headers.conf /etc/nginx/security-headers.conf
 COPY entrypoint.prod.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Bake the release version into the image. Supplied by the CD workflow as
+# `--build-arg COOKIE_VERSION=<semver>` from the git tag. Absence here is a
+# build-pipeline bug — settings.py refuses to boot in prod without it, so
+# "COOKIE_VERSION=dev" can never silently reach a deployed container.
+ARG COOKIE_VERSION
+ENV COOKIE_VERSION=${COOKIE_VERSION}
+LABEL org.opencontainers.image.version=${COOKIE_VERSION}
+
 # Environment defaults for out-of-the-box deployment
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

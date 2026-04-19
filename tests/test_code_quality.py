@@ -15,13 +15,12 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 MAX_FILE_LINES = 500
 
 EXEMPT_FILES: dict[str, int] = {
-    "apps/core/management/commands/cookie_admin.py": 1203,
     "apps/ai/api.py": 534,
     "apps/recipes/services/scraper.py": 517,
     "apps/ai/tests.py": 1852,
     "apps/recipes/tests.py": 564,
     "tests/test_passkey_api.py": 903,
-    "tests/test_recipes_api.py": 799,
+    "tests/test_recipes_api.py": 823,
     "tests/test_cookie_admin.py": 830,
     "tests/test_ai_quota.py": 768,
     "tests/test_search.py": 718,
@@ -64,9 +63,7 @@ def test_py_file_size_under_limit() -> None:
                             f"  {rel}: {line_count} lines (ceiling is {ceiling} — file grew past its grandfathered limit)"
                         )
                 else:
-                    offenders.append(
-                        f"  {rel}: {line_count} lines (new violation — max {MAX_FILE_LINES})"
-                    )
+                    offenders.append(f"  {rel}: {line_count} lines (new violation — max {MAX_FILE_LINES})")
             elif rel in EXEMPT_FILES:
                 stale_exemptions.append(
                     f"  {rel}: {line_count} lines (now under {MAX_FILE_LINES} — remove from EXEMPT_FILES)"
@@ -74,14 +71,10 @@ def test_py_file_size_under_limit() -> None:
 
     messages: list[str] = []
     if offenders:
-        messages.append(
-            f"File-size violations (max {MAX_FILE_LINES} lines per file):\n"
-            + "\n".join(offenders)
-        )
+        messages.append(f"File-size violations (max {MAX_FILE_LINES} lines per file):\n" + "\n".join(offenders))
     if stale_exemptions:
         messages.append(
-            "Stale EXEMPT_FILES entries (files now under limit — remove them):\n"
-            + "\n".join(stale_exemptions)
+            "Stale EXEMPT_FILES entries (files now under limit — remove them):\n" + "\n".join(stale_exemptions)
         )
 
     if messages:

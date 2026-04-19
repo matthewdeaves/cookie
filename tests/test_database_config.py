@@ -85,9 +85,11 @@ class TestDatabaseConfiguration:
 
         import cookie.settings
 
-        # Temporarily remove DATABASE_URL from environment and reload settings
-        with patch.dict(os.environ, {}, clear=True):
-            # Ensure DATABASE_URL is definitely not set
+        # Isolate DATABASE_URL while keeping the other env vars settings.py
+        # validates ahead of it (COOKIE_VERSION, SECRET_KEY) so the reload
+        # reaches the DATABASE_URL check and not an earlier guard.
+        env = {"DEBUG": "true"}
+        with patch.dict(os.environ, env, clear=True):
             assert os.environ.get("DATABASE_URL") is None
 
             with pytest.raises(ImproperlyConfigured, match="DATABASE_URL"):

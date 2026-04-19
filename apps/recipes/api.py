@@ -218,6 +218,7 @@ async def scrape_recipe(request, payload: ScrapeIn):
     # Validate URL domain against enabled search sources
     try:
         from urllib.parse import urlparse
+
         parsed = urlparse(payload.url)
         domain = (parsed.hostname or "").lower().removeprefix("www.")
     except Exception:

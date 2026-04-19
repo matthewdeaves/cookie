@@ -2,6 +2,9 @@ import ipaddress
 import re
 import uuid
 
+from django.conf import settings
+from django.http import JsonResponse
+
 
 def get_client_ip(request):
     """Extract the real client IP from X-Forwarded-For for django-ratelimit.
@@ -107,3 +110,69 @@ class DeviceDetectionMiddleware:
         """Firefox < 55."""
         match = self.FIREFOX_PATTERN.search(ua)
         return match is not None and int(match.group(1)) < 55
+
+
+def _ninja_path_to_regex(path: str) -> re.Pattern:
+    """Convert a Ninja URL path (with `{param}` / `{param:int}` placeholders)
+    to a compiled regex that matches a single URL, with an optional trailing
+    slash. A `{param}` spans exactly one path segment (no slashes)."""
+    pattern = re.sub(r"\{[^/}]+\}", r"[^/]+", path.rstrip("/"))
+    return re.compile(rf"^{pattern}/?$")
+
+
+_home_only_patterns_cache: tuple[re.Pattern, ...] | None = None
+
+
+def _home_only_patterns() -> tuple[re.Pattern, ...]:
+    """Introspect the Ninja API once to compile regexes for every path
+    whose registered methods ALL use `HomeOnlyAuth`. A path that mixes
+    `HomeOnlyAuth` methods with `SessionAuth` methods (e.g. `/api/ai/quotas`
+    has GET=SessionAuth + PUT=HomeOnlyAuth) is NOT included here — those
+    paths must remain reachable in passkey mode for the non-gated methods.
+    Lazy-imported to avoid a circular import at module load (urls → ninja
+    routers → auth classes → middleware)."""
+    global _home_only_patterns_cache
+    if _home_only_patterns_cache is not None:
+        return _home_only_patterns_cache
+
+    from apps.core.auth import HomeOnlyAuth
+    from cookie.urls import api
+
+    paths: set[str] = set()
+    for prefix, router in api._routers:
+        for path, path_op in router.path_operations.items():
+            if not path_op.operations:
+                continue
+            all_home_only = all(
+                any(isinstance(a, HomeOnlyAuth) for a in (op.auth_callbacks or [])) for op in path_op.operations
+            )
+            if all_home_only:
+                paths.add(f"/api{prefix}{path}")
+
+    _home_only_patterns_cache = tuple(_ninja_path_to_regex(p) for p in paths)
+    return _home_only_patterns_cache
+
+
+class HomeOnlyRouteGateMiddleware:
+    """Short-circuit every method on HomeOnlyAuth-gated routes to 404 in
+    non-home auth modes, above Django's URL dispatcher.
+
+    Without this, HEAD/OPTIONS (and other unregistered methods) on gated
+    routes fall through to Django's 405 handler, which emits an `Allow:`
+    header listing the real method set — leaking route existence to
+    unauthenticated probes. The v1.42.0 security posture promises that
+    gated routes are "indistinguishable from never-existed paths"; this
+    middleware upholds that promise for every verb, not just those with
+    a registered Ninja handler.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if settings.AUTH_MODE != "home":
+            path = request.path
+            for pattern in _home_only_patterns():
+                if pattern.match(path):
+                    return JsonResponse({"detail": "Not found"}, status=404)
+        return self.get_response(request)

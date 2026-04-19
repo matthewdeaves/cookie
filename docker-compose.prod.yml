@@ -24,7 +24,7 @@ services:
       retries: 5
 
   web:
-    image: ghcr.io/matthewdeaves/cookie:1.44.0
+    image: ghcr.io/matthewdeaves/cookie:1.45.0
     container_name: cookie-prod
     ports:
       - "80:80"
@@ -36,7 +36,9 @@ services:
       - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS:-http://localhost,http://127.0.0.1}
       - DATABASE_URL=postgres://cookie:${POSTGRES_PASSWORD}@db:5432/cookie
       - AUTH_MODE=${AUTH_MODE:-home}
-      - COOKIE_VERSION=${COOKIE_VERSION:-dev}
+      # COOKIE_VERSION is baked into the image by the CD pipeline (see
+      # Dockerfile.prod's ARG + ENV). Do NOT override it here — a compose-level
+      # fallback of "dev" would silently mask a broken build-arg pipeline.
       - SECURE_SSL_REDIRECT=${SECURE_SSL_REDIRECT:-true}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       - LOG_FORMAT=${LOG_FORMAT:-json}

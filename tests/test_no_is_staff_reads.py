@@ -7,7 +7,7 @@ all application-created users. Reading it for privilege decisions is a
 regression and MUST fail the test suite.
 
 Allowlist:
-    * `apps/core/management/commands/cookie_admin.py` — the single
+    * `apps/core/management/commands/_cookie_admin_users.py` — the single
       `is_staff=False` write in `_handle_create_user` (enforces FR-022).
     * `apps/core/passkey_api.py` — the `is_staff=False` write on user
       creation during WebAuthn registration (enforces FR-022).
@@ -32,9 +32,9 @@ APPS_DIR = REPO_ROOT / "apps"
 # Compile allowlist rules as (path_suffix_pattern, line_pattern) tuples.
 # Both patterns are regex — a match on BOTH path and line permits the occurrence.
 ALLOWLIST: list[tuple[re.Pattern[str], re.Pattern[str]]] = [
-    # cookie_admin: default-False write in _handle_create_user.
+    # cookie_admin (users mixin): default-False write in _handle_create_user.
     (
-        re.compile(r"apps/core/management/commands/cookie_admin\.py$"),
+        re.compile(r"apps/core/management/commands/_cookie_admin_users\.py$"),
         re.compile(r"\bis_staff=False\b"),
     ),
     # passkey_api: default-False write on passkey user creation.

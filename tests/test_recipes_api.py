@@ -303,7 +303,11 @@ class TestScrapeRecipe:
             s.create()
             SearchSource.objects.get_or_create(
                 host="allrecipes.com",
-                defaults={"name": "AllRecipes", "search_url_template": "https://allrecipes.com/search?q={query}", "is_enabled": True},
+                defaults={
+                    "name": "AllRecipes",
+                    "search_url_template": "https://allrecipes.com/search?q={query}",
+                    "is_enabled": True,
+                },
             )
             return p, s.session_key
 
@@ -389,7 +393,11 @@ class TestScrapeRecipe:
             s.create()
             SearchSource.objects.get_or_create(
                 host="allrecipes.com",
-                defaults={"name": "AllRecipes", "search_url_template": "https://allrecipes.com/search?q={query}", "is_enabled": True},
+                defaults={
+                    "name": "AllRecipes",
+                    "search_url_template": "https://allrecipes.com/search?q={query}",
+                    "is_enabled": True,
+                },
             )
             return p, s.session_key
 
@@ -436,7 +444,11 @@ class TestScrapeRecipe:
             s.create()
             SearchSource.objects.get_or_create(
                 host="allrecipes.com",
-                defaults={"name": "AllRecipes", "search_url_template": "https://allrecipes.com/search?q={query}", "is_enabled": True},
+                defaults={
+                    "name": "AllRecipes",
+                    "search_url_template": "https://allrecipes.com/search?q={query}",
+                    "is_enabled": True,
+                },
             )
             return p, s.session_key
 
@@ -480,7 +492,11 @@ class TestScrapeRecipe:
             s.create()
             SearchSource.objects.get_or_create(
                 host="allrecipes.com",
-                defaults={"name": "AllRecipes", "search_url_template": "https://allrecipes.com/search?q={query}", "is_enabled": True},
+                defaults={
+                    "name": "AllRecipes",
+                    "search_url_template": "https://allrecipes.com/search?q={query}",
+                    "is_enabled": True,
+                },
             )
             return p, s.session_key
 
@@ -517,7 +533,11 @@ class TestScrapeRecipe:
             s.create()
             SearchSource.objects.get_or_create(
                 host="allrecipes.com",
-                defaults={"name": "AllRecipes", "search_url_template": "https://allrecipes.com/search?q={query}", "is_enabled": False},
+                defaults={
+                    "name": "AllRecipes",
+                    "search_url_template": "https://allrecipes.com/search?q={query}",
+                    "is_enabled": False,
+                },
             )
             return p, s.session_key
 
@@ -555,7 +575,11 @@ class TestScrapeRecipe:
             s.create()
             SearchSource.objects.get_or_create(
                 host="allrecipes.com",
-                defaults={"name": "AllRecipes", "search_url_template": "https://allrecipes.com/search?q={query}", "is_enabled": True},
+                defaults={
+                    "name": "AllRecipes",
+                    "search_url_template": "https://allrecipes.com/search?q={query}",
+                    "is_enabled": True,
+                },
             )
             return p, s.session_key
 

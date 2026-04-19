@@ -51,9 +51,7 @@ def source(db):
 
 
 def _create_user(username: str, is_staff: bool = False) -> User:
-    user = User.objects.create_user(
-        username=username, password="!", email="", is_active=True, is_staff=is_staff
-    )
+    user = User.objects.create_user(username=username, password="!", email="", is_active=True, is_staff=is_staff)
     user.set_unusable_password()
     user.save()
     Profile.objects.create(user=user, name=username, avatar_color="#d97850")
@@ -121,8 +119,7 @@ class TestGatedEndpointsReturn404InPasskeyMode:
         assert response.status_code == 404, f"{label}: expected 404, got {response.status_code}"
         assert response.json() == {"detail": "Not found"}
         assert not any(
-            "Admin auth failure" in r.getMessage() or "Auth failure" in r.getMessage()
-            for r in security_log.records
+            "Admin auth failure" in r.getMessage() or "Auth failure" in r.getMessage() for r in security_log.records
         ), f"{label}: security log leaked an auth-failure line"
 
     def test_non_admin_probe_404(self, client, passkey_mode, source, security_log):
@@ -131,15 +128,10 @@ class TestGatedEndpointsReturn404InPasskeyMode:
         security_log.clear()  # discard the "no profile_id in session" lines from login setup
         for method, path, body, label in _endpoints(source.id, regular.profile.id):
             response = _probe(client, method, path, body)
-            assert response.status_code == 404, (
-                f"{label}: expected 404, got {response.status_code} (non-admin)"
-            )
+            assert response.status_code == 404, f"{label}: expected 404, got {response.status_code} (non-admin)"
             assert response.json() == {"detail": "Not found"}, f"{label}: wrong body"
         # Gated endpoints MUST NOT contribute any admin-auth-failure lines.
-        leaked = [
-            r for r in security_log.records
-            if "Admin auth failure" in r.getMessage()
-        ]
+        leaked = [r for r in security_log.records if "Admin auth failure" in r.getMessage()]
         assert not leaked, f"Admin auth failures leaked: {[r.getMessage() for r in leaked]}"
 
     def test_admin_probe_404(self, client, passkey_mode, source, security_log):
@@ -148,9 +140,52 @@ class TestGatedEndpointsReturn404InPasskeyMode:
         security_log.clear()
         for method, path, body, label in _endpoints(source.id, admin.profile.id):
             response = _probe(client, method, path, body)
-            assert response.status_code == 404, (
-                f"{label}: expected 404, got {response.status_code} (admin)"
-            )
+            assert response.status_code == 404, f"{label}: expected 404, got {response.status_code} (admin)"
             assert response.json() == {"detail": "Not found"}, f"{label}: wrong body"
         leaked = [r for r in security_log.records if "Admin auth failure" in r.getMessage()]
         assert not leaked, f"Admin auth failures leaked: {[r.getMessage() for r in leaked]}"
+
+
+# Paths to probe for the method-gate test: cover one example of each Ninja
+# route shape that uses HomeOnlyAuth, including every Profile verb from the
+# v1.43.0 move. All must 404 on every verb — no Allow header may leak the
+# registered method set (pentest finding, v1.45.0).
+_ALL_VERBS = ("GET", "HEAD", "OPTIONS", "POST", "PUT", "DELETE", "PATCH")
+# `/api/ai/quotas` is intentionally excluded: GET uses SessionAuth (any mode),
+# only PUT is HomeOnlyAuth — the path must stay reachable for GET in passkey
+# mode, so it is not a candidate for the "every verb is 404" invariant.
+_HOME_ONLY_PROBE_PATHS = (
+    "/api/profiles/1/",
+    "/api/profiles/1/deletion-preview/",
+    "/api/profiles/1/set-unlimited/",
+    "/api/profiles/1/rename/",
+    "/api/ai/save-api-key",
+    "/api/ai/prompts",
+    "/api/ai/prompts/tips_generation",
+    "/api/ai/sources-needing-attention",
+    "/api/ai/repair-selector",
+    "/api/sources/bulk-toggle/",
+    "/api/sources/test-all/",
+    "/api/sources/1/toggle/",
+    "/api/sources/1/selector/",
+    "/api/sources/1/test/",
+    "/api/recipes/cache/health/",
+    "/api/system/reset-preview/",
+    "/api/system/reset/",
+)
+
+
+@pytest.mark.django_db
+class TestHomeOnlyRoutesHaveNoMethodLeak:
+    """Every verb on a HomeOnlyAuth route returns 404 with no Allow header in
+    passkey mode. Guards against Django's 405 Method-Not-Allowed handler
+    leaking the registered method set on HEAD/OPTIONS probes (pentest r3)."""
+
+    @pytest.mark.parametrize("path", _HOME_ONLY_PROBE_PATHS)
+    @pytest.mark.parametrize("verb", _ALL_VERBS)
+    def test_every_verb_404_no_allow_header(self, client, passkey_mode, path, verb):
+        response = client.generic(verb, path)
+        assert response.status_code == 404, f"{verb} {path}: expected 404, got {response.status_code}"
+        assert "Allow" not in response.headers, (
+            f"{verb} {path}: Allow header leaked route existence ({response.headers.get('Allow')!r})"
+        )

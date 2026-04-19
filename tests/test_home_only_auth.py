@@ -39,8 +39,7 @@ def test_passkey_mode_raises_404_before_auth(request_factory, caplog):
     assert exc_info.value.message == "Not found"
     # No auth-failure security log line during the mode check
     assert not any(
-        "Admin auth failure" in record.message or "Auth failure" in record.message
-        for record in caplog.records
+        "Admin auth failure" in record.message or "Auth failure" in record.message for record in caplog.records
     )
 
 

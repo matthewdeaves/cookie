@@ -212,6 +212,16 @@ class TestNginxRouting:
     def test_client_max_body_size(self, nginx_config):
         assert re.search(r"client_max_body_size\s+\d+m", nginx_config), "client_max_body_size must be set"
 
+    def test_absolute_redirect_off(self, nginx_config):
+        """Trailing-slash redirects must not build absolute `http://` URLs
+        behind a TLS-terminating proxy (pentest round 3). `absolute_redirect
+        off` makes nginx emit relative Location headers so the browser reuses
+        the original request scheme (https)."""
+        assert re.search(r"^\s*absolute_redirect\s+off\s*;", nginx_config, re.MULTILINE), (
+            "nginx.prod.conf must set `absolute_redirect off;` so /admin → /admin/ "
+            "redirects do not leak `Location: http://…` behind an HTTPS proxy."
+        )
+
 
 ENTRYPOINT_PROD = Path(__file__).parent.parent / "entrypoint.prod.sh"
 
@@ -232,9 +242,7 @@ class TestEntrypointSecurity:
         assert "/etc/cron.d/cookie-cleanup" not in entrypoint, (
             "Entrypoint must not write /etc/cron.d/cookie-cleanup — use supercronic with inherited env"
         )
-        assert "supercronic" in entrypoint, (
-            "Entrypoint must launch supercronic as the scheduler"
-        )
+        assert "supercronic" in entrypoint, "Entrypoint must launch supercronic as the scheduler"
 
     def test_secret_key_file_permissions(self, entrypoint):
         """Generated secret key file must be owner-only."""

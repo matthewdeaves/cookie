@@ -78,9 +78,7 @@ class TestCookieAdminUserManagement:
         _, data = _call("create-user", "testuser", as_json=True)
         assert data["ok"] is True
         assert data["user"]["username"] == "testuser"
-        assert "is_admin" not in data["user"], (
-            "CLI output MUST NOT expose is_admin (spec 014-remove-is-staff, FR-014)"
-        )
+        assert "is_admin" not in data["user"], "CLI output MUST NOT expose is_admin (spec 014-remove-is-staff, FR-014)"
         user = User.objects.get(username="testuser")
         assert user.is_active is True
         assert user.is_staff is False, "Created users MUST have is_staff=False (FR-022)"
@@ -158,9 +156,7 @@ class TestCookieAdminJsonOutput:
         assert data["ok"] is True
         assert len(data["users"]) == 1
         assert data["users"][0]["username"] == "alice"
-        assert "is_admin" not in data["users"][0], (
-            "list-users JSON MUST NOT expose is_admin (FR-014)"
-        )
+        assert "is_admin" not in data["users"][0], "list-users JSON MUST NOT expose is_admin (FR-014)"
 
     def test_deactivate_json(self, passkey_mode):
         _make_user("alice")
@@ -194,9 +190,7 @@ class TestCookieAdminStatusAudit:
         assert "Auth mode:" in text
         assert "passkey" in text
         assert "Database:" in text
-        assert "admin" not in text.lower(), (
-            "status text MUST NOT mention admins (FR-016a)"
-        )
+        assert "admin" not in text.lower(), "status text MUST NOT mention admins (FR-016a)"
 
     def test_status_json(self, passkey_mode):
         _make_user("alice")
@@ -206,9 +200,7 @@ class TestCookieAdminStatusAudit:
         assert data["database"] == "ok"
         assert data["users"]["total"] == 1
         assert data["users"]["active"] == 1
-        assert "admins" not in data["users"], (
-            "status --json MUST NOT expose admin counts (FR-016a)"
-        )
+        assert "admins" not in data["users"], "status --json MUST NOT expose admin counts (FR-016a)"
         assert "active_admins" not in data["users"]
         assert "openrouter" in data
         assert "webauthn" in data
@@ -225,9 +217,7 @@ class TestCookieAdminStatusAudit:
         reg_events = [e for e in data["events"] if e["type"] == "registration"]
         assert len(reg_events) == 1
         assert reg_events[0]["username"] == "alice"
-        assert "is_admin" not in reg_events[0], (
-            "audit events MUST NOT expose is_admin (FR-016a)"
-        )
+        assert "is_admin" not in reg_events[0], "audit events MUST NOT expose is_admin (FR-016a)"
 
     def test_audit_text(self, passkey_mode):
         _make_user("alice")
@@ -532,6 +522,7 @@ class TestCookieAdminReset:
 
         # Create a session
         from django.contrib.sessions.backends.db import SessionStore
+
         s = SessionStore()
         s["test"] = "value"
         s.create()

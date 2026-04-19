@@ -90,9 +90,7 @@ class TestGetMe:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data["user"]["id"] == user.id
-        assert "is_admin" not in data["user"], (
-            "/auth/me MUST NOT expose is_admin (spec 014-remove-is-staff, FR-010)"
-        )
+        assert "is_admin" not in data["user"], "/auth/me MUST NOT expose is_admin (spec 014-remove-is-staff, FR-010)"
         assert data["profile"]["id"] == profile.id
         assert data["profile"]["name"] == "Test User"
         assert data["profile"]["avatar_color"] == "#d97850"

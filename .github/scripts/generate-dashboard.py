@@ -100,165 +100,83 @@ def generate_badge_svg(label: str, value: str, color: str) -> str:
     return svg
 
 
+def _load_artifact(path: str, label: str) -> dict:
+    """Load a JSON artifact, returning {} on missing/malformed files.
+
+    Each artifact is produced by an independent CI job; one failing must
+    not block the dashboard, so errors are logged and swallowed.
+    """
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(f"WARNING: {label} artifact not found")
+    except json.JSONDecodeError as e:
+        print(f"ERROR: Invalid {label} data: {e}")
+    return {}
+
+
+def _pct_from_coverage(path: str, label: str, *, getter) -> float:
+    """Apply a coverage-specific getter that may raise KeyError on partial data."""
+    d = _load_artifact(path, label)
+    if not d:
+        return 0
+    try:
+        return getter(d)
+    except (KeyError, TypeError) as e:
+        print(f"ERROR: Invalid {label} data: {e}")
+        return 0
+
+
 def extract_metrics(config: dict) -> dict:
     """Extract all metrics from artifact files."""
-    metrics = {
-        "frontend_cov": 0,
-        "backend_cov": 0,
-        "backend_cc": 0,
-        "backend_mi": 0,
-        "frontend_avg_cc": 0,
-        "frontend_complexity_warnings": 0,
-        "duplication_pct": 0,
-        "duplication_clones": 0,
-        "backend_duplication_pct": 0,
-        "backend_duplication_clones": 0,
-        "frontend_vulns": 0,
-        "backend_vulns": 0,
-        "bandit_high": 0,
-        "bandit_medium": 0,
-        "bandit_low": 0,
-        "secrets_found": 0,
-        "bundle_size_kb": 0,
-        "bundle_gzip_kb": 0,
-        "legacy_errors": 0,
-        "legacy_warnings": 0,
-        "legacy_complexity_warnings": 0,
-        "legacy_duplication_pct": 0,
+    frontend_cov = _pct_from_coverage(
+        "coverage/frontend/coverage-summary.json",
+        "Frontend coverage",
+        getter=lambda d: d["total"]["lines"]["pct"],
+    )
+    backend_cov = _pct_from_coverage(
+        "coverage/backend/coverage.json",
+        "Backend coverage",
+        getter=lambda d: round(d["totals"]["percent_covered"], 1),
+    )
+
+    backend_complexity = _load_artifact("complexity/backend/summary.json", "Backend complexity")
+    frontend_complexity = _load_artifact("complexity/frontend/summary.json", "Frontend complexity")
+    frontend_dup = _load_artifact("duplication/frontend/summary.json", "Frontend duplication")
+    backend_dup = _load_artifact("duplication/backend/summary.json", "Backend duplication")
+    frontend_sec = _load_artifact("security/frontend/summary.json", "Frontend security")
+    backend_sec = _load_artifact("security/backend/summary.json", "Backend security")
+    secrets = _load_artifact("security/secrets/summary.json", "Secrets scan")
+    bundle = _load_artifact("bundle/frontend/summary.json", "Bundle")
+    legacy_lint = _load_artifact("legacy/lint/summary.json", "Legacy lint")
+    legacy_dup = _load_artifact("legacy/duplication/summary.json", "Legacy duplication")
+
+    bandit = backend_sec.get("bandit", {})
+    return {
+        "frontend_cov": frontend_cov,
+        "backend_cov": backend_cov,
+        "backend_cc": backend_complexity.get("average_cyclomatic_complexity", 0),
+        "backend_mi": backend_complexity.get("average_maintainability_index", 0),
+        "frontend_avg_cc": frontend_complexity.get("avg_cyclomatic_complexity", 0),
+        "frontend_complexity_warnings": frontend_complexity.get("complexity_warnings", 0),
+        "duplication_pct": frontend_dup.get("duplication_percentage", 0),
+        "duplication_clones": frontend_dup.get("clones_count", 0),
+        "backend_duplication_pct": backend_dup.get("duplication_percentage", 0),
+        "backend_duplication_clones": backend_dup.get("clones_count", 0),
+        "frontend_vulns": frontend_sec.get("total_vulnerabilities", 0),
+        "backend_vulns": backend_sec.get("pip_audit", {}).get("vulnerabilities", 0),
+        "bandit_high": bandit.get("high", 0),
+        "bandit_medium": bandit.get("medium", 0),
+        "bandit_low": bandit.get("low", 0),
+        "secrets_found": secrets.get("secrets_found", 0),
+        "bundle_size_kb": bundle.get("total_size_kb", 0),
+        "bundle_gzip_kb": bundle.get("total_gzip_kb", 0),
+        "legacy_errors": legacy_lint.get("errors", 0),
+        "legacy_warnings": legacy_lint.get("warnings", 0),
+        "legacy_complexity_warnings": legacy_lint.get("complexity_warnings", 0),
+        "legacy_duplication_pct": legacy_dup.get("duplication_percentage", 0),
     }
-
-    # Frontend coverage
-    try:
-        with open("coverage/frontend/coverage-summary.json") as f:
-            d = json.load(f)
-            metrics["frontend_cov"] = d["total"]["lines"]["pct"]
-    except FileNotFoundError:
-        print("WARNING: Frontend coverage artifact not found")
-    except (json.JSONDecodeError, KeyError) as e:
-        print(f"ERROR: Invalid frontend coverage data: {e}")
-
-    # Backend coverage
-    try:
-        with open("coverage/backend/coverage.json") as f:
-            d = json.load(f)
-            metrics["backend_cov"] = round(d["totals"]["percent_covered"], 1)
-    except FileNotFoundError:
-        print("WARNING: Backend coverage artifact not found")
-    except (json.JSONDecodeError, KeyError) as e:
-        print(f"ERROR: Invalid backend coverage data: {e}")
-
-    # Backend complexity
-    try:
-        with open("complexity/backend/summary.json") as f:
-            d = json.load(f)
-            metrics["backend_cc"] = d.get("average_cyclomatic_complexity", 0)
-            metrics["backend_mi"] = d.get("average_maintainability_index", 0)
-    except FileNotFoundError:
-        print("WARNING: Backend complexity artifact not found")
-    except json.JSONDecodeError as e:
-        print(f"ERROR: Invalid backend complexity data: {e}")
-
-    # Frontend complexity
-    try:
-        with open("complexity/frontend/summary.json") as f:
-            d = json.load(f)
-            metrics["frontend_complexity_warnings"] = d.get("complexity_warnings", 0)
-            metrics["frontend_avg_cc"] = d.get("avg_cyclomatic_complexity", 0)
-    except FileNotFoundError:
-        print("WARNING: Frontend complexity artifact not found")
-    except json.JSONDecodeError as e:
-        print(f"ERROR: Invalid frontend complexity data: {e}")
-
-    # Frontend duplication
-    try:
-        with open("duplication/frontend/summary.json") as f:
-            d = json.load(f)
-            metrics["duplication_pct"] = d.get("duplication_percentage", 0)
-            metrics["duplication_clones"] = d.get("clones_count", 0)
-    except FileNotFoundError:
-        print("WARNING: Frontend duplication artifact not found")
-    except json.JSONDecodeError as e:
-        print(f"ERROR: Invalid frontend duplication data: {e}")
-
-    # Backend duplication
-    try:
-        with open("duplication/backend/summary.json") as f:
-            d = json.load(f)
-            metrics["backend_duplication_pct"] = d.get("duplication_percentage", 0)
-            metrics["backend_duplication_clones"] = d.get("clones_count", 0)
-    except FileNotFoundError:
-        print("WARNING: Backend duplication artifact not found")
-    except json.JSONDecodeError as e:
-        print(f"ERROR: Invalid backend duplication data: {e}")
-
-    # Frontend security
-    try:
-        with open("security/frontend/summary.json") as f:
-            d = json.load(f)
-            metrics["frontend_vulns"] = d.get("total_vulnerabilities", 0)
-    except FileNotFoundError:
-        print("WARNING: Frontend security artifact not found")
-    except json.JSONDecodeError as e:
-        print(f"ERROR: Invalid frontend security data: {e}")
-
-    # Backend security
-    try:
-        with open("security/backend/summary.json") as f:
-            d = json.load(f)
-            metrics["backend_vulns"] = d.get("pip_audit", {}).get("vulnerabilities", 0)
-            bandit = d.get("bandit", {})
-            metrics["bandit_high"] = bandit.get("high", 0)
-            metrics["bandit_medium"] = bandit.get("medium", 0)
-            metrics["bandit_low"] = bandit.get("low", 0)
-    except FileNotFoundError:
-        print("WARNING: Backend security artifact not found")
-    except json.JSONDecodeError as e:
-        print(f"ERROR: Invalid backend security data: {e}")
-
-    # Secrets detection
-    try:
-        with open("security/secrets/summary.json") as f:
-            d = json.load(f)
-            metrics["secrets_found"] = d.get("secrets_found", 0)
-    except FileNotFoundError:
-        print("WARNING: Secrets scan artifact not found")
-    except json.JSONDecodeError as e:
-        print(f"ERROR: Invalid secrets scan data: {e}")
-
-    # Bundle metrics
-    try:
-        with open("bundle/frontend/summary.json") as f:
-            d = json.load(f)
-            metrics["bundle_size_kb"] = d.get("total_size_kb", 0)
-            metrics["bundle_gzip_kb"] = d.get("total_gzip_kb", 0)
-    except FileNotFoundError:
-        print("WARNING: Bundle artifact not found")
-    except json.JSONDecodeError as e:
-        print(f"ERROR: Invalid bundle data: {e}")
-
-    # Legacy lint
-    try:
-        with open("legacy/lint/summary.json") as f:
-            d = json.load(f)
-            metrics["legacy_errors"] = d.get("errors", 0)
-            metrics["legacy_warnings"] = d.get("warnings", 0)
-            metrics["legacy_complexity_warnings"] = d.get("complexity_warnings", 0)
-    except FileNotFoundError:
-        print("WARNING: Legacy lint artifact not found")
-    except json.JSONDecodeError as e:
-        print(f"ERROR: Invalid legacy lint data: {e}")
-
-    # Legacy duplication
-    try:
-        with open("legacy/duplication/summary.json") as f:
-            d = json.load(f)
-            metrics["legacy_duplication_pct"] = d.get("duplication_percentage", 0)
-    except FileNotFoundError:
-        print("WARNING: Legacy duplication artifact not found")
-    except json.JSONDecodeError as e:
-        print(f"ERROR: Invalid legacy duplication data: {e}")
-
-    return metrics
 
 
 def validate_metrics(metrics: dict) -> tuple[list, list]:

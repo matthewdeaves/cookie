@@ -146,6 +146,7 @@ def create_profile(request, payload: ProfileIn):
     if settings.AUTH_MODE != "home":
         raise HttpError(404, "Not found")
     from django.middleware.csrf import CsrfViewMiddleware
+
     csrf_middleware = CsrfViewMiddleware(lambda r: None)
     csrf_middleware.process_request(request)
     reason = csrf_middleware.process_view(request, None, (), {})
@@ -276,6 +277,7 @@ def select_profile(request, profile_id: int):
     if settings.AUTH_MODE != "home":
         raise HttpError(404, "Not found")
     from django.middleware.csrf import CsrfViewMiddleware
+
     csrf_middleware = CsrfViewMiddleware(lambda r: None)
     csrf_middleware.process_request(request)
     reason = csrf_middleware.process_view(request, None, (), {})

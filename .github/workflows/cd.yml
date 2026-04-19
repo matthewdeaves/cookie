@@ -33,6 +33,20 @@ jobs:
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
 
+      - name: Resolve COOKIE_VERSION from ref
+        id: cookie_version
+        run: |
+          # Tag pushes: strip the leading `v` (v1.45.0 → 1.45.0).
+          # workflow_dispatch / non-tag: use `dev-<short-sha>` so the image
+          # still carries a deterministic, non-"dev" version.
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            value="${GITHUB_REF_NAME#v}"
+          else
+            value="dev-${GITHUB_SHA::7}"
+          fi
+          echo "value=${value}" >> "$GITHUB_OUTPUT"
+          echo "COOKIE_VERSION resolved to: ${value}"
+
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
@@ -61,6 +75,8 @@ jobs:
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          build-args: |
+            COOKIE_VERSION=${{ steps.cookie_version.outputs.value }}
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           # SECURITY: Build cache intentionally disabled for supply chain integrity.
           # CD builds run only on version tags, so slower builds are acceptable.

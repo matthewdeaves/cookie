@@ -59,7 +59,30 @@ if _raw_auth_mode not in ("home", "passkey"):
     )
     _raw_auth_mode = "home"
 AUTH_MODE = _raw_auth_mode
-COOKIE_VERSION = os.environ.get("COOKIE_VERSION", "1.44.0")
+
+
+def _resolve_cookie_version() -> str:
+    """Return the release version, refusing silent "dev" fallbacks in prod.
+
+    In prod, the CD pipeline bakes `COOKIE_VERSION` into the image via
+    `--build-arg` (see `Dockerfile.prod` + `.github/workflows/cd.yml`).
+    Missing-or-empty at startup means the image was built outside the
+    pipeline, so we fail loudly rather than render "dev" in the UI.
+    """
+    value = os.environ.get("COOKIE_VERSION", "").strip()
+    if value:
+        return value
+    if DEBUG:
+        return "dev"
+    raise ImproperlyConfigured(
+        "COOKIE_VERSION environment variable is required in production. "
+        "The CD pipeline bakes it into the image via `--build-arg "
+        "COOKIE_VERSION=<semver>`. An empty value here means the image was "
+        "built without that arg — fix the build rather than papering over it."
+    )
+
+
+COOKIE_VERSION = _resolve_cookie_version()
 
 # ===========================================
 # WebAuthn / Passkey Configuration (Passkey Mode)
@@ -84,6 +107,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "apps.core.middleware.HomeOnlyRouteGateMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -194,16 +218,13 @@ CSRF_COOKIE_HTTPONLY = False  # SPA reads CSRF cookie via JavaScript
 
 CSRF_FAILURE_VIEW = "apps.core.views.csrf_failure"
 
-# Cross-Origin-Opener-Policy: applies to all Django-served responses including WhiteNoise static files
+# Security response headers Django adds by default. In production these are
+# disabled below because `nginx/security-headers.conf` is the sole owner —
+# emitting from both sources duplicates the headers on every Django-served
+# response (finding from pentest round 3). Kept enabled in DEBUG so that
+# `runserver` deployments without nginx still get the baseline.
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
-
-# Referrer-Policy: strict-origin-when-cross-origin is the browser default and suits an SPA
-# (sends origin on cross-origin requests, full URL on same-origin). Set explicitly to match
-# Cloudflare's header and avoid duplicate Referrer-Policy values in responses.
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
-
-# X-Frame-Options: DENY is correct (CSP frame-ancestors 'self' is the modern equivalent).
-# Set explicitly to avoid Cloudflare adding a conflicting SAMEORIGIN value.
 X_FRAME_OPTIONS = "DENY"
 
 # Production security hardening (inactive in development)
@@ -216,6 +237,14 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "false").lower() == "true"
     SECURE_REDIRECT_EXEMPT = [r"^api/system/health/$", r"^api/system/ready/$"]
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+    # Defer security response headers to nginx/security-headers.conf.
+    # Django's SecurityMiddleware and XFrameOptionsMiddleware would otherwise
+    # emit duplicates on every response that passes through Django.
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+    SECURE_REFERRER_POLICY = None
+    SECURE_CONTENT_TYPE_NOSNIFF = False
+    MIDDLEWARE = [m for m in MIDDLEWARE if m != "django.middleware.clickjacking.XFrameOptionsMiddleware"]
 
 # Rate limiting (django-ratelimit)
 # Use a callable that safely extracts the first IP from X-Forwarded-For,
