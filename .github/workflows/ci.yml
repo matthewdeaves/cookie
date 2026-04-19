@@ -304,6 +304,9 @@ jobs:
           DATABASE_URL: postgres://cookie:cookie_test@localhost:5432/cookie_test  # pragma: allowlist secret
           SECURE_SSL_REDIRECT: "false"
           AUTH_MODE: home
+          # Mirror the CD build-arg so settings._resolve_cookie_version() does not
+          # raise ImproperlyConfigured under DEBUG=False.
+          COOKIE_VERSION: ci-test
 
       - name: Run auth tests (passkey mode)
         run: |
@@ -313,6 +316,7 @@ jobs:
           DATABASE_URL: postgres://cookie:cookie_test@localhost:5432/cookie_test  # pragma: allowlist secret
           SECURE_SSL_REDIRECT: "false"
           AUTH_MODE: home
+          COOKIE_VERSION: ci-test
 
       - name: Upload backend coverage artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -1081,6 +1085,7 @@ jobs:
           DJANGO_SETTINGS_MODULE: cookie.settings
           DATABASE_URL: postgres://cookie:cookie_test@localhost:5432/cookie_test  # pragma: allowlist secret
           SECURE_SSL_REDIRECT: "false"
+          COOKIE_VERSION: ci-test
 
   trivy-scan:
     name: Docker Image Scan (Trivy)
@@ -1255,6 +1260,7 @@ jobs:
           DEBUG: "false"
           SECRET_KEY: ci-test-secret-key-not-for-production  # pragma: allowlist secret
           SECURE_SSL_REDIRECT: "false"
+          COOKIE_VERSION: ci-test
 
   dependency-review:
     name: Dependency Review
