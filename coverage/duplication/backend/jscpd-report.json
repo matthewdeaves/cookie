@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-19T22:25:40.036Z",
+    "detectionDate": "2026-04-20T13:37:27.660Z",
     "formats": {
       "python": {
         "sources": {
@@ -29,8 +29,8 @@
             "newClones": 0
           },
           "cookie/settings.py": {
-            "lines": 312,
-            "tokens": 1738,
+            "lines": 316,
+            "tokens": 1751,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -557,8 +557,8 @@
             "newClones": 0
           },
           "apps/core/middleware.py": {
-            "lines": 177,
-            "tokens": 1152,
+            "lines": 211,
+            "tokens": 1244,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -774,28 +774,28 @@
           }
         },
         "total": {
-          "lines": 11654,
-          "tokens": 81706,
+          "lines": 11692,
+          "tokens": 81811,
           "sources": 64,
           "clones": 10,
           "duplicatedLines": 145,
           "duplicatedTokens": 1182,
           "percentage": 1.24,
-          "percentageTokens": 1.45,
+          "percentageTokens": 1.44,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 11654,
-      "tokens": 81706,
+      "lines": 11692,
+      "tokens": 81811,
       "sources": 64,
       "clones": 10,
       "duplicatedLines": 145,
       "duplicatedTokens": 1182,
       "percentage": 1.24,
-      "percentageTokens": 1.45,
+      "percentageTokens": 1.44,
       "newDuplicatedLines": 0,
       "newClones": 0
     }

@@ -404,17 +404,20 @@ apps/core/middleware.py
     F 9:0 get_client_ip - A (3)
     C 44:0 DeviceDetectionMiddleware - A (3)
     M 74:4 DeviceDetectionMiddleware._is_legacy_device - A (3)
+    C 181:0 MethodNotAllowedToNotFoundMiddleware - A (3)
     C 31:0 RequestIDMiddleware - A (2)
     M 89:4 DeviceDetectionMiddleware._is_legacy_ios - A (2)
     M 94:4 DeviceDetectionMiddleware._is_internet_explorer - A (2)
     M 98:4 DeviceDetectionMiddleware._is_edge_legacy - A (2)
     M 109:4 DeviceDetectionMiddleware._is_old_firefox - A (2)
+    M 208:4 MethodNotAllowedToNotFoundMiddleware.__call__ - A (2)
     F 115:0 _ninja_path_to_regex - A (1)
     M 34:4 RequestIDMiddleware.__init__ - A (1)
     M 37:4 RequestIDMiddleware.__call__ - A (1)
     M 67:4 DeviceDetectionMiddleware.__init__ - A (1)
     M 70:4 DeviceDetectionMiddleware.__call__ - A (1)
     M 169:4 HomeOnlyRouteGateMiddleware.__init__ - A (1)
+    M 205:4 MethodNotAllowedToNotFoundMiddleware.__init__ - A (1)
 apps/core/views.py
     F 5:0 csrf_failure - A (1)
     C 12:0 PrivacyPolicyView - A (1)
@@ -872,5 +875,5 @@ cookie/settings.py
     F 21:0 get_secret_key - A (3)
     F 64:0 _resolve_cookie_version - A (3)
 
-777 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.7567567567567566)
+780 blocks (classes, functions, methods) analyzed.
+Average complexity: A (2.753846153846154)
