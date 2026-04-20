@@ -1,9 +1,15 @@
 """Tests for core middleware functions."""
 
+import json
+
 import pytest
+from django.http import HttpResponse, HttpResponseNotAllowed
 from django.test import RequestFactory
 
-from apps.core.middleware import get_client_ip
+from apps.core.middleware import (
+    MethodNotAllowedToNotFoundMiddleware,
+    get_client_ip,
+)
 
 
 class TestGetClientIp:
@@ -44,3 +50,57 @@ class TestGetClientIp:
         request = rf.get("/")
         ip = get_client_ip(request)
         assert ip  # Should return something, not crash
+
+
+class TestMethodNotAllowedToNotFoundMiddleware:
+    """Pentest round 6 / F-5: every 405 must become a 404 so POST-only
+    endpoints don't leak their existence on GET probes."""
+
+    def _make_middleware(self, downstream_response):
+        rf = RequestFactory()
+        request = rf.get("/does-not-matter")
+
+        def get_response(_request):
+            return downstream_response
+
+        middleware = MethodNotAllowedToNotFoundMiddleware(get_response)
+        return middleware(request)
+
+    def test_405_becomes_404_json(self):
+        # Django's HttpResponseNotAllowed is the canonical producer of 405.
+        downstream = HttpResponseNotAllowed(["POST"])
+        assert downstream.status_code == 405
+
+        response = self._make_middleware(downstream)
+
+        assert response.status_code == 404
+        assert response["Content-Type"].startswith("application/json")
+        body = json.loads(response.content)
+        assert body == {"detail": "Not found"}
+
+    def test_405_rewrite_drops_allow_header(self):
+        """Django attaches `Allow:` to 405 — that header itself enumerates
+        the method set, so the rewritten 404 must NOT carry it through."""
+        downstream = HttpResponseNotAllowed(["POST", "PUT"])
+        assert downstream["Allow"]  # sanity — present before middleware
+
+        response = self._make_middleware(downstream)
+
+        assert response.status_code == 404
+        assert "Allow" not in response  # dropped by the JsonResponse swap
+
+    def test_non_405_passes_through_unchanged(self):
+        """The middleware must not touch any other status code."""
+        downstream = HttpResponse("ok", status=200)
+
+        response = self._make_middleware(downstream)
+
+        assert response is downstream  # same object, nothing rewrapped
+        assert response.status_code == 200
+
+    @pytest.mark.parametrize("status", [400, 401, 403, 404, 500, 502])
+    def test_other_4xx_5xx_pass_through(self, status):
+        downstream = HttpResponse(f"status {status}", status=status)
+        response = self._make_middleware(downstream)
+        assert response.status_code == status
+        assert response is downstream

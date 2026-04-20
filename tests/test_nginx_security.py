@@ -218,8 +218,28 @@ class TestNginxRouting:
         off` makes nginx emit relative Location headers so the browser reuses
         the original request scheme (https)."""
         assert re.search(r"^\s*absolute_redirect\s+off\s*;", nginx_config, re.MULTILINE), (
-            "nginx.prod.conf must set `absolute_redirect off;` so /admin → /admin/ "
-            "redirects do not leak `Location: http://…` behind an HTTPS proxy."
+            "nginx.prod.conf must set `absolute_redirect off;` so any "
+            "nginx-emitted trailing-slash redirect (e.g. a future prefix "
+            "location that introduces one) does not leak `Location: http://…` "
+            "behind an HTTPS proxy."
+        )
+
+    def test_admin_is_not_proxied_to_django(self, nginx_config):
+        """Pentest round 6 / F-13: the legacy `location /admin/ { proxy_pass
+        http://django; }` block caused nginx to emit a 301 trailing-slash
+        redirect on `/admin` (no slash) with a default body that contained
+        `<center>nginx</center>`. Django's admin isn't URL-mounted anyway, so
+        the block was dead code. Removing it lets /admin fall through to the
+        scanner-prefix 404 handler."""
+        assert not re.search(
+            r"location\s+/admin/\s*\{[^}]*proxy_pass\s+http://django",
+            nginx_config,
+            re.DOTALL,
+        ), (
+            "nginx.prod.conf must NOT proxy /admin/ to Django. Django's admin "
+            "is not URL-mounted (see cookie/urls.py). The old proxy block "
+            "caused the F-13 nginx-bodied 301 leak on /admin and should stay "
+            "removed."
         )
 
 
@@ -283,20 +303,35 @@ class TestNginxErrorPagesDoNotLeakNginx:
         assert re.search(r"^\s*internal\s*;", body, re.MULTILINE), (
             "`@not_found` must be marked `internal;` so clients cannot hit it directly."
         )
-        assert re.search(r'return\s+404\s+""\s*;', body), (
-            '`@not_found` must `return 404 "";` — empty body so the nginx signature cannot appear in the response body.'
+        # `return 404 "";` is a nginx no-op (zero-length body falls back to
+        # the default error page, leaking `<center>nginx</center>`). The body
+        # must be non-empty. Asserting the exact `Not Found\n` string here so
+        # no future edit silently reverts to the broken pattern.
+        assert re.search(r'return\s+404\s+"Not Found\\n"\s*;', body), (
+            '`@not_found` must `return 404 "Not Found\\n";` — a non-empty body '
+            "so nginx does not fall back to its default error page. Empty-string "
+            "bodies are silently dropped and re-expose the stock "
+            "`<center>nginx</center>` footer."
         )
         assert "security-headers.conf" in body, "`@not_found` must include the standard security headers."
 
 
-class TestNginxScannerBlocksSelfContainEmptyBody:
-    """Pentest round 5 / F1 defense-in-depth: scanner-blocking locations must
-    return an EXPLICIT empty body (`return 404 "";`) and include the security
-    headers directly — so a response cannot leak the stock nginx footer even
-    if a future edit moves or breaks the server-level `error_page 404
-    @not_found` inheritance. The @not_found named handler remains as the
-    primary defence for nginx-generated 4xx (e.g. autoindex 403 on /assets/,
-    /media/); this test covers the explicit `return 404;` blocks."""
+class TestNginxScannerBlocksReturnNonEmptyBody:
+    """Pentest round 6 / F-1: scanner-blocking locations must return an
+    EXPLICIT non-empty body (`return 404 "Not Found\\n";`) and include the
+    security headers directly.
+
+    Rationale: pentest round 5 (v1.47.0) attempted to ship `return 404 "";`
+    on every scanner block. That pattern is a nginx no-op — a zero-length
+    body is silently dropped and the HTTP core falls back to the default
+    error page, which re-exposes the stock `<center>nginx</center>` footer.
+    The fix is an explicit non-empty body; this test locks that in so no
+    future edit can silently revert to the broken pattern.
+
+    The @not_found named handler (covered by TestNginxErrorPagesDoNotLeakNginx)
+    remains the primary defence for nginx-generated 4xx (e.g. autoindex 403
+    on /assets/, /media/); this test covers the explicit `return 404;` blocks.
+    """
 
     # Match each block by a distinctive snippet that appears only in its
     # location pattern, then grab the body between the outermost braces.
@@ -310,14 +345,21 @@ class TestNginxScannerBlocksSelfContainEmptyBody:
     ]
 
     @pytest.mark.parametrize("label,block_regex", BLOCK_SIGNATURES)
-    def test_block_returns_explicit_empty_body(self, nginx_config, label, block_regex):
+    def test_block_returns_non_empty_body(self, nginx_config, label, block_regex):
         block_match = re.search(block_regex, nginx_config, re.DOTALL)
         assert block_match, f"Scanner-block location not found: {label}"
         body = block_match.group(1)
-        assert re.search(r'return\s+404\s+""\s*;', body), (
-            f"Scanner-block {label!r} must return an EXPLICIT empty body "
-            f'(`return 404 "";`) so the response does not depend on error_page '
-            f"inheritance. Got: {body!r}"
+        # Guard against regressing to the v1.46 / v1.47 bug.
+        assert not re.search(r'return\s+404\s+""\s*;', body), (
+            f"Scanner-block {label!r} uses `return 404 \"\";` which is a "
+            f"nginx no-op — the zero-length body is dropped and the default "
+            f"`<center>nginx</center>` page is served instead. Body must be "
+            f"non-empty. Got: {body!r}"
+        )
+        assert re.search(r'return\s+404\s+"Not Found\\n"\s*;', body), (
+            f'Scanner-block {label!r} must `return 404 "Not Found\\n";` — '
+            f"non-empty body so nginx does not fall back to its default "
+            f"error page. Got: {body!r}"
         )
 
     @pytest.mark.parametrize("label,block_regex", BLOCK_SIGNATURES)
@@ -331,27 +373,9 @@ class TestNginxScannerBlocksSelfContainEmptyBody:
         )
 
 
-ENTRYPOINT_PROD = Path(__file__).parent.parent / "entrypoint.prod.sh"
-
-
-class TestEntrypointSecurity:
-    """Security checks for production entrypoint script."""
-
-    @pytest.fixture
-    def entrypoint(self):
-        return ENTRYPOINT_PROD.read_text()
-
-    def test_no_secrets_in_cron_config(self, entrypoint):
-        """Entrypoint must not write SECRET_KEY or DATABASE_URL to cron files.
-
-        After 015-security-review-fixes, supercronic inherits env from the
-        entrypoint process. No secrets are written to disk.
-        """
-        assert "/etc/cron.d/cookie-cleanup" not in entrypoint, (
-            "Entrypoint must not write /etc/cron.d/cookie-cleanup — use supercronic with inherited env"
-        )
-        assert "supercronic" in entrypoint, "Entrypoint must launch supercronic as the scheduler"
-
-    def test_secret_key_file_permissions(self, entrypoint):
-        """Generated secret key file must be owner-only."""
-        assert "chmod 600" in entrypoint, "SECRET_KEY file must have restrictive permissions"
+# Pentest round 6 defense-in-depth checks (scanner-prefix block, security.txt,
+# robots.txt, 405 rewrite) live in `test_nginx_pentest_round6.py`.
+#
+# Production entrypoint script security checks live in `test_entrypoint_security.py`.
+#
+# Both were split out to keep this file under the constitutional 500-line limit.

@@ -100,10 +100,15 @@ known-first-party = ["apps", "cookie"]
 known-third-party = ["django", "ninja"]
 
 [tool.ruff.lint.per-file-ignores]
-# Tests can have more relaxed rules
-"tests/**/*.py" = ["B011", "SIM", "S101", "S104", "S105", "S106", "S311"]
+# Tests can have more relaxed rules.
+# S603 is legitimately unavoidable for docker-based integration tests
+# (tests/test_nginx_runtime.py) where every subprocess arg is a hardcoded
+# literal — no user input flows into the call, so the "untrusted input"
+# warning does not apply. Scoped to tests only, consistent with S101/
+# S104/S105/S106/S311 which are similarly relaxed for test code.
+"tests/**/*.py" = ["B011", "SIM", "S101", "S104", "S105", "S106", "S311", "S603"]
 "**/tests.py" = ["S101", "S104", "S105", "S106", "S311"]
-"**/test_*.py" = ["S101", "S104", "S105", "S106", "S311"]
+"**/test_*.py" = ["S101", "S104", "S105", "S106", "S311", "S603"]
 # Settings file has specific patterns
 "cookie/settings.py" = ["F401", "S105"]
 # Migration files are auto-generated

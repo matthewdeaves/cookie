@@ -176,3 +176,37 @@ class HomeOnlyRouteGateMiddleware:
                 if pattern.match(path):
                     return JsonResponse({"detail": "Not found"}, status=404)
         return self.get_response(request)
+
+
+class MethodNotAllowedToNotFoundMiddleware:
+    """Rewrite every HTTP 405 response to a JSON 404.
+
+    Rationale: a 405 "Method Not Allowed" response tells a probe that the
+    URL exists but doesn't accept this method. For POST-only endpoints
+    like `/api/auth/logout/` and `/api/auth/device/authorize/`, an
+    unauthenticated `GET` would otherwise return 405 — contradicting the
+    v1.42.0 "gated paths are indistinguishable from never-existed paths"
+    invariant that `HomeOnlyRouteGateMiddleware` established for
+    HomeOnlyAuth routes (pentest round 6 / F-5).
+
+    The rewrite is global rather than per-endpoint because:
+    - Cookie's clients (React frontend, legacy ES5 frontend) never rely
+      on 405 for control flow — they only issue documented methods.
+    - A global rule removes the possibility of forgetting to gate a new
+      POST-only endpoint.
+    - The existing `Allow:` header that Django attaches to 405 responses
+      also leaks the method set; collapsing to 404 drops it.
+
+    Nginx-generated 405s (none occur in the current config, but a future
+    location block could introduce one) are separately rewritten to 404
+    via `error_page 405 =404 @not_found;` in `nginx/nginx.prod.conf`.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        if response.status_code == 405:
+            return JsonResponse({"detail": "Not found"}, status=404)
+        return response

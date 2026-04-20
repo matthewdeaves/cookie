@@ -108,6 +108,10 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "apps.core.middleware.HomeOnlyRouteGateMiddleware",
+    # Collapse every 405 Method Not Allowed response to a 404 so POST-only
+    # endpoints (e.g. /api/auth/logout/, /api/auth/device/authorize/) don't
+    # leak their existence on GET probes (pentest round 6 / F-5).
+    "apps.core.middleware.MethodNotAllowedToNotFoundMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.common.CommonMiddleware",
