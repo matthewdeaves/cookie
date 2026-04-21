@@ -424,10 +424,10 @@ apps/core/views.py
 apps/core/context_processors.py
     F 6:0 app_context - A (1)
 apps/core/device_code_api.py
-    F 94:0 poll_status - B (8)
-    F 30:0 request_code - B (6)
-    F 159:0 authorize_code - B (6)
-    C 24:0 AuthorizeIn - A (1)
+    F 100:0 poll_status - B (9)
+    F 31:0 request_code - B (6)
+    F 173:0 authorize_code - B (6)
+    C 25:0 AuthorizeIn - A (1)
 apps/core/validators.py
     F 70:0 validate_url - A (4)
     F 102:0 check_response_size - A (4)
@@ -876,4 +876,4 @@ cookie/settings.py
     F 64:0 _resolve_cookie_version - A (3)
 
 780 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.753846153846154)
+Average complexity: A (2.755128205128205)

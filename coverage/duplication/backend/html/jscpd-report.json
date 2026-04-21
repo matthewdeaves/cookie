@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-20T13:37:27.660Z",
+    "detectionDate": "2026-04-21T07:27:16.582Z",
     "formats": {
       "python": {
         "sources": {
@@ -593,8 +593,8 @@
             "newClones": 0
           },
           "apps/core/device_code_api.py": {
-            "lines": 218,
-            "tokens": 1743,
+            "lines": 232,
+            "tokens": 1809,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -774,8 +774,8 @@
           }
         },
         "total": {
-          "lines": 11692,
-          "tokens": 81811,
+          "lines": 11706,
+          "tokens": 81877,
           "sources": 64,
           "clones": 10,
           "duplicatedLines": 145,
@@ -788,8 +788,8 @@
       }
     },
     "total": {
-      "lines": 11692,
-      "tokens": 81811,
+      "lines": 11706,
+      "tokens": 81877,
       "sources": 64,
       "clones": 10,
       "duplicatedLines": 145,
