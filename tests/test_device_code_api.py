@@ -241,26 +241,25 @@ class TestRequestCode:
 class TestPollStatus:
     """GET /api/auth/device/poll/ - poll for device code authorization status."""
 
-    def test_no_session_returns_410(self, client):
-        """No session key at all returns 410."""
+    def test_no_session_returns_404(self, client):
+        """F-17: a caller with no session / no prior `request_code` must be
+        indistinguishable from a never-existed sibling path."""
         with PASSKEY_MODE:
             resp = client.get(POLL_URL)
-        assert resp.status_code == 410
-        data = resp.json()
-        assert data["status"] == "expired"
-        assert "No active code" in data["error"]
+            control = client.get("/api/auth/device/nonexistent/")
+        assert resp.status_code == 404
+        assert resp.status_code == control.status_code
 
-    def test_no_active_code_returns_410(self, client):
-        """Session exists but no active device code returns 410."""
+    def test_no_active_code_returns_404(self, client):
+        """F-17: a session without the device-code flow marker must 404 even
+        if the session is otherwise populated. Only `request_code` sets the
+        marker that unlocks the legitimate 410 UX below."""
         with PASSKEY_MODE:
-            # Force session creation
             session = client.session
             session["dummy"] = "value"
             session.save()
             resp = client.get(POLL_URL)
-        assert resp.status_code == 410
-        data = resp.json()
-        assert data["status"] == "expired"
+        assert resp.status_code == 404
 
     def test_pending_code_returns_202(self, client):
         """Pending, non-expired code returns 202."""

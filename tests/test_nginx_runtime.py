@@ -117,6 +117,23 @@ http {
             return 404 "Not Found\n";
         }
 
+        # Extended scanner-prefix block (pentest round 7 / F-18)
+        location ~* ^/(console|administrator|_profiler|env|health|status|api_docs|graphql|solr|jenkins|cgi-bin|server-info|HEAD|CHANGELOG\.md|LICENSE|README\.md|Gemfile\.lock|package-lock\.json|yarn\.lock|composer\.lock|web\.config)($|/) {
+            default_type text/plain;
+            return 404 "Not Found\n";
+        }
+
+        # F-19 (round 7): bare /assets must 404 (scanner bait, never a real
+        # Vite request path). The prod-config /api and /privacy bare-path
+        # fix is `proxy_pass http://django` so Django's APPEND_SLASH emits
+        # the empty-body 301 — we cannot mirror that in this standalone
+        # config (no Django upstream). Static-config tests in
+        # test_nginx_pentest_round7.py lock the prod proxy_pass in place.
+        location = /assets {
+            default_type text/plain;
+            return 404 "Not Found\n";
+        }
+
         # security.txt (pentest round 6 / F-15)
         location = /.well-known/security.txt {
             default_type text/plain;
@@ -240,6 +257,34 @@ SCANNER_PATHS = [
 ]
 
 
+# Pentest round 7 / F-18: extended framework-probe paths. In v1.48.0 these
+# fell through to the SPA catch-all and returned the Cookie index.html at 200.
+SCANNER_PATHS_EXTENDED = [
+    "/console",
+    "/administrator",
+    "/_profiler",
+    "/env",
+    "/health",
+    "/status",
+    "/api_docs",
+    "/graphql",
+    "/solr/",
+    "/jenkins/",
+    "/cgi-bin/",
+    "/cgi-bin/test.cgi",
+    "/LICENSE",
+    "/README.md",
+    "/CHANGELOG.md",
+    "/HEAD",
+    "/Gemfile.lock",
+    "/package-lock.json",
+    "/yarn.lock",
+    "/composer.lock",
+    "/web.config",
+    "/server-info",
+]
+
+
 @docker_required
 @pytest.mark.parametrize("path", SCANNER_PATHS)
 def test_scanner_block_body_does_not_leak_nginx(nginx_base_url, path):
@@ -314,6 +359,59 @@ def test_api_probe_with_malformed_body_does_not_leak_nginx(nginx_base_url, body)
     )
     assert "nginx" not in response.text.lower(), (
         f"/api/profiles/ with malformed body leaked nginx: {response.text[:200]!r}"
+    )
+
+
+@docker_required
+@pytest.mark.parametrize("path", SCANNER_PATHS_EXTENDED)
+def test_extended_scanner_probes_are_404_not_spa(nginx_base_url, path):
+    """Pentest round 7 / F-18: framework-fingerprint probes (`/console`,
+    `/env`, `/graphql`, etc.) must 404 with a plain-text body, not fall
+    through to an SPA catch-all that would otherwise return the React
+    homepage with a 200.
+
+    Regression class: the round-6 F-4 scanner-prefix block covered CMS-style
+    paths (wp-*, phpmyadmin, actuator, …) but not tool/framework paths.
+    Scanners fingerprint apps off `/env` and `/health` just as readily as
+    `/wp-login.php`, so both classes need blocking.
+    """
+    response = requests.get(f"{nginx_base_url}{path}", timeout=2.0)
+    assert response.status_code == 404, (
+        f"{path}: expected 404, got {response.status_code}. "
+        f"Body: {response.text[:200]!r}"
+    )
+    assert "nginx" not in response.text.lower(), (
+        f"{path} leaked proxy identity: {response.text[:200]!r}"
+    )
+    # Explicit guard against SPA-title leakage — the v1.48.0 regression
+    # symptom was a 200 with the Cookie SPA HTML. The title would survive
+    # through here if someone accidentally removed the extended block.
+    assert "Cookie - Recipe Manager" not in response.text, (
+        f"{path} leaked SPA homepage (F-18 regression): {response.text[:200]!r}"
+    )
+
+
+@docker_required
+def test_assets_bare_path_is_404_no_leak(nginx_base_url):
+    """Pentest round 7 / F-19 (assets variant): bare `/assets` must 404 with
+    a plain-text body. Legitimate Vite requests always include a hashed
+    filename (`/assets/<file>.ext`); only scanners probe `/assets`.
+
+    Before this fix, nginx's implicit directory-redirect on `/assets` →
+    `/assets/` attached nginx's default HTML body (161 bytes containing
+    `<center>nginx</center>`), re-introducing the F-1 class of proxy-
+    identity leak on a 301 status.
+    """
+    response = requests.get(
+        f"{nginx_base_url}/assets",
+        timeout=2.0,
+        allow_redirects=False,
+    )
+    assert response.status_code == 404, (
+        f"/assets: expected 404, got {response.status_code}"
+    )
+    assert "nginx" not in response.text.lower(), (
+        f"/assets leaked proxy identity: {response.text[:200]!r}"
     )
 
 

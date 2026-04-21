@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth import login
 from django.db import IntegrityError, transaction
 from django.db.models import F
+from django.http import Http404
 from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema, Status
@@ -71,6 +72,11 @@ def request_code(request):
     if device_code is None:
         return Status(429, {"error": "Unable to generate code. Please try again."})
 
+    # F-17: Mark this session as having an in-flight device-code flow so
+    # `poll_status` can distinguish legitimate pollers (410 UX) from
+    # unauthenticated scanner probes (404, indistinguishable from never-existed).
+    request.session["device_code_flow"] = True
+
     security_logger.info(
         "Device code generated: session=%s from %s",
         session_key[:8],
@@ -94,6 +100,14 @@ def request_code(request):
 def poll_status(request):
     """Poll for device code authorization status."""
     require_passkey_mode(request)
+
+    # F-17: Callers without an in-flight device-code flow must be
+    # indistinguishable from a never-existed path (v1.42.0+ passkey-mode
+    # invariant). The marker is set in `request_code` on successful code
+    # generation; legitimate pollers keep the 410 UX below.
+    if not request.session.get("device_code_flow"):
+        raise Http404
+
     if getattr(request, "limited", False):
         return Status(410, {"status": "expired", "error": "Too many requests."})
 
