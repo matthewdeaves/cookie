@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-21T07:27:16.582Z",
+    "detectionDate": "2026-04-21T16:31:28.944Z",
     "formats": {
       "python": {
         "sources": {
@@ -29,8 +29,8 @@
             "newClones": 0
           },
           "cookie/settings.py": {
-            "lines": 316,
-            "tokens": 1751,
+            "lines": 315,
+            "tokens": 1732,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -545,8 +545,8 @@
             "newClones": 0
           },
           "apps/core/models.py": {
-            "lines": 133,
-            "tokens": 1075,
+            "lines": 132,
+            "tokens": 1061,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -593,8 +593,8 @@
             "newClones": 0
           },
           "apps/core/device_code_api.py": {
-            "lines": 232,
-            "tokens": 1809,
+            "lines": 209,
+            "tokens": 1619,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -774,28 +774,28 @@
           }
         },
         "total": {
-          "lines": 11706,
-          "tokens": 81877,
+          "lines": 11681,
+          "tokens": 81654,
           "sources": 64,
           "clones": 10,
           "duplicatedLines": 145,
           "duplicatedTokens": 1182,
           "percentage": 1.24,
-          "percentageTokens": 1.44,
+          "percentageTokens": 1.45,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 11706,
-      "tokens": 81877,
+      "lines": 11681,
+      "tokens": 81654,
       "sources": 64,
       "clones": 10,
       "duplicatedLines": 145,
       "duplicatedTokens": 1182,
       "percentage": 1.24,
-      "percentageTokens": 1.44,
+      "percentageTokens": 1.45,
       "newDuplicatedLines": 0,
       "newClones": 0
     }

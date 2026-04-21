@@ -391,11 +391,11 @@ apps/core/models.py
     M 49:4 AppSettings.openrouter_api_key - A (2)
     C 65:0 WebAuthnCredential - A (2)
     C 94:0 DeviceCode - A (2)
-    M 127:4 DeviceCode.save - A (2)
+    M 126:4 DeviceCode.save - A (2)
     M 43:4 AppSettings.get - A (1)
     M 85:4 WebAuthnCredential.__str__ - A (1)
-    M 124:4 DeviceCode.__str__ - A (1)
-    M 133:4 DeviceCode.is_expired - A (1)
+    M 123:4 DeviceCode.__str__ - A (1)
+    M 132:4 DeviceCode.is_expired - A (1)
 apps/core/middleware.py
     F 126:0 _home_only_patterns - B (10)
     M 102:4 DeviceDetectionMiddleware._is_old_chrome - A (5)
@@ -424,10 +424,10 @@ apps/core/views.py
 apps/core/context_processors.py
     F 6:0 app_context - A (1)
 apps/core/device_code_api.py
-    F 100:0 poll_status - B (9)
-    F 31:0 request_code - B (6)
-    F 173:0 authorize_code - B (6)
-    C 25:0 AuthorizeIn - A (1)
+    F 98:0 poll_status - B (9)
+    F 30:0 request_code - B (6)
+    F 171:0 authorize_code - A (4)
+    C 24:0 AuthorizeIn - A (1)
 apps/core/validators.py
     F 70:0 validate_url - A (4)
     F 102:0 check_response_size - A (4)
@@ -458,6 +458,8 @@ apps/core/auth_api.py
     F 40:0 get_me - A (4)
     F 29:0 logout_view - A (3)
     F 19:0 _require_auth_mode - A (2)
+apps/core/migrations/0007_remove_devicecode_attempts_remaining.py
+    C 4:0 Migration - A (1)
 apps/core/migrations/0002_alter_appsettings_default_ai_model.py
     C 6:0 Migration - A (1)
 apps/core/migrations/0003_passkey_webauthn_devicecode.py
@@ -875,5 +877,5 @@ cookie/settings.py
     F 21:0 get_secret_key - A (3)
     F 64:0 _resolve_cookie_version - A (3)
 
-780 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.755128205128205)
+781 blocks (classes, functions, methods) analyzed.
+Average complexity: A (2.7503201024327786)
