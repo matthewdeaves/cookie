@@ -155,6 +155,14 @@ limits, the code is refactored — the limits are never raised.
   to bypass quality checks.
 - When limits are exceeded: extract helper functions, split into modules, apply
   Single Responsibility Principle.
+- **NEVER remove tests, assertions, or test cases to stay under the file-size
+  cap.** Test coverage is load-bearing. If a test file is pushing 500 lines,
+  split it: move shared fixtures/helpers into `conftest.py` or a
+  `_support`/`_fixtures` module, or extract a logically-grouped subset of
+  tests into a sibling `test_<topic>_<aspect>.py` file (see
+  `test_nginx_pentest_round6.py` / `round7.py` / `round10.py` split for a
+  working pattern). Deleting tests to fit the cap is forbidden — the rule is
+  "refactor out", not "trim down".
 - CI MUST block PRs that exceed these limits. No exceptions.
 
 **Rationale:** Studies show cyclomatic complexity >15 correlates exponentially
