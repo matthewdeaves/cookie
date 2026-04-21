@@ -111,7 +111,6 @@ class DeviceCode(models.Model):
         on_delete=models.SET_NULL,
         related_name="authorized_device_codes",
     )
-    attempts_remaining = models.PositiveSmallIntegerField(default=5)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
 

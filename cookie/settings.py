@@ -90,7 +90,6 @@ COOKIE_VERSION = _resolve_cookie_version()
 WEBAUTHN_RP_ID = os.environ.get("WEBAUTHN_RP_ID", "")  # Derived from request hostname if empty
 WEBAUTHN_RP_NAME = os.environ.get("WEBAUTHN_RP_NAME", "Cookie")
 DEVICE_CODE_EXPIRY_SECONDS = int(os.environ.get("DEVICE_CODE_EXPIRY_SECONDS", "600"))
-DEVICE_CODE_MAX_ATTEMPTS = int(os.environ.get("DEVICE_CODE_MAX_ATTEMPTS", "5"))
 
 INSTALLED_APPS = [
     "apps.core",  # before django.contrib.auth to override createsuperuser

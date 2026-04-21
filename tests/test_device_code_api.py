@@ -60,7 +60,6 @@ def _make_device_code(session_key, **kwargs):
         "code": "ABC123",
         "session_key": session_key,
         "status": "pending",
-        "attempts_remaining": 5,
         "expires_at": timezone.now() + timedelta(seconds=600),
     }
     defaults.update(kwargs)
@@ -219,7 +218,6 @@ class TestRequestCode:
                 code="EXP001",
                 session_key=session_key,
                 status="expired",
-                attempts_remaining=5,
                 expires_at=timezone.now() - timedelta(seconds=1),
             )
             # Also invalidate the first code so it's not "pending"
@@ -484,56 +482,3 @@ class TestAuthorizeCode:
             )
         assert resp.status_code == 400
 
-    def test_authorize_decrements_attempts_remaining(self, auth_client):
-        """Each authorize attempt decrements attempts_remaining."""
-        dc = _make_device_code("othersession1234567890123456789012", attempts_remaining=5)
-
-        with PASSKEY_MODE:
-            resp = auth_client.post(
-                AUTHORIZE_URL,
-                data=json.dumps({"code": "ABC123"}),
-                content_type="application/json",
-            )
-        assert resp.status_code == 200
-        dc.refresh_from_db()
-        assert dc.attempts_remaining == 4
-
-    def test_code_invalidated_at_zero_attempts(self, auth_client):
-        """Code with 1 attempt left is invalidated after use."""
-        dc = _make_device_code(
-            "othersession1234567890123456789012",
-            code="ZZZ999",
-            attempts_remaining=1,
-        )
-
-        with PASSKEY_MODE:
-            resp = auth_client.post(
-                AUTHORIZE_URL,
-                data=json.dumps({"code": "ZZZ999"}),
-                content_type="application/json",
-            )
-        # Attempt is consumed, reaching 0 — code invalidated
-        assert resp.status_code == 400
-        assert "too many attempts" in resp.json()["error"].lower()
-        dc.refresh_from_db()
-        assert dc.status == "invalidated"
-        assert dc.attempts_remaining == 0
-
-    def test_already_exhausted_code_returns_400(self, auth_client):
-        """Code with 0 attempts remaining is immediately rejected."""
-        dc = _make_device_code(
-            "othersession1234567890123456789012",
-            code="EXH000",
-            attempts_remaining=0,
-        )
-
-        with PASSKEY_MODE:
-            resp = auth_client.post(
-                AUTHORIZE_URL,
-                data=json.dumps({"code": "EXH000"}),
-                content_type="application/json",
-            )
-        assert resp.status_code == 400
-        assert "too many attempts" in resp.json()["error"].lower()
-        dc.refresh_from_db()
-        assert dc.status == "invalidated"
