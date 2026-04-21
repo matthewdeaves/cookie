@@ -27,7 +27,6 @@ EXEMPT_FILES: dict[str, int] = {
     "tests/test_system_api.py": 701,
     "tests/test_image_cache.py": 674,
     "tests/test_ai_api.py": 597,
-    "tests/test_device_code_api.py": 540,
     "tests/test_user_features.py": 524,
 }
 
