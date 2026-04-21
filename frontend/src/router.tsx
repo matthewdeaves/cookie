@@ -62,11 +62,19 @@ function AppLayout() {
   if (mode === 'passkey') {
     return (
       <ModeContext.Provider value="passkey">
+        {/* Toaster lives OUTSIDE AuthProfileBridge on purpose.
+            AuthProfileBridge unmounts its children while isLoading=true
+            (e.g. during refreshSession after self-delete or login).
+            If the Toaster is inside, any in-flight toast is torn down
+            mid-animation and renders unstyled at the document-flow
+            default position (top-left on mobile). Keeping it at the
+            ModeContext level means it survives every auth-state change
+            within passkey mode. */}
+        <Toaster position="top-center" richColors />
         <AuthProvider>
           <AIStatusProvider>
             <AuthProfileBridge>
               <ErrorBoundary>
-              <Toaster position="top-center" richColors />
               <Suspense fallback={<LoadingFallback />}>
                 <Outlet />
               </Suspense>
@@ -80,10 +88,11 @@ function AppLayout() {
 
   return (
     <ModeContext.Provider value="home">
+      {/* Same reasoning as the passkey branch above. */}
+      <Toaster position="top-center" richColors />
       <AIStatusProvider>
         <ProfileProvider>
           <ErrorBoundary>
-          <Toaster position="top-center" richColors />
           <Suspense fallback={<LoadingFallback />}>
             <Outlet />
           </Suspense>
