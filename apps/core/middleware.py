@@ -9,29 +9,20 @@ from django.http import JsonResponse
 def get_client_ip(request):
     """Extract the real client IP for django-ratelimit.
 
-    Priority order:
-    1. CF-Connecting-IP — set authoritatively by Cloudflare to the real client
-       IP.  Cloudflare strips any client-injected CF-Connecting-IP header
-       before appending its own, so this value cannot be spoofed.
-    2. Rightmost X-Forwarded-For entry — when CF-Connecting-IP is absent
-       (e.g. local dev, direct traffic) we use the rightmost entry, which is
-       appended by the nearest trusted proxy and is harder to spoof than the
-       leftmost entry.  The leftmost entry is attacker-controlled: Cloudflare
-       appends the real IP but does NOT strip client-injected entries.
-    3. REMOTE_ADDR — final fallback.
+    Uses rightmost X-Forwarded-For entry as the authoritative source:
+    - Cloudflare strips any client-injected X-Forwarded-For entries and
+      appends the real client IP; Traefik trusts Cloudflare's XFF via
+      forwardedHeaders.trustedIPs, so the rightmost entry is always the
+      real client IP as seen by Cloudflare.
+    - REMOTE_ADDR is the final fallback for local dev / direct traffic.
+
+    CF-Connecting-IP was intentionally removed (pentest round 10, F-26):
+    Cloudflare does NOT strip client-injected CF-Connecting-IP headers
+    before adding its own — an attacker can inject an arbitrary value and
+    bypass rate limiting entirely.  Do NOT re-add CF-Connecting-IP.
 
     Used via RATELIMIT_IP_META_KEY = "apps.core.middleware.get_client_ip"
     """
-    # Primary: CF-Connecting-IP (Cloudflare strips client-provided values)
-    cf_ip = request.META.get("HTTP_CF_CONNECTING_IP", "").strip()
-    if cf_ip:
-        try:
-            ipaddress.ip_address(cf_ip)
-            return cf_ip
-        except ValueError:
-            pass
-
-    # Fallback: rightmost X-Forwarded-For entry (nearest trusted proxy)
     forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
     if forwarded_for:
         entries = [e.strip() for e in forwarded_for.split(",")]
