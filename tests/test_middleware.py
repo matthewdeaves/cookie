@@ -13,7 +13,13 @@ from apps.core.middleware import (
 
 
 class TestGetClientIp:
-    """Test IP extraction from X-Forwarded-For for rate limiting."""
+    """Test IP extraction for rate limiting.
+
+    Priority: CF-Connecting-IP > rightmost X-Forwarded-For > REMOTE_ADDR.
+    CF-Connecting-IP is set authoritatively by Cloudflare; clients cannot
+    inject fake values.  The leftmost X-Forwarded-For entry is attacker-
+    controlled and must NOT be used.
+    """
 
     def _make_request(self, **meta):
         rf = RequestFactory()
@@ -21,25 +27,73 @@ class TestGetClientIp:
         request.META.update(meta)
         return request
 
-    def test_single_ip(self):
+    # --- CF-Connecting-IP (primary source) ---
+
+    def test_cf_connecting_ip_used_when_present(self):
+        """CF-Connecting-IP wins over any X-Forwarded-For value."""
+        request = self._make_request(
+            HTTP_CF_CONNECTING_IP="1.2.3.4",
+            HTTP_X_FORWARDED_FOR="5.6.7.8, 172.18.0.1",
+        )
+        assert get_client_ip(request) == "1.2.3.4"
+
+    def test_cf_connecting_ip_ipv6(self):
+        request = self._make_request(HTTP_CF_CONNECTING_IP="2a09:bac3:3759:278::3f:dd")
+        assert get_client_ip(request) == "2a09:bac3:3759:278::3f:dd"
+
+    def test_cf_connecting_ip_malformed_falls_through(self):
+        """If CF-Connecting-IP is somehow malformed, fall back to XFF."""
+        request = self._make_request(
+            HTTP_CF_CONNECTING_IP="not-an-ip",
+            HTTP_X_FORWARDED_FOR="81.141.119.30, 172.18.0.1",
+            REMOTE_ADDR="10.0.0.5",
+        )
+        # Should land on rightmost valid XFF entry, not REMOTE_ADDR
+        assert get_client_ip(request) == "172.18.0.1"
+
+    # --- X-Forwarded-For fallback (rightmost valid entry) ---
+
+    def test_xff_rightmost_used_without_cf_header(self):
+        """Without CF-Connecting-IP, use rightmost XFF (nearest trusted proxy)."""
+        request = self._make_request(HTTP_X_FORWARDED_FOR="81.141.119.30, 172.18.0.1, 172.18.0.2")
+        assert get_client_ip(request) == "172.18.0.2"
+
+    def test_xff_single_entry(self):
         request = self._make_request(HTTP_X_FORWARDED_FOR="192.168.1.1")
         assert get_client_ip(request) == "192.168.1.1"
 
-    def test_multi_proxy_chain(self):
-        request = self._make_request(HTTP_X_FORWARDED_FOR="81.141.119.30, 172.18.0.1, 172.18.0.2")
-        assert get_client_ip(request) == "81.141.119.30"
-
-    def test_ipv6(self):
+    def test_xff_ipv6_rightmost(self):
         request = self._make_request(HTTP_X_FORWARDED_FOR="2a09:bac3:3759:278::3f:dd, 172.18.0.1")
-        assert get_client_ip(request) == "2a09:bac3:3759:278::3f:dd"
+        assert get_client_ip(request) == "172.18.0.1"
+
+    def test_xff_spoofing_bypass_prevented(self):
+        """Core security regression: attacker injects a fake leftmost entry.
+        Cloudflare appends the real IP but does NOT strip the injected entry.
+        The fix must return the real (rightmost) IP, not the spoofed leftmost."""
+        request = self._make_request(
+            HTTP_X_FORWARDED_FOR="1.1.1.1, 5.5.5.5",  # 1.1.1.1 is attacker-injected
+        )
+        # Real client IP is 5.5.5.5 (appended by Cloudflare)
+        assert get_client_ip(request) == "5.5.5.5"
+        assert get_client_ip(request) != "1.1.1.1"
+
+    def test_xff_skips_malformed_entries_from_right(self):
+        """Malformed rightmost entries are skipped; search continues leftward."""
+        request = self._make_request(
+            HTTP_X_FORWARDED_FOR="81.141.119.30, 172.18.0.1, bad-entry",
+            REMOTE_ADDR="10.0.0.9",
+        )
+        assert get_client_ip(request) == "172.18.0.1"
+
+    def test_xff_all_malformed_falls_back_to_remote_addr(self):
+        request = self._make_request(HTTP_X_FORWARDED_FOR="not-an-ip, also-bad", REMOTE_ADDR="172.18.0.2")
+        assert get_client_ip(request) == "172.18.0.2"
+
+    # --- REMOTE_ADDR fallback ---
 
     def test_no_forwarded_for_uses_remote_addr(self):
         request = self._make_request(REMOTE_ADDR="10.0.0.1")
         assert get_client_ip(request) == "10.0.0.1"
-
-    def test_malformed_ip_falls_back(self):
-        request = self._make_request(HTTP_X_FORWARDED_FOR="not-an-ip, 172.18.0.1", REMOTE_ADDR="172.18.0.2")
-        assert get_client_ip(request) == "172.18.0.2"
 
     def test_empty_forwarded_for(self):
         request = self._make_request(HTTP_X_FORWARDED_FOR="", REMOTE_ADDR="127.0.0.1")

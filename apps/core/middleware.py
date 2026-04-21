@@ -7,24 +7,41 @@ from django.http import JsonResponse
 
 
 def get_client_ip(request):
-    """Extract the real client IP from X-Forwarded-For for django-ratelimit.
+    """Extract the real client IP for django-ratelimit.
 
-    X-Forwarded-For may contain multiple IPs: "client, proxy1, proxy2".
-    We take the leftmost entry (the original client), validate it as a
-    real IP address, and return it.  Falls back to REMOTE_ADDR if the
-    header is missing or every entry is malformed.
+    Priority order:
+    1. CF-Connecting-IP — set authoritatively by Cloudflare to the real client
+       IP.  Cloudflare strips any client-injected CF-Connecting-IP header
+       before appending its own, so this value cannot be spoofed.
+    2. Rightmost X-Forwarded-For entry — when CF-Connecting-IP is absent
+       (e.g. local dev, direct traffic) we use the rightmost entry, which is
+       appended by the nearest trusted proxy and is harder to spoof than the
+       leftmost entry.  The leftmost entry is attacker-controlled: Cloudflare
+       appends the real IP but does NOT strip client-injected entries.
+    3. REMOTE_ADDR — final fallback.
 
     Used via RATELIMIT_IP_META_KEY = "apps.core.middleware.get_client_ip"
     """
-    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    if forwarded_for:
-        # Take the leftmost (client) IP, strip whitespace
-        candidate = forwarded_for.split(",")[0].strip()
+    # Primary: CF-Connecting-IP (Cloudflare strips client-provided values)
+    cf_ip = request.META.get("HTTP_CF_CONNECTING_IP", "").strip()
+    if cf_ip:
         try:
-            ipaddress.ip_address(candidate)
-            return candidate
+            ipaddress.ip_address(cf_ip)
+            return cf_ip
         except ValueError:
             pass
+
+    # Fallback: rightmost X-Forwarded-For entry (nearest trusted proxy)
+    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    if forwarded_for:
+        entries = [e.strip() for e in forwarded_for.split(",")]
+        for candidate in reversed(entries):
+            try:
+                ipaddress.ip_address(candidate)
+                return candidate
+            except ValueError:
+                continue
+
     return request.META.get("REMOTE_ADDR", "127.0.0.1")
 
 
