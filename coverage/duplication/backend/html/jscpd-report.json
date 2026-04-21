@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-21T20:46:05.318Z",
+    "detectionDate": "2026-04-21T21:05:46.555Z",
     "formats": {
       "python": {
         "sources": {
@@ -448,6 +448,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/profiles/deletion.py": {
+            "lines": 103,
+            "tokens": 617,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/profiles/apps.py": {
             "lines": 5,
             "tokens": 32,
@@ -461,8 +473,8 @@
             "newClones": 0
           },
           "apps/profiles/api.py": {
-            "lines": 303,
-            "tokens": 2536,
+            "lines": 312,
+            "tokens": 2474,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -641,14 +653,14 @@
             "newClones": 0
           },
           "apps/core/auth_api.py": {
-            "lines": 50,
-            "tokens": 415,
+            "lines": 114,
+            "tokens": 802,
             "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
+            "clones": 4,
+            "duplicatedLines": 34,
+            "duplicatedTokens": 380,
+            "percentage": 29.82,
+            "percentageTokens": 47.38,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -774,28 +786,28 @@
           }
         },
         "total": {
-          "lines": 11689,
-          "tokens": 81672,
-          "sources": 64,
-          "clones": 10,
-          "duplicatedLines": 145,
-          "duplicatedTokens": 1182,
-          "percentage": 1.24,
-          "percentageTokens": 1.45,
+          "lines": 11865,
+          "tokens": 82614,
+          "sources": 65,
+          "clones": 12,
+          "duplicatedLines": 162,
+          "duplicatedTokens": 1372,
+          "percentage": 1.37,
+          "percentageTokens": 1.66,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 11689,
-      "tokens": 81672,
-      "sources": 64,
-      "clones": 10,
-      "duplicatedLines": 145,
-      "duplicatedTokens": 1182,
-      "percentage": 1.24,
-      "percentageTokens": 1.45,
+      "lines": 11865,
+      "tokens": 82614,
+      "sources": 65,
+      "clones": 12,
+      "duplicatedLines": 162,
+      "duplicatedTokens": 1372,
+      "percentage": 1.37,
+      "percentageTokens": 1.66,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -1122,6 +1134,78 @@
           "line": 300,
           "column": 8,
           "position": 2428
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 9,
+      "fragment": "_require_auth_mode(request)\n    user = request.user\n    if not user or not getattr(user, \"is_authenticated\", False):\n        return Status(401, {\"error\": \"Authentication required\"})\n    try:\n        profile = user.profile\n    except Profile.DoesNotExist:\n        return Status(401, {\"error\": \"Authentication required\"})\n    return Status(200, get_deletion_preview",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/core/auth_api.py",
+        "start": 68,
+        "end": 76,
+        "startLoc": {
+          "line": 68,
+          "column": 5,
+          "position": 493
+        },
+        "endLoc": {
+          "line": 76,
+          "column": 21,
+          "position": 591
+        }
+      },
+      "secondFile": {
+        "name": "apps/core/auth_api.py",
+        "start": 46,
+        "end": 56,
+        "startLoc": {
+          "line": 46,
+          "column": 5,
+          "position": 334
+        },
+        "endLoc": {
+          "line": 56,
+          "column": 30,
+          "position": 434
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 10,
+      "fragment": "_require_auth_mode(request)\n    user = request.user\n    if not user or not getattr(user, \"is_authenticated\", False):\n        return Status(401, {\"error\": \"Authentication required\"})\n    try:\n        profile = user.profile\n    except Profile.DoesNotExist:\n        return Status(401, {\"error\": \"Authentication required\"})\n\n    username",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/core/auth_api.py",
+        "start": 99,
+        "end": 108,
+        "startLoc": {
+          "line": 99,
+          "column": 5,
+          "position": 647
+        },
+        "endLoc": {
+          "line": 108,
+          "column": 9,
+          "position": 739
+        }
+      },
+      "secondFile": {
+        "name": "apps/core/auth_api.py",
+        "start": 46,
+        "end": 56,
+        "startLoc": {
+          "line": 46,
+          "column": 5,
+          "position": 334
+        },
+        "endLoc": {
+          "line": 56,
+          "column": 7,
+          "position": 427
         }
       }
     },

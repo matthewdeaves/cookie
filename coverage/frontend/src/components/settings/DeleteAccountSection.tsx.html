@@ -143,7 +143,22 @@
 <a name='L78'></a><a href='#L78'>78</a>
 <a name='L79'></a><a href='#L79'>79</a>
 <a name='L80'></a><a href='#L80'>80</a>
-<a name='L81'></a><a href='#L81'>81</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -163,6 +178,9 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -230,11 +248,17 @@ import { api, type DeletionPreview } from '../../api/client'
 import UserDeletionModal from './UserDeletionModal'
 &nbsp;
 interface DeleteAccountSectionProps {
+  /**
+   * Kept for API stability / test compatibility; the passkey self-delete
+   * endpoint infers the target profile from the authenticated session.
+   * Legacy callers that passed a numeric id don't need to change.
+   */
   profileId: number
   onDeleted: () =&gt; void
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >DeleteAccountSection({</span> profileId, onDeleted }: DeleteAccountSectionProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- profileId kept for API stability
+export default function <span class="fstat-no" title="function not covered" >DeleteAccountSection({</span> profileId: _profileId, onDeleted }: DeleteAccountSectionProps) {
   const [showModal, <span class="cstat-no" title="statement not covered" >setShowModal] = useState(false)</span>
   const [preview, <span class="cstat-no" title="statement not covered" >setPreview] = useState&lt;DeletionPreview | null&gt;(null)</span>
   const [loading, <span class="cstat-no" title="statement not covered" >setLoading] = useState(false)</span>
@@ -243,7 +267,10 @@ export default function <span class="fstat-no" title="function not covered" >Del
   const handleDeleteClick = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
 <span class="cstat-no" title="statement not covered" >    setLoading(true)</span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
-      const data = <span class="cstat-no" title="statement not covered" >await api.profiles.deletionPreview(profileId)</span>
+      // Passkey-mode self-delete uses /auth/me/* which works under SessionAuth.
+      // The /profiles/{id}/* equivalents are HomeOnlyAuth (404 in passkey) —
+      // pre-v1.53.0 this silently failed ("Failed to load account info").
+      const data = <span class="cstat-no" title="statement not covered" >await api.auth.meDeletionPreview()</span>
 <span class="cstat-no" title="statement not covered" >      setPreview(data)</span>
 <span class="cstat-no" title="statement not covered" >      setShowModal(true)</span>
     } catch {
@@ -256,7 +283,7 @@ export default function <span class="fstat-no" title="function not covered" >Del
   const handleConfirm = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
 <span class="cstat-no" title="statement not covered" >    setDeleting(true)</span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
-<span class="cstat-no" title="statement not covered" >      await api.profiles.delete(profileId)</span>
+<span class="cstat-no" title="statement not covered" >      await api.auth.deleteMe()</span>
 <span class="cstat-no" title="statement not covered" >      toast.success('Account deleted')</span>
 <span class="cstat-no" title="statement not covered" >      onDeleted()</span>
     } catch {
@@ -310,7 +337,7 @@ export default function <span class="fstat-no" title="function not covered" >Del
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-21T20:46:24.582Z
+                at 2026-04-21T21:06:06.924Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

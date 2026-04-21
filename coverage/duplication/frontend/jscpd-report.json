@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-21T20:46:11.499Z",
+    "detectionDate": "2026-04-21T21:05:42.341Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -1185,8 +1185,8 @@
             "newClones": 0
           },
           "src/components/settings/DeleteAccountSection.tsx": {
-            "lines": 79,
-            "tokens": 633,
+            "lines": 88,
+            "tokens": 676,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1461,8 +1461,8 @@
             "newClones": 0
           },
           "src/contexts/ProfileContext.tsx": {
-            "lines": 101,
-            "tokens": 955,
+            "lines": 105,
+            "tokens": 959,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1822,8 +1822,8 @@
           }
         },
         "total": {
-          "lines": 7244,
-          "tokens": 56927,
+          "lines": 7257,
+          "tokens": 56974,
           "sources": 76,
           "clones": 6,
           "duplicatedLines": 61,
@@ -2173,35 +2173,35 @@
             "newClones": 0
           },
           "src/api/client.ts": {
-            "lines": 497,
-            "tokens": 4079,
+            "lines": 522,
+            "tokens": 4244,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 102,
             "duplicatedTokens": 398,
-            "percentage": 20.52,
-            "percentageTokens": 9.76,
+            "percentage": 19.54,
+            "percentageTokens": 9.38,
             "newDuplicatedLines": 0,
             "newClones": 0
           }
         },
         "total": {
-          "lines": 3043,
-          "tokens": 25418,
+          "lines": 3068,
+          "tokens": 25583,
           "sources": 29,
           "clones": 2,
           "duplicatedLines": 59,
           "duplicatedTokens": 294,
-          "percentage": 1.94,
-          "percentageTokens": 1.16,
+          "percentage": 1.92,
+          "percentageTokens": 1.15,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 13617,
-      "tokens": 107915,
+      "lines": 13655,
+      "tokens": 108127,
       "sources": 179,
       "clones": 8,
       "duplicatedLines": 120,
