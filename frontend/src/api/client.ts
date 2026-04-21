@@ -264,6 +264,19 @@ export const api = {
         body: JSON.stringify(data),
       }),
 
+    // Update per-profile display preferences (theme, unit_preference) for the
+    // caller's OWN profile. Works in both home and passkey modes — unlike the
+    // PUT above which is HomeOnly. Use this from the theme toggle / unit
+    // selector; use PUT for full-profile edits (home mode only).
+    updatePreferences: (
+      id: number,
+      data: { theme?: 'light' | 'dark'; unit_preference?: 'metric' | 'imperial' },
+    ) =>
+      request<Profile>(`/profiles/${id}/preferences/`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
     delete: (id: number) =>
       request<null>(`/profiles/${id}/`, {
         method: 'DELETE',
@@ -435,6 +448,18 @@ export const api = {
       }),
 
     me: () => request<PasskeyAuthResponse>('/auth/me/'),
+
+    // Passkey-mode self-service deletion. These live under /auth/ (not
+    // /profiles/) because the home-mode equivalents on /profiles/{id}/
+    // are HomeOnlyAuth (404 in passkey) — a user deleting THEIR OWN
+    // account in passkey mode goes through here instead.
+    meDeletionPreview: () =>
+      request<DeletionPreview>('/auth/me/deletion-preview/'),
+
+    deleteMe: () =>
+      request<null>('/auth/me/', {
+        method: 'DELETE',
+      }),
   },
 
   passkey: {

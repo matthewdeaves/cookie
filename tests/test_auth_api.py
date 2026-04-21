@@ -121,3 +121,80 @@ class TestGetMe:
         client.login(username="noprofile", password="testpass")  # pragma: allowlist secret
         response = client.get("/api/auth/me/")
         assert response.status_code == 401
+
+
+@pytest.mark.django_db
+class TestMeDeletionPreview:
+    """Round 10 self-delete fix: GET /api/auth/me/deletion-preview/.
+
+    Pre-v1.53.0, the frontend delete-account flow called the HomeOnly
+    /api/profiles/{id}/deletion-preview/ endpoint, which 404'd in passkey
+    mode — user saw 'Failed to load account info' on iPhone. This endpoint
+    is the passkey-mode counterpart under SessionAuth.
+    """
+
+    def test_preview_returns_profile_and_counts(self, passkey_auth_client, user_with_profile):
+        _user, profile = user_with_profile
+        response = passkey_auth_client.get("/api/auth/me/deletion-preview/")
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data["profile"]["id"] == profile.id
+        assert data["profile"]["name"] == "Test User"
+        # Fresh user — all counts zero. The shape, not the values, is what we guard here.
+        for key in (
+            "remixes", "remix_images", "favorites", "collections",
+            "collection_items", "view_history", "scaling_cache", "discover_cache",
+        ):
+            assert key in data["data_to_delete"]
+        assert isinstance(data["warnings"], list) and len(data["warnings"]) > 0
+
+    def test_preview_requires_auth(self, client, settings):
+        settings.AUTH_MODE = "passkey"
+        response = client.get("/api/auth/me/deletion-preview/")
+        assert response.status_code == 401
+
+    def test_preview_returns_404_in_home_mode(self, client, user_with_profile, settings):
+        settings.AUTH_MODE = "home"
+        _user, profile = user_with_profile
+        session = client.session
+        session["profile_id"] = profile.id
+        session.save()
+        response = client.get("/api/auth/me/deletion-preview/")
+        assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestDeleteMe:
+    """Round 10 self-delete fix: DELETE /api/auth/me/."""
+
+    def test_delete_succeeds_and_removes_user_and_profile(
+        self, passkey_auth_client, user_with_profile
+    ):
+        user, profile = user_with_profile
+        response = passkey_auth_client.delete("/api/auth/me/")
+        assert response.status_code == 204
+        # User.delete() cascades the Profile via the OneToOne FK.
+        assert not User.objects.filter(id=user.id).exists()
+        assert not Profile.objects.filter(id=profile.id).exists()
+
+    def test_delete_flushes_session(self, passkey_auth_client):
+        """After self-delete, replayed session cookies should fail auth."""
+        passkey_auth_client.delete("/api/auth/me/")
+        response = passkey_auth_client.get("/api/auth/me/")
+        assert response.status_code == 401
+
+    def test_delete_requires_auth(self, client, settings):
+        settings.AUTH_MODE = "passkey"
+        response = client.delete("/api/auth/me/")
+        assert response.status_code == 401
+
+    def test_delete_returns_404_in_home_mode(self, client, user_with_profile, settings):
+        settings.AUTH_MODE = "home"
+        _user, profile = user_with_profile
+        session = client.session
+        session["profile_id"] = profile.id
+        session.save()
+        response = client.delete("/api/auth/me/")
+        assert response.status_code == 404
+        # Nothing was deleted
+        assert Profile.objects.filter(id=profile.id).exists()

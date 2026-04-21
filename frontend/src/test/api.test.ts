@@ -80,6 +80,25 @@ describe('API Client', () => {
       expect(result.theme).toBe('dark')
     })
 
+    it('updates preferences via the mode-agnostic PATCH endpoint', async () => {
+      // Round 10 theme-toggle fix: api.profiles.update targets PUT
+      // /api/profiles/{id}/ which is HomeOnly (404 in passkey mode).
+      // updatePreferences targets PATCH /api/profiles/{id}/preferences/
+      // which works in both auth modes.
+      const updatedProfile = { id: 1, name: 'Alice', avatar_color: '#d97850', theme: 'dark', unit_preference: 'metric' }
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(updatedProfile),
+      })
+
+      const result = await api.profiles.updatePreferences(1, { theme: 'dark' })
+
+      expect(mockFetch).toHaveBeenCalledWith('/api/profiles/1/preferences/', expect.objectContaining({
+        method: 'PATCH',
+      }))
+      expect(result.theme).toBe('dark')
+    })
+
     it('deletes a profile', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,

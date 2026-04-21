@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 from typing import List, Optional
 
@@ -7,7 +6,12 @@ from django.db.models import Count, Q
 from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema, Status
 
-from apps.core.auth import HomeOnlyAnonAuth, HomeOnlyAuth
+from apps.core.auth import HomeOnlyAnonAuth, HomeOnlyAuth, SessionAuth
+from .deletion import (
+    collect_remix_image_paths,
+    get_deletion_preview as _build_deletion_preview,
+    remove_remix_image_files,
+)
 from .models import Profile
 
 router = Router(tags=["profiles"])
@@ -80,6 +84,19 @@ class SetUnlimitedIn(Schema):
 
 class RenameIn(Schema):
     name: str
+
+
+class PreferencesIn(Schema):
+    """Display-preference payload for per-profile self-updates in both modes.
+
+    Separated from ProfileIn so passkey-mode users can change their own theme
+    and unit_preference without touching identity fields (name, avatar_color)
+    which remain HomeOnly. Every field is optional — only sent fields are
+    written, so PATCH with {"theme": "dark"} leaves unit_preference alone.
+    """
+
+    theme: Optional[str] = None
+    unit_preference: Optional[str] = None
 
 
 class ErrorSchema(Schema):
@@ -173,65 +190,70 @@ def update_profile(request, profile_id: int, payload: ProfileIn):
     return profile
 
 
+@router.patch(
+    "/{profile_id}/preferences/",
+    response={200: ProfileOut, 400: ErrorSchema, 403: ErrorSchema, 404: ErrorSchema},
+    auth=SessionAuth(),
+)
+def update_preferences(request, profile_id: int, payload: PreferencesIn):
+    """Update only display preferences (theme, unit_preference) for the
+    caller's own profile. Works in both home and passkey modes because the
+    identity fields (name, avatar_color) are NOT writable here — only
+    per-user display settings are. Callers must own the target profile.
+
+    Why this exists separately from PUT /profiles/{id}/:
+    In passkey mode the PUT variant is HomeOnlyAuth-gated (404) because
+    profile identity is tied to the authenticated passkey user and cannot
+    be reassigned mid-session. But users still need to flip dark-mode and
+    change unit preferences — those are personal display settings, not
+    identity. Round 10 regression guard: before this endpoint existed,
+    `toggleTheme` called PUT /profiles/{id}/ which 404'd in passkey mode,
+    making the UI briefly flip theme then roll back on the caught error.
+    """
+    # Ownership check: caller's profile.id must match the target.
+    caller_profile = request.auth
+    if not caller_profile or caller_profile.id != profile_id:
+        return Status(403, {"error": "forbidden", "message": "Cannot modify another profile"})
+
+    # Validate allowed values. Reject unknown theme/unit strings — no free-form input.
+    updates: dict[str, str] = {}
+    if payload.theme is not None:
+        if payload.theme not in ("light", "dark"):
+            return Status(400, {"error": "validation_error", "message": "theme must be 'light' or 'dark'"})
+        updates["theme"] = payload.theme
+    if payload.unit_preference is not None:
+        if payload.unit_preference not in ("metric", "imperial"):
+            return Status(
+                400,
+                {"error": "validation_error", "message": "unit_preference must be 'metric' or 'imperial'"},
+            )
+        updates["unit_preference"] = payload.unit_preference
+
+    if not updates:
+        # Nothing sent — return current profile, don't touch the DB.
+        return caller_profile
+
+    for key, value in updates.items():
+        setattr(caller_profile, key, value)
+    caller_profile.save(update_fields=list(updates.keys()))
+    return caller_profile
+
+
 @router.get(
     "/{profile_id}/deletion-preview/", response={200: DeletionPreviewSchema, 404: ErrorSchema}, auth=HomeOnlyAuth()
 )
 def get_deletion_preview(request, profile_id: int):
     """Get summary of data that will be deleted. Home mode only."""
-    from apps.ai.models import AIDiscoverySuggestion
-    from apps.recipes.models import (
-        Recipe,
-        RecipeCollection,
-        RecipeCollectionItem,
-        RecipeFavorite,
-        RecipeViewHistory,
-        ServingAdjustment,
-    )
-
     try:
         profile = Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
         return Status(404, {"error": "not_found", "message": "Profile not found"})
-
-    remixes = Recipe.objects.filter(is_remix=True, remix_profile=profile)
-    favorites = RecipeFavorite.objects.filter(profile=profile)
-    collections = RecipeCollection.objects.filter(profile=profile)
-    collection_items = RecipeCollectionItem.objects.filter(collection__profile=profile)
-    view_history = RecipeViewHistory.objects.filter(profile=profile)
-    scaling_cache = ServingAdjustment.objects.filter(profile=profile)
-    discover_cache = AIDiscoverySuggestion.objects.filter(profile=profile)
-    remix_images_count = remixes.exclude(image="").exclude(image__isnull=True).count()
-
-    return {
-        "profile": {
-            "id": profile.id,
-            "name": profile.name,
-            "avatar_color": profile.avatar_color,
-            "created_at": profile.created_at,
-        },
-        "data_to_delete": {
-            "remixes": remixes.count(),
-            "remix_images": remix_images_count,
-            "favorites": favorites.count(),
-            "collections": collections.count(),
-            "collection_items": collection_items.count(),
-            "view_history": view_history.count(),
-            "scaling_cache": scaling_cache.count(),
-            "discover_cache": discover_cache.count(),
-        },
-        "warnings": [
-            "All remixed recipes will be permanently deleted",
-            "Recipe images for remixes will be removed from storage",
-            "This action cannot be undone",
-        ],
-    }
+    return _build_deletion_preview(profile)
 
 
 @router.delete("/{profile_id}/", response={204: None, 400: ErrorSchema, 404: ErrorSchema}, auth=HomeOnlyAuth())
 def delete_profile(request, profile_id: int):
     """Delete a profile and ALL associated data. Home mode only (404 in passkey via HomeOnlyAuth)."""
-    from apps.recipes.models import Recipe
-
     try:
         profile = Profile.objects.get(id=profile_id)
     except Profile.DoesNotExist:
@@ -241,22 +263,9 @@ def delete_profile(request, profile_id: int):
     if current_profile_id == profile_id:
         request.session.pop("profile_id", None)
 
-    # Collect image paths BEFORE cascade delete
-    remix_images = list(
-        Recipe.objects.filter(is_remix=True, remix_profile=profile, image__isnull=False)
-        .exclude(image="")
-        .values_list("image", flat=True)
-    )
-
+    image_paths = collect_remix_image_paths(profile)
     profile.delete()
-
-    for image_path in remix_images:
-        full_path = os.path.join(settings.MEDIA_ROOT, str(image_path))
-        try:
-            if os.path.exists(full_path):
-                os.remove(full_path)
-        except OSError:
-            pass
+    remove_remix_image_files(image_paths)
 
     return Status(204, None)
 

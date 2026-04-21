@@ -67,7 +67,11 @@ export function ProfileProvider({ children, authProfile }: ProfileProviderProps)
     const newTheme = theme === 'light' ? 'dark' : 'light'
     setTheme(newTheme)
     try {
-      const updated = await api.profiles.update(profile.id, { ...profile, theme: newTheme })
+      // updatePreferences works in both home + passkey modes. The old PUT
+      // /profiles/{id}/ returns 404 in passkey mode (HomeOnlyAuth), which
+      // caused the toggle to flip dark → immediately flip back to light
+      // when the caught error triggered the rollback below.
+      const updated = await api.profiles.updatePreferences(profile.id, { theme: newTheme })
       setProfile(updated)
     } catch (error) {
       console.error('Failed to update theme:', error)
@@ -80,7 +84,7 @@ export function ProfileProvider({ children, authProfile }: ProfileProviderProps)
     const previousUnit = profile.unit_preference
     setProfile({ ...profile, unit_preference: unit })
     try {
-      const updated = await api.profiles.update(profile.id, { ...profile, unit_preference: unit })
+      const updated = await api.profiles.updatePreferences(profile.id, { unit_preference: unit })
       setProfile(updated)
     } catch (error) {
       console.error('Failed to update unit preference:', error)

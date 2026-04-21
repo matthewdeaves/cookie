@@ -5,11 +5,17 @@ import { api, type DeletionPreview } from '../../api/client'
 import UserDeletionModal from './UserDeletionModal'
 
 interface DeleteAccountSectionProps {
+  /**
+   * Kept for API stability / test compatibility; the passkey self-delete
+   * endpoint infers the target profile from the authenticated session.
+   * Legacy callers that passed a numeric id don't need to change.
+   */
   profileId: number
   onDeleted: () => void
 }
 
-export default function DeleteAccountSection({ profileId, onDeleted }: DeleteAccountSectionProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- profileId kept for API stability
+export default function DeleteAccountSection({ profileId: _profileId, onDeleted }: DeleteAccountSectionProps) {
   const [showModal, setShowModal] = useState(false)
   const [preview, setPreview] = useState<DeletionPreview | null>(null)
   const [loading, setLoading] = useState(false)
@@ -18,7 +24,10 @@ export default function DeleteAccountSection({ profileId, onDeleted }: DeleteAcc
   const handleDeleteClick = async () => {
     setLoading(true)
     try {
-      const data = await api.profiles.deletionPreview(profileId)
+      // Passkey-mode self-delete uses /auth/me/* which works under SessionAuth.
+      // The /profiles/{id}/* equivalents are HomeOnlyAuth (404 in passkey) —
+      // pre-v1.53.0 this silently failed ("Failed to load account info").
+      const data = await api.auth.meDeletionPreview()
       setPreview(data)
       setShowModal(true)
     } catch {
@@ -31,7 +40,7 @@ export default function DeleteAccountSection({ profileId, onDeleted }: DeleteAcc
   const handleConfirm = async () => {
     setDeleting(true)
     try {
-      await api.profiles.delete(profileId)
+      await api.auth.deleteMe()
       toast.success('Account deleted')
       onDeleted()
     } catch {

@@ -1,10 +1,11 @@
 import json
 
 import pytest
-from django.contrib.auth.models import User
 
 from apps.profiles.models import Profile
 from apps.recipes.models import Recipe, RecipeCollection, RecipeFavorite, RecipeViewHistory
+
+from tests._profile_test_helpers import create_user as _create_user, login as _login
 
 
 @pytest.mark.django_db
@@ -98,28 +99,8 @@ class TestProfilesAPI:
         assert client.session.get("profile_id") == profile.id
 
 
-# ── Helpers for passkey mode tests ──
-
-
-def _create_user(username, is_staff=False):
-    user = User.objects.create_user(
-        username=username,
-        password="!",
-        email="",
-        is_active=True,
-        is_staff=is_staff,
-    )
-    user.set_unusable_password()
-    user.save()
-    Profile.objects.create(user=user, name=username, avatar_color="#d97850")
-    return user
-
-
-def _login(client, user):
-    client.force_login(user)
-    session = client.session
-    session["profile_id"] = user.profile.id
-    session.save()
+# Passkey-mode helpers (_create_user, _login) live in
+# tests/_profile_test_helpers.py and are imported at the top of this file.
 
 
 # ── GET /api/profiles/{id}/deletion-preview/ ──
@@ -425,3 +406,8 @@ class TestPasskeyProfileDeletionIsGated:
         response = client.delete(f"/api/profiles/{user.profile.id}/")
         assert response.status_code == 404
         assert Profile.objects.filter(id=user.profile.id).exists()
+
+
+# PATCH /api/profiles/{id}/preferences/ (round 10 theme-toggle fix) tests
+# live in tests/test_profiles_preferences_api.py — split out to stay under
+# the 500-line file cap.
