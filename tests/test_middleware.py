@@ -15,10 +15,11 @@ from apps.core.middleware import (
 class TestGetClientIp:
     """Test IP extraction for rate limiting.
 
-    Priority: CF-Connecting-IP > rightmost X-Forwarded-For > REMOTE_ADDR.
-    CF-Connecting-IP is set authoritatively by Cloudflare; clients cannot
-    inject fake values.  The leftmost X-Forwarded-For entry is attacker-
-    controlled and must NOT be used.
+    Source: rightmost X-Forwarded-For > REMOTE_ADDR.
+    CF-Connecting-IP was removed (pentest round 10, F-26): Cloudflare does NOT
+    strip client-injected CF-Connecting-IP headers, making it injectable for
+    rate-limit bypass.  XFF is safe because Cloudflare strips client-injected
+    XFF entries and appends the real client IP as the rightmost entry.
     """
 
     def _make_request(self, **meta):
@@ -27,34 +28,24 @@ class TestGetClientIp:
         request.META.update(meta)
         return request
 
-    # --- CF-Connecting-IP (primary source) ---
+    # --- CF-Connecting-IP must NOT influence result (F-26 regression guard) ---
 
-    def test_cf_connecting_ip_used_when_present(self):
-        """CF-Connecting-IP wins over any X-Forwarded-For value."""
+    def test_cf_connecting_ip_injection_does_not_bypass(self):
+        """F-26 regression: injecting CF-Connecting-IP must not affect the result.
+        Cloudflare does NOT strip client-provided CF-Connecting-IP headers, so
+        we must ignore it entirely and rely solely on XFF."""
         request = self._make_request(
-            HTTP_CF_CONNECTING_IP="1.2.3.4",
+            HTTP_CF_CONNECTING_IP="198.51.100.1",  # attacker-injected
             HTTP_X_FORWARDED_FOR="5.6.7.8, 172.18.0.1",
         )
-        assert get_client_ip(request) == "1.2.3.4"
-
-    def test_cf_connecting_ip_ipv6(self):
-        request = self._make_request(HTTP_CF_CONNECTING_IP="2a09:bac3:3759:278::3f:dd")
-        assert get_client_ip(request) == "2a09:bac3:3759:278::3f:dd"
-
-    def test_cf_connecting_ip_malformed_falls_through(self):
-        """If CF-Connecting-IP is somehow malformed, fall back to XFF."""
-        request = self._make_request(
-            HTTP_CF_CONNECTING_IP="not-an-ip",
-            HTTP_X_FORWARDED_FOR="81.141.119.30, 172.18.0.1",
-            REMOTE_ADDR="10.0.0.5",
-        )
-        # Should land on rightmost valid XFF entry, not REMOTE_ADDR
+        # Must return rightmost XFF, not the injected CF-Connecting-IP value
         assert get_client_ip(request) == "172.18.0.1"
+        assert get_client_ip(request) != "198.51.100.1"
 
-    # --- X-Forwarded-For fallback (rightmost valid entry) ---
+    # --- X-Forwarded-For (rightmost valid entry) ---
 
-    def test_xff_rightmost_used_without_cf_header(self):
-        """Without CF-Connecting-IP, use rightmost XFF (nearest trusted proxy)."""
+    def test_xff_rightmost_used(self):
+        """Rightmost XFF entry (appended by Cloudflare) is the authoritative IP."""
         request = self._make_request(HTTP_X_FORWARDED_FOR="81.141.119.30, 172.18.0.1, 172.18.0.2")
         assert get_client_ip(request) == "172.18.0.2"
 
