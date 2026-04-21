@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-21T16:31:28.944Z",
+    "detectionDate": "2026-04-21T17:32:07.031Z",
     "formats": {
       "python": {
         "sources": {
@@ -557,8 +557,8 @@
             "newClones": 0
           },
           "apps/core/middleware.py": {
-            "lines": 211,
-            "tokens": 1244,
+            "lines": 228,
+            "tokens": 1322,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -774,8 +774,8 @@
           }
         },
         "total": {
-          "lines": 11681,
-          "tokens": 81654,
+          "lines": 11698,
+          "tokens": 81732,
           "sources": 64,
           "clones": 10,
           "duplicatedLines": 145,
@@ -788,8 +788,8 @@
       }
     },
     "total": {
-      "lines": 11681,
-      "tokens": 81654,
+      "lines": 11698,
+      "tokens": 81732,
       "sources": 64,
       "clones": 10,
       "duplicatedLines": 145,
