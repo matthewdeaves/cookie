@@ -18,7 +18,8 @@ interface UseServingScaleReturn {
  */
 export function useServingScale(
   recipe: RecipeDetailType | null,
-  profileId: number | undefined
+  profileId: number | undefined,
+  unitPreference: string = 'metric'
 ): UseServingScaleReturn {
   const { setFeatureQuotaExhausted } = useAIStatus()
   const [servings, setServings] = useState<number | null>(null)
@@ -37,7 +38,7 @@ export function useServingScale(
 
     setScalingLoading(true)
     try {
-      const result = await api.ai.scale(recipe.id, newServings, profileId)
+      const result = await api.ai.scale(recipe.id, newServings, profileId, unitPreference)
       setScaledData(result)
       if (result.notes.length > 0) {
         toast.info(result.notes[0])

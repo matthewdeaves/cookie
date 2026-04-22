@@ -23,7 +23,7 @@ export function useRecipeDetail() {
   const [showRemixModal, setShowRemixModal] = useState(false)
 
   const { servings, scaledData, scalingLoading, setServings, setScaledData, handleServingChange } =
-    useServingScale(recipe, profile?.id)
+    useServingScale(recipe, profile?.id, profile?.unit_preference ?? 'metric')
 
   const tipsAvailable = aiStatus.isFeatureAvailable('tips')
   const remixAvailable = aiStatus.isFeatureAvailable('remix')

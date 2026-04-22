@@ -66,11 +66,14 @@
         updateServingButtons();
         updateServingDisplay();
 
+        var profile = Cookie.state.getProfile();
+        var unitSystem = (profile && profile.unit_preference === 'imperial') ? 'imperial' : 'metric';
+
         Cookie.ajax.post('/api/ai/scale', {
             recipe_id: state.recipeId,
             target_servings: targetServings,
             profile_id: state.profileId,
-            unit_system: 'metric'
+            unit_system: unitSystem
         }, function(err, response) {
             state.isScaling = false;
             updateServingButtons();
