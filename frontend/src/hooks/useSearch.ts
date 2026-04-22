@@ -15,7 +15,7 @@ export interface UseSearchReturn {
   loading: boolean
   loadingMore: boolean
   importing: string | null
-  handleSearchSubmit: (e: React.FormEvent) => void
+  handleSearchSubmit: (e: React.FormEvent) => void | Promise<void>
   handleLoadMore: () => void
   handleImport: (url: string) => Promise<void>
 }
@@ -115,10 +115,24 @@ export function useSearch(): UseSearchReturn {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate and searchRecipes are stable, only re-run when query or filter changes
   }, [query, selectedSource])
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const handleSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const trimmed = state.searchInput.trim()
-    if (trimmed && trimmed !== query) {
+    if (!trimmed) return
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      state.setImporting(trimmed)
+      try {
+        const recipe = await importRecipe(trimmed)
+        toast.success(`Imported: ${recipe.title}`)
+        navigate(`/recipe/${recipe.id}`)
+      } catch {
+        toast.error('Could not import recipe from that URL. Try a different link.')
+      } finally {
+        state.setImporting(null)
+      }
+      return
+    }
+    if (trimmed !== query) {
       navigate(`/search?q=${encodeURIComponent(trimmed)}`)
     }
   }
