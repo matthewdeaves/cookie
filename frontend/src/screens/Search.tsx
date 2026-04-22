@@ -38,7 +38,7 @@ function SearchForm({ searchInput, setSearchInput, onSubmit }: {
           type="text"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search recipes..."
+          placeholder="Search recipes or paste a URL..."
           className="w-full rounded-xl border border-border bg-input-background py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
