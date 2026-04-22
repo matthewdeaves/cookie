@@ -124,7 +124,7 @@ jobs:
         with:
           name: legacy-lint
           path: legacy-reports/
-          retention-days: 30
+          retention-days: 7
 
   backend-lint:
     name: Backend Lint (ruff)
@@ -203,7 +203,7 @@ jobs:
         with:
           name: backend-lint
           path: backend-lint/
-          retention-days: 30
+          retention-days: 7
 
   frontend-typecheck:
     name: Frontend Type Check (TypeScript)
@@ -254,7 +254,7 @@ jobs:
         with:
           name: frontend-coverage
           path: frontend/coverage/
-          retention-days: 30
+          retention-days: 7
 
   backend-test:
     name: Backend Tests (pytest)
@@ -326,7 +326,7 @@ jobs:
             coverage.xml
             coverage.json
             htmlcov/
-          retention-days: 30
+          retention-days: 7
 
   backend-complexity:
     name: Backend Complexity (radon)
@@ -530,7 +530,7 @@ jobs:
         with:
           name: backend-complexity
           path: complexity/
-          retention-days: 30
+          retention-days: 7
 
   frontend-complexity:
     name: Frontend Complexity (ESLint)
@@ -574,7 +574,7 @@ jobs:
         with:
           name: frontend-complexity
           path: frontend/complexity/
-          retention-days: 30
+          retention-days: 7
 
   frontend-duplication:
     name: Frontend Duplication (jscpd)
@@ -635,7 +635,7 @@ jobs:
         with:
           name: frontend-duplication
           path: frontend/duplication/
-          retention-days: 30
+          retention-days: 7
 
   legacy-duplication:
     name: Legacy Duplication (jscpd)
@@ -687,7 +687,7 @@ jobs:
         with:
           name: legacy-duplication
           path: legacy-duplication/
-          retention-days: 30
+          retention-days: 7
 
   backend-duplication:
     name: Backend Duplication (jscpd)
@@ -740,7 +740,7 @@ jobs:
         with:
           name: backend-duplication
           path: backend-duplication/
-          retention-days: 30
+          retention-days: 7
 
   frontend-security:
     name: Frontend Security (npm audit)
@@ -803,7 +803,7 @@ jobs:
         with:
           name: frontend-security
           path: frontend/security/
-          retention-days: 30
+          retention-days: 7
 
   backend-security:
     name: Backend Security (pip-audit + Bandit SAST)
@@ -884,7 +884,7 @@ jobs:
         with:
           name: backend-security
           path: security/
-          retention-days: 30
+          retention-days: 7
 
   secrets-detection:
     name: Secrets Detection
@@ -938,7 +938,7 @@ jobs:
         with:
           name: secrets-detection
           path: security/
-          retention-days: 30
+          retention-days: 7
 
   frontend-bundle:
     name: Frontend Bundle Analysis
@@ -1044,7 +1044,7 @@ jobs:
         with:
           name: frontend-bundle
           path: frontend/bundle/
-          retention-days: 30
+          retention-days: 7
 
   migration-check:
     name: Migration Check
@@ -1121,7 +1121,7 @@ jobs:
         with:
           name: trivy-scan
           path: trivy-results.json
-          retention-days: 30
+          retention-days: 7
 
   semgrep:
     name: SAST (Semgrep)
@@ -1191,7 +1191,7 @@ jobs:
         with:
           name: semgrep-results
           path: semgrep-results/
-          retention-days: 30
+          retention-days: 7
 
   hadolint:
     name: Dockerfile Lint (Hadolint)
@@ -1292,7 +1292,7 @@ jobs:
         with:
           name: gitleaks-results
           path: results.sarif
-          retention-days: 30
+          retention-days: 7
           if-no-files-found: ignore
 
   ci-success:
