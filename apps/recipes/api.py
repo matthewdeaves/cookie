@@ -313,7 +313,7 @@ async def _cache_and_map_images(results: list) -> None:
         result["cached_image_url"] = cached_urls.get(external_url)
 
 
-@router.get("/search/", response=SearchOut)
+@router.get("/search/", response=SearchOut, auth=SessionAuth())
 async def search_recipes(
     request,
     q: str,

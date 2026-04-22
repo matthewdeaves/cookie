@@ -615,9 +615,31 @@ class TestScrapeRecipe:
         assert response.status_code == 401
 
 
+async def _make_search_session():
+    """Create a Profile + session and return (profile, session_key) for async tests."""
+    from asgiref.sync import sync_to_async
+    from apps.profiles.models import Profile
+    from django.contrib.sessions.backends.db import SessionStore
+
+    @sync_to_async
+    def setup():
+        p = Profile.objects.create(name="Search User", avatar_color="#112233")
+        s = SessionStore()
+        s["profile_id"] = p.id
+        s.create()
+        return p, s.session_key
+
+    return await setup()
+
+
 @pytest.mark.django_db
 class TestSearchRecipesAPI:
     """Tests for GET /api/recipes/search/"""
+
+    def test_search_recipes_requires_auth(self, client):
+        """Unauthenticated requests must get 401 (F-28 regression)."""
+        response = client.get("/api/recipes/search/?q=anything")
+        assert response.status_code == 401
 
     @patch("apps.recipes.api.RecipeSearch")
     async def test_search_recipes_basic(self, mock_search_class):
@@ -643,8 +665,11 @@ class TestSearchRecipesAPI:
         mock_search_class.return_value = mock_search
 
         from django.test import AsyncClient
+        from django.conf import settings
 
+        _, session_key = await _make_search_session()
         async_client = AsyncClient()
+        async_client.cookies[settings.SESSION_COOKIE_NAME] = session_key
         response = await async_client.get("/api/recipes/search/?q=chocolate+cookies")
 
         assert response.status_code == 200
@@ -692,8 +717,11 @@ class TestSearchRecipesAPI:
         mock_search_class.return_value = mock_search
 
         from django.test import AsyncClient
+        from django.conf import settings
 
+        _, session_key = await _make_search_session()
         async_client = AsyncClient()
+        async_client.cookies[settings.SESSION_COOKIE_NAME] = session_key
         response = await async_client.get("/api/recipes/search/?q=cookies&sources=allrecipes.com,bbcgoodfood.com")
 
         assert response.status_code == 200
@@ -742,8 +770,11 @@ class TestSearchRecipesAPI:
         mock_search_class.return_value = mock_search
 
         from django.test import AsyncClient
+        from django.conf import settings
 
+        _, session_key = await _make_search_session()
         async_client = AsyncClient()
+        async_client.cookies[settings.SESSION_COOKIE_NAME] = session_key
         response = await async_client.get("/api/recipes/search/?q=cookies&page=2&per_page=2")
 
         assert response.status_code == 200
@@ -757,8 +788,11 @@ class TestSearchRecipesAPI:
     async def test_search_missing_query(self, mock_search_class):
         """Test search without query parameter returns error."""
         from django.test import AsyncClient
+        from django.conf import settings
 
+        _, session_key = await _make_search_session()
         async_client = AsyncClient()
+        async_client.cookies[settings.SESSION_COOKIE_NAME] = session_key
         response = await async_client.get("/api/recipes/search/")
 
         # Should return 422 (validation error) for missing required parameter

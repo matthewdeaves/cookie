@@ -6,7 +6,7 @@
 
 services:
   db:
-    image: postgres:18-alpine
+    image: postgres:17-alpine
     container_name: cookie-db
     restart: unless-stopped
     volumes:
@@ -24,7 +24,7 @@ services:
       retries: 5
 
   web:
-    image: ghcr.io/matthewdeaves/cookie:1.54.0
+    image: ghcr.io/matthewdeaves/cookie:1.55.0
     container_name: cookie-prod
     ports:
       - "80:80"

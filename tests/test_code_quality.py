@@ -20,7 +20,7 @@ EXEMPT_FILES: dict[str, int] = {
     "apps/ai/tests.py": 1852,
     "apps/recipes/tests.py": 564,
     "tests/test_passkey_api.py": 903,
-    "tests/test_recipes_api.py": 823,
+    "tests/test_recipes_api.py": 857,
     "tests/test_cookie_admin.py": 830,
     "tests/test_ai_quota.py": 768,
     "tests/test_search.py": 718,
