@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search } from 'lucide-react'
+import { toast } from 'sonner'
 import { useProfile } from '../contexts/ProfileContext'
 import { useAIStatus } from '../contexts/AIStatusContext'
 import { useHomeData } from '../hooks/useHomeData'
@@ -10,6 +11,7 @@ import { RecipeGridSkeleton } from '../components/Skeletons'
 import { cn } from '../lib/utils'
 import FavoritesTab from './FavoritesTab'
 import DiscoverTab from './DiscoverTab'
+import { api } from '../api/client'
 
 type Tab = 'favorites' | 'discover'
 
@@ -53,6 +55,7 @@ export default function Home() {
   const { profile } = useProfile()
   const aiStatus = useAIStatus()
   const [searchQuery, setSearchQuery] = useState('')
+  const [importing, setImporting] = useState(false)
   const [activeTab, setActiveTab] = useState<Tab>('favorites')
 
   const { favorites, history, recipesCount, loading, favoriteIds, handleRecipeClick, handleToggleFavorite } = useHomeData()
@@ -64,11 +67,25 @@ export default function Home() {
     aiAvailable: discoverAvailable,
   })
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const handleSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+    const trimmed = searchQuery.trim()
+    if (!trimmed) return
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      setImporting(true)
+      try {
+        const recipe = await api.recipes.scrape(trimmed)
+        await api.history.record(recipe.id)
+        toast.success(`Imported: ${recipe.title}`)
+        navigate(`/recipe/${recipe.id}`)
+      } catch {
+        toast.error('Could not import recipe from that URL. Try a different link.')
+      } finally {
+        setImporting(false)
+      }
+      return
     }
+    navigate(`/search?q=${encodeURIComponent(trimmed)}`)
   }
 
   const handleDiscoverTabClick = () => {
@@ -92,8 +109,9 @@ export default function Home() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search recipes..."
-                className="w-full rounded-xl border border-border bg-input-background py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder="Search recipes or paste a URL..."
+                disabled={importing}
+                className="w-full rounded-xl border border-border bg-input-background py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60"
               />
             </div>
           </form>

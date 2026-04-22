@@ -109,7 +109,7 @@ describe('Home', () => {
     await act(async () => {
       render(<Home />)
     })
-    expect(screen.getByPlaceholderText('Search recipes...')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Search recipes or paste a URL...')).toBeInTheDocument()
   })
 
   it('shows empty state when no favorites exist', async () => {
