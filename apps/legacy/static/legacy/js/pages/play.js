@@ -292,40 +292,20 @@ Cookie.pages.play = (function() {
         btn.classList.add('loading');
 
         var durationMinutes = Math.ceil(duration / 60);
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/api/ai/timer-name', true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
 
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                btn.disabled = false;
-                btn.classList.remove('loading');
-
-                if (xhr.status === 200) {
-                    try {
-                        var response = JSON.parse(xhr.responseText);
-                        if (response.label) {
-                            Cookie.pages.playTimers.addTimer(response.label, duration);
-                            return;
-                        }
-                    } catch (parseError) {
-                        // fall through
-                    }
-                }
-                Cookie.pages.playTimers.addTimer(label, duration);
-            }
-        };
-
-        xhr.onerror = function() {
-            btn.disabled = false;
-            btn.classList.remove('loading');
-            Cookie.pages.playTimers.addTimer(label, duration);
-        };
-
-        xhr.send(JSON.stringify({
+        Cookie.ajax.post('/api/ai/timer-name', {
             step_text: instruction,
             duration_minutes: durationMinutes
-        }));
+        }, function(err, response) {
+            btn.disabled = false;
+            btn.classList.remove('loading');
+
+            if (!err && response && response.label) {
+                Cookie.pages.playTimers.addTimer(response.label, duration);
+            } else {
+                Cookie.pages.playTimers.addTimer(label, duration);
+            }
+        });
     }
 
     return {
