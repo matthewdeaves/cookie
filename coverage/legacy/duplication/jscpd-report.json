@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-22T23:11:30.924Z",
+    "detectionDate": "2026-04-22T23:43:29.639Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -197,14 +197,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/detail-scaling.js": {
-            "lines": 366,
-            "tokens": 3434,
+            "lines": 372,
+            "tokens": 3482,
             "sources": 1,
             "clones": 4,
-            "duplicatedLines": 26,
-            "duplicatedTokens": 302,
-            "percentage": 7.1,
-            "percentageTokens": 8.79,
+            "duplicatedLines": 30,
+            "duplicatedTokens": 340,
+            "percentage": 8.06,
+            "percentageTokens": 9.76,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -438,28 +438,28 @@
           }
         },
         "total": {
-          "lines": 7294,
-          "tokens": 57043,
+          "lines": 7300,
+          "tokens": 57091,
           "sources": 36,
           "clones": 37,
-          "duplicatedLines": 317,
-          "duplicatedTokens": 2845,
-          "percentage": 4.35,
-          "percentageTokens": 4.99,
+          "duplicatedLines": 319,
+          "duplicatedTokens": 2864,
+          "percentage": 4.37,
+          "percentageTokens": 5.02,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7294,
-      "tokens": 57043,
+      "lines": 7300,
+      "tokens": 57091,
       "sources": 36,
       "clones": 37,
-      "duplicatedLines": 317,
-      "duplicatedTokens": 2845,
-      "percentage": 4.35,
-      "percentageTokens": 4.99,
+      "duplicatedLines": 319,
+      "duplicatedTokens": 2864,
+      "percentage": 4.37,
+      "percentageTokens": 5.02,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -1223,37 +1223,37 @@
     },
     {
       "format": "javascript",
-      "lines": 5,
-      "fragment": ";\n            var el = document.querySelector('[data-time-type=\"' + type + '\"]');\n            if (el) {\n                var valueEl = el.querySelector('.time-value');\n                if (valueEl &&",
+      "lines": 7,
+      "fragment": ";\n            var el = document.querySelector('[data-time-type=\"' + type + '\"]');\n            if (el) {\n                var valueEl = el.querySelector('.time-value');\n                if (valueEl) {\n                    var originalMinutesAttr = el.getAttribute('data-original-minutes');\n                    if",
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/detail-scaling.js",
         "start": 242,
-        "end": 246,
+        "end": 248,
         "startLoc": {
           "line": 242,
           "column": 2,
           "position": 2270
         },
         "endLoc": {
-          "line": 246,
+          "line": 248,
           "column": 3,
-          "position": 2325
+          "position": 2344
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/detail-scaling.js",
         "start": 213,
-        "end": 218,
+        "end": 220,
         "startLoc": {
           "line": 213,
           "column": 9,
           "position": 1938
         },
         "endLoc": {
-          "line": 218,
-          "column": 2,
-          "position": 1993
+          "line": 220,
+          "column": 4,
+          "position": 2013
         }
       }
     },
