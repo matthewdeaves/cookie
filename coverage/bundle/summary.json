@@ -2,12 +2,12 @@
   "total_size_kb": 569.17,
   "total_gzip_kb": 169.53,
   "js_size_kb": 510.02,
-  "js_gzip_kb": 158.91,
+  "js_gzip_kb": 158.9,
   "css_size_kb": 59.15,
   "css_gzip_kb": 10.62,
   "files": [
     {
-      "name": "index-DzNaUhEu.js",
+      "name": "index-DLC4h6nc.js",
       "size_kb": 175.16,
       "gzip_kb": 54.85
     },
@@ -22,7 +22,7 @@
       "gzip_kb": 10.62
     },
     {
-      "name": "Settings-DlA0LY-S.js",
+      "name": "Settings-D_SYIHle.js",
       "size_kb": 51.4,
       "gzip_kb": 11.1
     },
@@ -37,7 +37,7 @@
       "gzip_kb": 8.47
     },
     {
-      "name": "RecipeDetail-BJoBPq9x.js",
+      "name": "RecipeDetail-D0sKGBId.js",
       "size_kb": 25.84,
       "gzip_kb": 6.74
     },
@@ -47,32 +47,32 @@
       "gzip_kb": 6.35
     },
     {
-      "name": "router-xSyijlRO.js",
+      "name": "router-COxEtD33.js",
       "size_kb": 10.54,
       "gzip_kb": 3.18
     },
     {
-      "name": "Home-BRV15jHA.js",
+      "name": "Home-DmdkUKzx.js",
       "size_kb": 10.27,
       "gzip_kb": 3.16
     },
     {
-      "name": "Search-nl1eUXfA.js",
+      "name": "Search-C4Zush6X.js",
       "size_kb": 7.55,
       "gzip_kb": 2.71
     },
     {
-      "name": "Collections-D3GDIZ8f.js",
+      "name": "Collections-DY0O8fqU.js",
       "size_kb": 5.94,
       "gzip_kb": 1.91
     },
     {
-      "name": "NavHeader-qUJaLfVE.js",
+      "name": "NavHeader-D7tjyCvH.js",
       "size_kb": 5.36,
       "gzip_kb": 2
     },
     {
-      "name": "CollectionDetail-C8jnsi1n.js",
+      "name": "CollectionDetail-CXP3rdEo.js",
       "size_kb": 4.87,
       "gzip_kb": 1.61
     },
@@ -82,7 +82,7 @@
       "gzip_kb": 1.64
     },
     {
-      "name": "AllRecipes-0jSdmrQq.js",
+      "name": "AllRecipes-BLGhWZn4.js",
       "size_kb": 3.48,
       "gzip_kb": 1.38
     },
@@ -102,7 +102,7 @@
       "gzip_kb": 1.07
     },
     {
-      "name": "RecipeCard-B9n3S7l-.js",
+      "name": "RecipeCard-CKy_Hoew.js",
       "size_kb": 2.33,
       "gzip_kb": 0.99
     },
@@ -112,7 +112,7 @@
       "gzip_kb": 1.03
     },
     {
-      "name": "Favorites-D4LW_dUS.js",
+      "name": "Favorites-DPX9QlhU.js",
       "size_kb": 2.08,
       "gzip_kb": 0.93
     },
