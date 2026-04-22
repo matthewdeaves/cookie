@@ -73,6 +73,20 @@ Cookie.pages.search = (function() {
      * Setup event listeners
      */
     function setupEventListeners() {
+        // Intercept form submission: if the query is a URL, import it directly
+        var searchForm = document.getElementById('search-form');
+        if (searchForm) {
+            searchForm.addEventListener('submit', function(e) {
+                var searchInput = document.getElementById('search-input');
+                if (!searchInput) return;
+                var query = searchInput.value.trim();
+                if (query.indexOf('http://') === 0 || query.indexOf('https://') === 0) {
+                    e.preventDefault();
+                    importFromUrlInput(query, searchInput);
+                }
+            });
+        }
+
         // Load more button
         if (elements.loadMoreBtn) {
             elements.loadMoreBtn.addEventListener('click', function() {
@@ -94,6 +108,29 @@ Cookie.pages.search = (function() {
                 }
             });
         }
+    }
+
+    /**
+     * Import from a URL typed directly into the search input.
+     */
+    function importFromUrlInput(url, inputEl) {
+        inputEl.disabled = true;
+        inputEl.value = 'Importing...';
+
+        Cookie.ajax.post('/api/recipes/scrape/', { url: url }, function(error, response) {
+            inputEl.disabled = false;
+            inputEl.value = url;
+
+            if (error) {
+                Cookie.toast.error('Could not import recipe from that URL. Try a different link.');
+                return;
+            }
+
+            Cookie.toast.success('Recipe imported!');
+            setTimeout(function() {
+                window.location.href = '/legacy/recipe/' + response.id + '/';
+            }, 800);
+        });
     }
 
     /**
@@ -365,7 +402,7 @@ Cookie.pages.search = (function() {
             if (error) {
                 button.textContent = originalText;
                 button.disabled = false;
-                Cookie.toast.error(error.message || 'Failed to import recipe');
+                Cookie.toast.error('Could not import recipe from that URL. Try a different link.');
                 return;
             }
 

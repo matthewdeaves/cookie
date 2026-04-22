@@ -95,8 +95,8 @@ Cookie.aiError = (function() {
         var status = err.status;
         var data = err.data || {};
 
-        // Hide features for 503 (unavailable) or 401 (invalid key)
-        return status === 503 || status === 401 || data.error === 'ai_unavailable';
+        // Hide features for 503 (unavailable), 401 (invalid key), or quota exhausted
+        return status === 503 || status === 401 || data.error === 'ai_unavailable' || data.error === 'quota_exceeded';
     }
 
     /**

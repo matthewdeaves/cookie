@@ -1,7 +1,7 @@
 import { createContext, lazy, Suspense, useContext, useState, useEffect } from 'react'
 import { createBrowserRouter, Outlet, Navigate, useLocation, useRouteError } from 'react-router-dom'
 import { Toaster } from 'sonner'
-import { AIStatusProvider } from './contexts/AIStatusContext'
+import { AIStatusProvider, useAIStatus } from './contexts/AIStatusContext'
 import { ProfileProvider, useProfile } from './contexts/ProfileContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { api } from './api/client'
@@ -27,6 +27,25 @@ function LoadingFallback() {
       <div className="text-muted-foreground">Loading...</div>
     </div>
   )
+}
+
+// Syncs Sonner's theme with the app's CSS dark-mode class (.dark on <html>).
+// Without this the Toaster defaults to light theme even when the user has
+// selected a dark profile, making success/error colours look wrong.
+function ThemeAwareToaster() {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() =>
+    document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+  )
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setTheme(document.documentElement.classList.contains('dark') ? 'dark' : 'light')
+    })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
+
+  return <Toaster position="top-center" richColors theme={theme} />
 }
 
 // Mode context — provides the operating mode to child components without hook violations
@@ -70,7 +89,7 @@ function AppLayout() {
             default position (top-left on mobile). Keeping it at the
             ModeContext level means it survives every auth-state change
             within passkey mode. */}
-        <Toaster position="top-center" richColors />
+        <ThemeAwareToaster />
         <AuthProvider>
           <AIStatusProvider>
             <AuthProfileBridge>
@@ -89,17 +108,35 @@ function AppLayout() {
   return (
     <ModeContext.Provider value="home">
       {/* Same reasoning as the passkey branch above. */}
-      <Toaster position="top-center" richColors />
+      <ThemeAwareToaster />
       <AIStatusProvider>
-        <ProfileProvider>
+        <ProfileProviderWithAIRefresh>
           <ErrorBoundary>
           <Suspense fallback={<LoadingFallback />}>
             <Outlet />
           </Suspense>
           </ErrorBoundary>
-        </ProfileProvider>
+        </ProfileProviderWithAIRefresh>
       </AIStatusProvider>
     </ModeContext.Provider>
+  )
+}
+
+// Wraps ProfileProvider and forwards the AI status refresh so that
+// AI features appear immediately after a profile is selected on first
+// visit (before the initial /api/ai/status call a session was absent).
+function ProfileProviderWithAIRefresh({
+  children,
+  authProfile,
+}: {
+  children: React.ReactNode
+  authProfile?: { id: number; name: string; avatar_color: string; theme: string; unit_preference: string } | null
+}) {
+  const { refresh } = useAIStatus()
+  return (
+    <ProfileProvider authProfile={authProfile} onProfileSelected={refresh}>
+      {children}
+    </ProfileProvider>
   )
 }
 
@@ -110,7 +147,7 @@ function AuthProfileBridge({ children }: { children: React.ReactNode }) {
     return <LoadingFallback />
   }
 
-  return <ProfileProvider authProfile={authProfile}>{children}</ProfileProvider>
+  return <ProfileProviderWithAIRefresh authProfile={authProfile}>{children}</ProfileProviderWithAIRefresh>
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {

@@ -2,6 +2,7 @@ import { useState, useEffect, type Dispatch, type SetStateAction } from 'react'
 import { toast } from 'sonner'
 import { api, type RecipeDetail as RecipeDetailType } from '../api/client'
 import { handleQuotaError } from '../lib/utils'
+import { useAIStatus } from '../contexts/AIStatusContext'
 
 const POLL_INTERVAL = 3000 // 3 seconds
 const MAX_POLL_DURATION = 30000 // 30 seconds
@@ -27,6 +28,7 @@ export function useTipsPolling({
   activeTab,
   setRecipe,
 }: UseTipsPollingOptions): UseTipsPollingReturn {
+  const { setFeatureQuotaExhausted } = useAIStatus()
   const [tips, setTips] = useState<string[]>([])
   const [tipsLoading, setTipsLoading] = useState(false)
   const [tipsPolling, setTipsPolling] = useState(false)
@@ -92,7 +94,9 @@ export function useTipsPolling({
       toast.success(regenerate ? 'Tips regenerated!' : 'Tips generated!')
     } catch (error) {
       console.error('Failed to generate tips:', error)
-      handleQuotaError(error, 'Failed to generate tips')
+      if (handleQuotaError(error, 'Failed to generate tips')) {
+        setFeatureQuotaExhausted('tips')
+      }
     } finally {
       setTipsLoading(false)
     }
@@ -115,7 +119,9 @@ export function useTipsPolling({
       } catch (error) {
         if (!cancelled) {
           console.error('Failed to generate tips:', error)
-          handleQuotaError(error, 'Failed to generate tips')
+          if (handleQuotaError(error, 'Failed to generate tips')) {
+            setFeatureQuotaExhausted('tips')
+          }
         }
       } finally {
         if (!cancelled) setTipsLoading(false)

@@ -98,6 +98,25 @@
             </div>
             {% endif %}
 
+            <!-- Appearance preferences (all users) -->
+            <div class="card mt-4">
+                <h2 class="settings-section-title">Appearance</h2>
+                <div class="form-group form-group-inline">
+                    <span class="form-label">Theme</span>
+                    <div class="pref-btn-group">
+                        <button type="button" id="theme-light-btn" class="pref-toggle{% if current_profile_theme != 'dark' %} active{% endif %}" data-theme="light">Light</button>
+                        <button type="button" id="theme-dark-btn" class="pref-toggle{% if current_profile_theme == 'dark' %} active{% endif %}" data-theme="dark">Dark</button>
+                    </div>
+                </div>
+                <div class="form-group form-group-inline">
+                    <span class="form-label">Units</span>
+                    <div class="pref-btn-group">
+                        <button type="button" id="units-metric-btn" class="pref-toggle{% if profile.unit_preference != 'imperial' %} active{% endif %}" data-unit="metric">Metric</button>
+                        <button type="button" id="units-imperial-btn" class="pref-toggle{% if profile.unit_preference == 'imperial' %} active{% endif %}" data-unit="imperial">Imperial</button>
+                    </div>
+                </div>
+            </div>
+
             {% if is_admin %}
             <!-- AI Quota Config (admin, passkey mode only — hidden by default, shown by JS) -->
             <div id="quota-config-section" class="card mt-4 hidden">

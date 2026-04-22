@@ -134,9 +134,8 @@ export function useSearch(): UseSearchReturn {
       const recipe = await importRecipe(url)
       toast.success(`Imported: ${recipe.title}`)
       navigate(`/recipe/${recipe.id}`)
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to import recipe'
-      toast.error(message)
+    } catch {
+      toast.error('Could not import recipe from that URL. Try a different link.')
     } finally { setImporting(null) }
   }
 

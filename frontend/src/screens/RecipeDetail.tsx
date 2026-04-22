@@ -23,11 +23,12 @@ export default function RecipeDetail() {
     tipsLoading,
     tipsPolling,
     profile,
-    aiStatus,
     recipeId,
     canShowServingAdjustment,
     recipeIsFavorite,
     imageUrl,
+    tipsAvailable,
+    remixAvailable,
     handleServingChange,
     handleGenerateTips,
     handleFavoriteToggle,
@@ -73,7 +74,7 @@ export default function RecipeDetail() {
         <RecipeActions
           recipeId={recipeId}
           recipeIsFavorite={recipeIsFavorite}
-          aiAvailable={aiStatus.available}
+          aiAvailable={remixAvailable}
           onFavoriteToggle={handleFavoriteToggle}
           onAddToNewCollection={handleAddToNewCollection}
           onShowRemixModal={() => setShowRemixModal(true)}
@@ -89,7 +90,7 @@ export default function RecipeDetail() {
         tips={tips}
         tipsLoading={tipsLoading}
         tipsPolling={tipsPolling}
-        aiAvailable={aiStatus.available}
+        aiAvailable={tipsAvailable}
         onGenerateTips={handleGenerateTips}
       />
 

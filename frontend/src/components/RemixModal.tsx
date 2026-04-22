@@ -3,6 +3,7 @@ import { X, Sparkles, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type RecipeDetail } from '../api/client'
 import { cn, handleQuotaError } from '../lib/utils'
+import { useAIStatus } from '../contexts/AIStatusContext'
 import SuggestionSelector from './SuggestionSelector'
 import CustomRemixInput from './CustomRemixInput'
 
@@ -100,6 +101,7 @@ export default function RemixModal({
   onClose,
   onRemixCreated,
 }: RemixModalProps) {
+  const { setFeatureQuotaExhausted } = useAIStatus()
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const [selectedSuggestions, setSelectedSuggestions] = useState<string[]>([])
@@ -121,14 +123,16 @@ export default function RemixModal({
       } catch (error) {
         if (!cancelled) {
           console.error('Failed to load remix suggestions:', error)
-          handleQuotaError(error, 'Failed to load suggestions')
+          if (handleQuotaError(error, 'Failed to load suggestions')) {
+            setFeatureQuotaExhausted('remix')
+          }
         }
       } finally {
         if (!cancelled) setLoadingSuggestions(false)
       }
     })()
     return () => { cancelled = true }
-  }, [isOpen, recipe.id])
+  }, [isOpen, recipe.id, setFeatureQuotaExhausted])
 
   const handleSuggestionClick = (suggestion: string) => {
     setSelectedSuggestions((prev) =>
@@ -154,7 +158,10 @@ export default function RemixModal({
       onClose()
     } catch (error) {
       console.error('Failed to create remix:', error)
-      handleQuotaError(error, 'Failed to create remix')
+      if (handleQuotaError(error, 'Failed to create remix')) {
+        setFeatureQuotaExhausted('remix')
+        onClose()
+      }
     } finally {
       setCreating(false)
     }

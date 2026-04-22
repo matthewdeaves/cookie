@@ -27,8 +27,16 @@ Cookie.pages.home = (function() {
         if (searchForm) {
             searchForm.addEventListener('submit', function(e) {
                 var searchInput = document.getElementById('search-input');
-                if (searchInput && !searchInput.value.trim()) {
+                if (!searchInput) return;
+                var query = searchInput.value.trim();
+                if (!query) {
                     e.preventDefault();
+                    return;
+                }
+                // If the user pasted a URL, intercept and import it directly
+                if (query.indexOf('http://') === 0 || query.indexOf('https://') === 0) {
+                    e.preventDefault();
+                    importFromUrl(query, searchInput);
                 }
             });
         }
@@ -423,6 +431,29 @@ Cookie.pages.home = (function() {
             // Reload page to show empty state
             window.location.reload();
         }
+    }
+
+    /**
+     * Import a recipe directly from a URL typed into the search box.
+     */
+    function importFromUrl(url, inputEl) {
+        inputEl.disabled = true;
+        inputEl.value = 'Importing...';
+
+        Cookie.ajax.post('/api/recipes/scrape/', { url: url }, function(error, response) {
+            inputEl.disabled = false;
+            inputEl.value = url;
+
+            if (error) {
+                Cookie.toast.error('Could not import recipe from that URL. Try a different link.');
+                return;
+            }
+
+            Cookie.toast.success('Recipe imported!');
+            setTimeout(function() {
+                window.location.href = '/legacy/recipe/' + response.id + '/';
+            }, 800);
+        });
     }
 
     return {

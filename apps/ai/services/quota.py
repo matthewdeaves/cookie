@@ -4,12 +4,15 @@ Uses Django's database cache backend to enforce per-profile, per-feature
 daily limits. Quotas only apply in passkey auth mode — home mode is unlimited.
 """
 
+import logging
 from datetime import datetime, timedelta, UTC
 
 from django.conf import settings
 from django.core.cache import cache
 
 from apps.core.models import AppSettings
+
+logger = logging.getLogger(__name__)
 
 ALL_FEATURES = (
     "remix",
@@ -151,7 +154,7 @@ def release_quota(profile, feature: str) -> None:
     try:
         cache.decr(key)
     except ValueError:
-        pass
+        logger.debug("quota release: cache key missing for profile=%s feature=%s (cache may have been flushed)", profile.pk, feature)
 
 
 def increment_quota(profile, feature: str) -> None:

@@ -39,19 +39,32 @@ def find_link(element) -> Optional[tuple]:
 def extract_title(element, link) -> str:
     """Extract title from element with multiple fallback strategies.
 
-    Tries: heading elements, link text, title/aria-label attributes.
+    Uses separator=" " so nested metadata spans (e.g. prep-time) don't
+    bleed into the title without whitespace.
     """
     title_el = element.find(["h2", "h3", "h4", ".title", '[class*="title"]'])
     if title_el:
-        title = title_el.get_text(strip=True)
+        title = title_el.get_text(separator=" ", strip=True)
         if title:
-            return title
+            return _strip_title_metadata(title)
 
-    title = link.get_text(strip=True)
+    title = link.get_text(separator=" ", strip=True)
     if title:
-        return title
+        return _strip_title_metadata(title)
 
     return link.get("title", "") or link.get("aria-label", "")
+
+
+# Strips trailing time metadata, e.g. "30 mins", "1 hr 30 mins".
+_TRAILING_TIME_RE = re.compile(
+    r"\s+\d+\s*(?:hr?s?|hour[s]?|min(?:ute)?[s]?)(?:\s+\d+\s*(?:min(?:ute)?[s]?))?$",
+    re.IGNORECASE,
+)
+
+
+def _strip_title_metadata(title: str) -> str:
+    """Strip trailing time/duration metadata from a recipe card title."""
+    return _TRAILING_TIME_RE.sub("", title).strip()
 
 
 def extract_rating(title: str) -> tuple[str, Optional[int]]:
@@ -182,9 +195,8 @@ def extract_result_from_element(
     image_url = extract_image(element, base_url)
     description = extract_description(element)
 
-    # Field validation: neutral URL results must have both image AND description.
-    # Real recipe cards from search pages almost always have both.
-    # Editorial/article results often lack one or both.
+    # Neutral URLs must have both image AND description — recipe cards almost
+    # always do; editorial/article results often lack one or both.
     if url_signal == "neutral" and (not image_url or not description):
         logger.debug("Filtered neutral URL missing image or description: %s (%s)", title, url)
         return None

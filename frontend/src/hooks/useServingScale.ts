@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { api, type RecipeDetail as RecipeDetailType, type ScaleResponse } from '../api/client'
 import { handleQuotaError } from '../lib/utils'
+import { useAIStatus } from '../contexts/AIStatusContext'
 
 interface UseServingScaleReturn {
   servings: number | null
@@ -19,6 +20,7 @@ export function useServingScale(
   recipe: RecipeDetailType | null,
   profileId: number | undefined
 ): UseServingScaleReturn {
+  const { setFeatureQuotaExhausted } = useAIStatus()
   const [servings, setServings] = useState<number | null>(null)
   const [scaledData, setScaledData] = useState<ScaleResponse | null>(null)
   const [scalingLoading, setScalingLoading] = useState(false)
@@ -42,7 +44,9 @@ export function useServingScale(
       }
     } catch (error) {
       console.error('Failed to scale recipe:', error)
-      handleQuotaError(error, 'Failed to scale ingredients')
+      if (handleQuotaError(error, 'Failed to scale ingredients')) {
+        setFeatureQuotaExhausted('scale')
+      }
       setServings(servings)
     } finally {
       setScalingLoading(false)

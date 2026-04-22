@@ -140,6 +140,8 @@ vi.mock('../contexts/AIStatusContext', () => ({
     available: true,
     loading: false,
     refresh: vi.fn(),
+    setFeatureQuotaExhausted: vi.fn(),
+    isFeatureAvailable: vi.fn(() => true),
   }),
 }))
 

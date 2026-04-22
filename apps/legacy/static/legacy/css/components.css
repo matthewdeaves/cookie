@@ -500,7 +500,7 @@
     left: 50%;
     -webkit-transform: translateX(-50%);
     transform: translateX(-50%);
-    z-index: 1000;
+    z-index: 9999;
     width: calc(100% - 2rem);
     max-width: 400px;
 }

@@ -38,9 +38,10 @@ interface AuthProfile {
 interface ProfileProviderProps {
   children: ReactNode
   authProfile?: AuthProfile | null
+  onProfileSelected?: () => void
 }
 
-export function ProfileProvider({ children, authProfile }: ProfileProviderProps) {
+export function ProfileProvider({ children, authProfile, onProfileSelected }: ProfileProviderProps) {
   const { profile, setProfile, theme, setTheme, loading } = useStoredProfile(authProfile)
   const { favoriteRecipeIds, toggleFavorite, isFavorite, clearFavorites } = useFavorites(profile)
 
@@ -50,11 +51,15 @@ export function ProfileProvider({ children, authProfile }: ProfileProviderProps)
       setProfile(selectedProfile)
       setTheme(selectedProfile.theme as 'light' | 'dark')
       saveProfileId(selectedProfile.id)
+      // Re-check AI availability now that a session exists.  On first visit
+      // after import the initial /api/ai/status call returns 401 (no session
+      // yet); this ensures AI features are shown once the profile is active.
+      onProfileSelected?.()
     } catch (error) {
       console.error('Failed to select profile:', error)
       throw error
     }
-  }, [setProfile, setTheme])
+  }, [setProfile, setTheme, onProfileSelected])
 
   const logout = useCallback(() => {
     setProfile(null)

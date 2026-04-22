@@ -123,7 +123,7 @@ Cookie.pages.collections = (function() {
             }
 
             if (err) {
-                Cookie.toast.error(err.message || 'Failed to create collection');
+                Cookie.toast.error('Could not create collection. Please try again.');
                 return;
             }
 

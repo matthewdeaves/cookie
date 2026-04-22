@@ -115,9 +115,11 @@ const defaultHookReturn = {
   tipsLoading: false,
   tipsPolling: false,
   profile: { id: 1, name: 'Test', avatar_color: '#000', theme: 'light', unit_preference: 'metric' },
-  aiStatus: { available: false, configured: false, valid: false, error: null, errorCode: null, loading: false, refresh: vi.fn() },
+  aiStatus: { available: false, configured: false, valid: false, error: null, errorCode: null, loading: false, refresh: vi.fn(), setFeatureQuotaExhausted: vi.fn(), isFeatureAvailable: vi.fn(() => false) },
   recipeId: 1,
   canShowServingAdjustment: false,
+  tipsAvailable: false,
+  remixAvailable: false,
   recipeIsFavorite: false,
   imageUrl: 'https://example.com/cookies.jpg',
   handleServingChange: vi.fn(),
@@ -190,7 +192,7 @@ describe('RecipeDetail', () => {
   it('shows Tips tab when AI is available', () => {
     mockUseRecipeDetail.mockReturnValue({
       ...defaultHookReturn,
-      aiStatus: { ...defaultHookReturn.aiStatus, available: true },
+      tipsAvailable: true,
     })
     render(<RecipeDetail />)
     expect(screen.getByText('Tips')).toBeInTheDocument()

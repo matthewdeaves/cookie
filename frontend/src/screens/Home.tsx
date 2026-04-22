@@ -57,9 +57,11 @@ export default function Home() {
 
   const { favorites, history, recipesCount, loading, favoriteIds, handleRecipeClick, handleToggleFavorite } = useHomeData()
 
+  const discoverAvailable = aiStatus.isFeatureAvailable('discover')
+
   const discover = useDiscoverTab({
     profileId: profile?.id,
-    aiAvailable: aiStatus.available,
+    aiAvailable: discoverAvailable,
   })
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -76,7 +78,7 @@ export default function Home() {
 
   if (!profile) return null
 
-  const showFavorites = activeTab === 'favorites' || !aiStatus.available
+  const showFavorites = activeTab === 'favorites' || !discoverAvailable
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -96,7 +98,7 @@ export default function Home() {
             </div>
           </form>
 
-          {aiStatus.available && (
+          {discoverAvailable && (
             <TabToggle
               activeTab={activeTab}
               onFavoritesClick={() => setActiveTab('favorites')}
@@ -120,7 +122,7 @@ export default function Home() {
               suggestions={discover.suggestions}
               loading={discover.loading}
               error={discover.error}
-              aiAvailable={aiStatus.available}
+              aiAvailable={discoverAvailable}
               onRefresh={() => discover.load(true)}
               onRetry={() => discover.load()}
               onSwitchToFavorites={() => setActiveTab('favorites')}

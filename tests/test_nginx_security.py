@@ -181,6 +181,28 @@ class TestNginxCSP:
         csp = self._extract_csp(security_headers)
         assert "frame-ancestors" in csp, "CSP must include frame-ancestors directive"
 
+    def test_style_src_unsafe_inline_allowed(self, security_headers):
+        # 'unsafe-inline' is intentionally allowed for style-src to support
+        # Sonner's dynamic <style> injection (toast notifications) and other
+        # third-party libraries. CSS injection is far lower risk than JS injection
+        # since CSS cannot execute code. script-src remains strict (no unsafe-inline).
+        csp = self._extract_csp(security_headers)
+        style_src = re.search(r"style-src\s+([^;]+)", csp)
+        if style_src:
+            assert "'unsafe-inline'" in style_src.group(1), (
+                "style-src must allow 'unsafe-inline' for Sonner toast CSS injection"
+            )
+
+    def test_no_unsafe_inline_in_script_src_from_style_change(self, security_headers):
+        # Verify that adding unsafe-inline to style-src did not accidentally
+        # add it to script-src as well.
+        csp = self._extract_csp(security_headers)
+        script_src = re.search(r"script-src\s+([^;]+)", csp)
+        if script_src:
+            assert "'unsafe-inline'" not in script_src.group(1), (
+                "script-src must never contain 'unsafe-inline'"
+            )
+
 
 class TestNginxRouting:
     """Verify correct routing configuration."""

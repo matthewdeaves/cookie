@@ -9,6 +9,8 @@ interface AIStatusContextType {
   errorCode: string | null
   loading: boolean
   refresh: () => Promise<void>
+  setFeatureQuotaExhausted: (feature: string) => void
+  isFeatureAvailable: (feature: string) => boolean
 }
 
 const defaultStatus: AIStatusContextType = {
@@ -19,6 +21,8 @@ const defaultStatus: AIStatusContextType = {
   errorCode: null,
   loading: true,
   refresh: async () => {},
+  setFeatureQuotaExhausted: () => {},
+  isFeatureAvailable: () => false,
 }
 
 const AIStatusContext = createContext<AIStatusContextType>(defaultStatus)
@@ -33,7 +37,7 @@ interface AIStatusProviderProps {
 }
 
 export function AIStatusProvider({ children }: AIStatusProviderProps) {
-  const [status, setStatus] = useState<Omit<AIStatusContextType, 'refresh' | 'loading'>>({
+  const [status, setStatus] = useState<Omit<AIStatusContextType, 'refresh' | 'loading' | 'setFeatureQuotaExhausted' | 'isFeatureAvailable'>>({
     available: false,
     configured: false,
     valid: false,
@@ -41,6 +45,15 @@ export function AIStatusProvider({ children }: AIStatusProviderProps) {
     errorCode: null,
   })
   const [loading, setLoading] = useState(true)
+  const [quotaExhaustedFeatures, setQuotaExhaustedFeatures] = useState<Set<string>>(new Set())
+
+  const setFeatureQuotaExhausted = useCallback((feature: string) => {
+    setQuotaExhaustedFeatures(prev => new Set([...prev, feature]))
+  }, [])
+
+  const isFeatureAvailable = useCallback((feature: string): boolean => {
+    return status.available && !quotaExhaustedFeatures.has(feature)
+  }, [status.available, quotaExhaustedFeatures])
 
   const refresh = useCallback(async () => {
     try {
@@ -102,7 +115,7 @@ export function AIStatusProvider({ children }: AIStatusProviderProps) {
   }, [])
 
   return (
-    <AIStatusContext.Provider value={{ ...status, loading, refresh }}>
+    <AIStatusContext.Provider value={{ ...status, loading, refresh, setFeatureQuotaExhausted, isFeatureAvailable }}>
       {children}
     </AIStatusContext.Provider>
   )

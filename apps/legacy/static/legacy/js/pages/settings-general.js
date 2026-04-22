@@ -137,29 +137,24 @@
         var profileId = pageEl ? pageEl.getAttribute('data-profile-id') : null;
         if (!profileId) return;
 
-        var profile = Cookie.state.getProfile();
-        var payload = {
-            name: profile.name,
-            avatar_color: profile.avatar_color,
-            theme: profile.theme || 'light',
-            unit_preference: profile.unit_preference || 'metric'
-        };
+        var payload = {};
         payload[field] = value;
 
-        Cookie.ajax.put('/api/profiles/' + profileId + '/', payload, function(err) {
+        Cookie.ajax.patch('/api/profiles/' + profileId + '/preferences/', payload, function(err) {
             if (err) {
                 Cookie.toast.error('Failed to save preference');
                 return;
             }
 
+            var profile = Cookie.state.getProfile();
             if (field === 'theme') {
                 setToggleActive(themeLightBtn, themeDarkBtn, value === 'light');
                 applyTheme(value);
-                profile.theme = value;
+                if (profile) profile.theme = value;
                 Cookie.toast.success('Theme updated');
             } else if (field === 'unit_preference') {
                 setToggleActive(unitsMetricBtn, unitsImperialBtn, value === 'metric');
-                profile.unit_preference = value;
+                if (profile) profile.unit_preference = value;
                 Cookie.toast.success('Units updated');
             }
         });

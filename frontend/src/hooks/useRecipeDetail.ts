@@ -25,9 +25,12 @@ export function useRecipeDetail() {
   const { servings, scaledData, scalingLoading, setServings, setScaledData, handleServingChange } =
     useServingScale(recipe, profile?.id)
 
+  const tipsAvailable = aiStatus.isFeatureAvailable('tips')
+  const remixAvailable = aiStatus.isFeatureAvailable('remix')
+
   const { tips, tipsLoading, tipsPolling, handleGenerateTips } = useTipsPolling({
     recipe,
-    aiAvailable: aiStatus.available,
+    aiAvailable: tipsAvailable,
     activeTab,
     setRecipe,
   })
@@ -56,7 +59,7 @@ export function useRecipeDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when recipeId changes
   }, [recipeId])
 
-  const canShowServingAdjustment = aiStatus.available && recipe?.servings !== null
+  const canShowServingAdjustment = aiStatus.isFeatureAvailable('scale') && recipe?.servings !== null
 
   const handleFavoriteToggle = async () => {
     if (!recipe) return
@@ -78,6 +81,7 @@ export function useRecipeDetail() {
     servings, showRemixModal, setShowRemixModal, scaledData, scalingLoading,
     tips, tipsLoading, tipsPolling, profile, aiStatus, recipeId,
     canShowServingAdjustment, recipeIsFavorite, imageUrl,
+    tipsAvailable, remixAvailable,
     handleServingChange, handleGenerateTips, handleFavoriteToggle,
     handleStartCooking: () => navigate(`/recipe/${recipeId}/play`),
     handleAddToNewCollection: () => navigate(`/collections?addRecipe=${recipeId}`),

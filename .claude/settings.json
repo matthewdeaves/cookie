@@ -6,17 +6,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/es5-syntax-check.sh",
+            "command": "/home/matt/cookie/.claude/hooks/es5-syntax-check.sh",
             "statusMessage": "Checking ES5 compliance..."
           },
           {
             "type": "command",
-            "command": ".claude/hooks/ios9-css-check.sh",
+            "command": "/home/matt/cookie/.claude/hooks/ios9-css-check.sh",
             "statusMessage": "Checking iOS 9 CSS compatibility..."
           },
           {
             "type": "command",
-            "command": ".claude/hooks/unsafe-template-check.sh",
+            "command": "/home/matt/cookie/.claude/hooks/unsafe-template-check.sh",
             "statusMessage": "Checking for unsafe template patterns..."
           }
         ]
@@ -26,17 +26,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/es5-syntax-check.sh",
+            "command": "/home/matt/cookie/.claude/hooks/es5-syntax-check.sh",
             "statusMessage": "Checking ES5 compliance..."
           },
           {
             "type": "command",
-            "command": ".claude/hooks/ios9-css-check.sh",
+            "command": "/home/matt/cookie/.claude/hooks/ios9-css-check.sh",
             "statusMessage": "Checking iOS 9 CSS compatibility..."
           },
           {
             "type": "command",
-            "command": ".claude/hooks/unsafe-template-check.sh",
+            "command": "/home/matt/cookie/.claude/hooks/unsafe-template-check.sh",
             "statusMessage": "Checking for unsafe template patterns..."
           }
         ]
@@ -46,7 +46,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/docker-command-check.sh",
+            "command": "/home/matt/cookie/.claude/hooks/docker-command-check.sh",
             "statusMessage": "Checking Docker environment..."
           }
         ]

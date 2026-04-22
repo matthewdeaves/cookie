@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { api, type DiscoverSuggestion } from '../api/client'
 import { handleQuotaError } from '../lib/utils'
+import { useAIStatus } from '../contexts/AIStatusContext'
 
 interface UseDiscoverTabOptions {
   profileId: number | undefined
@@ -16,6 +17,7 @@ interface UseDiscoverTabResult {
 }
 
 export function useDiscoverTab({ profileId, aiAvailable }: UseDiscoverTabOptions): UseDiscoverTabResult {
+  const { setFeatureQuotaExhausted } = useAIStatus()
   const [suggestions, setSuggestions] = useState<DiscoverSuggestion[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
@@ -41,7 +43,9 @@ export function useDiscoverTab({ profileId, aiAvailable }: UseDiscoverTabOptions
         (err.name === 'AbortError' || err.message.includes('abort'))
       if (isAbort) {
         console.debug('Discover fetch aborted:', err)
-      } else if (!handleQuotaError(err, 'Failed to load discover suggestions')) {
+      } else if (handleQuotaError(err, 'Failed to load discover suggestions')) {
+        setFeatureQuotaExhausted('discover')
+      } else {
         setError(true)
       }
     } finally {
@@ -49,7 +53,7 @@ export function useDiscoverTab({ profileId, aiAvailable }: UseDiscoverTabOptions
         setLoading(false)
       }
     }
-  }, [profileId])
+  }, [profileId, setFeatureQuotaExhausted])
 
   const loadIfEmpty = useCallback(() => {
     if (suggestions.length === 0 && !loading && !error && aiAvailable) {
