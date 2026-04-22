@@ -1,7 +1,7 @@
 {
-  "duplication_percentage": 4.04,
-  "duplicated_lines": 292,
-  "total_lines": 7228,
-  "clones_count": 35,
+  "duplication_percentage": 4.35,
+  "duplicated_lines": 317,
+  "total_lines": 7294,
+  "clones_count": 37,
   "rating": "A"
 }

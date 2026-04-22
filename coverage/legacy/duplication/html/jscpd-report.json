@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-22T17:02:19.063Z",
+    "detectionDate": "2026-04-22T23:11:30.924Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -65,14 +65,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/settings-general.js": {
-            "lines": 477,
-            "tokens": 4171,
+            "lines": 472,
+            "tokens": 4138,
             "sources": 1,
             "clones": 7,
             "duplicatedLines": 39,
             "duplicatedTokens": 425,
-            "percentage": 8.18,
-            "percentageTokens": 10.19,
+            "percentage": 8.26,
+            "percentageTokens": 10.27,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -101,14 +101,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/search.js": {
-            "lines": 615,
-            "tokens": 4979,
+            "lines": 652,
+            "tokens": 5293,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 35,
-            "duplicatedTokens": 261,
-            "percentage": 5.69,
-            "percentageTokens": 5.24,
+            "clones": 6,
+            "duplicatedLines": 61,
+            "duplicatedTokens": 514,
+            "percentage": 9.36,
+            "percentageTokens": 9.71,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -149,14 +149,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/home.js": {
-            "lines": 439,
-            "tokens": 3386,
+            "lines": 470,
+            "tokens": 3637,
             "sources": 1,
-            "clones": 8,
-            "duplicatedLines": 72,
-            "duplicatedTokens": 534,
-            "percentage": 16.4,
-            "percentageTokens": 15.77,
+            "clones": 10,
+            "duplicatedLines": 97,
+            "duplicatedTokens": 780,
+            "percentage": 20.64,
+            "percentageTokens": 21.45,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -165,10 +165,10 @@
             "tokens": 671,
             "sources": 1,
             "clones": 5,
-            "duplicatedLines": 53,
-            "duplicatedTokens": 345,
-            "percentage": 52.48,
-            "percentageTokens": 51.42,
+            "duplicatedLines": 52,
+            "duplicatedTokens": 335,
+            "percentage": 51.49,
+            "percentageTokens": 49.93,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -197,14 +197,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/detail-scaling.js": {
-            "lines": 363,
-            "tokens": 3387,
+            "lines": 366,
+            "tokens": 3434,
             "sources": 1,
             "clones": 4,
             "duplicatedLines": 26,
             "duplicatedTokens": 302,
-            "percentage": 7.16,
-            "percentageTokens": 8.92,
+            "percentage": 7.1,
+            "percentageTokens": 8.79,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -282,13 +282,13 @@
           },
           "apps/legacy/static/legacy/js/pages/collections.js": {
             "lines": 153,
-            "tokens": 994,
+            "tokens": 988,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 11,
-            "duplicatedTokens": 65,
+            "duplicatedTokens": 66,
             "percentage": 7.19,
-            "percentageTokens": 6.54,
+            "percentageTokens": 6.68,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -426,7 +426,7 @@
           },
           "apps/legacy/static/legacy/js/ai-error.js": {
             "lines": 117,
-            "tokens": 986,
+            "tokens": 996,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -438,28 +438,28 @@
           }
         },
         "total": {
-          "lines": 7228,
-          "tokens": 56460,
+          "lines": 7294,
+          "tokens": 57043,
           "sources": 36,
-          "clones": 35,
-          "duplicatedLines": 292,
-          "duplicatedTokens": 2600,
-          "percentage": 4.04,
-          "percentageTokens": 4.61,
+          "clones": 37,
+          "duplicatedLines": 317,
+          "duplicatedTokens": 2845,
+          "percentage": 4.35,
+          "percentageTokens": 4.99,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7228,
-      "tokens": 56460,
+      "lines": 7294,
+      "tokens": 57043,
       "sources": 36,
-      "clones": 35,
-      "duplicatedLines": 292,
-      "duplicatedTokens": 2600,
-      "percentage": 4.04,
-      "percentageTokens": 4.61,
+      "clones": 37,
+      "duplicatedLines": 317,
+      "duplicatedTokens": 2845,
+      "percentage": 4.35,
+      "percentageTokens": 4.99,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -652,32 +652,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 303,
-        "end": 308,
+        "start": 298,
+        "end": 303,
         "startLoc": {
-          "line": 303,
+          "line": 298,
           "column": 2,
-          "position": 2496
+          "position": 2463
         },
         "endLoc": {
-          "line": 308,
+          "line": 303,
           "column": 8,
-          "position": 2568
+          "position": 2535
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 221,
-        "end": 227,
+        "start": 216,
+        "end": 222,
         "startLoc": {
-          "line": 221,
+          "line": 216,
           "column": 2,
-          "position": 1754
+          "position": 1721
         },
         "endLoc": {
-          "line": 227,
+          "line": 222,
           "column": 6,
-          "position": 1827
+          "position": 1794
         }
       }
     },
@@ -688,17 +688,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 360,
-        "end": 365,
+        "start": 355,
+        "end": 360,
         "startLoc": {
-          "line": 360,
+          "line": 355,
           "column": 2,
-          "position": 2958
+          "position": 2925
         },
         "endLoc": {
-          "line": 365,
+          "line": 360,
           "column": 17,
-          "position": 3013
+          "position": 2980
         }
       },
       "secondFile": {
@@ -724,27 +724,27 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 448,
-        "end": 453,
+        "start": 443,
+        "end": 448,
         "startLoc": {
-          "line": 448,
+          "line": 443,
           "column": 27,
-          "position": 3922
+          "position": 3889
         },
         "endLoc": {
-          "line": 453,
+          "line": 448,
           "column": 24,
-          "position": 3978
+          "position": 3945
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 360,
+        "start": 355,
         "end": 140,
         "startLoc": {
-          "line": 360,
+          "line": 355,
           "column": 25,
-          "position": 2957
+          "position": 2924
         },
         "endLoc": {
           "line": 140,
@@ -760,32 +760,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 478,
-        "end": 485,
+        "start": 515,
+        "end": 522,
         "startLoc": {
-          "line": 478,
+          "line": 515,
           "column": 13,
-          "position": 3885
+          "position": 4199
         },
         "endLoc": {
-          "line": 485,
+          "line": 522,
           "column": 3,
-          "position": 3953
+          "position": 4267
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 126,
-        "end": 133,
+        "start": 163,
+        "end": 170,
         "startLoc": {
-          "line": 126,
+          "line": 163,
           "column": 6,
-          "position": 925
+          "position": 1245
         },
         "endLoc": {
-          "line": 133,
+          "line": 170,
           "column": 6,
-          "position": 993
+          "position": 1313
         }
       }
     },
@@ -847,17 +847,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 602,
-        "end": 612,
+        "start": 639,
+        "end": 649,
         "startLoc": {
-          "line": 602,
+          "line": 639,
           "column": 5,
-          "position": 4886
+          "position": 5200
         },
         "endLoc": {
-          "line": 612,
+          "line": 649,
           "column": 7,
-          "position": 4947
+          "position": 5261
         }
       }
     },
@@ -920,52 +920,124 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
         "start": 238,
-        "end": 612,
+        "end": 649,
         "startLoc": {
           "line": 238,
           "column": 7,
           "position": 1652
         },
         "endLoc": {
-          "line": 612,
+          "line": 649,
           "column": 7,
-          "position": 4947
+          "position": 5261
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 7,
+      "fragment": "var searchForm = document.getElementById('search-form');\n        if (searchForm) {\n            searchForm.addEventListener('submit', function(e) {\n                var searchInput = document.getElementById('search-input');\n                if (!searchInput) return;\n                var query = searchInput.value.trim();\n                if (!",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/home.js",
+        "start": 26,
+        "end": 32,
+        "startLoc": {
+          "line": 26,
+          "column": 9,
+          "position": 115
+        },
+        "endLoc": {
+          "line": 32,
+          "column": 2,
+          "position": 199
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/search.js",
+        "start": 77,
+        "end": 83,
+        "startLoc": {
+          "line": 77,
+          "column": 9,
+          "position": 514
+        },
+        "endLoc": {
+          "line": 83,
+          "column": 6,
+          "position": 598
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 21,
+      "fragment": "(url, inputEl) {\n        inputEl.disabled = true;\n        inputEl.value = 'Importing...';\n\n        Cookie.ajax.post('/api/recipes/scrape/', { url: url }, function(error, response) {\n            inputEl.disabled = false;\n            inputEl.value = url;\n\n            if (error) {\n                Cookie.toast.error('Could not import recipe from that URL. Try a different link.');\n                return;\n            }\n\n            Cookie.toast.success('Recipe imported!');\n            setTimeout(function() {\n                window.location.href = '/legacy/recipe/' + response.id + '/';\n            }, 800);\n        });\n    }\n\n    return",
+      "tokens": 0,
+      "firstFile": {
+        "name": "apps/legacy/static/legacy/js/pages/home.js",
+        "start": 439,
+        "end": 459,
+        "startLoc": {
+          "line": 439,
+          "column": 14,
+          "position": 3379
+        },
+        "endLoc": {
+          "line": 459,
+          "column": 7,
+          "position": 3548
+        }
+      },
+      "secondFile": {
+        "name": "apps/legacy/static/legacy/js/pages/search.js",
+        "start": 116,
+        "end": 138,
+        "startLoc": {
+          "line": 116,
+          "column": 19,
+          "position": 854
+        },
+        "endLoc": {
+          "line": 138,
+          "column": 8,
+          "position": 1023
         }
       }
     },
     {
       "format": "javascript",
       "lines": 12,
-      "fragment": "}\n    }\n\n    return {\n        init: init\n    };\n})();\n\n// Auto-init on page load\n(function() {\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', Cookie.pages.home",
+      "fragment": ");\n    }\n\n    return {\n        init: init\n    };\n})();\n\n// Auto-init on page load\n(function() {\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', Cookie.pages.home",
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 425,
-        "end": 436,
+        "start": 456,
+        "end": 467,
         "startLoc": {
-          "line": 425,
-          "column": 9,
-          "position": 3290
+          "line": 456,
+          "column": 2,
+          "position": 3540
         },
         "endLoc": {
-          "line": 436,
+          "line": 467,
           "column": 5,
-          "position": 3354
+          "position": 3605
         }
       },
       "secondFile": {
-        "name": "apps/legacy/static/legacy/js/pages/search.js",
-        "start": 601,
-        "end": 612,
+        "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
+        "start": 238,
+        "end": 649,
         "startLoc": {
-          "line": 601,
-          "column": 9,
-          "position": 4883
+          "line": 238,
+          "column": 7,
+          "position": 1652
         },
         "endLoc": {
-          "line": 612,
+          "line": 649,
           "column": 7,
-          "position": 4947
+          "position": 5261
         }
       }
     },
@@ -991,17 +1063,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 268,
-        "end": 274,
+        "start": 276,
+        "end": 282,
         "startLoc": {
-          "line": 268,
+          "line": 276,
           "column": 5,
-          "position": 2053
+          "position": 2129
         },
         "endLoc": {
-          "line": 274,
+          "line": 282,
           "column": 4,
-          "position": 2107
+          "position": 2183
         }
       }
     },
@@ -1027,33 +1099,33 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 373,
-        "end": 384,
+        "start": 381,
+        "end": 392,
         "startLoc": {
-          "line": 373,
+          "line": 381,
           "column": 5,
-          "position": 2872
+          "position": 2948
         },
         "endLoc": {
-          "line": 384,
+          "line": 392,
           "column": 7,
-          "position": 2944
+          "position": 3020
         }
       }
     },
     {
       "format": "javascript",
-      "lines": 13,
-      "fragment": "window.location.reload();\n        }\n    }\n\n    return {\n        init: init\n    };\n})();\n\n// Auto-init on page load\n(function() {\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', Cookie.pages.favorites",
+      "lines": 12,
+      "fragment": "}\n    }\n\n    return {\n        init: init\n    };\n})();\n\n// Auto-init on page load\n(function() {\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', Cookie.pages.favorites",
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/favorites.js",
-        "start": 86,
+        "start": 87,
         "end": 98,
         "startLoc": {
-          "line": 86,
-          "column": 13,
-          "position": 565
+          "line": 87,
+          "column": 9,
+          "position": 575
         },
         "endLoc": {
           "line": 98,
@@ -1062,18 +1134,18 @@
         }
       },
       "secondFile": {
-        "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 424,
-        "end": 612,
+        "name": "apps/legacy/static/legacy/js/pages/search.js",
+        "start": 638,
+        "end": 649,
         "startLoc": {
-          "line": 424,
-          "column": 13,
-          "position": 3280
+          "line": 638,
+          "column": 9,
+          "position": 5197
         },
         "endLoc": {
-          "line": 612,
+          "line": 649,
           "column": 7,
-          "position": 4947
+          "position": 5261
         }
       }
     },
@@ -1120,32 +1192,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/detail-scaling.js",
-        "start": 138,
-        "end": 147,
+        "start": 141,
+        "end": 150,
         "startLoc": {
-          "line": 138,
+          "line": 141,
           "column": 27,
-          "position": 1141
+          "position": 1188
         },
         "endLoc": {
-          "line": 147,
+          "line": 150,
           "column": 4,
-          "position": 1237
+          "position": 1284
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/detail-scaling.js",
-        "start": 119,
-        "end": 128,
+        "start": 122,
+        "end": 131,
         "startLoc": {
-          "line": 119,
+          "line": 122,
           "column": 26,
-          "position": 939
+          "position": 986
         },
         "endLoc": {
-          "line": 128,
+          "line": 131,
           "column": 27,
-          "position": 1035
+          "position": 1082
         }
       }
     },
@@ -1156,32 +1228,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/detail-scaling.js",
-        "start": 239,
-        "end": 243,
+        "start": 242,
+        "end": 246,
         "startLoc": {
-          "line": 239,
+          "line": 242,
           "column": 2,
-          "position": 2223
+          "position": 2270
         },
         "endLoc": {
-          "line": 243,
+          "line": 246,
           "column": 3,
-          "position": 2278
+          "position": 2325
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/detail-scaling.js",
-        "start": 210,
-        "end": 215,
+        "start": 213,
+        "end": 218,
         "startLoc": {
-          "line": 210,
+          "line": 213,
           "column": 9,
-          "position": 1891
+          "position": 1938
         },
         "endLoc": {
-          "line": 215,
+          "line": 218,
           "column": 2,
-          "position": 1946
+          "position": 1993
         }
       }
     },
@@ -1315,24 +1387,24 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 289,
-        "end": 295,
+        "start": 297,
+        "end": 303,
         "startLoc": {
-          "line": 289,
+          "line": 297,
           "column": 2,
-          "position": 2212
+          "position": 2288
         },
         "endLoc": {
-          "line": 295,
+          "line": 303,
           "column": 35,
-          "position": 2261
+          "position": 2337
         }
       }
     },
     {
       "format": "javascript",
       "lines": 12,
-      "fragment": ");\n    }\n\n    return {\n        init: init\n    };\n})();\n\n// Auto-init on page load\n(function() {\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', Cookie.pages.collections",
+      "fragment": "});\n    }\n\n    return {\n        init: init\n    };\n})();\n\n// Auto-init on page load\n(function() {\n    if (document.readyState === 'loading') {\n        document.addEventListener('DOMContentLoaded', Cookie.pages.collections",
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/collections.js",
@@ -1340,28 +1412,28 @@
         "end": 150,
         "startLoc": {
           "line": 139,
-          "column": 2,
-          "position": 897
+          "column": 9,
+          "position": 890
         },
         "endLoc": {
           "line": 150,
           "column": 12,
-          "position": 962
+          "position": 956
         }
       },
       "secondFile": {
-        "name": "apps/legacy/static/legacy/js/pages/profile-selector.js",
-        "start": 238,
-        "end": 612,
+        "name": "apps/legacy/static/legacy/js/pages/home.js",
+        "start": 456,
+        "end": 649,
         "startLoc": {
-          "line": 238,
-          "column": 7,
-          "position": 1652
+          "line": 456,
+          "column": 9,
+          "position": 3539
         },
         "endLoc": {
-          "line": 612,
+          "line": 649,
           "column": 7,
-          "position": 4947
+          "position": 5261
         }
       }
     },
@@ -1387,17 +1459,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 268,
-        "end": 274,
+        "start": 276,
+        "end": 282,
         "startLoc": {
-          "line": 268,
+          "line": 276,
           "column": 20,
-          "position": 2056
+          "position": 2132
         },
         "endLoc": {
-          "line": 274,
+          "line": 282,
           "column": 4,
-          "position": 2107
+          "position": 2183
         }
       }
     },
@@ -1460,16 +1532,16 @@
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/favorites.js",
         "start": 85,
-        "end": 612,
+        "end": 649,
         "startLoc": {
           "line": 85,
           "column": 6,
           "position": 554
         },
         "endLoc": {
-          "line": 612,
+          "line": 649,
           "column": 7,
-          "position": 4947
+          "position": 5261
         }
       }
     },
@@ -1495,17 +1567,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 93,
-        "end": 100,
+        "start": 101,
+        "end": 108,
         "startLoc": {
-          "line": 93,
+          "line": 101,
           "column": 18,
-          "position": 662
+          "position": 738
         },
         "endLoc": {
-          "line": 100,
+          "line": 108,
           "column": 15,
-          "position": 736
+          "position": 812
         }
       }
     },
@@ -1531,17 +1603,17 @@
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/home.js",
-        "start": 100,
-        "end": 110,
+        "start": 108,
+        "end": 118,
         "startLoc": {
-          "line": 100,
+          "line": 108,
           "column": 15,
-          "position": 737
+          "position": 813
         },
         "endLoc": {
-          "line": 110,
+          "line": 118,
           "column": 90,
-          "position": 830
+          "position": 906
         }
       }
     },

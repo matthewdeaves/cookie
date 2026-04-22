@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-22T17:01:59.052Z",
+    "detectionDate": "2026-04-22T23:11:47.882Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -209,8 +209,8 @@
             "newClones": 0
           },
           "src/components/settings/SettingsGeneral.tsx": {
-            "lines": 74,
-            "tokens": 526,
+            "lines": 101,
+            "tokens": 695,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -390,7 +390,7 @@
           },
           "src/screens/RecipeDetail.tsx": {
             "lines": 52,
-            "tokens": 287,
+            "tokens": 283,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -473,8 +473,8 @@
             "newClones": 0
           },
           "src/screens/Home.tsx": {
-            "lines": 101,
-            "tokens": 734,
+            "lines": 119,
+            "tokens": 898,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -582,7 +582,7 @@
           },
           "src/contexts/AIStatusContext.tsx": {
             "lines": 0,
-            "tokens": 11,
+            "tokens": 15,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -665,8 +665,8 @@
             "newClones": 0
           },
           "src/components/RemixModal.tsx": {
-            "lines": 155,
-            "tokens": 1289,
+            "lines": 161,
+            "tokens": 1342,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -869,8 +869,8 @@
             "newClones": 0
           },
           "src/router.tsx": {
-            "lines": 100,
-            "tokens": 837,
+            "lines": 167,
+            "tokens": 1246,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -894,8 +894,8 @@
           }
         },
         "total": {
-          "lines": 3331,
-          "tokens": 25575,
+          "lines": 3449,
+          "tokens": 26370,
           "sources": 74,
           "clones": 0,
           "duplicatedLines": 0,
@@ -1113,8 +1113,8 @@
             "newClones": 0
           },
           "src/components/settings/SettingsGeneral.tsx": {
-            "lines": 125,
-            "tokens": 965,
+            "lines": 152,
+            "tokens": 1137,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1293,7 +1293,7 @@
             "newClones": 0
           },
           "src/screens/RecipeDetail.tsx": {
-            "lines": 104,
+            "lines": 105,
             "tokens": 575,
             "sources": 1,
             "clones": 0,
@@ -1377,8 +1377,8 @@
             "newClones": 0
           },
           "src/screens/Home.tsx": {
-            "lines": 132,
-            "tokens": 990,
+            "lines": 152,
+            "tokens": 1178,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1461,8 +1461,8 @@
             "newClones": 0
           },
           "src/contexts/ProfileContext.tsx": {
-            "lines": 105,
-            "tokens": 959,
+            "lines": 110,
+            "tokens": 993,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1485,8 +1485,8 @@
             "newClones": 0
           },
           "src/contexts/AIStatusContext.tsx": {
-            "lines": 108,
-            "tokens": 858,
+            "lines": 121,
+            "tokens": 1057,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1569,8 +1569,8 @@
             "newClones": 0
           },
           "src/components/RemixModal.tsx": {
-            "lines": 189,
-            "tokens": 1571,
+            "lines": 196,
+            "tokens": 1636,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1785,8 +1785,8 @@
             "newClones": 0
           },
           "src/router.tsx": {
-            "lines": 295,
-            "tokens": 2154,
+            "lines": 332,
+            "tokens": 2469,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1797,8 +1797,8 @@
             "newClones": 0
           },
           "src/main.tsx": {
-            "lines": 12,
-            "tokens": 86,
+            "lines": 13,
+            "tokens": 90,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1822,14 +1822,14 @@
           }
         },
         "total": {
-          "lines": 7266,
-          "tokens": 56984,
+          "lines": 7377,
+          "tokens": 57961,
           "sources": 76,
           "clones": 6,
           "duplicatedLines": 61,
           "duplicatedTokens": 583,
-          "percentage": 0.84,
-          "percentageTokens": 1.02,
+          "percentage": 0.83,
+          "percentageTokens": 1.01,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -1921,8 +1921,8 @@
             "newClones": 0
           },
           "src/hooks/useTipsPolling.ts": {
-            "lines": 128,
-            "tokens": 1215,
+            "lines": 134,
+            "tokens": 1272,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1993,8 +1993,8 @@
             "newClones": 0
           },
           "src/hooks/useServingScale.ts": {
-            "lines": 52,
-            "tokens": 510,
+            "lines": 57,
+            "tokens": 566,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2005,8 +2005,8 @@
             "newClones": 0
           },
           "src/hooks/useSearch.ts": {
-            "lines": 158,
-            "tokens": 1668,
+            "lines": 171,
+            "tokens": 1771,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2017,8 +2017,8 @@
             "newClones": 0
           },
           "src/hooks/useRecipeDetail.ts": {
-            "lines": 88,
-            "tokens": 945,
+            "lines": 92,
+            "tokens": 993,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2089,8 +2089,8 @@
             "newClones": 0
           },
           "src/hooks/useDiscoverTab.ts": {
-            "lines": 60,
-            "tokens": 613,
+            "lines": 64,
+            "tokens": 655,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2186,28 +2186,28 @@
           }
         },
         "total": {
-          "lines": 3068,
-          "tokens": 25583,
+          "lines": 3100,
+          "tokens": 25889,
           "sources": 29,
           "clones": 2,
           "duplicatedLines": 59,
           "duplicatedTokens": 294,
-          "percentage": 1.92,
-          "percentageTokens": 1.15,
+          "percentage": 1.9,
+          "percentageTokens": 1.14,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 13665,
-      "tokens": 108142,
+      "lines": 13926,
+      "tokens": 110220,
       "sources": 179,
       "clones": 8,
       "duplicatedLines": 120,
       "duplicatedTokens": 877,
-      "percentage": 0.88,
-      "percentageTokens": 0.81,
+      "percentage": 0.86,
+      "percentageTokens": 0.8,
       "newDuplicatedLines": 0,
       "newClones": 0
     }

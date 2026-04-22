@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.07% </span>
+                <span class="strong">81.69% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>57/67</span>
+                <span class='fraction'>58/71</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70.96% </span>
+                <span class="strong">62.85% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>22/31</span>
+                <span class='fraction'>22/35</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.45% </span>
+                <span class="strong">81.35% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>47/55</span>
+                <span class='fraction'>48/59</span>
             </div>
         
             
@@ -253,7 +253,15 @@
 <a name='L188'></a><a href='#L188'>188</a>
 <a name='L189'></a><a href='#L189'>189</a>
 <a name='L190'></a><a href='#L190'>190</a>
-<a name='L191'></a><a href='#L191'>191</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -355,6 +363,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">64x</span>
 <span class="cline-any cline-yes">64x</span>
 <span class="cline-any cline-yes">64x</span>
 <span class="cline-any cline-yes">64x</span>
@@ -377,6 +386,8 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">12x</span>
@@ -410,6 +421,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -448,6 +462,7 @@ import { X, Sparkles, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, type RecipeDetail } from '../api/client'
 import { cn, handleQuotaError } from '../lib/utils'
+import { useAIStatus } from '../contexts/AIStatusContext'
 import SuggestionSelector from './SuggestionSelector'
 import CustomRemixInput from './CustomRemixInput'
 &nbsp;
@@ -545,6 +560,7 @@ export default function RemixModal({
   onClose,
   onRemixCreated,
 }: RemixModalProps) {
+  const { setFeatureQuotaExhausted } = useAIStatus()
   const [suggestions, setSuggestions] = useState&lt;string[]&gt;([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const [selectedSuggestions, setSelectedSuggestions] = useState&lt;string[]&gt;([])
@@ -566,14 +582,16 @@ export default function RemixModal({
       } catch (error) {
 <span class="cstat-no" title="statement not covered" >        if (!cancelled) {</span>
 <span class="cstat-no" title="statement not covered" >          console.error('Failed to load remix suggestions:', error)</span>
-<span class="cstat-no" title="statement not covered" >          handleQuotaError(error, 'Failed to load suggestions')</span>
+<span class="cstat-no" title="statement not covered" >          if (handleQuotaError(error, 'Failed to load suggestions')) {</span>
+<span class="cstat-no" title="statement not covered" >            setFeatureQuotaExhausted('remix')</span>
+          }
         }
       } finally {
         <span class="missing-if-branch" title="else path not taken" >E</span>if (!cancelled) setLoadingSuggestions(false)
       }
     })()
     return () =&gt; { cancelled = true }
-  }, [isOpen, recipe.id])
+  }, [isOpen, recipe.id, setFeatureQuotaExhausted])
 &nbsp;
   const handleSuggestionClick = (suggestion: string) =&gt; {
     setSelectedSuggestions((prev) =&gt;
@@ -599,7 +617,10 @@ export default function RemixModal({
       onClose()
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      console.error('Failed to create remix:', error)</span>
-<span class="cstat-no" title="statement not covered" >      handleQuotaError(error, 'Failed to create remix')</span>
+<span class="cstat-no" title="statement not covered" >      if (handleQuotaError(error, 'Failed to create remix')) {</span>
+<span class="cstat-no" title="statement not covered" >        setFeatureQuotaExhausted('remix')</span>
+<span class="cstat-no" title="statement not covered" >        onClose()</span>
+      }
     } finally {
       setCreating(false)
     }
@@ -640,7 +661,7 @@ export default function RemixModal({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-22T17:02:20.942Z
+                at 2026-04-22T23:11:54.901Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

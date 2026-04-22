@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">22.72% </span>
+                <span class="strong">25% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>5/22</span>
+                <span class='fraction'>6/24</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">8.33% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>1/12</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">23.8% </span>
+                <span class="strong">26.08% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>5/21</span>
+                <span class='fraction'>6/23</span>
             </div>
         
             
@@ -116,7 +116,14 @@
 <a name='L51'></a><a href='#L51'>51</a>
 <a name='L52'></a><a href='#L52'>52</a>
 <a name='L53'></a><a href='#L53'>53</a>
-<a name='L54'></a><a href='#L54'>54</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -140,6 +147,7 @@
 <span class="cline-any cline-yes">30x</span>
 <span class="cline-any cline-yes">30x</span>
 <span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">30x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">30x</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -161,6 +169,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -173,6 +183,7 @@
 import { toast } from 'sonner'
 import { api, type RecipeDetail as RecipeDetailType, type ScaleResponse } from '../api/client'
 import { handleQuotaError } from '../lib/utils'
+import { useAIStatus } from '../contexts/AIStatusContext'
 &nbsp;
 interface UseServingScaleReturn {
   servings: number | null
@@ -188,8 +199,10 @@ interface UseServingScaleReturn {
  */
 export function useServingScale(
   recipe: RecipeDetailType | null,
-  profileId: number | undefined
+  profileId: number | undefined,
+  unitPreference: string = 'metric'
 ): UseServingScaleReturn {
+  const { setFeatureQuotaExhausted } = useAIStatus()
   const [servings, setServings] = useState&lt;number | null&gt;(null)
   const [scaledData, setScaledData] = useState&lt;ScaleResponse | null&gt;(null)
   const [scalingLoading, setScalingLoading] = useState(false)
@@ -206,14 +219,16 @@ export function useServingScale(
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    setScalingLoading(true)</span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
-      const result = <span class="cstat-no" title="statement not covered" >await api.ai.scale(recipe.id, newServings, profileId)</span>
+      const result = <span class="cstat-no" title="statement not covered" >await api.ai.scale(recipe.id, newServings, profileId, unitPreference)</span>
 <span class="cstat-no" title="statement not covered" >      setScaledData(result)</span>
 <span class="cstat-no" title="statement not covered" >      if (result.notes.length &gt; 0) {</span>
 <span class="cstat-no" title="statement not covered" >        toast.info(result.notes[0])</span>
       }
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      console.error('Failed to scale recipe:', error)</span>
-<span class="cstat-no" title="statement not covered" >      handleQuotaError(error, 'Failed to scale ingredients')</span>
+<span class="cstat-no" title="statement not covered" >      if (handleQuotaError(error, 'Failed to scale ingredients')) {</span>
+<span class="cstat-no" title="statement not covered" >        setFeatureQuotaExhausted('scale')</span>
+      }
 <span class="cstat-no" title="statement not covered" >      setServings(servings)</span>
     } finally {
 <span class="cstat-no" title="statement not covered" >      setScalingLoading(false)</span>
@@ -229,7 +244,7 @@ export function useServingScale(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-22T17:02:20.992Z
+                at 2026-04-22T23:11:54.958Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

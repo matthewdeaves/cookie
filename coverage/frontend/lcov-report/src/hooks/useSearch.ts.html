@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70.51% </span>
+                <span class="strong">65.9% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>55/78</span>
+                <span class='fraction'>58/88</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">48.14% </span>
+                <span class="strong">55.17% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>13/27</span>
+                <span class='fraction'>16/29</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70.66% </span>
+                <span class="strong">65.47% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>53/75</span>
+                <span class='fraction'>55/84</span>
             </div>
         
             
@@ -222,7 +222,20 @@
 <a name='L157'></a><a href='#L157'>157</a>
 <a name='L158'></a><a href='#L158'>158</a>
 <a name='L159'></a><a href='#L159'>159</a>
-<a name='L160'></a><a href='#L160'>160</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -343,6 +356,20 @@
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -359,7 +386,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -398,7 +424,7 @@ export interface UseSearchReturn {
   loading: boolean
   loadingMore: boolean
   importing: string | null
-  handleSearchSubmit: (e: React.FormEvent) =&gt; void
+  handleSearchSubmit: (e: React.FormEvent) =&gt; void | Promise&lt;void&gt;
   handleLoadMore: () =&gt; void
   handleImport: (url: string) =&gt; Promise&lt;void&gt;
 }
@@ -498,10 +524,24 @@ export function useSearch(): UseSearchReturn {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate and searchRecipes are stable, only re-run when query or filter changes
   }, [query, selectedSource])
 &nbsp;
-  const handleSearchSubmit = (e: React.FormEvent) =&gt; {
+  const handleSearchSubmit = async (e: React.FormEvent) =&gt; {
     e.preventDefault()
     const trimmed = state.searchInput.trim()
-    if (trimmed &amp;&amp; trimmed !== query) {
+    if (!trimmed) return
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+<span class="cstat-no" title="statement not covered" >      state.setImporting(trimmed)</span>
+<span class="cstat-no" title="statement not covered" >      try {</span>
+        const recipe = <span class="cstat-no" title="statement not covered" >await importRecipe(trimmed)</span>
+<span class="cstat-no" title="statement not covered" >        toast.success(`Imported: ${recipe.title}`)</span>
+<span class="cstat-no" title="statement not covered" >        navigate(`/recipe/${recipe.id}`)</span>
+      } catch {
+<span class="cstat-no" title="statement not covered" >        toast.error('Could not import recipe from that URL. Try a different link.')</span>
+      } finally {
+<span class="cstat-no" title="statement not covered" >        state.setImporting(null)</span>
+      }
+<span class="cstat-no" title="statement not covered" >      return</span>
+    }
+    if (trimmed !== query) {
       navigate(`/search?q=${encodeURIComponent(trimmed)}`)
     }
   }
@@ -517,9 +557,8 @@ export function useSearch(): UseSearchReturn {
       const recipe = <span class="cstat-no" title="statement not covered" >await importRecipe(url)</span>
 <span class="cstat-no" title="statement not covered" >      toast.success(`Imported: ${recipe.title}`)</span>
 <span class="cstat-no" title="statement not covered" >      navigate(`/recipe/${recipe.id}`)</span>
-    } catch (error) {
-      const message = <span class="cstat-no" title="statement not covered" >error instanceof Error ? error.message : 'Failed to import recipe'</span>
-<span class="cstat-no" title="statement not covered" >      toast.error(message)</span>
+    } catch {
+<span class="cstat-no" title="statement not covered" >      toast.error('Could not import recipe from that URL. Try a different link.')</span>
     } finally { <span class="cstat-no" title="statement not covered" >setImporting(null) }</span>
   }
 &nbsp;
@@ -547,7 +586,7 @@ export function useSearch(): UseSearchReturn {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-22T17:02:20.942Z
+                at 2026-04-22T23:11:54.901Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

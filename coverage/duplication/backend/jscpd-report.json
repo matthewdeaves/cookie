@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-22T17:02:07.193Z",
+    "detectionDate": "2026-04-22T23:11:30.177Z",
     "formats": {
       "python": {
         "sources": {
@@ -149,8 +149,8 @@
             "newClones": 0
           },
           "apps/recipes/services/search_parsers.py": {
-            "lines": 487,
-            "tokens": 3186,
+            "lines": 499,
+            "tokens": 3263,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -317,14 +317,14 @@
             "newClones": 0
           },
           "apps/ai/services/quota.py": {
-            "lines": 173,
-            "tokens": 1122,
+            "lines": 176,
+            "tokens": 1151,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 28,
             "duplicatedTokens": 246,
-            "percentage": 16.18,
-            "percentageTokens": 21.93,
+            "percentage": 15.91,
+            "percentageTokens": 21.37,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -617,8 +617,8 @@
             "newClones": 0
           },
           "apps/core/context_processors.py": {
-            "lines": 10,
-            "tokens": 50,
+            "lines": 12,
+            "tokens": 83,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -786,13 +786,13 @@
           }
         },
         "total": {
-          "lines": 11865,
-          "tokens": 82621,
+          "lines": 11882,
+          "tokens": 82760,
           "sources": 65,
           "clones": 12,
           "duplicatedLines": 162,
           "duplicatedTokens": 1372,
-          "percentage": 1.37,
+          "percentage": 1.36,
           "percentageTokens": 1.66,
           "newDuplicatedLines": 0,
           "newClones": 0
@@ -800,13 +800,13 @@
       }
     },
     "total": {
-      "lines": 11865,
-      "tokens": 82621,
+      "lines": 11882,
+      "tokens": 82760,
       "sources": 65,
       "clones": 12,
       "duplicatedLines": 162,
       "duplicatedTokens": 1372,
-      "percentage": 1.37,
+      "percentage": 1.36,
       "percentageTokens": 1.66,
       "newDuplicatedLines": 0,
       "newClones": 0
@@ -1036,32 +1036,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/ai/services/quota.py",
-        "start": 101,
-        "end": 115,
+        "start": 104,
+        "end": 118,
         "startLoc": {
-          "line": 101,
+          "line": 104,
           "column": 5,
-          "position": 614
+          "position": 630
         },
         "endLoc": {
-          "line": 115,
+          "line": 118,
           "column": 4,
-          "position": 737
+          "position": 753
         }
       },
       "secondFile": {
         "name": "apps/ai/services/quota.py",
-        "start": 62,
-        "end": 76,
+        "start": 65,
+        "end": 79,
         "startLoc": {
-          "line": 62,
+          "line": 65,
           "column": 5,
-          "position": 374
+          "position": 390
         },
         "endLoc": {
-          "line": 76,
+          "line": 79,
           "column": 5,
-          "position": 497
+          "position": 513
         }
       }
     },
