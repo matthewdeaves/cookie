@@ -54,10 +54,9 @@ export default function Favorites() {
     <div className="min-h-screen bg-background">
       <NavHeader />
 
-      {/* Content */}
       <main className="px-4 py-6">
-        <h2 className="mb-4 text-lg font-medium text-foreground">Favorites</h2>
         <div className="mx-auto max-w-4xl">
+          <h2 className="mb-4 text-lg font-medium text-foreground">Favorites</h2>
           {loading ? (
             <RecipeGridSkeleton count={8} />
           ) : favorites.length > 0 ? (
