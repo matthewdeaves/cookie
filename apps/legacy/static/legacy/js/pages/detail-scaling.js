@@ -243,8 +243,14 @@
             var el = document.querySelector('[data-time-type="' + type + '"]');
             if (el) {
                 var valueEl = el.querySelector('.time-value');
-                if (valueEl && valueEl.getAttribute('data-original')) {
-                    valueEl.textContent = valueEl.getAttribute('data-original');
+                if (valueEl) {
+                    var originalMinutesAttr = el.getAttribute('data-original-minutes');
+                    if (originalMinutesAttr) {
+                        var originalFormatted = Cookie.utils.formatTime(parseInt(originalMinutesAttr, 10));
+                        if (originalFormatted) {
+                            valueEl.textContent = originalFormatted;
+                        }
+                    }
                     valueEl.classList.remove('time-adjusted');
                 }
             }

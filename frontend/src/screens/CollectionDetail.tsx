@@ -92,7 +92,7 @@ function CollectionRecipeGrid({
           <RecipeCard recipe={item.recipe} onClick={() => onRecipeClick(item.recipe.id)} />
           <button
             onClick={(e) => { e.stopPropagation(); onRemoveRecipe(item.recipe) }}
-            className="absolute right-2 top-2 rounded-full bg-destructive/90 p-1.5 text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100"
+            className="absolute right-2 top-2 rounded-full bg-destructive/90 p-1.5 text-destructive-foreground transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
             title="Remove from collection"
           >
             <X className="h-4 w-4" />
