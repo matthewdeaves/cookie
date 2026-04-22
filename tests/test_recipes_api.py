@@ -632,9 +632,15 @@ async def _make_search_session():
     return await setup()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 class TestSearchRecipesAPI:
-    """Tests for GET /api/recipes/search/"""
+    """Tests for GET /api/recipes/search/
+
+    transaction=True because the auth setup creates a Profile + session via
+    sync_to_async inside async tests; the default transactional rollback
+    doesn't cover that path and leaked rows pollute later DB-count tests
+    (e.g. TestResetDatabase).
+    """
 
     def test_search_recipes_requires_auth(self, client):
         """Unauthenticated requests must get 401 (F-28 regression)."""
