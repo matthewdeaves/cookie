@@ -28,7 +28,7 @@ export default function SettingsGeneral({
   quotaData,
   onQuotaSave,
 }: SettingsGeneralProps) {
-  const { profile, theme, toggleTheme } = useProfile()
+  const { profile, theme, toggleTheme, updateUnitPreference } = useProfile()
   const auth = useOptionalAuth()
   const logout = auth?.logout
   const mode = useMode()
@@ -71,7 +71,34 @@ export default function SettingsGeneral({
           </div>
         </div>
 
-        {/* Unit preference hidden until fully implemented */}
+        {/* Unit preference */}
+        <div>
+          <label className="mb-2 block text-sm font-medium text-foreground">Units</label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => profile?.unit_preference !== 'metric' && updateUnitPreference('metric')}
+              className={cn(
+                'rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
+                profile?.unit_preference !== 'imperial'
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border bg-background text-foreground hover:bg-muted'
+              )}
+            >
+              Metric
+            </button>
+            <button
+              onClick={() => profile?.unit_preference !== 'imperial' && updateUnitPreference('imperial')}
+              className={cn(
+                'rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
+                profile?.unit_preference === 'imperial'
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border bg-background text-foreground hover:bg-muted'
+              )}
+            >
+              Imperial
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* OpenRouter API — admin only */}
