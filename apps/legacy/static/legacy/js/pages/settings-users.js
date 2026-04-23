@@ -52,7 +52,7 @@
 
         Cookie.ajax.get('/api/profiles/', function(err, result) {
             if (err) {
-                Cookie.utils.setHtml(profilesList, '<div class="error-placeholder">Failed to load profiles</div>');
+                Cookie.utils.setHtml(profilesList, '<div class="error-placeholder">' + Cookie.utils.escapeHtml(err.message || 'Failed to load profiles') + '</div>');
                 return;
             }
 
