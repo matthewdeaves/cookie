@@ -65,7 +65,7 @@ def add_favorite(request, payload: FavoriteIn):
     if getattr(request, "limited", False):
         return Status(429, {"detail": "Too many requests. Please try again later."})
     profile = get_current_profile(request)
-    recipe = get_object_or_404(Recipe, id=payload.recipe_id)
+    recipe = get_object_or_404(Recipe, id=payload.recipe_id, profile=profile)
 
     try:
         favorite = RecipeFavorite.objects.create(profile=profile, recipe=recipe)
@@ -230,7 +230,7 @@ def add_recipe_to_collection(request, collection_id: int, payload: CollectionIte
     """Add a recipe to a collection."""
     profile = get_current_profile(request)
     collection = get_object_or_404(RecipeCollection, id=collection_id, profile=profile)
-    recipe = get_object_or_404(Recipe, id=payload.recipe_id)
+    recipe = get_object_or_404(Recipe, id=payload.recipe_id, profile=profile)
 
     # Get the next order value
     max_order = collection.items.aggregate(max_order=Max("order"))["max_order"]
@@ -302,7 +302,7 @@ def record_view(request, payload: HistoryIn):
     if getattr(request, "limited", False):
         return Status(429, {"detail": "Too many requests. Please try again later."})
     profile = get_current_profile(request)
-    recipe = get_object_or_404(Recipe, id=payload.recipe_id)
+    recipe = get_object_or_404(Recipe, id=payload.recipe_id, profile=profile)
 
     history, created = RecipeViewHistory.objects.update_or_create(
         profile=profile,
