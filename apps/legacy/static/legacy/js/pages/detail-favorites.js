@@ -28,7 +28,7 @@
 
         Cookie.ajax.post('/api/favorites/', { recipe_id: state.recipeId }, function(err) {
             if (err) {
-                Cookie.toast.error('Failed to add to favorites');
+                Cookie.toast.error(err.message || 'Failed to add to favorites');
                 return;
             }
             btn.classList.add('active');
@@ -46,7 +46,7 @@
 
         Cookie.ajax.delete('/api/favorites/' + state.recipeId + '/', function(err) {
             if (err) {
-                Cookie.toast.error('Failed to remove from favorites');
+                Cookie.toast.error(err.message || 'Failed to remove from favorites');
                 return;
             }
             btn.classList.remove('active');

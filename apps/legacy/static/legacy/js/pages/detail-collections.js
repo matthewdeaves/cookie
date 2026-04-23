@@ -113,11 +113,7 @@
 
         Cookie.ajax.post('/api/collections/' + collectionId + '/recipes/', { recipe_id: state.recipeId }, function(err) {
             if (err) {
-                if (err.message && err.message.indexOf('already') !== -1) {
-                    Cookie.toast.error('Recipe already in collection');
-                } else {
-                    Cookie.toast.error('Failed to add to collection');
-                }
+                Cookie.toast.error(err.message || 'Failed to add to collection');
                 return;
             }
             closeCollectionModal();
@@ -139,7 +135,7 @@
 
         Cookie.ajax.post('/api/collections/', { name: name }, function(err, collection) {
             if (err) {
-                Cookie.toast.error('Failed to create collection');
+                Cookie.toast.error(err.message || 'Failed to create collection');
                 return;
             }
 

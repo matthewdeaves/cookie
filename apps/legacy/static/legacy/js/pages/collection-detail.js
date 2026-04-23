@@ -103,7 +103,7 @@ Cookie.pages.collectionDetail = (function() {
                     confirmBtn.disabled = false;
                     confirmBtn.textContent = 'Delete';
                 }
-                Cookie.toast.error('Failed to delete collection');
+                Cookie.toast.error(err.message || 'Failed to delete collection');
                 return;
             }
 
@@ -131,7 +131,7 @@ Cookie.pages.collectionDetail = (function() {
         Cookie.ajax.delete('/api/collections/' + collectionId + '/recipes/' + recipeId + '/', function(err) {
             if (err) {
                 btn.disabled = false;
-                Cookie.toast.error('Failed to remove recipe');
+                Cookie.toast.error(err.message || 'Failed to remove recipe');
                 return;
             }
 
