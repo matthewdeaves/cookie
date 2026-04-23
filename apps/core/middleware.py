@@ -214,6 +214,11 @@ class MethodNotAllowedToNotFoundMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        # TRACE is handled by nginx before it reaches gunicorn, so the
+        # upstream 405 bypass error_page rewriting. Block it here as
+        # defence-in-depth for any path where the request does reach Django.
+        if request.method == "TRACE":
+            return JsonResponse({"detail": "Not found"}, status=404)
         response = self.get_response(request)
         if response.status_code == 405:
             return JsonResponse({"detail": "Not found"}, status=404)

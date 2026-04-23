@@ -142,8 +142,14 @@ class TestMeDeletionPreview:
         assert data["profile"]["name"] == "Test User"
         # Fresh user — all counts zero. The shape, not the values, is what we guard here.
         for key in (
-            "remixes", "remix_images", "favorites", "collections",
-            "collection_items", "view_history", "scaling_cache", "discover_cache",
+            "remixes",
+            "remix_images",
+            "favorites",
+            "collections",
+            "collection_items",
+            "view_history",
+            "scaling_cache",
+            "discover_cache",
         ):
             assert key in data["data_to_delete"]
         assert isinstance(data["warnings"], list) and len(data["warnings"]) > 0
@@ -167,9 +173,7 @@ class TestMeDeletionPreview:
 class TestDeleteMe:
     """Round 10 self-delete fix: DELETE /api/auth/me/."""
 
-    def test_delete_succeeds_and_removes_user_and_profile(
-        self, passkey_auth_client, user_with_profile
-    ):
+    def test_delete_succeeds_and_removes_user_and_profile(self, passkey_auth_client, user_with_profile):
         user, profile = user_with_profile
         response = passkey_auth_client.delete("/api/auth/me/")
         assert response.status_code == 204

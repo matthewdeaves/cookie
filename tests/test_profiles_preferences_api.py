@@ -152,6 +152,5 @@ class TestUpdatePreferences:
         response = self._patch(client, user.profile.id, {"theme": "dark"})
         assert response.status_code == 200
         assert "is_admin" not in response.json(), (
-            "PATCH /profiles/{id}/preferences/ MUST NOT expose is_admin "
-            "(retired in v1.43.0, spec 014-remove-is-staff)"
+            "PATCH /profiles/{id}/preferences/ MUST NOT expose is_admin (retired in v1.43.0, spec 014-remove-is-staff)"
         )

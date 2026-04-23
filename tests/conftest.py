@@ -189,10 +189,16 @@ def nginx_base_url(tmp_path_factory):
     port = _free_port()
     result = subprocess.run(
         [
-            _DOCKER_BIN, "run", "-d", "--rm",
-            "--name", container_name,
-            "-p", f"127.0.0.1:{port}:80",
-            "-v", f"{conf_path}:/etc/nginx/nginx.conf:ro",
+            _DOCKER_BIN,
+            "run",
+            "-d",
+            "--rm",
+            "--name",
+            container_name,
+            "-p",
+            f"127.0.0.1:{port}:80",
+            "-v",
+            f"{conf_path}:/etc/nginx/nginx.conf:ro",
             "nginx:alpine",
         ],
         capture_output=True,
@@ -216,11 +222,11 @@ def nginx_base_url(tmp_path_factory):
         if not ready:
             logs = subprocess.run(
                 [_DOCKER_BIN, "logs", container_name],
-                capture_output=True, text=True,
+                capture_output=True,
+                text=True,
             )
             pytest.fail(
-                "nginx test container did not become ready within 10s. "
-                f"stdout={logs.stdout!r} stderr={logs.stderr!r}"
+                f"nginx test container did not become ready within 10s. stdout={logs.stdout!r} stderr={logs.stderr!r}"
             )
         yield base_url
     finally:

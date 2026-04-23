@@ -199,9 +199,7 @@ class TestNginxCSP:
         csp = self._extract_csp(security_headers)
         script_src = re.search(r"script-src\s+([^;]+)", csp)
         if script_src:
-            assert "'unsafe-inline'" not in script_src.group(1), (
-                "script-src must never contain 'unsafe-inline'"
-            )
+            assert "'unsafe-inline'" not in script_src.group(1), "script-src must never contain 'unsafe-inline'"
 
 
 class TestNginxRouting:
@@ -373,7 +371,7 @@ class TestNginxScannerBlocksReturnNonEmptyBody:
         body = block_match.group(1)
         # Guard against regressing to the v1.46 / v1.47 bug.
         assert not re.search(r'return\s+404\s+""\s*;', body), (
-            f"Scanner-block {label!r} uses `return 404 \"\";` which is a "
+            f'Scanner-block {label!r} uses `return 404 "";` which is a '
             f"nginx no-op — the zero-length body is dropped and the default "
             f"`<center>nginx</center>` page is served instead. Body must be "
             f"non-empty. Got: {body!r}"

@@ -154,7 +154,11 @@ def release_quota(profile, feature: str) -> None:
     try:
         cache.decr(key)
     except ValueError:
-        logger.debug("quota release: cache key missing for profile=%s feature=%s (cache may have been flushed)", profile.pk, feature)
+        logger.debug(
+            "quota release: cache key missing for profile=%s feature=%s (cache may have been flushed)",
+            profile.pk,
+            feature,
+        )
 
 
 def increment_quota(profile, feature: str) -> None:

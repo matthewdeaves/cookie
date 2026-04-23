@@ -30,6 +30,8 @@ api = NinjaAPI(docs_url=_docs_url, openapi_url=_openapi_url)
 @api.exception_handler(RawPostDataException)
 def handle_bad_content_type(request, exc):
     return api.create_response(request, {"detail": "Cannot parse request body"}, status=400)
+
+
 api.add_router("/ai", ai_router)
 api.add_router("/ai", ai_remix_router)
 api.add_router("/ai", ai_scaling_router)

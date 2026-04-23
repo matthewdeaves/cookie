@@ -113,9 +113,7 @@ def test_scanner_block_body_does_not_leak_nginx(nginx_base_url, path):
     `"Not Found\n"`) suppresses that fallback.
     """
     response = requests.get(f"{nginx_base_url}{path}", timeout=2.0)
-    assert response.status_code == 404, (
-        f"{path}: expected 404, got {response.status_code}. Body: {response.text!r}"
-    )
+    assert response.status_code == 404, f"{path}: expected 404, got {response.status_code}. Body: {response.text!r}"
     assert "nginx" not in response.text.lower(), (
         f"{path} leaked proxy-identity body: {response.text[:200]!r}. "
         "This is the pentest round 6 / F-1 regression — a scanner-block "
@@ -194,12 +192,9 @@ def test_extended_scanner_probes_are_404_not_spa(nginx_base_url, path):
     """
     response = requests.get(f"{nginx_base_url}{path}", timeout=2.0)
     assert response.status_code == 404, (
-        f"{path}: expected 404, got {response.status_code}. "
-        f"Body: {response.text[:200]!r}"
+        f"{path}: expected 404, got {response.status_code}. Body: {response.text[:200]!r}"
     )
-    assert "nginx" not in response.text.lower(), (
-        f"{path} leaked proxy identity: {response.text[:200]!r}"
-    )
+    assert "nginx" not in response.text.lower(), f"{path} leaked proxy identity: {response.text[:200]!r}"
     # Explicit guard against SPA-title leakage — the v1.48.0 regression
     # symptom was a 200 with the Cookie SPA HTML. The title would survive
     # through here if someone accidentally removed the extended block.
@@ -224,12 +219,8 @@ def test_assets_bare_path_is_404_no_leak(nginx_base_url):
         timeout=2.0,
         allow_redirects=False,
     )
-    assert response.status_code == 404, (
-        f"/assets: expected 404, got {response.status_code}"
-    )
-    assert "nginx" not in response.text.lower(), (
-        f"/assets leaked proxy identity: {response.text[:200]!r}"
-    )
+    assert response.status_code == 404, f"/assets: expected 404, got {response.status_code}"
+    assert "nginx" not in response.text.lower(), f"/assets leaked proxy identity: {response.text[:200]!r}"
 
 
 def test_production_config_mirrors_test_body_literal():
@@ -244,10 +235,7 @@ def test_production_config_mirrors_test_body_literal():
     prod_conf = (Path(__file__).parent.parent / "nginx" / "nginx.prod.conf").read_text()
     # Strip comment lines so the explanatory NOTE about `return 404 "";` in
     # @not_found doesn't trip the regression guard below.
-    directive_lines = [
-        line for line in prod_conf.splitlines()
-        if not line.lstrip().startswith("#")
-    ]
+    directive_lines = [line for line in prod_conf.splitlines() if not line.lstrip().startswith("#")]
     directives = "\n".join(directive_lines)
 
     # The production config must use this exact body on every scanner-block
