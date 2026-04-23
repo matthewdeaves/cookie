@@ -141,3 +141,17 @@ class TestUpdatePreferences:
         assert response.status_code == 200
         # No update happened — theme and unit still at their defaults.
         assert response.json()["theme"] == "light"
+
+    def test_response_does_not_expose_is_admin(self, client, settings):
+        """Regression guard for INFO-4 (R14): PATCH preferences must not expose
+        the retired is_admin field. It was stripped from /auth/me in v1.43.0
+        but the ProfileOut serializer used here still had it until this fix."""
+        settings.AUTH_MODE = "passkey"
+        user = _create_user("noadmin")
+        _login(client, user)
+        response = self._patch(client, user.profile.id, {"theme": "dark"})
+        assert response.status_code == 200
+        assert "is_admin" not in response.json(), (
+            "PATCH /profiles/{id}/preferences/ MUST NOT expose is_admin "
+            "(retired in v1.43.0, spec 014-remove-is-staff)"
+        )

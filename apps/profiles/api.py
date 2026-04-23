@@ -30,7 +30,6 @@ class ProfileOut(Schema):
     avatar_color: str
     theme: str
     unit_preference: str
-    is_admin: Optional[bool] = None
 
 
 class ProfileStatsSchema(Schema):
