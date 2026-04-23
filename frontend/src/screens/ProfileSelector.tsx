@@ -17,13 +17,21 @@ export default function ProfileSelector() {
   const [creating, setCreating] = useState(false)
 
   useEffect(() => {
-    api.profiles.list()
-      .then(setProfiles)
-      .catch((error) => {
-        console.error('Failed to load profiles:', error)
-        toast.error('Failed to load profiles')
-      })
-      .finally(() => setLoading(false))
+    let cancelled = false
+    ;(async () => {
+      try {
+        const data = await api.profiles.list()
+        if (!cancelled) setProfiles(data)
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to load profiles:', error)
+          toast.error('Failed to load profiles')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
   }, [])
 
   const handleProfileSelect = async (profile: Profile) => {

@@ -12,18 +12,22 @@ export function useCollectionData(collectionId: number) {
 
   useEffect(() => {
     if (!collectionId) return
-    const load = async () => {
+    let cancelled = false
+    ;(async () => {
       try {
         const data = await api.collections.get(collectionId)
-        setCollection(data)
+        if (!cancelled) setCollection(data)
       } catch (error) {
-        console.error('Failed to load collection:', error)
-        toast.error('Failed to load collection')
+        if (!cancelled) {
+          console.error('Failed to load collection:', error)
+          const msg = error instanceof Error ? error.message : null
+          toast.error(msg || 'Failed to load collection')
+        }
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
-    }
-    load()
+    })()
+    return () => { cancelled = true }
   }, [collectionId])
 
   const handleRemoveRecipe = async (recipe: Recipe) => {
@@ -37,7 +41,8 @@ export function useCollectionData(collectionId: number) {
       toast.success('Removed from collection')
     } catch (error) {
       console.error('Failed to remove recipe:', error)
-      toast.error('Failed to remove recipe')
+      const msg = error instanceof Error ? error.message : null
+      toast.error(msg || 'Failed to remove recipe')
     }
   }
 
@@ -49,7 +54,8 @@ export function useCollectionData(collectionId: number) {
       navigate('/collections')
     } catch (error) {
       console.error('Failed to delete collection:', error)
-      toast.error('Failed to delete collection')
+      const msg = error instanceof Error ? error.message : null
+      toast.error(msg || 'Failed to delete collection')
     } finally {
       setDeleting(false)
     }

@@ -17,18 +17,21 @@ export function useCollectionsPage() {
   const [creating, setCreating] = useState(false)
 
   useEffect(() => {
-    const load = async () => {
+    let cancelled = false
+    ;(async () => {
       try {
         const data = await api.collections.list()
-        setCollections(data)
+        if (!cancelled) setCollections(data)
       } catch (error) {
-        console.error('Failed to load collections:', error)
-        toast.error('Failed to load collections')
+        if (!cancelled) {
+          console.error('Failed to load collections:', error)
+          toast.error('Failed to load collections')
+        }
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
-    }
-    load()
+    })()
+    return () => { cancelled = true }
   }, [])
 
   const handleCreateCollection = async (e: React.FormEvent) => {
@@ -56,7 +59,8 @@ export function useCollectionsPage() {
       }
     } catch (error) {
       console.error('Failed to create collection:', error)
-      toast.error('Failed to create collection')
+      const msg = error instanceof Error ? error.message : null
+      toast.error(msg || 'Failed to create collection')
     } finally {
       setCreating(false)
     }
@@ -68,12 +72,8 @@ export function useCollectionsPage() {
         await api.collections.addRecipe(collectionId, pendingRecipeId)
         toast.success('Recipe added to collection')
       } catch (error: unknown) {
-        if (error instanceof Error && !error.message.includes('already')) {
-          console.error('Failed to add recipe to collection:', error)
-          toast.error('Failed to add recipe to collection')
-        } else {
-          toast.info('Recipe is already in this collection')
-        }
+        const msg = error instanceof Error ? error.message : null
+        toast.error(msg || 'Failed to add recipe to collection')
       }
     }
     navigate(`/collection/${collectionId}`)
