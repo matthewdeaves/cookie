@@ -117,12 +117,22 @@ def reserve_quota(profile, feature: str) -> tuple[bool, dict]:
     key = _cache_key(profile.pk, feature)
     ttl = _seconds_until_midnight_utc()
 
-    # Atomic increment — if key doesn't exist, set to 1
+    # Atomic increment. When the key doesn't exist yet, incr() raises ValueError;
+    # cache.add() is the atomic "create if absent" primitive, so concurrent first-
+    # time callers don't race each other into overwriting the counter back to 1.
+    # If add() loses the race to another worker, the key now exists and a retry
+    # of incr() succeeds.
     try:
         new_count = cache.incr(key)
     except ValueError:
-        cache.set(key, 1, timeout=ttl)
-        new_count = 1
+        if cache.add(key, 1, timeout=ttl):
+            new_count = 1
+        else:
+            try:
+                new_count = cache.incr(key)
+            except ValueError:
+                cache.set(key, 1, timeout=ttl)
+                new_count = 1
 
     if new_count > limit:
         # Over limit — roll back the increment we just did
@@ -152,13 +162,21 @@ def release_quota(profile, feature: str) -> None:
 
     key = _cache_key(profile.pk, feature)
     try:
-        cache.decr(key)
+        new_count = cache.decr(key)
     except ValueError:
         logger.debug(
             "quota release: cache key missing for profile=%s feature=%s (cache may have been flushed)",
             profile.pk,
             feature,
         )
+        return
+
+    if new_count < 0:
+        # Defence-in-depth: a correctly-paired reserve/release cycle can never
+        # drive the counter below zero, but an unpaired release (e.g. due to
+        # a future bookkeeping regression) must not leave the counter negative
+        # — a negative counter silently bypasses the `used >= limit` check.
+        cache.set(key, 0, timeout=_seconds_until_midnight_utc())
 
 
 def increment_quota(profile, feature: str) -> None:
