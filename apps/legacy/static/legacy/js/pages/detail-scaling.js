@@ -236,24 +236,25 @@
         }
     }
 
+    function restoreTimeElement(type) {
+        var el = document.querySelector('[data-time-type="' + type + '"]');
+        if (!el) return;
+        var valueEl = el.querySelector('.time-value');
+        if (!valueEl) return;
+        var originalMinutesAttr = el.getAttribute('data-original-minutes');
+        if (originalMinutesAttr) {
+            var originalFormatted = Cookie.utils.formatTime(parseInt(originalMinutesAttr, 10));
+            if (originalFormatted) {
+                valueEl.textContent = originalFormatted;
+            }
+        }
+        valueEl.classList.remove('time-adjusted');
+    }
+
     function renderOriginalTimes() {
         var timeTypes = ['prep', 'cook', 'total'];
         for (var i = 0; i < timeTypes.length; i++) {
-            var type = timeTypes[i];
-            var el = document.querySelector('[data-time-type="' + type + '"]');
-            if (el) {
-                var valueEl = el.querySelector('.time-value');
-                if (valueEl) {
-                    var originalMinutesAttr = el.getAttribute('data-original-minutes');
-                    if (originalMinutesAttr) {
-                        var originalFormatted = Cookie.utils.formatTime(parseInt(originalMinutesAttr, 10));
-                        if (originalFormatted) {
-                            valueEl.textContent = originalFormatted;
-                        }
-                    }
-                    valueEl.classList.remove('time-adjusted');
-                }
-            }
+            restoreTimeElement(timeTypes[i]);
         }
     }
 

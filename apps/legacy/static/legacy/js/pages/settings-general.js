@@ -376,16 +376,24 @@
         return /^#[0-9a-fA-F]{3,8}$/.test(str);
     }
 
+    function buildDeleteDataItems(data) {
+        var items = [];
+        if (data.remixes > 0) items.push(data.remixes + ' remixed recipe' + (data.remixes !== 1 ? 's' : ''));
+        if (data.favorites > 0) items.push(data.favorites + ' favorite' + (data.favorites !== 1 ? 's' : ''));
+        if (data.collections > 0) items.push(data.collections + ' collection' + (data.collections !== 1 ? 's' : ''));
+        if (data.view_history > 0) items.push(data.view_history + ' view history entries');
+        if (data.scaling_cache > 0 || data.discover_cache > 0) items.push('Cached AI data');
+        return items;
+    }
+
     function renderDeleteAccountPreview(preview) {
         var infoEl = document.getElementById('delete-account-info');
         var summaryEl = document.getElementById('delete-account-data-summary');
 
         if (infoEl) {
-            // Build profile preview with DOM methods to avoid innerHTML XSS
             while (infoEl.firstChild) infoEl.removeChild(infoEl.firstChild);
 
             var row = document.createElement('div');
-            row.style.display = 'flex';
             row.style.cssText = 'display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;margin-bottom:12px;';
 
             var avatar = document.createElement('div');
@@ -403,15 +411,8 @@
         }
 
         if (summaryEl) {
-            var data = preview.data_to_delete;
-            var items = [];
-            if (data.remixes > 0) items.push(data.remixes + ' remixed recipe' + (data.remixes !== 1 ? 's' : ''));
-            if (data.favorites > 0) items.push(data.favorites + ' favorite' + (data.favorites !== 1 ? 's' : ''));
-            if (data.collections > 0) items.push(data.collections + ' collection' + (data.collections !== 1 ? 's' : ''));
-            if (data.view_history > 0) items.push(data.view_history + ' view history entries');
-            if (data.scaling_cache > 0 || data.discover_cache > 0) items.push('Cached AI data');
+            var items = buildDeleteDataItems(preview.data_to_delete);
 
-            // Build with DOM methods instead of innerHTML
             while (summaryEl.firstChild) summaryEl.removeChild(summaryEl.firstChild);
 
             var heading = document.createElement('div');
@@ -421,13 +422,14 @@
 
             var ul = document.createElement('ul');
             ul.style.cssText = 'margin:0;padding-left:20px;';
+            var li;
             if (items.length === 0) {
-                var li = document.createElement('li');
+                li = document.createElement('li');
                 li.textContent = 'No associated data';
                 ul.appendChild(li);
             } else {
                 for (var i = 0; i < items.length; i++) {
-                    var li = document.createElement('li');
+                    li = document.createElement('li');
                     li.textContent = items[i];
                     ul.appendChild(li);
                 }

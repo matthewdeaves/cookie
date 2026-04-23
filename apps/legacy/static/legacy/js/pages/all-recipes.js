@@ -15,11 +15,20 @@
     var cards = recipeGrid.querySelectorAll('.recipe-card');
     var totalCount = parseInt(recipeCount.getAttribute('data-total'), 10) || cards.length;
 
+    function updateCountText(query, visibleCount) {
+        if (!recipeCount) return;
+        var suffix = totalCount !== 1 ? 's' : '';
+        if (query) {
+            recipeCount.textContent = visibleCount + ' of ' + totalCount + ' recipe' + suffix;
+        } else {
+            recipeCount.textContent = totalCount + ' recipe' + suffix;
+        }
+    }
+
     function filterRecipes() {
         var query = filterInput.value.toLowerCase().trim();
         var visibleCount = 0;
 
-        // Show/hide clear button
         if (clearBtn) {
             if (query) {
                 clearBtn.classList.remove('hidden');
@@ -28,7 +37,6 @@
             }
         }
 
-        // Filter cards
         for (var i = 0; i < cards.length; i++) {
             var card = cards[i];
             var title = (card.getAttribute('data-title') || '').toLowerCase();
@@ -42,16 +50,8 @@
             }
         }
 
-        // Update count text
-        if (recipeCount) {
-            if (query) {
-                recipeCount.textContent = visibleCount + ' of ' + totalCount + ' recipe' + (totalCount !== 1 ? 's' : '');
-            } else {
-                recipeCount.textContent = totalCount + ' recipe' + (totalCount !== 1 ? 's' : '');
-            }
-        }
+        updateCountText(query, visibleCount);
 
-        // Show/hide no results message
         if (noResults) {
             if (visibleCount === 0 && query) {
                 noResults.classList.remove('hidden');
