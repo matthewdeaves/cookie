@@ -10,6 +10,7 @@ import shutil
 import socket
 import subprocess
 import time
+from pathlib import Path
 
 import pytest
 import requests
@@ -175,7 +176,12 @@ def _docker_host_gateway() -> str | None:
     containers it spawns are reachable via the host's gateway IP, not via
     127.0.0.1 (which is the container's own loopback). Reads /proc/net/route
     — no extra packages required.
+
+    Gated on /.dockerenv so this does not misfire on CI runners or bare Linux
+    hosts (which also have a default route but are not themselves containers).
     """
+    if not Path("/.dockerenv").exists():
+        return None
     try:
         with open("/proc/net/route") as f:
             for line in f:
