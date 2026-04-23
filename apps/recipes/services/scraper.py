@@ -36,32 +36,19 @@ logger = logging.getLogger(__name__)
 
 
 class ScraperError(Exception):
-    """Base exception for scraper errors."""
-
     pass
 
 
 class FetchError(ScraperError):
-    """Failed to fetch URL."""
-
     pass
 
 
 class ParseError(ScraperError):
-    """Failed to parse recipe from HTML."""
-
     pass
 
 
 class RecipeScraper:
-    """
-    Async recipe scraper with browser fingerprint impersonation.
-
-    Uses curl_cffi to bypass anti-bot measures and recipe-scrapers
-    to parse structured recipe data from HTML.
-
-    Browser profiles are centralized in fingerprint.py for maintainability.
-    """
+    """Async recipe scraper with browser fingerprint impersonation."""
 
     DEFAULT_TIMEOUT = 30
 
@@ -259,7 +246,11 @@ class RecipeScraper:
                     check_content_size(content.encode("utf-8", errors="replace"), max_size)
                     return content
 
-                return None
+                if response.status_code == 404:
+                    raise FetchError("Recipe page not found at that URL")
+                if response.status_code == 429:
+                    raise FetchError("Recipe site is temporarily rate-limiting — try again shortly")
+                return None  # 403/5xx: let other browser profiles try
 
         raise FetchError(f"Too many redirects (>{MAX_REDIRECT_HOPS})")
 
