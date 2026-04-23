@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-23T13:40:53.406Z",
+    "detectionDate": "2026-04-23T17:28:32.481Z",
     "formats": {
       "python": {
         "sources": {
@@ -17,8 +17,8 @@
             "newClones": 0
           },
           "cookie/urls.py": {
-            "lines": 64,
-            "tokens": 582,
+            "lines": 66,
+            "tokens": 584,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -317,14 +317,14 @@
             "newClones": 0
           },
           "apps/ai/services/quota.py": {
-            "lines": 176,
-            "tokens": 1151,
+            "lines": 180,
+            "tokens": 1158,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 28,
             "duplicatedTokens": 246,
-            "percentage": 15.91,
-            "percentageTokens": 21.37,
+            "percentage": 15.56,
+            "percentageTokens": 21.24,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -569,8 +569,8 @@
             "newClones": 0
           },
           "apps/core/middleware.py": {
-            "lines": 219,
-            "tokens": 1262,
+            "lines": 224,
+            "tokens": 1301,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -786,8 +786,8 @@
           }
         },
         "total": {
-          "lines": 11879,
-          "tokens": 82848,
+          "lines": 11890,
+          "tokens": 82896,
           "sources": 65,
           "clones": 12,
           "duplicatedLines": 162,
@@ -800,8 +800,8 @@
       }
     },
     "total": {
-      "lines": 11879,
-      "tokens": 82848,
+      "lines": 11890,
+      "tokens": 82896,
       "sources": 65,
       "clones": 12,
       "duplicatedLines": 162,
