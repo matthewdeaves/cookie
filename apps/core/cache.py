@@ -35,9 +35,13 @@ class PostgreSafeDatabaseCache(DatabaseCache):
             return super()._base_set(mode, key, value, timeout)
 
     def _advisory_lock_id(self, full_key: str) -> int:
-        """Stable non-negative 32-bit int from a cache key for pg_advisory_xact_lock."""
-        digest = hashlib.sha1(full_key.encode("utf-8")).digest()
-        return int.from_bytes(digest[:4], "big", signed=False) & 0x7FFFFFFF
+        """Stable non-negative 32-bit int from a cache key for pg_advisory_xact_lock.
+
+        blake2b with digest_size=4 gives exactly 4 bytes; non-cryptographic use
+        (we just need a deterministic mapping from key-string to int32).
+        """
+        digest = hashlib.blake2b(full_key.encode("utf-8"), digest_size=4).digest()
+        return int.from_bytes(digest, "big", signed=False) & 0x7FFFFFFF
 
     def incr(self, key, delta=1, version=None):
         """Atomic per-key increment using a transaction-scoped advisory lock.
