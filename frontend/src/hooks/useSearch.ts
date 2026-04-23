@@ -125,8 +125,9 @@ export function useSearch(): UseSearchReturn {
         const recipe = await importRecipe(trimmed)
         toast.success(`Imported: ${recipe.title}`)
         navigate(`/recipe/${recipe.id}`)
-      } catch {
-        toast.error('Could not import recipe from that URL. Try a different link.')
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : null
+        toast.error(msg || 'Could not import recipe from that URL. Try a different link.')
       } finally {
         state.setImporting(null)
       }
@@ -148,8 +149,9 @@ export function useSearch(): UseSearchReturn {
       const recipe = await importRecipe(url)
       toast.success(`Imported: ${recipe.title}`)
       navigate(`/recipe/${recipe.id}`)
-    } catch {
-      toast.error('Could not import recipe from that URL. Try a different link.')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : null
+      toast.error(msg || 'Could not import recipe from that URL. Try a different link.')
     } finally { setImporting(null) }
   }
 

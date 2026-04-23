@@ -122,7 +122,7 @@ Cookie.pages.search = (function() {
             inputEl.value = url;
 
             if (error) {
-                Cookie.toast.error('Could not import recipe from that URL. Try a different link.');
+                Cookie.toast.error(error.message || 'Could not import recipe from that URL. Try a different link.');
                 return;
             }
 
@@ -402,7 +402,7 @@ Cookie.pages.search = (function() {
             if (error) {
                 button.textContent = originalText;
                 button.disabled = false;
-                Cookie.toast.error('Could not import recipe from that URL. Try a different link.');
+                Cookie.toast.error(error.message || 'Could not import recipe from that URL. Try a different link.');
                 return;
             }
 
