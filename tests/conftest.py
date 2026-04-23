@@ -168,12 +168,36 @@ def _free_port() -> int:
         return s.getsockname()[1]
 
 
+def _docker_host_gateway() -> str | None:
+    """Return the host gateway IP when running inside a Docker container.
+
+    When pytest runs inside the 'web' container (dev environment), Docker
+    containers it spawns are reachable via the host's gateway IP, not via
+    127.0.0.1 (which is the container's own loopback). Reads /proc/net/route
+    — no extra packages required.
+    """
+    try:
+        with open("/proc/net/route") as f:
+            for line in f:
+                fields = line.strip().split()
+                # Default route: destination == "00000000"
+                if len(fields) >= 3 and fields[1] == "00000000" and fields[2] != "00000000":
+                    gw_hex = fields[2]
+                    gw = ".".join(str(int(gw_hex[i : i + 2], 16)) for i in (6, 4, 2, 0))
+                    return gw
+    except OSError:
+        pass
+    return None
+
+
 @pytest.fixture(scope="module")
 def nginx_base_url(tmp_path_factory):
     """Start a throwaway nginx:alpine container; yield its base URL.
 
     Module-scoped so multiple tests in one file share a single container,
     but each test file gets a fresh container (isolation between modules).
+    Works both when pytest runs on the host and when it runs inside the
+    Docker 'web' container (dev environment with socket mounted).
     """
     conf_path = tmp_path_factory.mktemp("nginx") / "nginx.conf"
     conf_path.write_text(NGINX_TEST_CONFIG)
@@ -186,7 +210,18 @@ def nginx_base_url(tmp_path_factory):
         check=False,
     )
 
+    # When running inside Docker, nginx's published port is on the HOST network.
+    # We must bind to 0.0.0.0 (not 127.0.0.1) so the container can reach it,
+    # and connect via the host gateway IP rather than the container's loopback.
+    gateway = _docker_host_gateway()
     port = _free_port()
+    if gateway:
+        port_bind = f"0.0.0.0:{port}"
+        connect_host = gateway
+    else:
+        port_bind = f"127.0.0.1:{port}"
+        connect_host = "127.0.0.1"
+
     result = subprocess.run(
         [
             _DOCKER_BIN,
@@ -196,7 +231,7 @@ def nginx_base_url(tmp_path_factory):
             "--name",
             container_name,
             "-p",
-            f"127.0.0.1:{port}:80",
+            f"{port_bind}:80",
             "-v",
             f"{conf_path}:/etc/nginx/nginx.conf:ro",
             "nginx:alpine",
@@ -207,7 +242,7 @@ def nginx_base_url(tmp_path_factory):
     if result.returncode != 0:
         pytest.skip(f"could not start nginx:alpine: {result.stderr.strip()}")
 
-    base_url = f"http://127.0.0.1:{port}"
+    base_url = f"http://{connect_host}:{port}"
     try:
         # Wait up to 10s for nginx to accept connections.
         deadline = time.monotonic() + 10.0

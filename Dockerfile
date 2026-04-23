@@ -1,5 +1,5 @@
 # python:3.14-slim - update digest when upgrading
-FROM python:3.14-slim@sha256:71b358f8bff55413f4a6b95af80acb07ab97b5636cd3b869f35c3680d31d1650
+FROM python:3.14-slim@sha256:3989a23fd2c28a34c7be819e488b958a10601d421ac25bea1e7a5d757365e2d5
 
 WORKDIR /app
 
