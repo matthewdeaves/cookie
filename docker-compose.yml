@@ -19,6 +19,10 @@ services:
     build: .
     volumes:
       - .:/app
+      # Dev-only: lets nginx integration tests (tests/test_nginx_*) spawn
+      # throwaway nginx:alpine containers from inside the web container.
+      # Socket = daemon access; docker binary = CLI; /tmp = shared bind-mount
+      # source so the host daemon can resolve fixture config paths.
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/bin/docker:/usr/bin/docker:ro
       - /tmp:/tmp
