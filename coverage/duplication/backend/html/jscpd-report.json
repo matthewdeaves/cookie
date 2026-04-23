@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-23T17:41:16.784Z",
+    "detectionDate": "2026-04-23T19:05:47.109Z",
     "formats": {
       "python": {
         "sources": {
@@ -317,14 +317,14 @@
             "newClones": 0
           },
           "apps/ai/services/quota.py": {
-            "lines": 180,
-            "tokens": 1158,
+            "lines": 198,
+            "tokens": 1270,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 28,
             "duplicatedTokens": 246,
-            "percentage": 15.56,
-            "percentageTokens": 21.24,
+            "percentage": 14.14,
+            "percentageTokens": 19.37,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -629,8 +629,8 @@
             "newClones": 0
           },
           "apps/core/cache.py": {
-            "lines": 24,
-            "tokens": 141,
+            "lines": 63,
+            "tokens": 460,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -786,28 +786,28 @@
           }
         },
         "total": {
-          "lines": 11890,
-          "tokens": 82896,
+          "lines": 11947,
+          "tokens": 83327,
           "sources": 65,
           "clones": 12,
           "duplicatedLines": 162,
           "duplicatedTokens": 1372,
           "percentage": 1.36,
-          "percentageTokens": 1.66,
+          "percentageTokens": 1.65,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 11890,
-      "tokens": 82896,
+      "lines": 11947,
+      "tokens": 83327,
       "sources": 65,
       "clones": 12,
       "duplicatedLines": 162,
       "duplicatedTokens": 1372,
       "percentage": 1.36,
-      "percentageTokens": 1.66,
+      "percentageTokens": 1.65,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
