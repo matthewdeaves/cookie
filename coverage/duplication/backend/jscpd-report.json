@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-22T23:50:22.666Z",
+    "detectionDate": "2026-04-23T08:20:53.768Z",
     "formats": {
       "python": {
         "sources": {
@@ -173,14 +173,14 @@
             "newClones": 0
           },
           "apps/recipes/services/scraper.py": {
-            "lines": 516,
-            "tokens": 3996,
+            "lines": 507,
+            "tokens": 4026,
             "sources": 1,
             "clones": 4,
             "duplicatedLines": 59,
             "duplicatedTokens": 582,
-            "percentage": 11.43,
-            "percentageTokens": 14.56,
+            "percentage": 11.64,
+            "percentageTokens": 14.46,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -402,7 +402,7 @@
           },
           "apps/recipes/api_user.py": {
             "lines": 321,
-            "tokens": 2468,
+            "tokens": 2483,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -786,8 +786,8 @@
           }
         },
         "total": {
-          "lines": 11882,
-          "tokens": 82760,
+          "lines": 11873,
+          "tokens": 82805,
           "sources": 65,
           "clones": 12,
           "duplicatedLines": 162,
@@ -800,8 +800,8 @@
       }
     },
     "total": {
-      "lines": 11882,
-      "tokens": 82760,
+      "lines": 11873,
+      "tokens": 82805,
       "sources": 65,
       "clones": 12,
       "duplicatedLines": 162,
@@ -820,32 +820,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/recipes/services/scraper.py",
-        "start": 421,
-        "end": 437,
+        "start": 412,
+        "end": 428,
         "startLoc": {
-          "line": 421,
+          "line": 412,
           "column": 9,
-          "position": 3208
+          "position": 3238
         },
         "endLoc": {
-          "line": 437,
+          "line": 428,
           "column": 7,
-          "position": 3377
+          "position": 3407
         }
       },
       "secondFile": {
         "name": "apps/recipes/services/scraper.py",
-        "start": 233,
-        "end": 249,
+        "start": 220,
+        "end": 236,
         "startLoc": {
-          "line": 233,
+          "line": 220,
           "column": 9,
-          "position": 1478
+          "position": 1466
         },
         "endLoc": {
-          "line": 249,
+          "line": 236,
           "column": 6,
-          "position": 1647
+          "position": 1635
         }
       }
     },
@@ -871,17 +871,17 @@
       },
       "secondFile": {
         "name": "apps/recipes/services/scraper.py",
-        "start": 419,
-        "end": 242,
+        "start": 410,
+        "end": 229,
         "startLoc": {
-          "line": 419,
+          "line": 410,
           "column": 28,
-          "position": 3188
+          "position": 3218
         },
         "endLoc": {
-          "line": 242,
+          "line": 229,
           "column": 8,
-          "position": 1585
+          "position": 1573
         }
       }
     },
@@ -907,17 +907,17 @@
       },
       "secondFile": {
         "name": "apps/recipes/services/scraper.py",
-        "start": 430,
-        "end": 446,
+        "start": 421,
+        "end": 437,
         "startLoc": {
-          "line": 430,
+          "line": 421,
           "column": 8,
-          "position": 3316
+          "position": 3346
         },
         "endLoc": {
-          "line": 446,
+          "line": 437,
           "column": 3,
-          "position": 3433
+          "position": 3463
         }
       }
     },
