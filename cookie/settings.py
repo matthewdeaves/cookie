@@ -163,6 +163,30 @@ DATABASES = {
     )
 }
 
+# Defence-in-depth Postgres timeouts (HexStrike R17 A4 hardening).
+# Prevents a stuck query or a pathologically-held row/advisory lock from
+# blocking quota / session operations indefinitely. Values chosen to cover
+# every request path observed in prod (scrape external fetch happens outside
+# the DB tx; AI reserve/release is microseconds) while failing fast on
+# genuine pathology. Migrations run via `manage.py migrate` use the same
+# DATABASES config; if a migration legitimately needs longer, override per
+# command with `PG_STATEMENT_TIMEOUT_MS=0 python manage.py migrate`.
+_pg_statement_timeout = os.environ.get("PG_STATEMENT_TIMEOUT_MS", "30000")
+_pg_lock_timeout = os.environ.get("PG_LOCK_TIMEOUT_MS", "5000")
+_pg_idle_in_tx_timeout = os.environ.get("PG_IDLE_IN_TX_TIMEOUT_MS", "10000")
+_pg_options_parts = [
+    f"-c statement_timeout={_pg_statement_timeout}",
+    f"-c lock_timeout={_pg_lock_timeout}",
+    f"-c idle_in_transaction_session_timeout={_pg_idle_in_tx_timeout}",
+]
+DATABASES["default"].setdefault("OPTIONS", {})
+# Preserve any options already set by dj_database_url (e.g. sslmode parsed
+# from the URL's query string) by concatenating rather than overwriting.
+_existing_options = DATABASES["default"]["OPTIONS"].get("options", "")
+DATABASES["default"]["OPTIONS"]["options"] = " ".join(
+    part for part in [_existing_options, *_pg_options_parts] if part
+).strip()
+
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True

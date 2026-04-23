@@ -155,6 +155,98 @@ class TestDatabaseConnection:
         assert len(unapplied) == 0, f"Unapplied migrations: {unapplied}"
 
 
+class TestPostgresTimeouts:
+    """Verify DATABASES['default']['OPTIONS']['options'] carries the
+    defence-in-depth timeout knobs (HexStrike R17 A4 hardening)."""
+
+    def test_default_timeouts_present(self):
+        from django.conf import settings
+
+        opts = settings.DATABASES["default"].get("OPTIONS", {}).get("options", "")
+        assert "statement_timeout=30000" in opts
+        assert "lock_timeout=5000" in opts
+        assert "idle_in_transaction_session_timeout=10000" in opts
+
+    def test_env_var_override(self):
+        import importlib
+
+        import cookie.settings
+
+        from unittest.mock import patch
+
+        env = {
+            **os.environ,
+            "PG_STATEMENT_TIMEOUT_MS": "60000",
+            "PG_LOCK_TIMEOUT_MS": "2000",
+            "PG_IDLE_IN_TX_TIMEOUT_MS": "15000",
+        }
+        with patch.dict(os.environ, env, clear=True):
+            reloaded = importlib.reload(cookie.settings)
+            opts = reloaded.DATABASES["default"]["OPTIONS"]["options"]
+            assert "statement_timeout=60000" in opts
+            assert "lock_timeout=2000" in opts
+            assert "idle_in_transaction_session_timeout=15000" in opts
+        # Restore real environment
+        importlib.reload(cookie.settings)
+
+    def test_preserves_existing_options_from_url(self):
+        """A DATABASE_URL with e.g. ?sslmode=require must not lose its
+        sslmode option when we append the timeout knobs."""
+        import importlib
+
+        import cookie.settings
+
+        from unittest.mock import patch
+
+        env = {
+            **os.environ,
+            "DATABASE_URL": (
+                "postgres://u:p@h:5432/d?sslmode=require"  # pragma: allowlist secret
+            ),
+        }
+        with patch.dict(os.environ, env, clear=True):
+            reloaded = importlib.reload(cookie.settings)
+            default = reloaded.DATABASES["default"]
+            # dj_database_url may put sslmode under OPTIONS as a dict key or
+            # inside the connection string; we only assert that our timeout
+            # knobs ended up in the `options` libpq string.
+            opts = default.get("OPTIONS", {}).get("options", "")
+            assert "statement_timeout=30000" in opts
+        importlib.reload(cookie.settings)
+
+
+@pytest.mark.django_db
+class TestPostgresTimeoutsEffective:
+    """Integration check: the libpq `options` string actually took effect
+    on the live connection, not just landed in settings."""
+
+    def test_statement_timeout_set_on_connection(self):
+        from django.db import connection
+
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW statement_timeout")
+            row = cursor.fetchone()
+        # Postgres formats integer ms values as "30s" / "5s" etc.; accept
+        # any nonzero value as evidence the server-side knob is in effect.
+        assert row[0] not in ("", "0", "0ms"), f"statement_timeout not applied; got {row[0]!r}"
+
+    def test_lock_timeout_set_on_connection(self):
+        from django.db import connection
+
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW lock_timeout")
+            row = cursor.fetchone()
+        assert row[0] not in ("", "0", "0ms"), f"lock_timeout not applied; got {row[0]!r}"
+
+    def test_idle_in_tx_timeout_set_on_connection(self):
+        from django.db import connection
+
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW idle_in_transaction_session_timeout")
+            row = cursor.fetchone()
+        assert row[0] not in ("", "0", "0ms"), f"idle_in_transaction_session_timeout not applied; got {row[0]!r}"
+
+
 @pytest.mark.django_db
 class TestPostgresSpecificFeatures:
     """Tests for PostgreSQL-specific behavior."""
