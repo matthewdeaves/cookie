@@ -735,15 +735,15 @@ apps/ai/api_remix.py
 apps/ai/fixtures.py
     F 301:0 get_fixture - A (2)
 apps/ai/api.py
+    F 385:0 timer_name_endpoint - B (10)
     F 313:0 tips_endpoint - B (9)
     F 252:0 update_prompt - B (8)
-    F 385:0 timer_name_endpoint - B (7)
-    F 469:0 repair_selector_endpoint - A (5)
+    F 470:0 repair_selector_endpoint - A (5)
     F 131:0 get_ai_status - A (4)
     F 227:0 _validate_model - A (4)
     F 173:0 test_api_key - A (3)
     F 279:0 list_models - A (3)
-    F 519:0 sources_needing_attention_endpoint - A (3)
+    F 520:0 sources_needing_attention_endpoint - A (3)
     F 195:0 save_api_key - A (2)
     F 219:0 _get_prompt_or_error - A (2)
     F 33:0 handle_ai_errors - A (1)
@@ -762,9 +762,9 @@ apps/ai/api.py
     C 300:0 TipsOut - A (1)
     C 370:0 TimerNameIn - A (1)
     C 375:0 TimerNameOut - A (1)
-    C 435:0 SelectorRepairIn - A (1)
-    C 443:0 SelectorRepairOut - A (1)
-    C 451:0 SourceNeedingAttentionOut - A (1)
+    C 436:0 SelectorRepairIn - A (1)
+    C 444:0 SelectorRepairOut - A (1)
+    C 452:0 SourceNeedingAttentionOut - A (1)
 apps/ai/api_scaling.py
     F 57:0 scale_recipe_endpoint - C (11)
     C 24:0 ScaleIn - A (1)
@@ -900,4 +900,4 @@ cookie/urls.py
     F 31:0 handle_bad_content_type - A (1)
 
 799 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.758448060075094)
+Average complexity: A (2.762202753441802)
