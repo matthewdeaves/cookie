@@ -475,6 +475,18 @@ class TestTimerNameEndpoint:
 
     @patch("apps.ai.api.reserve_quota", return_value=(True, {}))
     @patch("apps.ai.api.release_quota")
+    def test_whitespace_step_text(self, mock_release, mock_quota, auth_client):
+        for bad in ("   ", "\t\n", "\x00\x01"):
+            response = auth_client.post(
+                "/api/ai/timer-name",
+                data=json.dumps({"step_text": bad, "duration_minutes": 10}),
+                content_type="application/json",
+            )
+            assert response.status_code == 400, f"expected 400 for {bad!r}"
+            assert response.json()["error"] == "validation_error"
+
+    @patch("apps.ai.api.reserve_quota", return_value=(True, {}))
+    @patch("apps.ai.api.release_quota")
     def test_negative_duration(self, mock_release, mock_quota, auth_client):
         response = auth_client.post(
             "/api/ai/timer-name",

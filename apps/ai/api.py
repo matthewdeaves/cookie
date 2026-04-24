@@ -395,7 +395,8 @@ def timer_name_endpoint(request, data: TimerNameIn):
     if not allowed:
         return Status(429, {"error": "quota_exceeded", "message": "Daily limit reached for timer", **info})
 
-    if not data.step_text:
+    step_text_clean = "".join(ch for ch in data.step_text if ch >= " " or ch in "\t\n\r").strip()
+    if not step_text_clean:
         release_quota(request.auth, "timer")
         return Status(
             400,
@@ -415,10 +416,10 @@ def timer_name_endpoint(request, data: TimerNameIn):
             },
         )
 
-    was_cached = is_ai_cache_hit("timer_name", step_text=data.step_text, duration_minutes=data.duration_minutes)
+    was_cached = is_ai_cache_hit("timer_name", step_text=step_text_clean, duration_minutes=data.duration_minutes)
     try:
         result = generate_timer_name(
-            step_text=data.step_text,
+            step_text=step_text_clean,
             duration_minutes=data.duration_minutes,
         )
     except Exception:

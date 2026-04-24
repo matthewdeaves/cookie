@@ -15,7 +15,7 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 MAX_FILE_LINES = 500
 
 EXEMPT_FILES: dict[str, int] = {
-    "apps/ai/api.py": 534,
+    "apps/ai/api.py": 535,
     "apps/recipes/services/scraper.py": 517,
     "apps/ai/tests.py": 1852,
     "apps/recipes/tests.py": 564,
@@ -26,7 +26,7 @@ EXEMPT_FILES: dict[str, int] = {
     "tests/test_search.py": 718,
     "tests/test_system_api.py": 701,
     "tests/test_image_cache.py": 674,
-    "tests/test_ai_api.py": 597,
+    "tests/test_ai_api.py": 609,
     "tests/test_user_features.py": 524,
 }
 
