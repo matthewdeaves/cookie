@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-24T16:45:21.884Z",
+    "detectionDate": "2026-04-26T07:33:47.973Z",
     "formats": {
       "python": {
         "sources": {
@@ -29,8 +29,8 @@
             "newClones": 0
           },
           "cookie/settings.py": {
-            "lines": 339,
-            "tokens": 1903,
+            "lines": 344,
+            "tokens": 1927,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -545,14 +545,14 @@
             "newClones": 0
           },
           "apps/core/passkey_api.py": {
-            "lines": 452,
-            "tokens": 3486,
+            "lines": 456,
+            "tokens": 3501,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 11,
             "duplicatedTokens": 78,
-            "percentage": 2.43,
-            "percentageTokens": 2.24,
+            "percentage": 2.41,
+            "percentageTokens": 2.23,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -786,8 +786,8 @@
           }
         },
         "total": {
-          "lines": 11972,
-          "tokens": 83534,
+          "lines": 11981,
+          "tokens": 83573,
           "sources": 65,
           "clones": 12,
           "duplicatedLines": 162,
@@ -800,8 +800,8 @@
       }
     },
     "total": {
-      "lines": 11972,
-      "tokens": 83534,
+      "lines": 11981,
+      "tokens": 83573,
       "sources": 65,
       "clones": 12,
       "duplicatedLines": 162,
@@ -1108,17 +1108,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/core/passkey_api.py",
-        "start": 159,
-        "end": 170,
+        "start": 163,
+        "end": 174,
         "startLoc": {
-          "line": 159,
+          "line": 163,
           "column": 5,
-          "position": 1162
+          "position": 1177
         },
         "endLoc": {
-          "line": 170,
+          "line": 174,
           "column": 8,
-          "position": 1240
+          "position": 1255
         }
       },
       "secondFile": {
