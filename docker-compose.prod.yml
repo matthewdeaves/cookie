@@ -24,7 +24,7 @@ services:
       retries: 5
 
   web:
-    image: ghcr.io/matthewdeaves/cookie:1.62.0
+    image: ghcr.io/matthewdeaves/cookie:1.63.0
     container_name: cookie-prod
     ports:
       - "80:80"
