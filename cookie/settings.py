@@ -89,6 +89,11 @@ COOKIE_VERSION = _resolve_cookie_version()
 # ===========================================
 WEBAUTHN_RP_ID = os.environ.get("WEBAUTHN_RP_ID", "")  # Derived from request hostname if empty
 WEBAUTHN_RP_NAME = os.environ.get("WEBAUTHN_RP_NAME", "Cookie")
+# Pin the expected origin for WebAuthn verification (F-33 fix).  When set,
+# _get_origin() returns this value directly, decoupling origin binding from
+# the request Host header (and therefore from USE_X_FORWARDED_HOST injection).
+# Required in production: set to https://<your-domain>.
+WEBAUTHN_RP_ORIGIN = os.environ.get("WEBAUTHN_RP_ORIGIN", "")
 DEVICE_CODE_EXPIRY_SECONDS = int(os.environ.get("DEVICE_CODE_EXPIRY_SECONDS", "600"))
 
 INSTALLED_APPS = [

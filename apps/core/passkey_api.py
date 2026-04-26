@@ -48,11 +48,15 @@ def _get_rp_id(request):
 def _get_origin(request):
     """Get the expected origin for WebAuthn verification.
 
-    Always derives origin from the actual request host, since the browser sends
-    the page's origin (scheme + host) regardless of RP ID configuration.
-    RP ID can be a parent domain (e.g. "matthewdeaves.com" for
-    "cookie.matthewdeaves.com") but the origin must match the actual hostname.
+    When WEBAUTHN_RP_ORIGIN is set (production), returns that pinned value.
+    This decouples origin binding from the request Host header, preventing
+    X-Forwarded-Host injection from influencing the expected origin (F-33).
+
+    Falls back to deriving from request host when WEBAUTHN_RP_ORIGIN is not
+    set (development use without a fixed domain).
     """
+    if settings.WEBAUTHN_RP_ORIGIN:
+        return settings.WEBAUTHN_RP_ORIGIN
     scheme = "https" if request.is_secure() else "http"
     return f"{scheme}://{request.get_host()}"
 

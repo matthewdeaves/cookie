@@ -709,6 +709,23 @@ class TestHelpers:
         request.get_host.return_value = "cookie.example.com"
         assert _get_origin(request) == "https://cookie.example.com"
 
+    def test_get_origin_uses_rp_origin_setting(self, settings):
+        """F-33: WEBAUTHN_RP_ORIGIN is used directly when set."""
+        from apps.core.passkey_api import _get_origin
+        settings.WEBAUTHN_RP_ORIGIN = "https://cookie.example.com"
+        request = MagicMock()
+        assert _get_origin(request) == "https://cookie.example.com"
+        request.get_host.assert_not_called()
+
+    def test_get_origin_rp_origin_ignores_forwarded_host(self, settings):
+        """F-33 regression: pinned WEBAUTHN_RP_ORIGIN is immune to X-Forwarded-Host."""
+        from apps.core.passkey_api import _get_origin
+        settings.WEBAUTHN_RP_ORIGIN = "https://cookie.example.com"
+        request = MagicMock()
+        request.get_host.return_value = "localhost"
+        assert _get_origin(request) == "https://cookie.example.com"
+        request.get_host.assert_not_called()
+
 
 # --- Tests: Rate limiting ---
 
