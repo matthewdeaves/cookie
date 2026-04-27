@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-26T07:33:47.973Z",
+    "detectionDate": "2026-04-27T17:56:52.500Z",
     "formats": {
       "python": {
         "sources": {
@@ -104,11 +104,11 @@
             "lines": 489,
             "tokens": 4253,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 11,
-            "duplicatedTokens": 78,
-            "percentage": 2.25,
-            "percentageTokens": 1.83,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -545,14 +545,14 @@
             "newClones": 0
           },
           "apps/core/passkey_api.py": {
-            "lines": 456,
-            "tokens": 3501,
+            "lines": 455,
+            "tokens": 3488,
             "sources": 1,
-            "clones": 1,
-            "duplicatedLines": 11,
-            "duplicatedTokens": 78,
-            "percentage": 2.41,
-            "percentageTokens": 2.23,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -786,28 +786,28 @@
           }
         },
         "total": {
-          "lines": 11981,
-          "tokens": 83573,
+          "lines": 11980,
+          "tokens": 83560,
           "sources": 65,
-          "clones": 12,
-          "duplicatedLines": 162,
-          "duplicatedTokens": 1372,
-          "percentage": 1.35,
-          "percentageTokens": 1.64,
+          "clones": 11,
+          "duplicatedLines": 151,
+          "duplicatedTokens": 1294,
+          "percentage": 1.26,
+          "percentageTokens": 1.55,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 11981,
-      "tokens": 83573,
+      "lines": 11980,
+      "tokens": 83560,
       "sources": 65,
-      "clones": 12,
-      "duplicatedLines": 162,
-      "duplicatedTokens": 1372,
-      "percentage": 1.35,
-      "percentageTokens": 1.64,
+      "clones": 11,
+      "duplicatedLines": 151,
+      "duplicatedTokens": 1294,
+      "percentage": 1.26,
+      "percentageTokens": 1.55,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -1098,42 +1098,6 @@
           "line": 115,
           "column": 6,
           "position": 726
-        }
-      }
-    },
-    {
-      "format": "python",
-      "lines": 12,
-      "fragment": "user = User.objects.create_user(\n        username=username,\n        password=None,\n        email=\"\",\n        is_active=True,\n        is_staff=False,\n    )\n    user.set_unusable_password()\n    user.save(update_fields=[\"password\"])\n\n    profile_count = Profile.objects.count()\n    profile",
-      "tokens": 0,
-      "firstFile": {
-        "name": "apps/core/passkey_api.py",
-        "start": 163,
-        "end": 174,
-        "startLoc": {
-          "line": 163,
-          "column": 5,
-          "position": 1177
-        },
-        "endLoc": {
-          "line": 174,
-          "column": 8,
-          "position": 1255
-        }
-      },
-      "secondFile": {
-        "name": "apps/core/management/commands/_cookie_admin_users.py",
-        "start": 289,
-        "end": 300,
-        "startLoc": {
-          "line": 289,
-          "column": 9,
-          "position": 2350
-        },
-        "endLoc": {
-          "line": 300,
-          "column": 8,
-          "position": 2428
         }
       }
     },
