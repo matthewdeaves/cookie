@@ -791,7 +791,7 @@ class TestChallengeExpiry:
         session = anon_client.session
         session["webauthn_register_challenge"] = "aa" * 16
         session["webauthn_register_user_id"] = "bb" * 16
-        session["webauthn_challenge_created_at"] = time.time() - 301  # 5m1s ago
+        session["webauthn_register_challenge_created_at"] = time.time() - 301  # 5m1s ago
         session.save()
 
         resp = _post_json(
@@ -813,7 +813,7 @@ class TestChallengeExpiry:
 
         session = anon_client.session
         session["webauthn_login_challenge"] = "cc" * 16
-        session["webauthn_challenge_created_at"] = time.time() - 301
+        session["webauthn_login_challenge_created_at"] = time.time() - 301
         session.save()
 
         resp = _post_json(
@@ -843,7 +843,7 @@ class TestChallengeExpiry:
         session = anon_client.session
         session["webauthn_register_challenge"] = "dd" * 16
         session["webauthn_register_user_id"] = "ee" * 16
-        session["webauthn_challenge_created_at"] = time.time() - 60  # 1 minute ago
+        session["webauthn_register_challenge_created_at"] = time.time() - 60  # 1 minute ago
         session.save()
 
         resp = _post_json(
@@ -871,7 +871,7 @@ class TestChallengeConsumption:
         session = anon_client.session
         session["webauthn_register_challenge"] = "ff" * 16
         session["webauthn_register_user_id"] = "00" * 16
-        session["webauthn_challenge_created_at"] = time.time()
+        session["webauthn_register_challenge_created_at"] = time.time()
         session.save()
 
         # Simulate rate-limited request
@@ -898,7 +898,7 @@ class TestChallengeConsumption:
 
         session = anon_client.session
         session["webauthn_login_challenge"] = "11" * 16
-        session["webauthn_challenge_created_at"] = time.time()
+        session["webauthn_login_challenge_created_at"] = time.time()
         session.save()
 
         _post_json(

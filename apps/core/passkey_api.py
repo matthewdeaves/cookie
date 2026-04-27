@@ -92,7 +92,7 @@ def register_options(request):
     # Store challenge, user_id, and creation timestamp in session
     request.session["webauthn_register_challenge"] = options.challenge.hex()
     request.session["webauthn_register_user_id"] = user_id.hex()
-    request.session["webauthn_challenge_created_at"] = time.time()
+    request.session["webauthn_register_challenge_created_at"] = time.time()
 
     return Status(200, json.loads(options_to_json(options)))
 
@@ -106,7 +106,7 @@ def register_verify(request):
     # Consume challenge BEFORE rate limit check to prevent replay (FR-011)
     challenge_hex = request.session.pop("webauthn_register_challenge", None)
     user_id_hex = request.session.pop("webauthn_register_user_id", None)
-    created_at = request.session.pop("webauthn_challenge_created_at", None)
+    created_at = request.session.pop("webauthn_register_challenge_created_at", None)
 
     if getattr(request, "limited", False):
         security_logger.warning(
@@ -170,10 +170,9 @@ def _create_passkey_user_and_profile(verification, transports=None):
     user.set_unusable_password()
     user.save(update_fields=["password"])
 
-    profile_count = Profile.objects.count()
     profile = Profile.objects.create(
         user=user,
-        name=f"User {profile_count + 1}",
+        name=f"User {uuid.uuid4().hex[:6]}",
         avatar_color=Profile.next_avatar_color(),
     )
 
@@ -214,7 +213,7 @@ def login_options(request):
     )
 
     request.session["webauthn_login_challenge"] = options.challenge.hex()
-    request.session["webauthn_challenge_created_at"] = time.time()
+    request.session["webauthn_login_challenge_created_at"] = time.time()
 
     return Status(200, json.loads(options_to_json(options)))
 
@@ -227,7 +226,7 @@ def login_verify(request):
 
     # Consume challenge BEFORE rate limit check to prevent replay (FR-011)
     challenge_hex = request.session.pop("webauthn_login_challenge", None)
-    created_at = request.session.pop("webauthn_challenge_created_at", None)
+    created_at = request.session.pop("webauthn_login_challenge_created_at", None)
 
     if getattr(request, "limited", False):
         security_logger.warning(
@@ -362,7 +361,7 @@ def add_credential_options(request):
     )
 
     request.session["webauthn_add_challenge"] = options.challenge.hex()
-    request.session["webauthn_challenge_created_at"] = time.time()
+    request.session["webauthn_add_challenge_created_at"] = time.time()
 
     return Status(200, json.loads(options_to_json(options)))
 
@@ -373,7 +372,7 @@ def add_credential_verify(request):
     require_passkey_mode(request)
 
     challenge_hex = request.session.pop("webauthn_add_challenge", None)
-    created_at = request.session.pop("webauthn_challenge_created_at", None)
+    created_at = request.session.pop("webauthn_add_challenge_created_at", None)
     if not challenge_hex:
         return Status(400, {"error": "No pending challenge"})
 
