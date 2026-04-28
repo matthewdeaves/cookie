@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { api, type DiscoverSuggestion } from '../api/client'
-import { handleQuotaError } from '../lib/utils'
+import { handleQuotaError, extractQuotaResetsAt } from '../lib/utils'
 import { useAIStatus } from '../contexts/AIStatusContext'
 
 interface UseDiscoverTabOptions {
@@ -44,7 +44,7 @@ export function useDiscoverTab({ profileId, aiAvailable }: UseDiscoverTabOptions
       if (isAbort) {
         console.debug('Discover fetch aborted:', err)
       } else if (handleQuotaError(err, 'Failed to load discover suggestions')) {
-        setFeatureQuotaExhausted('discover')
+        setFeatureQuotaExhausted('discover', extractQuotaResetsAt(err))
       } else {
         setError(true)
       }

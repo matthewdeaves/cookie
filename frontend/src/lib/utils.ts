@@ -25,6 +25,18 @@ export function handleQuotaError(error: unknown, fallbackMessage: string): boole
 }
 
 /**
+ * Extract the resets_at ISO string from a quota_exceeded 429 error.
+ * Returns undefined if the error is not a quota error or has no reset time.
+ */
+export function extractQuotaResetsAt(error: unknown): string | undefined {
+  const err = error as { status?: number; body?: { error?: string; resets_at?: string } }
+  if (err?.status === 429 && err?.body?.error === 'quota_exceeded') {
+    return err.body?.resets_at
+  }
+  return undefined
+}
+
+/**
  * Format nutrition key into human readable label.
  * Converts camelCase keys like 'carbohydrateContent' to 'Carbohydrate'.
  * Also handles snake_case like 'saturated_fat' to 'Saturated Fat'.

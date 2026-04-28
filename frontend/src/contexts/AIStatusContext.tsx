@@ -9,7 +9,7 @@ interface AIStatusContextType {
   errorCode: string | null
   loading: boolean
   refresh: () => Promise<void>
-  setFeatureQuotaExhausted: (feature: string) => void
+  setFeatureQuotaExhausted: (feature: string, resetsAt?: string) => void
   isFeatureAvailable: (feature: string) => boolean
 }
 
@@ -45,14 +45,24 @@ export function AIStatusProvider({ children }: AIStatusProviderProps) {
     errorCode: null,
   })
   const [loading, setLoading] = useState(true)
-  const [quotaExhaustedFeatures, setQuotaExhaustedFeatures] = useState<Set<string>>(new Set())
+  // Maps feature name → UTC reset time. Auto-cleared when reset time passes.
+  const [quotaExhaustedFeatures, setQuotaExhaustedFeatures] = useState<Map<string, Date | null>>(new Map())
 
-  const setFeatureQuotaExhausted = useCallback((feature: string) => {
-    setQuotaExhaustedFeatures(prev => new Set([...prev, feature]))
+  const setFeatureQuotaExhausted = useCallback((feature: string, resetsAt?: string) => {
+    const resetDate = resetsAt ? new Date(resetsAt) : null
+    setQuotaExhaustedFeatures(prev => new Map([...prev, [feature, resetDate]]))
   }, [])
 
   const isFeatureAvailable = useCallback((feature: string): boolean => {
-    return status.available && !quotaExhaustedFeatures.has(feature)
+    if (!status.available) return false
+    const resetTime = quotaExhaustedFeatures.get(feature)
+    if (resetTime === undefined) return true
+    // Auto-clear the feature if its reset time has passed
+    if (resetTime !== null && Date.now() >= resetTime.getTime()) {
+      setQuotaExhaustedFeatures(prev => { const next = new Map(prev); next.delete(feature); return next })
+      return true
+    }
+    return false
   }, [status.available, quotaExhaustedFeatures])
 
   const refresh = useCallback(async () => {
