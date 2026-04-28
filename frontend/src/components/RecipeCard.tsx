@@ -82,7 +82,7 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
     <button
       onClick={handleClick}
       className={cn(
-        'absolute left-2 top-2 rounded-full p-2 transition-colors backdrop-blur-sm',
+        'absolute right-2 top-2 rounded-full p-2 transition-colors backdrop-blur-sm',
         confirming
           ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
           : 'bg-background/80 text-muted-foreground hover:bg-background hover:text-destructive'
@@ -156,7 +156,7 @@ export default function RecipeCard({
         {recipe.is_remix && (
           <div className={cn(
             'absolute top-2 rounded-full bg-primary/90 px-2 py-0.5 text-xs text-primary-foreground backdrop-blur-sm',
-            onDelete ? 'left-10' : 'left-2'
+            'left-2'
           )}>
             Remix
           </div>

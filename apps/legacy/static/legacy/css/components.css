@@ -619,7 +619,7 @@
 .recipe-card-delete {
     position: absolute;
     top: 0.5rem;
-    left: 0.5rem;
+    right: 0.5rem;
     z-index: 2;
     width: 2.25rem;
     height: 2.25rem;
