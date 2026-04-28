@@ -162,11 +162,11 @@
     -webkit-justify-content: center;
     justify-content: center;
     height: 56px;
-    line-height: 56px;
     border-radius: 14px;
     border: none;
     font-size: 1rem;
     font-weight: 600;
+    line-height: 1.2;
     cursor: pointer;
     text-align: center;
     -webkit-box-flex: 1;
@@ -187,7 +187,7 @@
 .step-nav-btn.next-btn { background-color: #6b8e5f; color: #ffffff; margin-left: 0.5rem; }
 .step-nav-btn.next-btn:active:not([disabled]) { background-color: #5e7f53; }
 
-.nav-arrow { font-size: 1.25rem; line-height: 1; }
+.nav-arrow { font-size: 1rem; line-height: 1.2; }
 .prev-btn .nav-arrow { margin-right: 0.5rem; }
 .next-btn .nav-arrow { margin-left: 0.5rem; }
 
@@ -415,17 +415,13 @@
     -webkit-box-pack: center;
     -webkit-justify-content: center;
     justify-content: center;
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
     width: 36px;
     height: 36px;
-    padding: 11px;
     border-radius: 50%;
     border: none;
     background-color: #e8e1d8;
     color: #6b6560;
     cursor: pointer;
-    overflow: hidden;
     -webkit-transition: background-color 0.15s ease;
     transition: background-color 0.15s ease;
 }

@@ -85,7 +85,7 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
         'absolute left-2 top-2 rounded-full p-2 transition-colors backdrop-blur-sm',
         confirming
           ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-          : 'bg-background/80 text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-background hover:text-destructive'
+          : 'bg-background/80 text-muted-foreground hover:bg-background hover:text-destructive'
       )}
       aria-label={confirming ? 'Confirm delete' : 'Delete recipe'}
       title={confirming ? 'Click again to confirm' : 'Delete recipe'}
