@@ -42,3 +42,18 @@ code {
   font-size: 13px;
   color: #888;
 }
+.back-link {
+  display: inline-block;
+  margin-bottom: 16px;
+  padding: 8px 14px;
+  background: #d97850;
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+}
+.back-link:hover,
+.back-link:focus {
+  background: #c46641;
+}
