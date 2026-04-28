@@ -51,8 +51,14 @@ if _raw_auth_mode not in ("home", "passkey"):
     import logging as _logging
     import re as _re
 
-    # Sanitise for log output: strip control characters to prevent log injection
-    _safe_mode = _re.sub(r"[\x00-\x1f\x7f]", "", _raw_auth_mode)[:50]
+    # Whitelist sanitiser for log output: only allow simple identifier
+    # characters, otherwise replace with a fixed placeholder. The strict
+    # fullmatch lets static analysers (CodeQL py/log-injection) recognise
+    # the value as sanitised before it reaches the logger.
+    if _re.fullmatch(r"[A-Za-z0-9_-]{1,50}", _raw_auth_mode):
+        _safe_mode = _raw_auth_mode
+    else:
+        _safe_mode = "<invalid>"
     _logging.getLogger("cookie.settings").warning(
         "Unrecognised AUTH_MODE=%r — falling back to 'home'. Valid modes: 'home', 'passkey'.",
         _safe_mode,
