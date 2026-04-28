@@ -447,3 +447,48 @@ def test_format_suggestions_from_list(profile):
     assert len(result["suggestions"]) == 1
     assert result["suggestions"][0]["type"] == "new"
     assert result["suggestions"][0]["title"] == "New Thing"
+
+
+# --- Quota exhausted fallback ---
+
+
+@pytest.mark.django_db
+def test_discover_refresh_quota_exhausted_falls_back_to_cache(auth_client, profile):
+    """When refresh=true but quota is exhausted, serve cached suggestions (200) instead of 429."""
+    # Create a cached suggestion within the 24h window
+    AIDiscoverySuggestion.objects.create(
+        profile=profile,
+        suggestion_type="seasonal",
+        title="Cached Spring Salad",
+        description="A fresh spring salad",
+        search_query="spring salad recipes",
+    )
+
+    # Quota is exhausted
+    with patch(
+        "apps.ai.api_discover.reserve_quota",
+        return_value=(False, {"remaining": 0, "limit": 1}),
+    ):
+        response = auth_client.get(f"/api/ai/discover/{profile.id}/?refresh=true")
+
+    assert response.status_code == 200
+    data = json.loads(response.content)
+    assert len(data["suggestions"]) == 1
+    assert data["suggestions"][0]["title"] == "Cached Spring Salad"
+    assert "refreshed_at" in data
+
+
+@pytest.mark.django_db
+def test_discover_refresh_quota_exhausted_no_cache_returns_429(auth_client, profile):
+    """When refresh=true, quota is exhausted, and no cache exists, return 429."""
+    # No cached suggestions — table is empty for this profile
+
+    with patch(
+        "apps.ai.api_discover.reserve_quota",
+        return_value=(False, {"remaining": 0, "limit": 1}),
+    ):
+        response = auth_client.get(f"/api/ai/discover/{profile.id}/?refresh=true")
+
+    assert response.status_code == 429
+    data = json.loads(response.content)
+    assert data["error"] == "quota_exceeded"

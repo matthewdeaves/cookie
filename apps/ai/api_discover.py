@@ -80,6 +80,11 @@ def discover_endpoint(request, profile_id: int, refresh: bool = False):
     if not has_cached:
         allowed, info = reserve_quota(profile, "discover")
         if not allowed:
+            # Quota exhausted — fall back to cached suggestions if available (e.g. refresh requested but already refreshed today)
+            fallback = AIDiscoverySuggestion.objects.filter(profile=profile, created_at__gte=cache_cutoff).exists()
+            if fallback:
+                result = get_discover_suggestions(profile_id, force_refresh=False)
+                return result
             return Status(429, {"error": "quota_exceeded", "message": "Daily limit reached for discover", **info})
 
     try:
