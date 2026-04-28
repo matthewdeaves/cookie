@@ -447,16 +447,7 @@ def get_recipe(request, recipe_id: int):
 
 @router.delete("/{recipe_id}/", response={204: None, 404: ErrorOut}, auth=SessionAuth())
 def delete_recipe(request, recipe_id: int):
-    """
-    Delete a recipe by ID.
-
-    Only the owning profile can delete a recipe.
-    """
-    profile = get_current_profile_or_none(request)
-    if not profile:
-        return Status(404, {"detail": "Recipe not found"})
-
-    # Only allow deletion of recipes owned by this profile
-    recipe = get_object_or_404(Recipe, id=recipe_id, profile=profile)
+    """Delete a recipe by ID. Only the owning profile can delete."""
+    recipe = get_object_or_404(Recipe, id=recipe_id, profile=request.auth)
     recipe.delete()
     return Status(204, None)

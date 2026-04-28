@@ -90,7 +90,7 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
       aria-label={confirming ? 'Confirm delete' : 'Delete recipe'}
       title={confirming ? 'Click again to confirm' : 'Delete recipe'}
     >
-      <Trash2 className="h-4 w-4" />
+      <Trash2 className="h-5 w-5" />
     </button>
   )
 }
