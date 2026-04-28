@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">52.94% </span>
+                <span class="strong">42.85% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>9/17</span>
+                <span class='fraction'>9/21</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">28.57% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>4/14</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">60% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>3/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">40% </span>
-                <span class="quiet">Branches</span>
-                <span class='fraction'>4/10</span>
-            </div>
-        
-            
-            <div class='fl pad1y space-right2'>
-                <span class="strong">75% </span>
-                <span class="quiet">Functions</span>
-                <span class='fraction'>3/4</span>
-            </div>
-        
-            
-            <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>8/16</span>
+                <span class='fraction'>8/20</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -114,12 +114,24 @@
 <a name='L49'></a><a href='#L49'>49</a>
 <a name='L50'></a><a href='#L50'>50</a>
 <a name='L51'></a><a href='#L51'>51</a>
-<a name='L52'></a><a href='#L52'>52</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">751x</span>
+<span class="cline-any cline-yes">747x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -137,6 +149,18 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -192,6 +216,18 @@ export function <span class="fstat-no" title="function not covered" >handleQuota
 }
 &nbsp;
 /**
+ * Extract the resets_at ISO string from a quota_exceeded 429 error.
+ * Returns undefined if the error is not a quota error or has no reset time.
+ */
+export function <span class="fstat-no" title="function not covered" >extractQuotaResetsAt(e</span>rror: unknown): string | undefined {
+  const err = <span class="cstat-no" title="statement not covered" >error as { status?: number; body?: { error?: string; resets_at?: string } }</span>
+<span class="cstat-no" title="statement not covered" >  if (err?.status === 429 &amp;&amp; err?.body?.error === 'quota_exceeded') {</span>
+<span class="cstat-no" title="statement not covered" >    return err.body?.resets_at</span>
+  }
+<span class="cstat-no" title="statement not covered" >  return undefined</span>
+}
+&nbsp;
+/**
  * Format nutrition key into human readable label.
  * Converts camelCase keys like 'carbohydrateContent' to 'Carbohydrate'.
  * Also handles snake_case like 'saturated_fat' to 'Saturated Fat'.
@@ -223,7 +259,7 @@ export function formatNutritionKey(key: string): string {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-28T16:11:02.384Z
+                at 2026-04-28T16:22:39.632Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

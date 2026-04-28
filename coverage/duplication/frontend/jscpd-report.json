@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-28T16:10:37.748Z",
+    "detectionDate": "2026-04-28T16:22:33.714Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -666,7 +666,7 @@
           },
           "src/components/RemixModal.tsx": {
             "lines": 161,
-            "tokens": 1342,
+            "tokens": 1354,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -895,7 +895,7 @@
         },
         "total": {
           "lines": 3450,
-          "tokens": 26401,
+          "tokens": 26413,
           "sources": 74,
           "clones": 0,
           "duplicatedLines": 0,
@@ -1485,8 +1485,8 @@
             "newClones": 0
           },
           "src/contexts/AIStatusContext.tsx": {
-            "lines": 121,
-            "tokens": 1057,
+            "lines": 131,
+            "tokens": 1216,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1570,7 +1570,7 @@
           },
           "src/components/RemixModal.tsx": {
             "lines": 196,
-            "tokens": 1636,
+            "tokens": 1651,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1822,13 +1822,13 @@
           }
         },
         "total": {
-          "lines": 7385,
-          "tokens": 58067,
+          "lines": 7395,
+          "tokens": 58241,
           "sources": 76,
           "clones": 6,
           "duplicatedLines": 61,
           "duplicatedTokens": 583,
-          "percentage": 0.83,
+          "percentage": 0.82,
           "percentageTokens": 1,
           "newDuplicatedLines": 0,
           "newClones": 0
@@ -1861,8 +1861,8 @@
             "newClones": 0
           },
           "src/lib/utils.ts": {
-            "lines": 50,
-            "tokens": 435,
+            "lines": 62,
+            "tokens": 552,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1922,7 +1922,7 @@
           },
           "src/hooks/useTipsPolling.ts": {
             "lines": 134,
-            "tokens": 1272,
+            "tokens": 1287,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1994,7 +1994,7 @@
           },
           "src/hooks/useServingScale.ts": {
             "lines": 57,
-            "tokens": 566,
+            "tokens": 575,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2090,7 +2090,7 @@
           },
           "src/hooks/useDiscoverTab.ts": {
             "lines": 64,
-            "tokens": 655,
+            "tokens": 664,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -2186,28 +2186,28 @@
           }
         },
         "total": {
-          "lines": 3108,
-          "tokens": 26128,
+          "lines": 3120,
+          "tokens": 26278,
           "sources": 29,
           "clones": 3,
           "duplicatedLines": 65,
           "duplicatedTokens": 375,
-          "percentage": 2.09,
-          "percentageTokens": 1.44,
+          "percentage": 2.08,
+          "percentageTokens": 1.43,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 13943,
-      "tokens": 110596,
+      "lines": 13965,
+      "tokens": 110932,
       "sources": 179,
       "clones": 9,
       "duplicatedLines": 126,
       "duplicatedTokens": 958,
       "percentage": 0.9,
-      "percentageTokens": 0.87,
+      "percentageTokens": 0.86,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
