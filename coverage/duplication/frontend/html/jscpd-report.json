@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-28T18:57:45.211Z",
+    "detectionDate": "2026-04-28T19:16:11.156Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -690,7 +690,7 @@
           },
           "src/components/RecipeCard.tsx": {
             "lines": 146,
-            "tokens": 1010,
+            "tokens": 1004,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -895,7 +895,7 @@
         },
         "total": {
           "lines": 3469,
-          "tokens": 26589,
+          "tokens": 26583,
           "sources": 74,
           "clones": 0,
           "duplicatedLines": 0,
@@ -1594,7 +1594,7 @@
           },
           "src/components/RecipeCard.tsx": {
             "lines": 174,
-            "tokens": 1264,
+            "tokens": 1258,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1835,7 +1835,7 @@
         },
         "total": {
           "lines": 7445,
-          "tokens": 58709,
+          "tokens": 58703,
           "sources": 77,
           "clones": 6,
           "duplicatedLines": 61,
@@ -2225,7 +2225,7 @@
     },
     "total": {
       "lines": 14144,
-      "tokens": 112633,
+      "tokens": 112621,
       "sources": 181,
       "clones": 9,
       "duplicatedLines": 126,
