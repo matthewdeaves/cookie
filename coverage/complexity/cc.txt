@@ -30,11 +30,11 @@ apps/recipes/api.py
     F 249:0 _get_or_fetch_results - A (2)
     F 266:0 _aggregate_sites - A (2)
     F 351:0 get_cache_health_dict - A (2)
-    F 449:0 delete_recipe - A (2)
     C 42:0 RecipeOut - A (2)
     M 82:4 RecipeOut.resolve_image - A (2)
     M 119:4 RecipeListOut.resolve_image - A (2)
     F 373:0 cache_health - A (1)
+    F 449:0 delete_recipe - A (1)
     C 34:0 LinkedRecipeOut - A (1)
     M 88:4 RecipeOut.resolve_scraped_at - A (1)
     M 92:4 RecipeOut.resolve_updated_at - A (1)
@@ -900,4 +900,4 @@ cookie/urls.py
     F 31:0 handle_bad_content_type - A (1)
 
 799 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.76720901126408)
+Average complexity: A (2.765957446808511)
