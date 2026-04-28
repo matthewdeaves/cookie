@@ -566,6 +566,7 @@
     transition: box-shadow 0.15s ease;
     text-decoration: none;
     color: inherit;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .recipe-card:hover {
@@ -590,10 +591,6 @@
     transition: transform 0.3s ease;
 }
 
-.recipe-card:hover .recipe-card-image img {
-    -webkit-transform: scale(1.05);
-    transform: scale(1.05);
-}
 
 .recipe-card-no-image {
     position: absolute;
