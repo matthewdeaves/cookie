@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-27T17:56:52.500Z",
+    "detectionDate": "2026-04-28T16:10:35.243Z",
     "formats": {
       "python": {
         "sources": {
@@ -125,14 +125,14 @@
             "newClones": 0
           },
           "apps/core/management/commands/_cookie_admin_app.py": {
-            "lines": 287,
-            "tokens": 2310,
+            "lines": 295,
+            "tokens": 2393,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 8,
             "duplicatedTokens": 92,
-            "percentage": 2.79,
-            "percentageTokens": 3.98,
+            "percentage": 2.71,
+            "percentageTokens": 3.84,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -786,8 +786,8 @@
           }
         },
         "total": {
-          "lines": 11980,
-          "tokens": 83560,
+          "lines": 11988,
+          "tokens": 83643,
           "sources": 65,
           "clones": 11,
           "duplicatedLines": 151,
@@ -800,8 +800,8 @@
       }
     },
     "total": {
-      "lines": 11980,
-      "tokens": 83560,
+      "lines": 11988,
+      "tokens": 83643,
       "sources": 65,
       "clones": 11,
       "duplicatedLines": 151,
@@ -1195,17 +1195,17 @@
       },
       "secondFile": {
         "name": "apps/core/management/commands/_cookie_admin_app.py",
-        "start": 63,
-        "end": 70,
+        "start": 64,
+        "end": 71,
         "startLoc": {
-          "line": 63,
+          "line": 64,
           "column": 9,
-          "position": 324
+          "position": 328
         },
         "endLoc": {
-          "line": 70,
+          "line": 71,
           "column": 7,
-          "position": 415
+          "position": 419
         }
       }
     }
