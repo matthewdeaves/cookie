@@ -28,7 +28,7 @@ export default function SettingsGeneral({
   quotaData,
   onQuotaSave,
 }: SettingsGeneralProps) {
-  const { profile, theme, toggleTheme, updateUnitPreference } = useProfile()
+  const { profile, theme, toggleTheme } = useProfile()
   const auth = useOptionalAuth()
   const logout = auth?.logout
   const mode = useMode()
@@ -41,7 +41,7 @@ export default function SettingsGeneral({
         <h2 className="mb-4 text-lg font-medium text-foreground">Preferences</h2>
 
         {/* Theme toggle */}
-        <div className="mb-4">
+        <div>
           <label className="mb-2 block text-sm font-medium text-foreground">Theme</label>
           <div className="flex gap-2">
             <button
@@ -67,35 +67,6 @@ export default function SettingsGeneral({
             >
               <Moon className="h-4 w-4" />
               Dark
-            </button>
-          </div>
-        </div>
-
-        {/* Unit preference */}
-        <div>
-          <label className="mb-2 block text-sm font-medium text-foreground">Units</label>
-          <div className="flex gap-2">
-            <button
-              onClick={() => profile?.unit_preference !== 'metric' && updateUnitPreference('metric')}
-              className={cn(
-                'rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
-                profile?.unit_preference !== 'imperial'
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-background text-foreground hover:bg-muted'
-              )}
-            >
-              Metric
-            </button>
-            <button
-              onClick={() => profile?.unit_preference !== 'imperial' && updateUnitPreference('imperial')}
-              className={cn(
-                'rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
-                profile?.unit_preference === 'imperial'
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-background text-foreground hover:bg-muted'
-              )}
-            >
-              Imperial
             </button>
           </div>
         </div>

@@ -12,8 +12,6 @@
     var saveKeyText;
     var themeLightBtn;
     var themeDarkBtn;
-    var unitsMetricBtn;
-    var unitsImperialBtn;
     var quotaConfigSection;
     var quotaUsageSection;
     var saveQuotasBtn;
@@ -27,8 +25,6 @@
         saveKeyText = document.getElementById('save-key-text');
         themeLightBtn = document.getElementById('theme-light-btn');
         themeDarkBtn = document.getElementById('theme-dark-btn');
-        unitsMetricBtn = document.getElementById('units-metric-btn');
-        unitsImperialBtn = document.getElementById('units-imperial-btn');
         quotaConfigSection = document.getElementById('quota-config-section');
         quotaUsageSection = document.getElementById('quota-usage-section');
         saveQuotasBtn = document.getElementById('save-quotas-btn');
@@ -48,12 +44,6 @@
         }
         if (themeDarkBtn) {
             themeDarkBtn.addEventListener('click', handleThemeClick);
-        }
-        if (unitsMetricBtn) {
-            unitsMetricBtn.addEventListener('click', handleUnitsClick);
-        }
-        if (unitsImperialBtn) {
-            unitsImperialBtn.addEventListener('click', handleUnitsClick);
         }
         if (saveQuotasBtn) {
             saveQuotasBtn.addEventListener('click', handleSaveQuotas);
@@ -127,11 +117,6 @@
         savePreference('theme', newTheme);
     }
 
-    function handleUnitsClick(e) {
-        var newUnit = e.currentTarget.getAttribute('data-unit');
-        savePreference('unit_preference', newUnit);
-    }
-
     function savePreference(field, value) {
         var pageEl = document.querySelector('[data-page="settings"]');
         var profileId = pageEl ? pageEl.getAttribute('data-profile-id') : null;
@@ -152,10 +137,6 @@
                 applyTheme(value);
                 if (profile) profile.theme = value;
                 Cookie.toast.success('Theme updated');
-            } else if (field === 'unit_preference') {
-                setToggleActive(unitsMetricBtn, unitsImperialBtn, value === 'metric');
-                if (profile) profile.unit_preference = value;
-                Cookie.toast.success('Units updated');
             }
         });
     }

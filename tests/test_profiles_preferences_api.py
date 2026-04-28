@@ -61,16 +61,23 @@ class TestUpdatePreferences:
         assert response.status_code == 200
         assert response.json()["theme"] == "dark"
 
-    def test_passkey_mode_unit_preference(self, client, settings):
+    def test_unit_preference_writes_disabled(self, client, settings):
+        """v1.64+: unit_preference UI is hidden because conversion is only wired
+        into AI scaling, not display/scrape/cook. The endpoint rejects writes to
+        prevent silent partial behavior. Stored value (default 'metric') is
+        preserved for the AI scaling read-path."""
         settings.AUTH_MODE = "passkey"
         user = _create_user("imperial")
         _login(client, user)
         response = self._patch(client, user.profile.id, {"unit_preference": "imperial"})
-        assert response.status_code == 200
-        assert response.json()["unit_preference"] == "imperial"
+        assert response.status_code == 400
+        assert response.json()["error"] == "feature_disabled"
+        user.profile.refresh_from_db()
+        assert user.profile.unit_preference == "metric"  # stored value untouched
 
-    def test_combined_theme_and_unit(self, client, settings):
-        """Single PATCH updates both fields atomically."""
+    def test_combined_payload_rejected_when_unit_set(self, client, settings):
+        """If a payload includes unit_preference alongside theme, the whole
+        request is rejected — theme must NOT be partially applied. Atomic."""
         settings.AUTH_MODE = "passkey"
         user = _create_user("both")
         _login(client, user)
@@ -79,10 +86,9 @@ class TestUpdatePreferences:
             user.profile.id,
             {"theme": "dark", "unit_preference": "imperial"},
         )
-        assert response.status_code == 200
-        data = response.json()
-        assert data["theme"] == "dark"
-        assert data["unit_preference"] == "imperial"
+        assert response.status_code == 400
+        user.profile.refresh_from_db()
+        assert user.profile.theme == "light"  # unchanged — not partially applied
 
     def test_cross_profile_forbidden(self, client, settings):
         """Callers may only modify their OWN profile. No cross-user update."""
@@ -106,13 +112,6 @@ class TestUpdatePreferences:
         user = _create_user("t1")
         _login(client, user)
         response = self._patch(client, user.profile.id, {"theme": "rainbow"})
-        assert response.status_code == 400
-
-    def test_invalid_unit_rejected(self, client, settings):
-        settings.AUTH_MODE = "passkey"
-        user = _create_user("t2")
-        _login(client, user)
-        response = self._patch(client, user.profile.id, {"unit_preference": "cubits"})
         assert response.status_code == 400
 
     def test_cannot_change_name_via_preferences(self, client, settings):
