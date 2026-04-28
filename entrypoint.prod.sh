@@ -51,6 +51,9 @@ python manage.py createcachetable
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
+# Ensure media subdirectories exist (may be recreated as root by management commands)
+mkdir -p "$DATA_DIR/media/recipe_images" "$DATA_DIR/media/search_images"
+
 # Ensure app user owns required directories
 chown -R app:app /app/staticfiles /app/data 2>/dev/null || true
 

@@ -207,7 +207,7 @@ async def scrape_recipe(request, payload: ScrapeIn):
 
     Note: Re-scraping the same URL will create a new recipe record.
     """
-    limited = await sync_to_async(is_ratelimited)(request, group="scrape", key="ip", rate="5/h", increment=True)
+    limited = await sync_to_async(is_ratelimited)(request, group="scrape", key="ip", rate="100/h", increment=True)
     if limited:
         return Status(429, {"detail": "Too many scrape requests. Please try again later."})
 

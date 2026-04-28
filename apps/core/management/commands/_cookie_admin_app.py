@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import pwd
 import shutil
 
 from django.conf import settings
@@ -92,12 +93,19 @@ class AppConfigMixin:
         )
         actions.append("Reset search source counters")
 
-        # Clear media
+        # Clear media (re-chown to app user — this command runs as root via docker exec)
+        try:
+            app_pw = pwd.getpwnam("app")
+            app_uid, app_gid = app_pw.pw_uid, app_pw.pw_gid
+        except KeyError:
+            app_uid, app_gid = -1, -1
         for subdir in ("recipe_images", "search_images"):
             path = os.path.join(settings.MEDIA_ROOT, subdir)
             if os.path.exists(path):
                 shutil.rmtree(path)
-                os.makedirs(path)
+            os.makedirs(path)
+            if app_uid != -1:
+                os.chown(path, app_uid, app_gid)
         actions.append("Cleared recipe and search images")
 
         cache.clear()
