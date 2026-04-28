@@ -555,7 +555,7 @@ apps/core/management/commands/cookie_admin.py
     M 78:4 Command.add_arguments - A (1)
     M 279:4 Command._user_dict - A (1)
 apps/ai/api_discover.py
-    F 46:0 discover_endpoint - C (12)
+    F 46:0 discover_endpoint - C (13)
     C 26:0 DiscoverSuggestionOut - A (1)
     C 33:0 DiscoverOut - A (1)
 apps/ai/tests.py
@@ -900,4 +900,4 @@ cookie/urls.py
     F 31:0 handle_bad_content_type - A (1)
 
 799 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.765957446808511)
+Average complexity: A (2.76720901126408)

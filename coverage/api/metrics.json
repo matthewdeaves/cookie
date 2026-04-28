@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-28T19:47:59.998716+00:00",
+  "generated_at": "2026-04-28T20:03:37.208142+00:00",
   "repo": "matthewdeaves/cookie",
   "coverage": {
     "frontend": {
@@ -15,7 +15,7 @@
     "backend": {
       "cyclomatic_complexity": 2.77,
       "cyclomatic_rating": "A",
-      "maintainability_index": 82.31,
+      "maintainability_index": 82.3,
       "maintainability_rating": "A",
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/backend-complexity.svg"
     },
