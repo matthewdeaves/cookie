@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-28T16:22:33.714Z",
+    "detectionDate": "2026-04-28T16:41:49.014Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -545,8 +545,8 @@
             "newClones": 0
           },
           "src/screens/AllRecipes.tsx": {
-            "lines": 69,
-            "tokens": 509,
+            "lines": 73,
+            "tokens": 540,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -689,8 +689,8 @@
             "newClones": 0
           },
           "src/components/RecipeCard.tsx": {
-            "lines": 103,
-            "tokens": 700,
+            "lines": 146,
+            "tokens": 1010,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -894,8 +894,8 @@
           }
         },
         "total": {
-          "lines": 3450,
-          "tokens": 26413,
+          "lines": 3497,
+          "tokens": 26754,
           "sources": 74,
           "clones": 0,
           "duplicatedLines": 0,
@@ -1449,8 +1449,8 @@
             "newClones": 0
           },
           "src/screens/AllRecipes.tsx": {
-            "lines": 137,
-            "tokens": 1163,
+            "lines": 152,
+            "tokens": 1311,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1593,8 +1593,8 @@
             "newClones": 0
           },
           "src/components/RecipeCard.tsx": {
-            "lines": 130,
-            "tokens": 932,
+            "lines": 174,
+            "tokens": 1264,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1822,14 +1822,14 @@
           }
         },
         "total": {
-          "lines": 7395,
-          "tokens": 58241,
+          "lines": 7454,
+          "tokens": 58721,
           "sources": 76,
           "clones": 6,
           "duplicatedLines": 61,
           "duplicatedTokens": 583,
           "percentage": 0.82,
-          "percentageTokens": 1,
+          "percentageTokens": 0.99,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -2173,35 +2173,35 @@
             "newClones": 0
           },
           "src/api/client.ts": {
-            "lines": 522,
-            "tokens": 4244,
+            "lines": 525,
+            "tokens": 4282,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 102,
             "duplicatedTokens": 398,
-            "percentage": 19.54,
-            "percentageTokens": 9.38,
+            "percentage": 19.43,
+            "percentageTokens": 9.29,
             "newDuplicatedLines": 0,
             "newClones": 0
           }
         },
         "total": {
-          "lines": 3120,
-          "tokens": 26278,
+          "lines": 3123,
+          "tokens": 26316,
           "sources": 29,
           "clones": 3,
           "duplicatedLines": 65,
           "duplicatedTokens": 375,
           "percentage": 2.08,
-          "percentageTokens": 1.43,
+          "percentageTokens": 1.42,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 13965,
-      "tokens": 110932,
+      "lines": 14074,
+      "tokens": 111791,
       "sources": 179,
       "clones": 9,
       "duplicatedLines": 126,

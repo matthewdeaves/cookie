@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-28T16:22:13.378Z",
+    "detectionDate": "2026-04-28T16:41:39.091Z",
     "formats": {
       "python": {
         "sources": {
@@ -281,14 +281,14 @@
             "newClones": 0
           },
           "apps/ai/services/scaling.py": {
-            "lines": 259,
-            "tokens": 1718,
+            "lines": 263,
+            "tokens": 1762,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 15,
             "duplicatedTokens": 99,
-            "percentage": 5.79,
-            "percentageTokens": 5.76,
+            "percentage": 5.7,
+            "percentageTokens": 5.62,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -786,8 +786,8 @@
           }
         },
         "total": {
-          "lines": 11988,
-          "tokens": 83643,
+          "lines": 11992,
+          "tokens": 83687,
           "sources": 65,
           "clones": 11,
           "duplicatedLines": 151,
@@ -800,8 +800,8 @@
       }
     },
     "total": {
-      "lines": 11988,
-      "tokens": 83643,
+      "lines": 11992,
+      "tokens": 83687,
       "sources": 65,
       "clones": 11,
       "duplicatedLines": 151,

@@ -849,15 +849,15 @@ apps/ai/services/cache.py
     F 101:0 is_ai_cache_hit - A (1)
     F 107:0 invalidate_ai_cache - A (1)
 apps/ai/services/scaling.py
-    F 207:0 calculate_nutrition - B (7)
+    F 211:0 calculate_nutrition - B (7)
     F 43:0 _format_time - B (6)
     F 17:0 _parse_time - A (5)
     F 92:0 _get_instructions_list - A (5)
     F 101:0 _format_recipe_data - A (4)
-    F 151:0 scale_recipe - A (4)
+    F 155:0 scale_recipe - A (4)
     F 71:0 _get_cached - A (2)
+    F 113:0 _call_ai_and_validate - A (2)
     F 56:0 _build_result - A (1)
-    F 113:0 _call_ai_and_validate - A (1)
 apps/ai/services/timer.py
     F 14:0 generate_timer_name - B (8)
 apps/ai/services/validator.py
@@ -900,4 +900,4 @@ cookie/urls.py
     F 31:0 handle_bad_content_type - A (1)
 
 799 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.76720901126408)
+Average complexity: A (2.7684605757196494)

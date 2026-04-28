@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-28T16:22:11.985Z",
+    "detectionDate": "2026-04-28T16:41:39.427Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -65,14 +65,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/settings-general.js": {
-            "lines": 474,
-            "tokens": 4145,
+            "lines": 492,
+            "tokens": 4414,
             "sources": 1,
             "clones": 7,
             "duplicatedLines": 39,
             "duplicatedTokens": 425,
-            "percentage": 8.23,
-            "percentageTokens": 10.25,
+            "percentage": 7.93,
+            "percentageTokens": 9.63,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -257,8 +257,8 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/detail-core.js": {
-            "lines": 121,
-            "tokens": 717,
+            "lines": 158,
+            "tokens": 1079,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -305,8 +305,8 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/all-recipes.js": {
-            "lines": 74,
-            "tokens": 700,
+            "lines": 152,
+            "tokens": 1321,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -438,28 +438,28 @@
           }
         },
         "total": {
-          "lines": 7279,
-          "tokens": 56979,
+          "lines": 7412,
+          "tokens": 58231,
           "sources": 36,
           "clones": 35,
           "duplicatedLines": 309,
           "duplicatedTokens": 2755,
-          "percentage": 4.25,
-          "percentageTokens": 4.84,
+          "percentage": 4.17,
+          "percentageTokens": 4.73,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7279,
-      "tokens": 56979,
+      "lines": 7412,
+      "tokens": 58231,
       "sources": 36,
       "clones": 35,
       "duplicatedLines": 309,
       "duplicatedTokens": 2755,
-      "percentage": 4.25,
-      "percentageTokens": 4.84,
+      "percentage": 4.17,
+      "percentageTokens": 4.73,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -652,17 +652,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 298,
-        "end": 303,
+        "start": 316,
+        "end": 321,
         "startLoc": {
-          "line": 298,
+          "line": 316,
           "column": 2,
-          "position": 2463
+          "position": 2732
         },
         "endLoc": {
-          "line": 303,
+          "line": 321,
           "column": 8,
-          "position": 2535
+          "position": 2804
         }
       },
       "secondFile": {
@@ -688,17 +688,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 355,
-        "end": 360,
+        "start": 373,
+        "end": 378,
         "startLoc": {
-          "line": 355,
+          "line": 373,
           "column": 2,
-          "position": 2925
+          "position": 3194
         },
         "endLoc": {
-          "line": 360,
+          "line": 378,
           "column": 17,
-          "position": 2980
+          "position": 3249
         }
       },
       "secondFile": {
@@ -724,27 +724,27 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 445,
-        "end": 450,
+        "start": 463,
+        "end": 468,
         "startLoc": {
-          "line": 445,
+          "line": 463,
           "column": 27,
-          "position": 3896
+          "position": 4165
         },
         "endLoc": {
-          "line": 450,
+          "line": 468,
           "column": 24,
-          "position": 3952
+          "position": 4221
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 355,
+        "start": 373,
         "end": 140,
         "startLoc": {
-          "line": 355,
+          "line": 373,
           "column": 25,
-          "position": 2924
+          "position": 3193
         },
         "endLoc": {
           "line": 140,
