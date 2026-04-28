@@ -73,6 +73,12 @@ Cookie.pages.detail = (function() {
 
         initAllFeatures();
 
+        // Proactively hide AI buttons for exhausted quota features
+        var aiAvailable = pageEl.getAttribute('data-ai-available') === 'true';
+        if (aiAvailable) {
+            checkAndApplyQuotas();
+        }
+
         // Check if we should poll for tips (recently imported recipe with no tips)
         var scrapedAt = pageEl.getAttribute('data-scraped-at');
         var hasTips = pageEl.getAttribute('data-has-tips') === 'true';
@@ -81,6 +87,37 @@ Cookie.pages.detail = (function() {
         if (scrapedAt && !hasTips && tipsFeature && tipsFeature.checkAutoStart) {
             tipsFeature.checkAutoStart(scrapedAt);
         }
+    }
+
+    /**
+     * Fetch quotas and proactively hide AI feature buttons that are exhausted.
+     * Mirrors the modern SPA's isFeatureAvailable() behaviour in legacy.
+     */
+    function checkAndApplyQuotas() {
+        Cookie.ajax.get('/api/ai/quotas', function(err, data) {
+            if (err || !data) return;
+            if (data.unlimited) return; // unlimited user — never hide
+
+            // Feature key → data-ai-feature selector value(s)
+            var featureSelectors = {
+                remix: ['[data-ai-feature="remix"]'],
+                tips:  ['[data-ai-feature="tips-tab"]']
+            };
+
+            var keys = Object.keys(featureSelectors);
+            for (var i = 0; i < keys.length; i++) {
+                var key = keys[i];
+                var used  = (data.usage  && data.usage[key])  || 0;
+                var limit = (data.limits && data.limits[key]) || 0;
+                if (limit > 0 && used >= limit) {
+                    var selectors = featureSelectors[key];
+                    for (var j = 0; j < selectors.length; j++) {
+                        var el = document.querySelector(selectors[j]);
+                        if (el) el.classList.add('hidden');
+                    }
+                }
+            }
+        });
     }
 
     /**

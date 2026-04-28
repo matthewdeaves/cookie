@@ -527,10 +527,13 @@
 }
 
 .about-row {
+    display: -webkit-box;
     display: -webkit-flex;
     display: flex;
+    -webkit-box-pack: justify;
     -webkit-justify-content: space-between;
     justify-content: space-between;
+    -webkit-box-align: center;
     -webkit-align-items: center;
     align-items: center;
     font-size: 0.875rem;
@@ -538,6 +541,8 @@
 
 .about-label {
     color: #6b6560;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
 }
 
 .about-value {
@@ -1405,14 +1410,8 @@
 }
 
 .quota-usage-row {
-    display: -webkit-flex;
-    display: flex;
-    -webkit-justify-content: space-between;
-    justify-content: space-between;
-    -webkit-align-items: center;
-    align-items: center;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #e8e1d8;
+    padding: 0.625rem 0;
+    border-bottom: 1px solid #f0ece8;
 }
 
 .dark .quota-usage-row {
@@ -1423,8 +1422,24 @@
     border-bottom: none;
 }
 
+.quota-usage-row-exhausted .quota-usage-header { opacity: 0.7; }
+
+.quota-usage-header {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+    margin-bottom: 0.375rem;
+}
+
 .quota-usage-label {
     font-size: 0.875rem;
+    font-weight: 500;
     color: #2d2520;
 }
 
@@ -1433,13 +1448,41 @@
 }
 
 .quota-usage-value {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 600;
-    color: #2d2520;
+    color: #6b8e5f;
+}
+
+.quota-usage-value-exhausted {
+    color: #a84f5f;
 }
 
 .dark .quota-usage-value {
-    color: #e8e1d8;
+    color: #8ab87a;
+}
+
+/* Progress bar */
+.quota-progress-track {
+    height: 6px;
+    background-color: #e8e1d8;
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.dark .quota-progress-track {
+    background-color: #3a342e;
+}
+
+.quota-progress-fill {
+    height: 100%;
+    background-color: #6b8e5f;
+    border-radius: 9999px;
+    -webkit-transition: width 0.4s ease;
+    transition: width 0.4s ease;
+}
+
+.quota-progress-fill-exhausted {
+    background-color: #a84f5f;
 }
 
 .quota-badge-unlimited {
@@ -1455,12 +1498,14 @@
 .quota-reset-info {
     font-size: 0.75rem;
     color: #6b6560;
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
     padding-top: 0.5rem;
+    border-top: 1px solid #f0ece8;
 }
 
 .dark .quota-reset-info {
     color: #a89f96;
+    border-top-color: #3a342e;
 }
 
 /* Profile card actions column */

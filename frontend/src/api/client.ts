@@ -385,6 +385,9 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ url }),
       }),
+
+    delete: (id: number) =>
+      request<null>(`/recipes/${id}/`, { method: 'DELETE' }),
   },
 
   sources: {

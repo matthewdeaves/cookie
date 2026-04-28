@@ -611,6 +611,54 @@
     font-size: 0.875rem;
 }
 
+/* Wrapper needed for delete button positioning on all-recipes page */
+.recipe-card-wrapper {
+    position: relative;
+}
+
+.recipe-card-delete {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 2;
+    width: 2rem;
+    height: 2rem;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    background-color: rgba(250, 249, 247, 0.85);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #6b6560;
+    opacity: 0;
+    -webkit-transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+    transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+    min-height: auto;
+    min-width: auto;
+}
+
+.recipe-card-wrapper:hover .recipe-card-delete,
+.recipe-card-wrapper:active .recipe-card-delete {
+    opacity: 1;
+}
+
+.recipe-card-delete:hover,
+.recipe-card-delete:focus {
+    background-color: #faf9f7;
+    color: #a84f5f;
+    opacity: 1;
+}
+
+.recipe-card-delete-confirm {
+    background-color: #a84f5f !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
 .recipe-card-favorite {
     position: absolute;
     top: 0.5rem;

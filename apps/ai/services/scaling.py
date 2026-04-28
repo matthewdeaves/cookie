@@ -110,7 +110,7 @@ def _format_recipe_data(recipe) -> tuple[str, str]:
     return ingredients_str, instructions_str
 
 
-def _call_ai_and_validate(recipe, target_servings, ingredients_str, instructions_str) -> dict:
+def _call_ai_and_validate(recipe, target_servings, ingredients_str, instructions_str, unit_system: str = "metric") -> dict:
     """Call AI service, validate response, and return parsed adjustment data."""
     prompt = AIPrompt.get_prompt("serving_adjustment")
 
@@ -125,6 +125,10 @@ def _call_ai_and_validate(recipe, target_servings, ingredients_str, instructions
         total_time=_format_time(recipe.total_time),
         new_servings=target_servings,
     )
+
+    # Tell the AI which unit system to use for the scaled output
+    unit_label = "metric (grams, ml, °C)" if unit_system == "metric" else "imperial (oz, cups, °F)"
+    user_prompt += f"\n\nPlease express all quantities using {unit_label} units."
 
     service = OpenRouterService()
     response = service.complete(
@@ -188,7 +192,7 @@ def scale_recipe(
 
     # Generate new adjustment via AI
     ingredients_str, instructions_str = _format_recipe_data(recipe)
-    adjustment = _call_ai_and_validate(recipe, target_servings, ingredients_str, instructions_str)
+    adjustment = _call_ai_and_validate(recipe, target_servings, ingredients_str, instructions_str, unit_system)
 
     # Cache the result
     ServingAdjustment.objects.create(

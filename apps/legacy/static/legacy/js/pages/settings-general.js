@@ -244,24 +244,42 @@
             var label = FEATURE_LABELS[key];
             var used = data.usage[key] || 0;
             var limit = data.limits[key] || 0;
+            var exhausted = !data.unlimited && limit > 0 && used >= limit;
+            var pct = data.unlimited || limit === 0 ? 0 : Math.min(100, Math.round(used / limit * 100));
 
             var row = document.createElement('div');
-            row.className = 'quota-usage-row';
+            row.className = 'quota-usage-row' + (exhausted ? ' quota-usage-row-exhausted' : '');
+
+            // Label + value header
+            var header = document.createElement('div');
+            header.className = 'quota-usage-header';
 
             var labelSpan = document.createElement('span');
             labelSpan.className = 'quota-usage-label';
             labelSpan.textContent = label;
-            row.appendChild(labelSpan);
+            header.appendChild(labelSpan);
 
             var valueSpan = document.createElement('span');
             if (data.unlimited) {
                 valueSpan.className = 'quota-badge-unlimited';
                 valueSpan.textContent = 'Unlimited';
             } else {
-                valueSpan.className = 'quota-usage-value';
+                valueSpan.className = 'quota-usage-value' + (exhausted ? ' quota-usage-value-exhausted' : '');
                 valueSpan.textContent = used + ' / ' + limit;
             }
-            row.appendChild(valueSpan);
+            header.appendChild(valueSpan);
+            row.appendChild(header);
+
+            // Progress bar (only when not unlimited)
+            if (!data.unlimited && limit > 0) {
+                var track = document.createElement('div');
+                track.className = 'quota-progress-track';
+                var fill = document.createElement('div');
+                fill.className = 'quota-progress-fill' + (exhausted ? ' quota-progress-fill-exhausted' : '');
+                fill.style.width = pct + '%';
+                track.appendChild(fill);
+                row.appendChild(track);
+            }
 
             usageList.appendChild(row);
         }

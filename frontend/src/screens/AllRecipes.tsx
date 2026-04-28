@@ -41,6 +41,17 @@ export default function AllRecipes() {
     navigate(`/recipe/${recipeId}`)
   }
 
+  const handleDeleteRecipe = async (recipe: Recipe) => {
+    try {
+      await api.recipes.delete(recipe.id)
+      setRecipes(prev => prev.filter(r => r.id !== recipe.id))
+      toast.success(`"${recipe.title}" deleted`)
+    } catch (error) {
+      console.error('Failed to delete recipe:', error)
+      toast.error('Failed to delete recipe')
+    }
+  }
+
   const filteredRecipes = useMemo(() => {
     if (!searchQuery.trim()) return recipes
     const query = searchQuery.toLowerCase()
@@ -66,6 +77,7 @@ export default function AllRecipes() {
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               onRecipeClick={handleRecipeClick}
+              onDeleteRecipe={handleDeleteRecipe}
             />
           ) : (
             <EmptyRecipes onImport={() => navigate('/home')} />
@@ -82,12 +94,14 @@ function RecipeList({
   searchQuery,
   onSearchChange,
   onRecipeClick,
+  onDeleteRecipe,
 }: {
   recipes: Recipe[]
   filteredRecipes: Recipe[]
   searchQuery: string
   onSearchChange: (q: string) => void
   onRecipeClick: (id: number) => void
+  onDeleteRecipe: (recipe: Recipe) => void
 }) {
   return (
     <>
@@ -104,6 +118,7 @@ function RecipeList({
               key={recipe.id}
               recipe={recipe}
               onClick={() => onRecipeClick(recipe.id)}
+              onDelete={onDeleteRecipe}
             />
           ))}
         </div>

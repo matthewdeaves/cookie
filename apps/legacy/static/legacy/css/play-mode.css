@@ -152,18 +152,24 @@
 }
 
 .step-nav-btn {
+    display: -webkit-box;
     display: -webkit-flex;
     display: flex;
+    -webkit-box-align: center;
     -webkit-align-items: center;
     align-items: center;
+    -webkit-box-pack: center;
     -webkit-justify-content: center;
     justify-content: center;
     height: 56px;
+    line-height: 56px;
     border-radius: 14px;
     border: none;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
+    text-align: center;
+    -webkit-box-flex: 1;
     -webkit-flex: 1;
     flex: 1;
     -webkit-transition: background-color 0.15s ease, -webkit-transform 0.1s ease;
@@ -400,19 +406,26 @@
 .timer-actions > * + * { margin-left: 0.375rem; }
 
 .timer-action-btn {
+    display: -webkit-box;
     display: -webkit-flex;
     display: flex;
+    -webkit-box-align: center;
     -webkit-align-items: center;
     align-items: center;
+    -webkit-box-pack: center;
     -webkit-justify-content: center;
     justify-content: center;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
     width: 36px;
     height: 36px;
+    padding: 11px;
     border-radius: 50%;
     border: none;
     background-color: #e8e1d8;
     color: #6b6560;
     cursor: pointer;
+    overflow: hidden;
     -webkit-transition: background-color 0.15s ease;
     transition: background-color 0.15s ease;
 }

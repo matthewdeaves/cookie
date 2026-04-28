@@ -37,9 +37,23 @@
         <!-- Recipe grid -->
         <div id="recipe-grid" class="recipe-grid">
             {% for recipe in recipes %}
-            {% with is_favorite=recipe.id|in_list:favorite_recipe_ids show_favorite_btn=False %}
-            {% include 'legacy/partials/recipe_card.html' %}
-            {% endwith %}
+            <div class="recipe-card-wrapper" data-recipe-id="{{ recipe.id }}" data-recipe-title="{{ recipe.title }}">
+                {% with is_favorite=recipe.id|in_list:favorite_recipe_ids show_favorite_btn=False %}
+                {% include 'legacy/partials/recipe_card.html' %}
+                {% endwith %}
+                <button
+                    type="button"
+                    class="recipe-card-delete"
+                    data-delete-recipe="{{ recipe.id }}"
+                    aria-label="Delete {{ recipe.title }}"
+                    title="Delete recipe"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+                    </svg>
+                </button>
+            </div>
             {% endfor %}
         </div>
 

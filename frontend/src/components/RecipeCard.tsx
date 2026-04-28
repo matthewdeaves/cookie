@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react'
-import { Star, Clock, Heart } from 'lucide-react'
+import { useState, useCallback, useEffect } from 'react'
+import { Star, Clock, Heart, Trash2 } from 'lucide-react'
 import type { Recipe } from '../api/client'
 import { cn } from '../lib/utils'
 import { formatTime } from '../lib/formatting'
@@ -8,6 +8,7 @@ interface RecipeCardProps {
   recipe: Recipe
   isFavorite?: boolean
   onFavoriteToggle?: (recipe: Recipe) => void
+  onDelete?: (recipe: Recipe) => void
   onClick?: (recipe: Recipe) => void
 }
 
@@ -59,6 +60,41 @@ function FavoriteButton({ isFavorite, onClick }: {
   )
 }
 
+function DeleteButton({ onDelete }: { onDelete: () => void }) {
+  const [confirming, setConfirming] = useState(false)
+
+  useEffect(() => {
+    if (!confirming) return
+    const t = setTimeout(() => setConfirming(false), 2500)
+    return () => clearTimeout(t)
+  }, [confirming])
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (confirming) {
+      onDelete()
+    } else {
+      setConfirming(true)
+    }
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      className={cn(
+        'absolute left-2 top-2 rounded-full p-2 transition-colors backdrop-blur-sm',
+        confirming
+          ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+          : 'bg-background/80 text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-background hover:text-destructive'
+      )}
+      aria-label={confirming ? 'Confirm delete' : 'Delete recipe'}
+      title={confirming ? 'Click again to confirm' : 'Delete recipe'}
+    >
+      <Trash2 className="h-4 w-4" />
+    </button>
+  )
+}
+
 function RecipeMeta({ recipe }: { recipe: Recipe }) {
   return (
     <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -83,6 +119,7 @@ export default function RecipeCard({
   recipe,
   isFavorite = false,
   onFavoriteToggle,
+  onDelete,
   onClick,
 }: RecipeCardProps) {
   const [imgError, setImgError] = useState(false)
@@ -108,12 +145,19 @@ export default function RecipeCard({
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
         <RecipeImage recipe={recipe} imgError={imgError} onError={handleImgError} />
 
+        {onDelete && (
+          <DeleteButton onDelete={() => onDelete(recipe)} />
+        )}
+
         {onFavoriteToggle && (
           <FavoriteButton isFavorite={isFavorite} onClick={handleFavoriteClick} />
         )}
 
         {recipe.is_remix && (
-          <div className="absolute left-2 top-2 rounded-full bg-primary/90 px-2 py-0.5 text-xs text-primary-foreground backdrop-blur-sm">
+          <div className={cn(
+            'absolute top-2 rounded-full bg-primary/90 px-2 py-0.5 text-xs text-primary-foreground backdrop-blur-sm',
+            onDelete ? 'left-10' : 'left-2'
+          )}>
             Remix
           </div>
         )}
