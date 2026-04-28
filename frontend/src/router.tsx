@@ -56,10 +56,11 @@ export function useMode() {
 }
 
 // Version is no longer fetched from the server (/api/system/mode/ dropped the
-// `version` key in v1.42.0 to eliminate fingerprinting). Operators read the
-// version via `python manage.py cookie_admin status --json`.
+// `version` key in v1.42.0 to eliminate fingerprinting). Instead, the CD
+// pipeline bakes COOKIE_VERSION into the SPA bundle as VITE_COOKIE_VERSION
+// (see Dockerfile.prod). Falls back to 'dev' for local dev builds.
 export function useVersion() {
-  return 'dev'
+  return import.meta.env.VITE_COOKIE_VERSION || 'dev'
 }
 
 function AppLayout() {

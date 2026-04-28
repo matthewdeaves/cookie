@@ -15,6 +15,11 @@ RUN npm ci
 # Copy frontend source
 COPY frontend/ .
 
+# Bake the release version into the SPA bundle (read by useVersion()).
+# Vite exposes any VITE_-prefixed env var via import.meta.env at build time.
+ARG COOKIE_VERSION
+ENV VITE_COOKIE_VERSION=${COOKIE_VERSION}
+
 # Build production assets
 RUN npm run build
 
