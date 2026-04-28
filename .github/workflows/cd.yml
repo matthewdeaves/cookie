@@ -154,9 +154,16 @@ jobs:
     permissions:
       packages: write
     steps:
-      - name: Keep only the 5 most recent image versions
+      # Each tagged release publishes 1 manifest list + per-platform digests
+      # + provenance/SBOM attestation manifests (≈5 untagged versions per release).
+      # Pruning untagged versions too aggressively breaks the just-published
+      # manifest by deleting the platform digests it references — pulls then
+      # fail with "manifest unknown". Keep generous headroom and only ever
+      # delete UNTAGGED versions so tagged releases are preserved indefinitely.
+      - name: Prune old untagged image digests
         uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
         with:
           package-name: cookie
           package-type: container
-          min-versions-to-keep: 5
+          delete-only-untagged-versions: true
+          min-versions-to-keep: 50
