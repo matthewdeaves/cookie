@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-28T17:24:58.808Z",
+    "detectionDate": "2026-04-28T17:31:23.050Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -65,14 +65,14 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/settings-general.js": {
-            "lines": 492,
-            "tokens": 4414,
+            "lines": 473,
+            "tokens": 4226,
             "sources": 1,
             "clones": 7,
             "duplicatedLines": 39,
             "duplicatedTokens": 425,
-            "percentage": 7.93,
-            "percentageTokens": 9.63,
+            "percentage": 8.25,
+            "percentageTokens": 10.06,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -388,6 +388,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "apps/legacy/static/legacy/js/pull-to-refresh.js": {
+            "lines": 153,
+            "tokens": 1445,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "apps/legacy/static/legacy/js/polyfills.js": {
             "lines": 125,
             "tokens": 1154,
@@ -438,28 +450,28 @@
           }
         },
         "total": {
-          "lines": 7412,
-          "tokens": 58231,
-          "sources": 36,
+          "lines": 7546,
+          "tokens": 59488,
+          "sources": 37,
           "clones": 35,
           "duplicatedLines": 309,
           "duplicatedTokens": 2755,
-          "percentage": 4.17,
-          "percentageTokens": 4.73,
+          "percentage": 4.09,
+          "percentageTokens": 4.63,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7412,
-      "tokens": 58231,
-      "sources": 36,
+      "lines": 7546,
+      "tokens": 59488,
+      "sources": 37,
       "clones": 35,
       "duplicatedLines": 309,
       "duplicatedTokens": 2755,
-      "percentage": 4.17,
-      "percentageTokens": 4.73,
+      "percentage": 4.09,
+      "percentageTokens": 4.63,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -616,17 +628,17 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 85,
-        "end": 94,
+        "start": 75,
+        "end": 84,
         "startLoc": {
-          "line": 85,
+          "line": 75,
           "column": 25,
-          "position": 674
+          "position": 588
         },
         "endLoc": {
-          "line": 94,
+          "line": 84,
           "column": 2,
-          "position": 733
+          "position": 647
         }
       },
       "secondFile": {
@@ -652,32 +664,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 316,
-        "end": 321,
+        "start": 297,
+        "end": 302,
         "startLoc": {
-          "line": 316,
+          "line": 297,
           "column": 2,
-          "position": 2732
+          "position": 2544
         },
         "endLoc": {
-          "line": 321,
+          "line": 302,
           "column": 8,
-          "position": 2804
+          "position": 2616
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 216,
-        "end": 222,
+        "start": 197,
+        "end": 203,
         "startLoc": {
-          "line": 216,
+          "line": 197,
           "column": 2,
-          "position": 1721
+          "position": 1533
         },
         "endLoc": {
-          "line": 222,
+          "line": 203,
           "column": 6,
-          "position": 1794
+          "position": 1606
         }
       }
     },
@@ -688,32 +700,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 373,
-        "end": 378,
+        "start": 354,
+        "end": 359,
         "startLoc": {
-          "line": 373,
+          "line": 354,
           "column": 2,
-          "position": 3194
+          "position": 3006
         },
         "endLoc": {
-          "line": 378,
+          "line": 359,
           "column": 17,
-          "position": 3249
+          "position": 3061
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 135,
-        "end": 140,
+        "start": 120,
+        "end": 125,
         "startLoc": {
-          "line": 135,
+          "line": 120,
           "column": 6,
-          "position": 1062
+          "position": 935
         },
         "endLoc": {
-          "line": 140,
+          "line": 125,
           "column": 4,
-          "position": 1117
+          "position": 990
         }
       }
     },
@@ -724,32 +736,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 463,
-        "end": 468,
+        "start": 444,
+        "end": 449,
         "startLoc": {
-          "line": 463,
+          "line": 444,
           "column": 27,
-          "position": 4165
+          "position": 3977
         },
         "endLoc": {
-          "line": 468,
+          "line": 449,
           "column": 24,
-          "position": 4221
+          "position": 4033
         }
       },
       "secondFile": {
         "name": "apps/legacy/static/legacy/js/pages/settings-general.js",
-        "start": 373,
-        "end": 140,
+        "start": 354,
+        "end": 125,
         "startLoc": {
-          "line": 373,
+          "line": 354,
           "column": 25,
-          "position": 3193
+          "position": 3005
         },
         "endLoc": {
-          "line": 140,
+          "line": 125,
           "column": 4,
-          "position": 1117
+          "position": 990
         }
       }
     },

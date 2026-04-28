@@ -301,16 +301,16 @@ apps/recipes/services/fingerprint.py
     F 39:0 get_random_profile - A (1)
     F 49:0 get_random_delay - A (1)
 apps/profiles/api.py
-    F 197:0 update_preferences - B (9)
-    F 301:0 rename_profile - A (4)
-    F 155:0 create_profile - A (3)
-    F 180:0 update_profile - A (3)
-    F 254:0 delete_profile - A (3)
-    F 107:0 list_profiles - A (2)
-    F 171:0 get_profile - A (2)
-    F 244:0 get_deletion_preview - A (2)
-    F 273:0 select_profile - A (2)
-    F 289:0 set_unlimited - A (2)
+    F 201:0 update_preferences - B (8)
+    F 306:0 rename_profile - A (4)
+    F 159:0 create_profile - A (3)
+    F 184:0 update_profile - A (3)
+    F 259:0 delete_profile - A (3)
+    F 111:0 list_profiles - A (2)
+    F 175:0 get_profile - A (2)
+    F 249:0 get_deletion_preview - A (2)
+    F 278:0 select_profile - A (2)
+    F 294:0 set_unlimited - A (2)
     C 20:0 ProfileIn - A (1)
     C 27:0 ProfileOut - A (1)
     C 35:0 ProfileStatsSchema - A (1)
@@ -321,7 +321,7 @@ apps/profiles/api.py
     C 80:0 SetUnlimitedIn - A (1)
     C 84:0 RenameIn - A (1)
     C 88:0 PreferencesIn - A (1)
-    C 101:0 ErrorSchema - A (1)
+    C 105:0 ErrorSchema - A (1)
 apps/profiles/apps.py
     C 4:0 ProfilesConfig - A (1)
 apps/profiles/models.py
@@ -900,4 +900,4 @@ cookie/urls.py
     F 31:0 handle_bad_content_type - A (1)
 
 799 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.7684605757196494)
+Average complexity: A (2.76720901126408)

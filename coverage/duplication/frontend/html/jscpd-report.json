@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-04-28T17:24:53.755Z",
+    "detectionDate": "2026-04-28T17:31:10.174Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -209,8 +209,8 @@
             "newClones": 0
           },
           "src/components/settings/SettingsGeneral.tsx": {
-            "lines": 101,
-            "tokens": 695,
+            "lines": 72,
+            "tokens": 520,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -558,7 +558,7 @@
           },
           "src/contexts/ProfileContext.tsx": {
             "lines": 4,
-            "tokens": 25,
+            "tokens": 23,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -894,8 +894,8 @@
           }
         },
         "total": {
-          "lines": 3498,
-          "tokens": 26766,
+          "lines": 3469,
+          "tokens": 26589,
           "sources": 74,
           "clones": 0,
           "duplicatedLines": 0,
@@ -1113,8 +1113,8 @@
             "newClones": 0
           },
           "src/components/settings/SettingsGeneral.tsx": {
-            "lines": 152,
-            "tokens": 1137,
+            "lines": 123,
+            "tokens": 953,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1461,8 +1461,8 @@
             "newClones": 0
           },
           "src/contexts/ProfileContext.tsx": {
-            "lines": 110,
-            "tokens": 993,
+            "lines": 96,
+            "tokens": 809,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1607,6 +1607,18 @@
           "src/components/QuickTimerButtons.tsx": {
             "lines": 42,
             "tokens": 326,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/components/PullToRefresh.tsx": {
+            "lines": 27,
+            "tokens": 315,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1809,8 +1821,8 @@
             "newClones": 0
           },
           "src/App.tsx": {
-            "lines": 7,
-            "tokens": 54,
+            "lines": 13,
+            "tokens": 83,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -1822,9 +1834,9 @@
           }
         },
         "total": {
-          "lines": 7455,
-          "tokens": 58733,
-          "sources": 76,
+          "lines": 7445,
+          "tokens": 58709,
+          "sources": 77,
           "clones": 6,
           "duplicatedLines": 61,
           "duplicatedTokens": 583,
@@ -2028,6 +2040,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/hooks/usePullToRefresh.ts": {
+            "lines": 107,
+            "tokens": 1019,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/hooks/useProfileDeletion.ts": {
             "lines": 67,
             "tokens": 559,
@@ -2186,28 +2210,28 @@
           }
         },
         "total": {
-          "lines": 3123,
-          "tokens": 26316,
-          "sources": 29,
+          "lines": 3230,
+          "tokens": 27335,
+          "sources": 30,
           "clones": 3,
           "duplicatedLines": 65,
           "duplicatedTokens": 375,
-          "percentage": 2.08,
-          "percentageTokens": 1.42,
+          "percentage": 2.01,
+          "percentageTokens": 1.37,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 14076,
-      "tokens": 111815,
-      "sources": 179,
+      "lines": 14144,
+      "tokens": 112633,
+      "sources": 181,
       "clones": 9,
       "duplicatedLines": 126,
       "duplicatedTokens": 958,
-      "percentage": 0.9,
-      "percentageTokens": 0.86,
+      "percentage": 0.89,
+      "percentageTokens": 0.85,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
