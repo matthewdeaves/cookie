@@ -2,6 +2,8 @@
 
 import json
 import logging
+import secrets
+import string
 import time
 import uuid
 
@@ -170,9 +172,14 @@ def _create_passkey_user_and_profile(verification, transports=None):
     user.set_unusable_password()
     user.save(update_fields=["password"])
 
+    # First char is forced to a letter so the suffix can never collapse to all
+    # digits. uuid.uuid4().hex[:6] is hex (0-9a-f) — ~5.6% of draws are all
+    # digits, which then matches `^User \d+$` and trips R23's "user count
+    # leak" guard. The remaining 5 hex chars carry the entropy.
+    suffix = secrets.choice(string.ascii_lowercase) + uuid.uuid4().hex[:5]
     profile = Profile.objects.create(
         user=user,
-        name=f"User {uuid.uuid4().hex[:6]}",
+        name=f"User {suffix}",
         avatar_color=Profile.next_avatar_color(),
     )
 
