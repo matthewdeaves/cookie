@@ -11,7 +11,6 @@ interface ProfileContextType {
   selectProfile: (profile: Profile) => Promise<void>
   logout: () => void
   toggleTheme: () => Promise<void>
-  updateUnitPreference: (unit: 'metric' | 'imperial') => Promise<void>
   toggleFavorite: (recipe: RecipeDetail) => Promise<void>
   isFavorite: (recipeId: number) => boolean
 }
@@ -84,24 +83,11 @@ export function ProfileProvider({ children, authProfile, onProfileSelected }: Pr
     }
   }, [profile, theme, setProfile, setTheme])
 
-  const updateUnitPreference = useCallback(async (unit: 'metric' | 'imperial') => {
-    if (!profile) return
-    const previousUnit = profile.unit_preference
-    setProfile({ ...profile, unit_preference: unit })
-    try {
-      const updated = await api.profiles.updatePreferences(profile.id, { unit_preference: unit })
-      setProfile(updated)
-    } catch (error) {
-      console.error('Failed to update unit preference:', error)
-      setProfile({ ...profile, unit_preference: previousUnit })
-    }
-  }, [profile, setProfile])
-
   return (
     <ProfileContext.Provider
       value={{
         profile, theme, favoriteRecipeIds, loading,
-        selectProfile, logout, toggleTheme, updateUnitPreference,
+        selectProfile, logout, toggleTheme,
         toggleFavorite, isFavorite,
       }}
     >

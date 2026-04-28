@@ -89,9 +89,13 @@ class PreferencesIn(Schema):
     """Display-preference payload for per-profile self-updates in both modes.
 
     Separated from ProfileIn so passkey-mode users can change their own theme
-    and unit_preference without touching identity fields (name, avatar_color)
-    which remain HomeOnly. Every field is optional — only sent fields are
-    written, so PATCH with {"theme": "dark"} leaves unit_preference alone.
+    without touching identity fields (name, avatar_color) which remain
+    HomeOnly. Every field is optional — only sent fields are written, so
+    PATCH with {"theme": "dark"} is a noop on other fields.
+
+    Note: unit_preference is accepted to preserve API back-compat for older
+    clients but the endpoint rejects writes (feature disabled in v1.64). The
+    underlying column remains for read-only consumers (AI scaling).
     """
 
     theme: Optional[str] = None
@@ -214,19 +218,20 @@ def update_preferences(request, profile_id: int, payload: PreferencesIn):
     if not caller_profile or caller_profile.id != profile_id:
         return Status(403, {"error": "forbidden", "message": "Cannot modify another profile"})
 
-    # Validate allowed values. Reject unknown theme/unit strings — no free-form input.
+    # Reject unit_preference writes — UI toggle hidden in v1.64 because conversion
+    # is only wired into AI scaling, not recipe display / scrape / cook mode.
+    if payload.unit_preference is not None:
+        return Status(
+            400,
+            {"error": "feature_disabled", "message": "unit_preference is not currently configurable"},
+        )
+
+    # Validate allowed values. Reject unknown theme strings — no free-form input.
     updates: dict[str, str] = {}
     if payload.theme is not None:
         if payload.theme not in ("light", "dark"):
             return Status(400, {"error": "validation_error", "message": "theme must be 'light' or 'dark'"})
         updates["theme"] = payload.theme
-    if payload.unit_preference is not None:
-        if payload.unit_preference not in ("metric", "imperial"):
-            return Status(
-                400,
-                {"error": "validation_error", "message": "unit_preference must be 'metric' or 'imperial'"},
-            )
-        updates["unit_preference"] = payload.unit_preference
 
     if not updates:
         # Nothing sent — return current profile, don't touch the DB.
