@@ -72,17 +72,18 @@ class TestHomeModeDefaults:
         assert "version" not in data
 
     def test_session_cookie_age(self):
-        """SESSION_COOKIE_AGE is 86400 (24 hours) and refreshed every request.
+        """SESSION_COOKIE_AGE is 86400 (24 hours).
 
-        v1.73+: bumped from 12h → 24h plus SESSION_SAVE_EVERY_REQUEST=True,
-        producing a rolling session. The increase + rolling behavior addresses
-        iOS PWA users seeing unexpected logouts a few hours into a session
-        from cookie eviction (storage pressure, app restarts, Safari ITP).
+        v1.73+: bumped from 12h → 24h to give iOS PWA users a wider buffer
+        before the cookie expires. iOS Safari/PWA cookie eviction
+        heuristics (storage pressure, app restarts, ITP) sometimes evict
+        cookies before SESSION_COOKIE_AGE elapses — a longer baseline
+        absorbs more of those edge cases without the side effects of
+        rolling-session save-on-every-request.
         """
         from django.conf import settings
 
         assert settings.SESSION_COOKIE_AGE == 86400
-        assert settings.SESSION_SAVE_EVERY_REQUEST is True
 
 
 @pytest.mark.django_db
