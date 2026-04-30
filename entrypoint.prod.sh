@@ -17,7 +17,8 @@ if [ -z "$SECRET_KEY" ]; then
         python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())" > "$SECRET_KEY_FILE"
         chmod 600 "$SECRET_KEY_FILE"
     fi
-    export SECRET_KEY=$(cat "$SECRET_KEY_FILE")
+    SECRET_KEY=$(cat "$SECRET_KEY_FILE")
+    export SECRET_KEY
 fi
 
 # Wait for PostgreSQL if configured

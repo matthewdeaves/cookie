@@ -67,6 +67,7 @@ if echo "$NEW_CONTENT" | grep -qE '=>'; then
 fi
 
 # Check for template literals
+# shellcheck disable=SC2016 # The pattern matches literal `${ in JS template literals — single quotes prevent shell expansion of the regex.
 if echo "$NEW_CONTENT" | grep -qE '`[^`]*\$\{'; then
     VIOLATIONS="${VIOLATIONS}  - Found template literal with \${} (use string concatenation for ES5)\n"
 fi
