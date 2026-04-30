@@ -241,10 +241,18 @@ SEARCH_CACHE_TIMEOUT = 432000  # 5 days in seconds
 # Upgrade path: switch to django.contrib.sessions.backends.cache with Redis
 # for multi-server deployments.
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
-SESSION_COOKIE_AGE = 43200  # 12 hours
+SESSION_COOKIE_AGE = 86400  # 24 hours
 SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
+# Rolling session: each request bumps the session row's expire_date and
+# re-emits Set-Cookie with a fresh Max-Age. Active users stay signed in
+# indefinitely (relative to SESSION_COOKIE_AGE-since-last-request).
+# Without this, the cookie's Max-Age is fixed at login — iOS PWA cookie
+# purges (storage pressure, app restarts, Safari ITP heuristics) can
+# evict the cookie well before SESSION_COOKIE_AGE elapses, surfacing as
+# unexpected logouts a few hours into a session.
+SESSION_SAVE_EVERY_REQUEST = True
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = False  # SPA reads CSRF cookie via JavaScript
 
