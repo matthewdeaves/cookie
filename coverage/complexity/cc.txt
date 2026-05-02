@@ -156,6 +156,11 @@ apps/recipes/sources_api.py
     C 62:0 ErrorOut - A (1)
     C 67:0 BulkToggleIn - A (1)
     C 71:0 BulkToggleOut - A (1)
+apps/recipes/migrations/0013_update_broken_selectors.py
+    F 22:0 _apply - A (2)
+    F 28:0 update_selectors - A (2)
+    F 32:0 revert_selectors - A (2)
+    C 36:0 Migration - A (1)
 apps/recipes/migrations/0008_rename_recipes_rec_profile_idx_recipes_rec_profile_7945b8_idx.py
     C 6:0 Migration - A (1)
 apps/recipes/migrations/0010_add_remixed_from_field.py
@@ -210,6 +215,15 @@ apps/recipes/services/fingerprint.py
     F 59:0 get_fallback_profiles - A (3)
     F 39:0 get_random_profile - A (1)
     F 49:0 get_random_delay - A (1)
+apps/recipes/services/search_classifiers.py
+    F 133:0 _check_path_heuristics - B (8)
+    F 226:0 looks_like_recipe_title - B (8)
+    F 106:0 _skinnytaste_signal - B (6)
+    F 146:0 get_url_signal - A (5)
+    F 125:0 _check_site_rules - A (4)
+    F 96:0 _check_exclusion_patterns - A (2)
+    F 101:0 _check_recipe_patterns - A (2)
+    F 175:0 looks_like_recipe_url - A (1)
 apps/recipes/services/scraper.py
     M 410:4 RecipeScraper._fetch_image_with_redirects - C (12)
     M 218:4 RecipeScraper._fetch_with_redirects - B (10)
@@ -235,27 +249,20 @@ apps/recipes/services/scraper.py
 apps/recipes/services/sanitizer.py
     F 10:0 sanitize_recipe_data - C (14)
 apps/recipes/services/search_parsers.py
-    F 160:0 extract_result_from_element - B (9)
-    F 114:0 _collect_srcset_strings - B (8)
-    F 379:0 _check_path_heuristics - B (8)
-    F 472:0 looks_like_recipe_title - B (8)
-    F 20:0 find_link - B (6)
-    F 138:0 extract_image - B (6)
-    F 238:0 _parse_links - B (6)
-    F 39:0 extract_title - A (5)
-    F 224:0 _parse_cards - A (5)
-    F 392:0 get_url_signal - A (5)
-    F 129:0 best_url_from_srcset - A (4)
-    F 371:0 _check_site_rules - A (4)
-    F 70:0 extract_rating - A (3)
-    F 214:0 _parse_articles - A (3)
-    F 256:0 fallback_parse - A (3)
-    F 91:0 extract_description - A (2)
-    F 99:0 parse_srcset - A (2)
-    F 355:0 _check_exclusion_patterns - A (2)
-    F 360:0 _check_recipe_patterns - A (2)
-    F 65:0 _strip_title_metadata - A (1)
-    F 421:0 looks_like_recipe_url - A (1)
+    F 164:0 extract_result_from_element - B (9)
+    F 118:0 _collect_srcset_strings - B (8)
+    F 24:0 find_link - B (6)
+    F 142:0 extract_image - B (6)
+    F 242:0 _parse_links - B (6)
+    F 43:0 extract_title - A (5)
+    F 228:0 _parse_cards - A (5)
+    F 133:0 best_url_from_srcset - A (4)
+    F 74:0 extract_rating - A (3)
+    F 218:0 _parse_articles - A (3)
+    F 260:0 fallback_parse - A (3)
+    F 95:0 extract_description - A (2)
+    F 103:0 parse_srcset - A (2)
+    F 69:0 _strip_title_metadata - A (1)
 apps/recipes/services/search.py
     M 301:4 RecipeSearch._fetch_url - B (8)
     M 193:4 RecipeSearch._filter_relevant - B (7)
@@ -899,5 +906,5 @@ cookie/settings.py
 cookie/urls.py
     F 31:0 handle_bad_content_type - A (1)
 
-799 blocks (classes, functions, methods) analyzed.
-Average complexity: A (2.76720901126408)
+804 blocks (classes, functions, methods) analyzed.
+Average complexity: A (2.7661691542288556)
