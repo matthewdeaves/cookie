@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-05-02T11:08:40.638768+00:00",
+  "generated_at": "2026-05-02T13:23:09.545723+00:00",
   "repo": "matthewdeaves/cookie",
   "coverage": {
     "frontend": {
-      "percentage": 61.31,
+      "percentage": 61.83,
       "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/frontend-coverage.svg"
     },
     "backend": {
@@ -66,8 +66,8 @@
     }
   },
   "bundle": {
-    "size_kb": 573.46,
-    "gzip_kb": 169.04,
+    "size_kb": 573.58,
+    "gzip_kb": 169.1,
     "rating": "B",
     "badge_url": "https://matthewdeaves.github.io/cookie/coverage/badges/bundle-size.svg"
   },

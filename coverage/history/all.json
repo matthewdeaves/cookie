@@ -6394,6 +6394,44 @@
         "complexity_warnings": 0,
         "duplication": 4.09
       }
+    },
+    {
+      "timestamp": "2026-05-02T13:23:09.547211+00:00",
+      "date": "2026-05-02",
+      "coverage": {
+        "frontend": 61.83,
+        "backend": 85.5
+      },
+      "complexity": {
+        "frontend_warnings": 3,
+        "frontend_avg_cc": 0,
+        "backend_cc": 2.77,
+        "backend_mi": 82.36
+      },
+      "duplication": {
+        "frontend": 0.89,
+        "backend": 1.26,
+        "frontend_clones": 9,
+        "backend_clones": 11
+      },
+      "bundle": {
+        "total_kb": 573.58,
+        "gzip_kb": 169.1
+      },
+      "security": {
+        "frontend_vulns": 0,
+        "backend_vulns": 0,
+        "bandit_high": 0,
+        "bandit_medium": 0,
+        "bandit_low": 0,
+        "secrets_found": 0
+      },
+      "legacy": {
+        "errors": 0,
+        "warnings": 0,
+        "complexity_warnings": 0,
+        "duplication": 4.09
+      }
     }
   ]
 }

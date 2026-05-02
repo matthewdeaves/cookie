@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2026-05-02T11:05:26.935Z",
+    "detectionDate": "2026-05-02T13:19:43.332Z",
     "formats": {
       "javascript": {
         "sources": {
@@ -305,8 +305,8 @@
             "newClones": 0
           },
           "apps/legacy/static/legacy/js/pages/all-recipes.js": {
-            "lines": 152,
-            "tokens": 1321,
+            "lines": 165,
+            "tokens": 1436,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -450,28 +450,28 @@
           }
         },
         "total": {
-          "lines": 7546,
-          "tokens": 59488,
+          "lines": 7559,
+          "tokens": 59603,
           "sources": 37,
           "clones": 35,
           "duplicatedLines": 309,
           "duplicatedTokens": 2755,
           "percentage": 4.09,
-          "percentageTokens": 4.63,
+          "percentageTokens": 4.62,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 7546,
-      "tokens": 59488,
+      "lines": 7559,
+      "tokens": 59603,
       "sources": 37,
       "clones": 35,
       "duplicatedLines": 309,
       "duplicatedTokens": 2755,
       "percentage": 4.09,
-      "percentageTokens": 4.63,
+      "percentageTokens": 4.62,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
