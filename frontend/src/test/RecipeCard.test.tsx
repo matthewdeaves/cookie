@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import RecipeCard from '../components/RecipeCard'
 import type { Recipe } from '../api/client'
 
@@ -169,5 +169,82 @@ describe('RecipeCard', () => {
     fireEvent.click(screen.getByLabelText('Add to favorites'))
     expect(handleFavorite).toHaveBeenCalled()
     expect(handleClick).not.toHaveBeenCalled()
+  })
+
+  describe('DeleteButton', () => {
+    it('shows delete button when onDelete is provided', () => {
+      render(<RecipeCard recipe={mockRecipe} onDelete={vi.fn()} />)
+      expect(screen.getByLabelText('Delete recipe')).toBeInTheDocument()
+    })
+
+    it('does not show delete button when onDelete is omitted', () => {
+      render(<RecipeCard recipe={mockRecipe} />)
+      expect(screen.queryByLabelText('Delete recipe')).not.toBeInTheDocument()
+    })
+
+    it('first click primes confirmation without firing onDelete', () => {
+      const handleDelete = vi.fn()
+      render(<RecipeCard recipe={mockRecipe} onDelete={handleDelete} />)
+
+      fireEvent.click(screen.getByLabelText('Delete recipe'))
+
+      expect(handleDelete).not.toHaveBeenCalled()
+      // Confirming state must be visibly discoverable on mobile (no hover) —
+      // the visible text and aria-label are the cue.
+      expect(screen.getByText('Tap to confirm')).toBeInTheDocument()
+      expect(
+        screen.getByLabelText('Tap again to confirm delete')
+      ).toBeInTheDocument()
+    })
+
+    it('second click within timeout calls onDelete with recipe', () => {
+      const handleDelete = vi.fn()
+      render(<RecipeCard recipe={mockRecipe} onDelete={handleDelete} />)
+
+      fireEvent.click(screen.getByLabelText('Delete recipe'))
+      fireEvent.click(screen.getByLabelText('Tap again to confirm delete'))
+
+      expect(handleDelete).toHaveBeenCalledTimes(1)
+      expect(handleDelete).toHaveBeenCalledWith(mockRecipe)
+    })
+
+    it('confirming state resets after 2.5s timeout', () => {
+      vi.useFakeTimers()
+      try {
+        const handleDelete = vi.fn()
+        render(<RecipeCard recipe={mockRecipe} onDelete={handleDelete} />)
+
+        fireEvent.click(screen.getByLabelText('Delete recipe'))
+        expect(screen.getByText('Tap to confirm')).toBeInTheDocument()
+
+        act(() => {
+          vi.advanceTimersByTime(2500)
+        })
+
+        expect(screen.queryByText('Tap to confirm')).not.toBeInTheDocument()
+        expect(screen.getByLabelText('Delete recipe')).toBeInTheDocument()
+        expect(handleDelete).not.toHaveBeenCalled()
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('does not propagate click to card onClick handler', () => {
+      const handleClick = vi.fn()
+      const handleDelete = vi.fn()
+      render(
+        <RecipeCard
+          recipe={mockRecipe}
+          onClick={handleClick}
+          onDelete={handleDelete}
+        />
+      )
+
+      fireEvent.click(screen.getByLabelText('Delete recipe'))
+      fireEvent.click(screen.getByLabelText('Tap again to confirm delete'))
+
+      expect(handleDelete).toHaveBeenCalled()
+      expect(handleClick).not.toHaveBeenCalled()
+    })
   })
 })

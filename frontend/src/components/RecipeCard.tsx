@@ -78,19 +78,24 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
     }
   }
 
+  // The two-tap-to-confirm pattern needs an in-button text cue when primed —
+  // the title attribute is desktop-only (no hover on touch), so without
+  // visible text mobile users see the icon turn red and assume the action
+  // happened. Show "Tap to confirm" when primed.
   return (
     <button
       onClick={handleClick}
       className={cn(
-        'absolute right-2 top-2 rounded-full p-2 transition-colors backdrop-blur-sm',
+        'absolute right-2 top-2 flex items-center gap-1.5 rounded-full backdrop-blur-sm transition-colors',
         confirming
-          ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-          : 'bg-background/80 text-muted-foreground hover:bg-background hover:text-destructive'
+          ? 'bg-destructive px-3 py-2 text-destructive-foreground hover:bg-destructive/90'
+          : 'bg-background/80 p-2 text-muted-foreground hover:bg-background hover:text-destructive'
       )}
-      aria-label={confirming ? 'Confirm delete' : 'Delete recipe'}
-      title={confirming ? 'Click again to confirm' : 'Delete recipe'}
+      aria-label={confirming ? 'Tap again to confirm delete' : 'Delete recipe'}
+      title={confirming ? 'Tap again to confirm' : 'Delete recipe'}
     >
       <Trash2 className="h-5 w-5" />
+      {confirming && <span className="text-xs font-medium">Tap to confirm</span>}
     </button>
   )
 }

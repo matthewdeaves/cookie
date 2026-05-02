@@ -91,6 +91,10 @@
         if (pendingDeleteBtn) {
             pendingDeleteBtn.classList.remove('recipe-card-delete-confirm');
             pendingDeleteBtn.setAttribute('title', 'Delete recipe');
+            var label = pendingDeleteBtn.querySelector('.recipe-card-delete-label');
+            if (label && label.parentNode) {
+                label.parentNode.removeChild(label);
+            }
         }
         pendingDeleteId = null;
         pendingDeleteBtn = null;
@@ -140,12 +144,21 @@
                 Cookie.toast.success('"' + title + '" deleted');
             });
         } else {
-            // First tap — enter confirm state
+            // First tap — enter confirm state. Insert a visible "Tap to confirm"
+            // label because the title attribute is desktop-only (no hover on
+            // touch) and mobile users had no way to discover the second-tap
+            // requirement.
             clearPendingDelete();
             pendingDeleteId = recipeId;
             pendingDeleteBtn = btn;
             btn.classList.add('recipe-card-delete-confirm');
             btn.setAttribute('title', 'Tap again to confirm delete');
+            if (!btn.querySelector('.recipe-card-delete-label')) {
+                var label = document.createElement('span');
+                label.className = 'recipe-card-delete-label';
+                label.textContent = 'Tap to confirm';
+                btn.appendChild(label);
+            }
             pendingDeleteTimer = setTimeout(clearPendingDelete, 2500);
         }
     });
