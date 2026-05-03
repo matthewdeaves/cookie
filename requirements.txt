@@ -6,7 +6,7 @@
 Django>=6.0.4,<7.0
 pygments>=2.20.0  # CVE-2026-4539 fix (transitive dep)
 dj-database-url>=3.1
-psycopg[binary]>=3.3
+psycopg[binary]>=3.3.4
 gunicorn>=25.3
 django-ninja>=1.6
 Pillow>=12.2
