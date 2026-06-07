@@ -27,7 +27,7 @@ RUN npm run build
 # Stage 2: Build supercronic v0.2.45 from source (Go 1.26.2 — fixes CVE-2026-32280, CVE-2026-32282, CVE-2026-33810)
 # ===========================================
 # golang:1.26.2-bookworm - update digest when upgrading
-FROM golang:1.26.2-bookworm@sha256:47ce5636e9936b2c5cbf708925578ef386b4f8872aec74a67bd13a627d242b19 AS supercronic-builder
+FROM golang:1.26.4-bookworm@sha256:5d2b868674b57c9e48cdd39e891acce4196b6926ca6d11e9c270a8f85106203d AS supercronic-builder
 
 ARG SUPERCRONIC_VERSION=v0.2.45
 RUN git clone --branch "${SUPERCRONIC_VERSION}" --depth 1 \
