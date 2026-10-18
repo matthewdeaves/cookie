@@ -13,7 +13,7 @@ Cookie.aiError = (function() {
         401: { action: 'update_key', message: 'Your API key appears to be invalid. Please update it in Settings.' },
         429: { action: 'retry', message: 'Too many requests. Please wait a moment and try again.' },
         'quota_exceeded': { action: 'quota_exceeded', message: 'Daily limit reached.' },
-        402: { action: 'add_credits', message: 'Your OpenRouter account may need credits. Please check your account.' }
+        402: { action: 'add_credits', message: 'Your Anthropic account may need credits. Please check your account.' }
     };
 
     /**

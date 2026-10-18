@@ -27,7 +27,7 @@ export default function APIKeySection({
 
   return (
     <div className="rounded-lg border border-border bg-card p-4">
-      <h2 className="mb-4 text-lg font-medium text-foreground">OpenRouter API</h2>
+      <h2 className="mb-4 text-lg font-medium text-foreground">Anthropic API</h2>
 
       <AIStatusDisplay aiStatus={aiStatus} models={models} />
 
@@ -40,7 +40,7 @@ export default function APIKeySection({
             type="password"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
-            placeholder="sk-or-v1-..."
+            placeholder="sk-ant-..."
             className="w-full rounded-lg border border-border bg-input-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </label>
@@ -76,12 +76,12 @@ export default function APIKeySection({
       <p className="mt-4 text-sm text-muted-foreground">
         Get your API key from{' '}
         <a
-          href="https://openrouter.ai/keys"
+          href="https://console.anthropic.com/settings/keys"
           target="_blank"
           rel="noopener noreferrer"
           className="text-primary hover:underline"
         >
-          openrouter.ai/keys
+          console.anthropic.com
         </a>
       </p>
     </div>

@@ -44,7 +44,7 @@
         <div id="tab-general" class="tab-content">
             {% if is_admin %}
             <div class="card">
-                <h2 class="settings-section-title">OpenRouter API</h2>
+                <h2 class="settings-section-title">Anthropic API</h2>
 
                 <!-- Status indicator -->
                 <div class="api-status mb-4">
@@ -68,7 +68,7 @@
                         type="password"
                         id="api-key-input"
                         class="input"
-                        placeholder="sk-or-v1-..."
+                        placeholder="sk-ant-..."
                     >
                 </div>
 
@@ -93,7 +93,7 @@
 
                 <p class="api-help-text">
                     Get your API key from
-                    <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" class="link">openrouter.ai/keys</a>
+                    <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" class="link">console.anthropic.com</a>
                 </p>
             </div>
             {% endif %}
@@ -225,7 +225,7 @@
                     <path d="M12 9v4"></path>
                     <path d="M12 17h.01"></path>
                 </svg>
-                <span>Configure your OpenRouter API key in the General tab to enable AI features.</span>
+                <span>Configure your Anthropic API key in the General tab to enable AI features.</span>
             </div>
             {% endif %}
 

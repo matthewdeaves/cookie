@@ -62,14 +62,14 @@
   <p>Recipe images from external sources are downloaded and cached on the server when possible. In rare cases where local caching fails, images may be loaded directly from the original source by your browser, producing a request visible to that source. The Content Security Policy permits image loading from any HTTPS source to support this fallback.
     <span class="source-link">(<a href="https://github.com/matthewdeaves/cookie/blob/v1.72.2/apps/recipes/services/image_cache.py#L33">source: recipes/services/image_cache.py#L33</a>)</span></p>
 
-  <h2>AI features and OpenRouter</h2>
-  <p>AI features (recipe remixes, serving adjustments, cooking tips, discovery suggestions) are powered by OpenRouter. When you use them:</p>
+  <h2>AI features and Anthropic</h2>
+  <p>AI features (recipe remixes, serving adjustments, cooking tips, discovery suggestions) are powered by the Anthropic API. When you use them:</p>
   <ul>
-    <li>Recipe text (ingredients, instructions, titles) is sent from the server to OpenRouter's API for processing.</li>
+    <li>Recipe text (ingredients, instructions, titles) is sent from the server to Anthropic's API for processing.</li>
     <li>No personal data (username, preferences, browsing history) is included in AI requests.</li>
     <li>AI responses are cached on the server to reduce repeat API calls.</li>
-    <li>OpenRouter routes the request to an underlying model provider; see OpenRouter's privacy policy for how they handle request data.
-      <span class="source-link">(<a href="https://github.com/matthewdeaves/cookie/blob/v1.72.2/apps/ai/services/openrouter.py#L34">source: ai/services/openrouter.py#L34</a>)</span></li>
+    <li>Requests go directly to Anthropic with the server's own API key; see Anthropic's privacy policy for how they handle request data.
+      <span class="source-link">(<a href="https://github.com/matthewdeaves/cookie/blob/master/apps/ai/services/anthropic_client.py">source: ai/services/anthropic_client.py</a>)</span></li>
   </ul>
 
   <h2>Server logs</h2>
@@ -108,7 +108,7 @@
     <li>All connections are encrypted via HTTPS with HSTS (2-year <code>max-age</code>, <code>includeSubDomains</code>, <code>preload</code>).
       <span class="source-link">(<a href="https://github.com/matthewdeaves/cookie/blob/v1.72.2/nginx/security-headers.conf#L1">source: nginx/security-headers.conf#L1</a>)</span></li>
     <li>Authentication uses WebAuthn passkeys — no passwords to steal or brute-force.</li>
-    <li>The OpenRouter API key is encrypted at rest in the database using Fernet symmetric encryption.
+    <li>The Anthropic API key is encrypted at rest in the database using Fernet symmetric encryption.
       <span class="source-link">(<a href="https://github.com/matthewdeaves/cookie/blob/v1.72.2/apps/core/encryption.py#L29">source: core/encryption.py#L29 — encrypt_value</a>)</span></li>
     <li>Rate limiting protects authentication and AI endpoints. The limiter uses your IP address (derived from the Cloudflare-forwarded <code>X-Forwarded-For</code> header) as an in-memory key; it is not stored or logged for rate-limiting purposes.
       <span class="source-link">(<a href="https://github.com/matthewdeaves/cookie/blob/v1.72.2/cookie/settings.py#L281">source: settings.py#L281</a>)</span></li>

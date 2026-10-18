@@ -39,7 +39,7 @@ export default function SettingsPrompts({
         <div className="flex items-center gap-3 rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-4">
           <AlertCircle className="h-5 w-5 text-yellow-500" />
           <p className="text-sm text-yellow-600 dark:text-yellow-400">
-            Configure your OpenRouter API key in the General tab to enable AI
+            Configure your Anthropic API key in the General tab to enable AI
             features.
           </p>
         </div>
