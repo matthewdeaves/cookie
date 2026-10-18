@@ -3,7 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2026-04-18
 
 ## Active Technologies
-- **Backend**: Python 3.14, Django 5.0, Django Ninja 1.0+, Gunicorn, WhiteNoise, curl_cffi, BeautifulSoup4, django-ratelimit 4.1, openrouter SDK
+- **Backend**: Python 3.14, Django 5.0, Django Ninja 1.0+, Gunicorn, WhiteNoise, curl_cffi, BeautifulSoup4, django-ratelimit 4.1, anthropic SDK
 - **Frontend**: TypeScript 5.9, React 19, Vite 7
 - **Legacy Frontend**: ES5 (iOS 9.3 Safari compatible)
 - **Database**: PostgreSQL 16+ (all environments, no SQLite fallback), Django database cache (`django_cache` table)
@@ -100,17 +100,17 @@ docker compose exec web python manage.py cookie_admin status --json         # no
 docker compose exec web python manage.py cookie_admin audit --json
 
 # API key (pipe from stdin — never hits shell history)
-echo -n "sk-or-..." | docker compose exec -T web python manage.py cookie_admin set-api-key --stdin
-echo -n "sk-or-..." | docker compose exec -T web python manage.py cookie_admin test-api-key --stdin --json
+echo -n "sk-ant-..." | docker compose exec -T web python manage.py cookie_admin set-api-key --stdin
+echo -n "sk-ant-..." | docker compose exec -T web python manage.py cookie_admin test-api-key --stdin --json
 
-docker compose exec web python manage.py cookie_admin set-default-model anthropic/claude-haiku-4.5
+docker compose exec web python manage.py cookie_admin set-default-model claude-haiku-5-5
 
 # AI prompts (file-based content to avoid shell-escaping pain)
 docker compose exec web python manage.py cookie_admin prompts list --json
 docker compose exec web python manage.py cookie_admin prompts show recipe_remix --json
 docker compose exec web python manage.py cookie_admin prompts set recipe_remix \
     --system-file /tmp/system.txt --user-file /tmp/user.txt \
-    --model anthropic/claude-sonnet-4 --active true
+    --model claude-sonnet-5-5 --active true
 
 # Search sources
 docker compose exec web python manage.py cookie_admin sources list --json
@@ -140,7 +140,7 @@ docker compose exec web python manage.py cleanup_device_codes --dry-run
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `AUTH_MODE` | `home` | `home` or `passkey` |
-| `OPENROUTER_API_KEY` | `""` | OpenRouter API key (overrides database value) |
+| `ANTHROPIC_API_KEY` | `""` | Anthropic API key (overrides database value) |
 | `WEBAUTHN_RP_ID` | Request hostname | WebAuthn Relying Party ID (domain, passkey mode) |
 | `WEBAUTHN_RP_NAME` | `Cookie` | Name shown in passkey prompts |
 | `DEVICE_CODE_EXPIRY_SECONDS` | `600` | Device code lifetime (10 min default) |

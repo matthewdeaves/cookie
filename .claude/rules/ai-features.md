@@ -8,11 +8,11 @@ paths:
 
 # AI Features Rules
 
-Cookie has 10 AI features using OpenRouter: recipe_remix, serving_adjustment, tips_generation, discover_favorites, discover_seasonal, discover_new, search_ranking, timer_naming, remix_suggestions, selector_repair.
+Cookie has 10 AI features using the Anthropic API: recipe_remix, serving_adjustment, tips_generation, discover_favorites, discover_seasonal, discover_new, search_ranking, timer_naming, remix_suggestions, selector_repair.
 
 ## Fallback: Hide, Don't Disable
 
-When OpenRouter API key is not configured OR API calls fail:
+When the Anthropic API key is not configured OR API calls fail:
 
 - **Hide** all AI-dependent UI elements completely — never show disabled buttons, error messages, or "AI unavailable" warnings
 - Backend returns 400 if AI endpoints called without a key
@@ -41,4 +41,4 @@ Stored in `AIPromptSettings` model, customizable via Settings UI (admin-only in 
 
 ## Testing
 
-Mock OpenRouter in all tests — no real API calls in CI.
+Mock the Anthropic API in all tests — no real API calls in CI.

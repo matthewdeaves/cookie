@@ -40,7 +40,7 @@ services:
       # Dockerfile.prod's ARG + ENV). Do NOT override it here — a compose-level
       # fallback of "dev" would silently mask a broken build-arg pipeline.
       - SECURE_SSL_REDIRECT=${SECURE_SSL_REDIRECT:-true}
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - LOG_FORMAT=${LOG_FORMAT:-json}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     # Uncomment for CloudWatch log shipping (requires IAM role with logs:* permissions)

@@ -1,12 +1,12 @@
 # AI Features
 
-Cookie integrates with OpenRouter to provide optional AI-powered features. All AI features are hidden when no API key is configured.
+Cookie calls the Anthropic API directly (official `anthropic` Python SDK) to provide optional AI-powered features. All AI features are hidden when no API key is configured.
 
 ## Configuration
 
 ### Setting Up
 
-1. Get an API key from [OpenRouter](https://openrouter.ai/)
+1. Get an API key from the [Anthropic Console](https://console.anthropic.com/settings/keys), or set the `ANTHROPIC_API_KEY` environment variable on the container (it takes precedence over a key saved in Settings)
 2. Open Cookie Settings (gear icon)
 3. Enter your API key in the AI Configuration section
 4. Click "Test" to verify the key works
@@ -14,11 +14,17 @@ Cookie integrates with OpenRouter to provide optional AI-powered features. All A
 
 ### Supported Models
 
-| Provider | Models |
-|----------|--------|
-| Anthropic | Claude Haiku 4.5 (default), Claude Sonnet 4, Claude Opus 4, Claude Opus 4.5 |
-| OpenAI | GPT-4o, GPT-4o Mini, GPT-5 Mini, o3 Mini |
-| Google | Gemini 2.5 Pro, Gemini 2.5 Flash |
+Only Anthropic models are supported. The model picker is populated from the Anthropic Models API (`client.models.list()`), and per-feature choices stored on each prompt are limited to:
+
+| Model id | Name |
+|----------|------|
+| `claude-haiku-5-5` (default) | Claude Haiku 5.5 |
+| `claude-sonnet-5-5` | Claude Sonnet 5.5 |
+| `claude-opus-5-5` | Claude Opus 5.5 |
+
+Requests use the Messages API (`client.messages.create` with `system=` and a single user message, `max_tokens=4096`, per-call timeout). Replies are parsed as JSON, tolerating a surrounding markdown code fence.
+
+When upgrading from an OpenRouter-based version, migrations rename the stored key column and rewrite stored model ids (`anthropic/...haiku` -> `claude-haiku-5-5`, `...sonnet` -> `claude-sonnet-5-5`, `...opus` -> `claude-opus-5-5`; OpenAI/Google ids reset to `claude-haiku-5-5`). A previously saved OpenRouter key is kept but will not work with Anthropic: enter an Anthropic key (`sk-ant-...`).
 
 Each AI feature can use a different model. Configure per-feature models in Settings.
 
@@ -26,17 +32,17 @@ Each AI feature can use a different model. Configure per-feature models in Setti
 
 | Feature | Endpoint | Purpose | Default Model |
 |---------|----------|---------|---------------|
-| Remix Suggestions | `POST /api/ai/remix-suggestions` | Generate 6 modification ideas for a recipe | Claude Haiku 4.5 |
-| Recipe Remix | `POST /api/ai/remix` | Create a new recipe with AI modifications | Claude Haiku 4.5 |
-| Serving Adjustment | `POST /api/ai/scale` | Scale ingredients and instructions | Claude Haiku 4.5 |
-| Cooking Tips | `POST /api/ai/tips` | Generate 3-5 cooking tips | Claude Haiku 4.5 |
-| Timer Naming | `POST /api/ai/timer-name` | Create descriptive 30-char timer labels | Claude Haiku 4.5 |
-| Discovery (Seasonal) | `GET /api/ai/discover/{profile}/` | Seasonal recipe suggestions | Claude Haiku 4.5 |
-| Discovery (Favorites) | `GET /api/ai/discover/{profile}/` | Suggestions based on your favorites | Claude Haiku 4.5 |
-| Discovery (New) | `GET /api/ai/discover/{profile}/` | "Try something new" suggestions | Claude Haiku 4.5 |
-| Search Ranking | Internal | Rank search results by relevance | Claude Haiku 4.5 |
-| Nutrition Estimate | Internal | Estimate nutrition for remixed recipes | Claude Haiku 4.5 |
-| Selector Repair | `POST /api/ai/repair-selector` | Fix broken CSS selectors (admin) | Claude Haiku 4.5 |
+| Remix Suggestions | `POST /api/ai/remix-suggestions` | Generate 6 modification ideas for a recipe | Claude Haiku 5.5 |
+| Recipe Remix | `POST /api/ai/remix` | Create a new recipe with AI modifications | Claude Haiku 5.5 |
+| Serving Adjustment | `POST /api/ai/scale` | Scale ingredients and instructions | Claude Haiku 5.5 |
+| Cooking Tips | `POST /api/ai/tips` | Generate 3-5 cooking tips | Claude Haiku 5.5 |
+| Timer Naming | `POST /api/ai/timer-name` | Create descriptive 30-char timer labels | Claude Haiku 5.5 |
+| Discovery (Seasonal) | `GET /api/ai/discover/{profile}/` | Seasonal recipe suggestions | Claude Haiku 5.5 |
+| Discovery (Favorites) | `GET /api/ai/discover/{profile}/` | Suggestions based on your favorites | Claude Haiku 5.5 |
+| Discovery (New) | `GET /api/ai/discover/{profile}/` | "Try something new" suggestions | Claude Haiku 5.5 |
+| Search Ranking | Internal | Rank search results by relevance | Claude Haiku 5.5 |
+| Nutrition Estimate | Internal | Estimate nutrition for remixed recipes | Claude Haiku 5.5 |
+| Selector Repair | `POST /api/ai/repair-selector` | Fix broken CSS selectors (admin) | Claude Haiku 5.5 |
 
 ## Feature Details
 
@@ -177,14 +183,14 @@ Response:
   "available": true,
   "configured": true,
   "valid": true,
-  "default_model": "anthropic/claude-haiku-4.5",
+  "default_model": "claude-haiku-5-5",
   "error": null
 }
 ```
 
 ## Privacy
 
-- Only recipe text (ingredients, instructions, titles) is sent to OpenRouter — no personal data
-- API key stored encrypted in local database (Fernet), or set via `OPENROUTER_API_KEY` env var
+- Only recipe text (ingredients, instructions, titles) is sent to the Anthropic API — no personal data
+- API key stored encrypted in local database (Fernet), or set via `ANTHROPIC_API_KEY` env var
 - All recipe data stays on your server
 - See the [privacy policy](../apps/core/templates/core/privacy_policy.html) for full details
