@@ -98,6 +98,12 @@ if [ -n "${NGINX_LISTEN:-}" ]; then
     case "$NGINX_LISTEN" in *[!0-9.:]*) echo "FATAL: NGINX_LISTEN must be [addr:]port"; exit 1;; esac
     sed -i "s/listen 80;/listen ${NGINX_LISTEN};/" /etc/nginx/nginx.conf
 fi
+# TRUST_PROXY_XFF=true: a trusted reverse proxy in front already sets X-Forwarded-For to the real client address, so pass it
+# through unchanged instead of appending this nginx's own peer address (otherwise every client looks like 127.0.0.1 to the
+# rate limiter and shares one bucket). Only enable when nothing but that proxy can reach this nginx.
+if [ "${TRUST_PROXY_XFF:-}" = "true" ]; then
+    sed -i 's/\$proxy_add_x_forwarded_for/$http_x_forwarded_for/' /etc/nginx/nginx.conf
+fi
 echo "Starting Nginx on ${NGINX_LISTEN:-0.0.0.0:80}..."
 nginx -g 'daemon off;' &
 NGINX_PID=$!

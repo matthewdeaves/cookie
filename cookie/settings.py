@@ -282,9 +282,9 @@ if not DEBUG:
 # Use a callable that safely extracts the first IP from X-Forwarded-For,
 # handling multi-proxy chains (reverse proxy → nginx → Django).
 RATELIMIT_IP_META_KEY = "apps.core.middleware.get_client_ip"
-# Home mode is a trusted private network (and every client shares the reverse proxy's address), so per-IP hourly
-# limits only get in the way: off by default there, on in passkey mode. RATELIMIT_ENABLE=true|false overrides.
-RATELIMIT_ENABLE = os.environ.get("RATELIMIT_ENABLE", "true" if AUTH_MODE == "passkey" else "false").lower() == "true"
+# Per-IP hourly request limits stay on in every mode (the defaults are generous for a household); RATELIMIT_ENABLE=false
+# turns them off. Behind a reverse proxy set TRUST_PROXY_XFF=true (see entrypoint.prod.sh) so each client gets its own bucket.
+RATELIMIT_ENABLE = os.environ.get("RATELIMIT_ENABLE", "true").lower() == "true"
 
 # Logging configuration
 LOG_FORMAT = os.environ.get("LOG_FORMAT", "text")

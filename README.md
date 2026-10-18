@@ -151,7 +151,8 @@ Open http://localhost:3000 - hot reload enabled for both frontend and backend.
 | `CSRF_TRUSTED_ORIGINS` | No | Full URLs for CSRF protection |
 | `SECRET_KEY` | No | Auto-generated if not set |
 | `ANTHROPIC_API_KEY` | No | Anthropic API key (can also be set via Settings UI; the env var wins) |
-| `RATELIMIT_ENABLE` | No | Per-IP hourly request limits: off in `home` mode, on in `passkey` mode by default |
+| `RATELIMIT_ENABLE` | No | Per-IP hourly request limits (default `true`) |
+| `TRUST_PROXY_XFF` | No | `true` when a trusted reverse proxy sets `X-Forwarded-For`: gives each client its own rate-limit bucket |
 | `NGINX_LISTEN` | No | `[addr:]port` for the in-container nginx instead of 80 (host-network setups) |
 
 See [CLAUDE.md](CLAUDE.md) for the full list of environment variables including passkey and logging configuration.
