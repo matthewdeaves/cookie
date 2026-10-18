@@ -5,7 +5,7 @@ import logging
 from apps.recipes.models import Recipe
 
 from ..models import AIPrompt
-from .openrouter import OpenRouterService, AIUnavailableError, AIResponseError
+from .anthropic_client import AnthropicService, AIUnavailableError, AIResponseError
 from .validator import AIResponseValidator, ValidationError
 
 logger = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ def generate_tips(recipe_id: int) -> dict:
     )
 
     # Call AI service
-    service = OpenRouterService()
+    service = AnthropicService()
     response = service.complete(
         system_prompt=prompt.system_prompt,
         user_prompt=user_prompt,

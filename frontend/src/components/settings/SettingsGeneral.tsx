@@ -72,7 +72,7 @@ export default function SettingsGeneral({
         </div>
       </div>
 
-      {/* OpenRouter API — admin only */}
+      {/* Anthropic API — admin only */}
       {isAdmin && <APIKeySection
         aiStatus={aiStatus}
         models={models}

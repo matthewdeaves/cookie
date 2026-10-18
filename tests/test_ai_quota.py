@@ -428,13 +428,13 @@ class TestRenameEndpoint:
 
 
 # ---------------------------------------------------------------------------
-# Quota only increments on actual OpenRouter calls, not cache hits
+# Quota only increments on actual Anthropic calls, not cache hits
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.django_db
 class TestQuotaNotIncrementedOnCacheHit:
-    """Quota should only count when OpenRouter is actually called, not when
+    """Quota should only count when Anthropic is actually called, not when
     results are served from cache. Tests call the real endpoint."""
 
     def test_tips_cached_does_not_increment(self, client, settings):
@@ -484,7 +484,7 @@ class TestQuotaNotIncrementedOnCacheHit:
 
         _login(client, profile.user)
         with (
-            patch("apps.ai.services.tips.OpenRouterService", return_value=mock_service),
+            patch("apps.ai.services.tips.AnthropicService", return_value=mock_service),
             patch("apps.ai.services.tips.AIResponseValidator", return_value=mock_validator),
         ):
             response = client.post(

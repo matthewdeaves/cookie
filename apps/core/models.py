@@ -15,8 +15,8 @@ class AppSettings(models.Model):
     """Singleton model for application-wide settings."""
 
     # Stored encrypted with 'enc:' prefix
-    _openrouter_api_key = models.CharField(max_length=500, blank=True, db_column="openrouter_api_key")
-    default_ai_model = models.CharField(max_length=100, default="anthropic/claude-haiku-4.5")
+    _anthropic_api_key = models.CharField(max_length=500, blank=True, db_column="anthropic_api_key")
+    default_ai_model = models.CharField(max_length=100, default="claude-haiku-5-5")
 
     # Per-feature daily AI quota limits (0 = disabled for non-exempt users)
     daily_limit_remix = models.PositiveIntegerField(default=1)
@@ -34,8 +34,8 @@ class AppSettings(models.Model):
         self.pk = 1  # Enforce singleton
 
         # Encrypt key if not already encrypted
-        if self._openrouter_api_key and not is_encrypted(self._openrouter_api_key):
-            self._openrouter_api_key = encrypt_value(self._openrouter_api_key)
+        if self._anthropic_api_key and not is_encrypted(self._anthropic_api_key):
+            self._anthropic_api_key = encrypt_value(self._anthropic_api_key)
 
         super().save(*args, **kwargs)
 
@@ -46,20 +46,20 @@ class AppSettings(models.Model):
         return obj
 
     @property
-    def openrouter_api_key(self) -> str:
-        """Get the API key. Env var OPENROUTER_API_KEY takes precedence over DB."""
-        env_key = os.environ.get("OPENROUTER_API_KEY", "")
+    def anthropic_api_key(self) -> str:
+        """Get the API key. Env var ANTHROPIC_API_KEY takes precedence over DB."""
+        env_key = os.environ.get("ANTHROPIC_API_KEY", "")
         if env_key:
             return env_key
-        return decrypt_value(self._openrouter_api_key)
+        return decrypt_value(self._anthropic_api_key)
 
-    @openrouter_api_key.setter
-    def openrouter_api_key(self, value: str):
+    @anthropic_api_key.setter
+    def anthropic_api_key(self, value: str):
         """Set and encrypt the API key."""
         if value and not is_encrypted(value):
-            self._openrouter_api_key = encrypt_value(value)
+            self._anthropic_api_key = encrypt_value(value)
         else:
-            self._openrouter_api_key = value
+            self._anthropic_api_key = value
 
 
 class WebAuthnCredential(models.Model):

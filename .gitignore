@@ -65,7 +65,7 @@ data/
 screenshots/
 screenshot-*.png
 mockup-*.png
-.openrouter-key
+.anthropic-key
 .playwright-mcp/
 .specify/integration.json
 .specify/integrations/

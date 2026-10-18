@@ -202,7 +202,7 @@ class TestCookieAdminStatusAudit:
         assert data["users"]["active"] == 1
         assert "admins" not in data["users"], "status --json MUST NOT expose admin counts (FR-016a)"
         assert "active_admins" not in data["users"]
-        assert "openrouter" in data
+        assert "anthropic" in data
         assert "webauthn" in data
 
     def test_audit_empty(self, passkey_mode):
@@ -577,7 +577,7 @@ class TestSetApiKey:
 
         _call("set-api-key", "--key", "sk-test-1234")
         app = AppSettings.get()
-        assert app.openrouter_api_key == "sk-test-1234"
+        assert app.anthropic_api_key == "sk-test-1234"
         # Security log hit, but value NEVER in log record
         assert any("set-api-key" in r.getMessage() for r in security_log_capture.records)
         assert not any("sk-test-1234" in r.getMessage() for r in security_log_capture.records)
@@ -627,7 +627,7 @@ class TestPromptsSubcommands:
                 "description": "test desc",
                 "system_prompt": "system",
                 "user_prompt_template": "user {x}",
-                "model": "anthropic/claude-haiku-4.5",
+                "model": "claude-haiku-5-5",
                 "is_active": True,
             },
         )
@@ -738,7 +738,7 @@ class TestSourcesSubcommands:
 
         app = AppSettings.get()
         # Force-wipe the key by writing directly to the private field
-        app._openrouter_api_key = ""
+        app._anthropic_api_key = ""
         app.save()
         source = self._make_source("Foxtrot")
         with pytest.raises(SystemExit) as exc_info:

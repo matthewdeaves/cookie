@@ -399,7 +399,7 @@ class TestResetDatabase:
                 "name": "Test Preserve Prompt",
                 "system_prompt": "You are a test cooking expert.",
                 "user_prompt_template": "Generate test tips for {recipe}",
-                "model": "claude-3.5-haiku",
+                "model": "claude-haiku-5-5",
             },
         )
         # Update with custom values to verify preservation

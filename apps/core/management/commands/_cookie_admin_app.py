@@ -20,7 +20,7 @@ security_logger = logging.getLogger("security")
 
 
 class AppConfigMixin:
-    """reset + OpenRouter/prompts subcommand handlers."""
+    """reset + Anthropic/prompts subcommand handlers."""
 
     # ------------------------------------------------------------------ #
     # reset                                                               #
@@ -153,17 +153,17 @@ class AppConfigMixin:
 
         value = self._read_key(options)
         app = AppSettings.get()
-        app.openrouter_api_key = value
+        app.anthropic_api_key = value
         app.save()
         security_logger.warning("cookie_admin set-api-key: key changed")
         self._success("API key saved.", options, {"saved": True})
 
     def _handle_test_api_key(self, options):
-        from apps.ai.services.openrouter import OpenRouterService
+        from apps.ai.services.anthropic_client import AnthropicService
 
         value = self._read_key(options)
         try:
-            ok, reason = OpenRouterService.test_connection(value)
+            ok, reason = AnthropicService.test_connection(value)
         except Exception as exc:
             ok, reason = False, str(exc)
         if options.get("as_json"):

@@ -12,12 +12,12 @@ const { mockToggleTheme, mockApi } = vi.hoisted(() => {
           available: true,
           configured: true,
           valid: true,
-          default_model: 'openai/gpt-4',
+          default_model: 'claude-haiku-5-5',
           error: null,
           error_code: null,
         }),
       ),
-      models: vi.fn(() => Promise.resolve([{ id: 'openai/gpt-4', name: 'GPT-4' }])),
+      models: vi.fn(() => Promise.resolve([{ id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5' }])),
       prompts: {
         list: vi.fn(() => Promise.resolve([])),
         update: vi.fn((type: string, form: Record<string, unknown>) =>
@@ -189,8 +189,8 @@ describe('AIStatusDisplay', () => {
   it('shows "Connected" when available', () => {
     render(
       <AIStatusDisplay
-        aiStatus={{ available: true, configured: true, valid: true, default_model: 'openai/gpt-4', error: null, error_code: null }}
-        models={[{ id: 'openai/gpt-4', name: 'GPT-4' }]}
+        aiStatus={{ available: true, configured: true, valid: true, default_model: 'claude-haiku-5-5', error: null, error_code: null }}
+        models={[{ id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5' }]}
       />,
     )
     expect(screen.getByText('Connected')).toBeInTheDocument()
@@ -215,11 +215,11 @@ describe('AIStatusDisplay', () => {
   it('shows default model name when available', () => {
     render(
       <AIStatusDisplay
-        aiStatus={{ available: true, configured: true, valid: true, default_model: 'openai/gpt-4', error: null, error_code: null }}
-        models={[{ id: 'openai/gpt-4', name: 'GPT-4' }]}
+        aiStatus={{ available: true, configured: true, valid: true, default_model: 'claude-haiku-5-5', error: null, error_code: null }}
+        models={[{ id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5' }]}
       />,
     )
-    expect(screen.getByText('GPT-4')).toBeInTheDocument()
+    expect(screen.getByText('Claude Haiku 5.5')).toBeInTheDocument()
   })
 
   it('falls back to model ID if name not found', () => {
@@ -252,8 +252,8 @@ describe('APIKeySection', () => {
 
   it('renders API key input and buttons', () => {
     render(<APIKeySection {...defaultProps} />)
-    expect(screen.getByText('OpenRouter API')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('sk-or-v1-...')).toBeInTheDocument()
+    expect(screen.getByText('Anthropic API')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('sk-ant-...')).toBeInTheDocument()
     expect(screen.getByText('Test Key')).toBeInTheDocument()
     expect(screen.getByText('Save Key')).toBeInTheDocument()
   })
@@ -262,7 +262,7 @@ describe('APIKeySection', () => {
     render(
       <APIKeySection
         {...defaultProps}
-        aiStatus={{ available: true, configured: true, valid: true, default_model: 'gpt-4', error: null, error_code: null }}
+        aiStatus={{ available: true, configured: true, valid: true, default_model: 'claude-haiku-5-5', error: null, error_code: null }}
       />,
     )
     expect(screen.getByText('Update API Key')).toBeInTheDocument()
@@ -276,14 +276,14 @@ describe('APIKeySection', () => {
 
   it('enables buttons when key is typed', () => {
     render(<APIKeySection {...defaultProps} />)
-    fireEvent.change(screen.getByPlaceholderText('sk-or-v1-...'), { target: { value: 'sk-test-123' } })
+    fireEvent.change(screen.getByPlaceholderText('sk-ant-...'), { target: { value: 'sk-test-123' } })
     expect(screen.getByText('Test Key').closest('button')).not.toBeDisabled()
     expect(screen.getByText('Save Key').closest('button')).not.toBeDisabled()
   })
 
   it('test key calls API and shows result', async () => {
     render(<APIKeySection {...defaultProps} />)
-    fireEvent.change(screen.getByPlaceholderText('sk-or-v1-...'), { target: { value: 'sk-test-123' } })
+    fireEvent.change(screen.getByPlaceholderText('sk-ant-...'), { target: { value: 'sk-test-123' } })
 
     await act(async () => {
       fireEvent.click(screen.getByText('Test Key'))
@@ -294,7 +294,7 @@ describe('APIKeySection', () => {
 
   it('save key calls API and refreshes status', async () => {
     render(<APIKeySection {...defaultProps} />)
-    fireEvent.change(screen.getByPlaceholderText('sk-or-v1-...'), { target: { value: 'sk-test-123' } })
+    fireEvent.change(screen.getByPlaceholderText('sk-ant-...'), { target: { value: 'sk-test-123' } })
 
     await act(async () => {
       fireEvent.click(screen.getByText('Save Key'))
@@ -405,12 +405,12 @@ describe('SettingsGeneral', () => {
 
   it('hides API key section for non-admin', () => {
     render(<SettingsGeneral {...defaultProps} />)
-    expect(screen.queryByText('OpenRouter API')).not.toBeInTheDocument()
+    expect(screen.queryByText('Anthropic API')).not.toBeInTheDocument()
   })
 
   it('shows API key section for admin', () => {
     render(<SettingsGeneral {...defaultProps} isAdmin={true} />)
-    expect(screen.getByText('OpenRouter API')).toBeInTheDocument()
+    expect(screen.getByText('Anthropic API')).toBeInTheDocument()
   })
 
   it('clicking Dark calls toggleTheme', () => {
@@ -580,10 +580,10 @@ describe('PromptCard', () => {
     description: 'Generate recipe variations',
     system_prompt: 'You are a chef',
     user_prompt_template: 'Remix {recipe}',
-    model: 'openai/gpt-4',
+    model: 'claude-haiku-5-5',
     is_active: true,
   }
-  const models = [{ id: 'openai/gpt-4', name: 'GPT-4' }]
+  const models = [{ id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5' }]
 
   beforeEach(() => vi.clearAllMocks())
 
@@ -591,7 +591,7 @@ describe('PromptCard', () => {
     render(<PromptCard prompt={prompt} models={models} onPromptUpdated={vi.fn()} />)
     expect(screen.getByText('Recipe Remix')).toBeInTheDocument()
     expect(screen.getByText('Generate recipe variations')).toBeInTheDocument()
-    expect(screen.getByText('GPT-4')).toBeInTheDocument()
+    expect(screen.getByText('Claude Haiku 5.5')).toBeInTheDocument()
   })
 
   it('shows Disabled badge when inactive', () => {
@@ -664,7 +664,7 @@ describe('SettingsPrompts', () => {
       description: 'Remix desc',
       system_prompt: 'sys',
       user_prompt_template: 'user',
-      model: 'openai/gpt-4',
+      model: 'claude-haiku-5-5',
       is_active: true,
     },
   ]
@@ -676,7 +676,7 @@ describe('SettingsPrompts', () => {
 
   it('shows warning when AI is unavailable', () => {
     render(<SettingsPrompts aiStatus={{ available: false, configured: false, valid: false, default_model: '', error: null, error_code: null }} prompts={[]} models={[]} onPromptsChange={vi.fn()} />)
-    expect(screen.getByText(/Configure your OpenRouter API key/)).toBeInTheDocument()
+    expect(screen.getByText(/Configure your Anthropic API key/)).toBeInTheDocument()
   })
 
   it('renders prompt cards', () => {

@@ -85,12 +85,12 @@ class UsersStatusMixin:
             .count(),
         }
 
-        # AI / OpenRouter
+        # AI / Anthropic
         app_settings = AppSettings.get()
-        has_env_key = bool(os.environ.get("OPENROUTER_API_KEY", ""))
-        has_db_key = bool(app_settings._openrouter_api_key)
-        status["openrouter"] = {
-            "configured": bool(app_settings.openrouter_api_key),
+        has_env_key = bool(os.environ.get("ANTHROPIC_API_KEY", ""))
+        has_db_key = bool(app_settings._anthropic_api_key)
+        status["anthropic"] = {
+            "configured": bool(app_settings.anthropic_api_key),
             "source": "env" if has_env_key else ("database" if has_db_key else "none"),
             "model": app_settings.default_ai_model,
         }
@@ -122,7 +122,7 @@ class UsersStatusMixin:
     def _print_status(self, status):
         users = status["users"]
         dc = status["device_codes"]
-        src = status["openrouter"]["source"]
+        src = status["anthropic"]["source"]
 
         self.stdout.write(f"Auth mode:    {status['auth_mode']}")
         self.stdout.write(f"Database:     {status['database']}")
@@ -131,7 +131,7 @@ class UsersStatusMixin:
         self.stdout.write(f"Passkeys:     {status['passkeys']}")
         self.stdout.write(f"Device codes: {dc['pending']} pending, {dc['stale_expired']} stale")
         self.stdout.write(
-            f"OpenRouter:   {'configured' if status['openrouter']['configured'] else 'not configured'} (source: {src})"
+            f"Anthropic:    {'configured' if status['anthropic']['configured'] else 'not configured'} (source: {src})"
         )
         self.stdout.write(f"WebAuthn RP:  {status['webauthn']['rp_id']} ({status['webauthn']['rp_name']})")
         self.stdout.write("Maintenance:")

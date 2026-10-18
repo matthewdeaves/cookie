@@ -14,7 +14,7 @@ Read [reference.md](reference.md) before starting — it has the complete featur
 <arguments>
 - `$ARGUMENTS` defaults to `both` if empty
 - `modern` / `legacy` / `both` — which frontend(s) to test
-- `--with-ai` — test WITH OpenRouter API key configured (tests all 10 AI features)
+- `--with-ai` — test WITH Anthropic API key configured (tests all 10 AI features)
 - `--without-ai` — test WITHOUT API key (verify all AI UI is hidden, not disabled)
 - If neither `--with-ai` nor `--without-ai` specified, auto-detect by checking `GET /api/ai/status`
 - `--audit-only` — document findings but do not fix anything

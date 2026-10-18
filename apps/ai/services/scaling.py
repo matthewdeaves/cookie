@@ -8,7 +8,7 @@ from apps.recipes.utils import tidy_quantities
 from apps.profiles.models import Profile
 
 from ..models import AIPrompt
-from .openrouter import OpenRouterService, AIUnavailableError, AIResponseError
+from .anthropic_client import AnthropicService, AIUnavailableError, AIResponseError
 from .validator import AIResponseValidator, ValidationError
 
 logger = logging.getLogger(__name__)
@@ -130,7 +130,7 @@ def _call_ai_and_validate(recipe, target_servings, ingredients_str, instructions
     unit_label = "metric (grams, ml, °C)" if unit_system == "metric" else "imperial (oz, cups, °F)"
     user_prompt += f"\n\nPlease express all quantities using {unit_label} units."
 
-    service = OpenRouterService()
+    service = AnthropicService()
     response = service.complete(
         system_prompt=prompt.system_prompt,
         user_prompt=user_prompt,

@@ -173,7 +173,7 @@ class RecipeScraper:
 
             # Check if AI is available
             settings_obj = AppSettings.get()
-            if not settings_obj.openrouter_api_key:
+            if not settings_obj.anthropic_api_key:
                 logger.debug(f"Skipping tips generation for recipe {recipe_id}: No API key")
                 return
 

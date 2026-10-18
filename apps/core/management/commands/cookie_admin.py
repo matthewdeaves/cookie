@@ -143,14 +143,14 @@ class Command(UsersStatusMixin, AppConfigMixin, ResourcesMixin, BaseCommand):
         rs.add_argument("--json", action="store_true", dest="as_json")
 
         # set-api-key
-        sak = sub.add_parser("set-api-key", help="Set the OpenRouter API key in AppSettings")
+        sak = sub.add_parser("set-api-key", help="Set the Anthropic API key in AppSettings")
         sak_group = sak.add_mutually_exclusive_group(required=True)
         sak_group.add_argument("--key", help="API key (avoid in shared shells)")
         sak_group.add_argument("--stdin", action="store_true", help="Read key from standard input")
         sak.add_argument("--json", action="store_true", dest="as_json")
 
         # test-api-key
-        tak = sub.add_parser("test-api-key", help="Validate an OpenRouter API key without saving")
+        tak = sub.add_parser("test-api-key", help="Validate an Anthropic API key without saving")
         tak_group = tak.add_mutually_exclusive_group(required=True)
         tak_group.add_argument("--key")
         tak_group.add_argument("--stdin", action="store_true")

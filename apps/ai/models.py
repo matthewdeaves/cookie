@@ -54,19 +54,9 @@ class AIPrompt(models.Model):
     ]
 
     AVAILABLE_MODELS = [
-        # Anthropic Claude
-        ("anthropic/claude-haiku-4.5", "Claude Haiku 4.5 (Fast)"),
-        ("anthropic/claude-sonnet-4", "Claude Sonnet 4"),
-        ("anthropic/claude-opus-4", "Claude Opus 4"),
-        ("anthropic/claude-opus-4.5", "Claude Opus 4.5"),
-        # OpenAI GPT
-        ("openai/gpt-4o", "GPT-4o"),
-        ("openai/gpt-4o-mini", "GPT-4o Mini (Fast)"),
-        ("openai/gpt-5-mini", "GPT-5 Mini"),
-        ("openai/o3-mini", "o3 Mini (Reasoning)"),
-        # Google Gemini
-        ("google/gemini-2.5-pro-preview", "Gemini 2.5 Pro"),
-        ("google/gemini-2.5-flash-preview", "Gemini 2.5 Flash (Fast)"),
+        ("claude-haiku-5-5", "Claude Haiku 5.5 (Fast)"),
+        ("claude-sonnet-5-5", "Claude Sonnet 5.5"),
+        ("claude-opus-5-5", "Claude Opus 5.5"),
     ]
 
     prompt_type = models.CharField(
@@ -81,7 +71,7 @@ class AIPrompt(models.Model):
     model = models.CharField(
         max_length=100,
         choices=AVAILABLE_MODELS,
-        default="anthropic/claude-haiku-4.5",
+        default="claude-haiku-5-5",
         help_text="AI model to use for this prompt",
     )
     is_active = models.BooleanField(default=True, help_text="Whether this prompt is enabled")

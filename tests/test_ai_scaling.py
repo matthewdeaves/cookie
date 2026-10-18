@@ -73,7 +73,7 @@ def serving_adjustment_prompt(db):
                 "Instructions:\n{instructions}\n"
                 "Prep time: {prep_time}\nCook time: {cook_time}\nTotal time: {total_time}"
             ),
-            "model": "anthropic/claude-3.5-haiku",
+            "model": "claude-haiku-5-5",
             "is_active": True,
         },
     )
@@ -153,7 +153,7 @@ class TestScaleRecipe:
             scale_recipe(99999, 4, profile)
 
     @patch("apps.ai.services.scaling.AIResponseValidator")
-    @patch("apps.ai.services.scaling.OpenRouterService")
+    @patch("apps.ai.services.scaling.AnthropicService")
     def test_scale_up(self, mock_service_cls, mock_validator_cls, recipe, profile, serving_adjustment_prompt):
         """Scaling from 4 to 8 servings."""
         mock_service_instance = MagicMock()
@@ -183,7 +183,7 @@ class TestScaleRecipe:
         assert result["total_time_adjusted"] == 65
 
     @patch("apps.ai.services.scaling.AIResponseValidator")
-    @patch("apps.ai.services.scaling.OpenRouterService")
+    @patch("apps.ai.services.scaling.AnthropicService")
     def test_scale_down(self, mock_service_cls, mock_validator_cls, recipe, profile, serving_adjustment_prompt):
         """Scaling from 4 to 2 servings."""
         mock_service_instance = MagicMock()
@@ -207,7 +207,7 @@ class TestScaleRecipe:
         assert any("1/2" in ing for ing in result["ingredients"])
 
     @patch("apps.ai.services.scaling.AIResponseValidator")
-    @patch("apps.ai.services.scaling.OpenRouterService")
+    @patch("apps.ai.services.scaling.AnthropicService")
     def test_cached_result_returned(
         self, mock_service_cls, mock_validator_cls, recipe, profile, serving_adjustment_prompt
     ):
@@ -237,7 +237,7 @@ class TestScaleRecipe:
         mock_service_cls.assert_not_called()
 
     @patch("apps.ai.services.scaling.AIResponseValidator")
-    @patch("apps.ai.services.scaling.OpenRouterService")
+    @patch("apps.ai.services.scaling.AnthropicService")
     def test_creates_cache_entry(
         self, mock_service_cls, mock_validator_cls, recipe, profile, serving_adjustment_prompt
     ):

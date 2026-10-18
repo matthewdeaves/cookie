@@ -44,7 +44,7 @@ def _enable_rate_limiting(settings):
 class TestTestApiKeyRateLimit:
     """Rate limiting on POST /api/ai/test-api-key (20/hour)."""
 
-    @patch("apps.ai.api.OpenRouterService.test_connection")
+    @patch("apps.ai.api.AnthropicService.test_connection")
     def test_allows_requests_within_limit(self, mock_test, client):
         """First 20 requests within the window should succeed."""
         mock_test.return_value = (True, "Valid key")
@@ -58,7 +58,7 @@ class TestTestApiKeyRateLimit:
             )
             assert response.status_code != 429, f"Request {i + 1} of 20 was rate-limited unexpectedly"
 
-    @patch("apps.ai.api.OpenRouterService.test_connection")
+    @patch("apps.ai.api.AnthropicService.test_connection")
     def test_blocks_21st_request(self, mock_test, client):
         """21st request within the window must return 429."""
         mock_test.return_value = (True, "Valid key")
@@ -84,7 +84,7 @@ class TestTestApiKeyRateLimit:
 class TestSaveApiKeyRateLimit:
     """Rate limiting on POST /api/ai/save-api-key (20/hour)."""
 
-    @patch("apps.ai.api.OpenRouterService.invalidate_key_cache")
+    @patch("apps.ai.api.AnthropicService.invalidate_key_cache")
     def test_allows_requests_within_limit(self, mock_invalidate, client):
         """First 20 requests within the window should succeed."""
         for i in range(20):
@@ -96,7 +96,7 @@ class TestSaveApiKeyRateLimit:
             )
             assert response.status_code != 429, f"Request {i + 1} of 20 was rate-limited unexpectedly"
 
-    @patch("apps.ai.api.OpenRouterService.invalidate_key_cache")
+    @patch("apps.ai.api.AnthropicService.invalidate_key_cache")
     def test_blocks_21st_request(self, mock_invalidate, client):
         """21st request within the window must return 429."""
         for _i in range(20):

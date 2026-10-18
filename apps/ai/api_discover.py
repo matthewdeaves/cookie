@@ -67,7 +67,7 @@ def discover_endpoint(request, profile_id: int, refresh: bool = False):
     except Profile.DoesNotExist:
         return Status(404, {"error": "not_found", "message": f"Profile {profile_id} not found"})
 
-    # Only count against quota when OpenRouter is actually called (not cache hits)
+    # Only count against quota when Anthropic is actually called (not cache hits)
     from datetime import timedelta
 
     from django.utils import timezone
