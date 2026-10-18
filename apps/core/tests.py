@@ -46,7 +46,7 @@ class EncryptionTests(TestCase):
 
     def test_roundtrip_special_characters(self):
         """Test encryption/decryption with special characters."""
-        plaintext = "sk-or-v1-abc123!@#$%^&*()_+-=[]{}|;:'\",.<>?/"
+        plaintext = "sk-ant-abc123!@#$%^&*()_+-=[]{}|;:'\",.<>?/"
         encrypted = encrypt_value(plaintext)
         decrypted = decrypt_value(encrypted)
         assert decrypted == plaintext
@@ -58,47 +58,47 @@ class AppSettingsEncryptionTests(TestCase):
     def test_api_key_encrypted_on_save(self):
         """Test that API key is encrypted when saved."""
         settings = AppSettings.get()
-        settings.openrouter_api_key = "test-api-key-123"
+        settings.anthropic_api_key = "test-api-key-123"
         settings.save()
 
         # Reload from database
         settings.refresh_from_db()
 
         # The stored value should be encrypted
-        assert settings._openrouter_api_key.startswith("enc:")
+        assert settings._anthropic_api_key.startswith("enc:")
 
         # But the property should return decrypted value
-        assert settings.openrouter_api_key == "test-api-key-123"
+        assert settings.anthropic_api_key == "test-api-key-123"
 
     def test_api_key_property_decrypts(self):
-        """Test that openrouter_api_key property decrypts the value."""
+        """Test that anthropic_api_key property decrypts the value."""
         settings = AppSettings.get()
-        settings.openrouter_api_key = "another-key"
+        settings.anthropic_api_key = "another-key"
         settings.save()
 
         # Get fresh instance
         fresh_settings = AppSettings.get()
-        assert fresh_settings.openrouter_api_key == "another-key"
+        assert fresh_settings.anthropic_api_key == "another-key"
 
     def test_legacy_unencrypted_key_still_works(self):
         """Test that legacy unencrypted keys are still readable."""
         settings = AppSettings.get()
         # Directly set the internal field (simulating legacy data)
-        settings._openrouter_api_key = "legacy-unencrypted-key"
-        settings.save(update_fields=["_openrouter_api_key"])
+        settings._anthropic_api_key = "legacy-unencrypted-key"
+        settings.save(update_fields=["_anthropic_api_key"])
 
         # Reload
         settings.refresh_from_db()
 
         # Should still be readable (and now encrypted)
         # Note: save() encrypts it
-        assert "legacy" in settings.openrouter_api_key or settings._openrouter_api_key.startswith("enc:")
+        assert "legacy" in settings.anthropic_api_key or settings._anthropic_api_key.startswith("enc:")
 
     def test_empty_api_key(self):
         """Test handling of empty API key."""
         settings = AppSettings.get()
-        settings.openrouter_api_key = ""
+        settings.anthropic_api_key = ""
         settings.save()
 
         settings.refresh_from_db()
-        assert settings.openrouter_api_key == ""
+        assert settings.anthropic_api_key == ""

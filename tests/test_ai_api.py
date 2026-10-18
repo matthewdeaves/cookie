@@ -3,7 +3,7 @@ Tests for AI API endpoints (apps/ai/api.py).
 
 Covers all 11 endpoints at the API layer: auth, rate limits,
 error handling decorator, schemas, and quota enforcement.
-Services behind endpoints are mocked — no real OpenRouter calls.
+Services behind endpoints are mocked — no real Anthropic calls.
 """
 
 import json
@@ -13,7 +13,7 @@ import pytest
 from django.contrib.auth.models import User
 from django.core.cache import cache
 
-from apps.ai.services.openrouter import AIUnavailableError, AIResponseError
+from apps.ai.services.anthropic_client import AIUnavailableError, AIResponseError
 from apps.core.models import AppSettings
 from apps.profiles.models import Profile
 from apps.recipes.models import Recipe, SearchSource
@@ -107,11 +107,11 @@ class TestAIStatus:
         assert data["error_code"] == "no_api_key"
 
     @patch.object(AppSettings, "get")
-    @patch("apps.ai.api.OpenRouterService.validate_key_cached", return_value=(False, "Invalid key"))
+    @patch("apps.ai.api.AnthropicService.validate_key_cached", return_value=(False, "Invalid key"))
     def test_key_invalid(self, mock_validate, mock_get, auth_client):
         mock_settings = MagicMock()
-        mock_settings.openrouter_api_key = "sk-bad"  # pragma: allowlist secret
-        mock_settings.default_ai_model = "anthropic/claude-haiku-4.5"
+        mock_settings.anthropic_api_key = "sk-bad"  # pragma: allowlist secret
+        mock_settings.default_ai_model = "claude-haiku-5-5"
         mock_get.return_value = mock_settings
 
         response = auth_client.get("/api/ai/status")
@@ -122,11 +122,11 @@ class TestAIStatus:
         assert data["error_code"] == "invalid_api_key"
 
     @patch.object(AppSettings, "get")
-    @patch("apps.ai.api.OpenRouterService.validate_key_cached", return_value=(True, None))
+    @patch("apps.ai.api.AnthropicService.validate_key_cached", return_value=(True, None))
     def test_key_valid(self, mock_validate, mock_get, auth_client):
         mock_settings = MagicMock()
-        mock_settings.openrouter_api_key = "sk-good"  # pragma: allowlist secret
-        mock_settings.default_ai_model = "anthropic/claude-haiku-4.5"
+        mock_settings.anthropic_api_key = "sk-good"  # pragma: allowlist secret
+        mock_settings.default_ai_model = "claude-haiku-5-5"
         mock_get.return_value = mock_settings
 
         response = auth_client.get("/api/ai/status")
@@ -152,7 +152,7 @@ class TestTestApiKey:
         )
         assert response.status_code == 404  # Gated endpoint returns 404 in passkey mode
 
-    @patch("apps.ai.api.OpenRouterService.test_connection", return_value=(True, "Valid key"))
+    @patch("apps.ai.api.AnthropicService.test_connection", return_value=(True, "Valid key"))
     def test_valid_key(self, mock_conn, auth_client):
         response = auth_client.post(
             "/api/ai/test-api-key",
@@ -163,7 +163,7 @@ class TestTestApiKey:
         data = response.json()
         assert data["success"] is True
 
-    @patch("apps.ai.api.OpenRouterService.test_connection", return_value=(False, "Bad key"))
+    @patch("apps.ai.api.AnthropicService.test_connection", return_value=(False, "Bad key"))
     def test_invalid_key(self, mock_conn, auth_client):
         response = auth_client.post(
             "/api/ai/test-api-key",
@@ -199,7 +199,7 @@ class TestSaveApiKey:
         )
         assert response.status_code == 404  # Gated endpoint returns 404 in passkey mode
 
-    @patch("apps.ai.api.OpenRouterService.invalidate_key_cache")
+    @patch("apps.ai.api.AnthropicService.invalidate_key_cache")
     def test_saves_key(self, mock_invalidate, auth_client):
         response = auth_client.post(
             "/api/ai/save-api-key",
@@ -211,7 +211,7 @@ class TestSaveApiKey:
         assert data["success"] is True
 
         settings = AppSettings.get()
-        assert settings.openrouter_api_key == "sk-new-key"  # pragma: allowlist secret
+        assert settings.anthropic_api_key == "sk-new-key"  # pragma: allowlist secret
         mock_invalidate.assert_called_once()
 
 
@@ -265,10 +265,10 @@ class TestPrompts:
         )
         assert response.status_code == 404
 
-    @patch("apps.ai.api.OpenRouterService")
+    @patch("apps.ai.api.AnthropicService")
     def test_update_prompt_invalid_model(self, mock_service_cls, auth_client):
         mock_instance = MagicMock()
-        mock_instance.get_available_models.return_value = [{"id": "anthropic/claude-haiku-4.5"}]
+        mock_instance.get_available_models.return_value = [{"id": "claude-haiku-5-5"}]
         mock_service_cls.return_value = mock_instance
 
         response = auth_client.put(
@@ -299,11 +299,11 @@ class TestModels:
         response = client.get("/api/ai/models")
         assert response.status_code == 401
 
-    @patch("apps.ai.api.OpenRouterService")
+    @patch("apps.ai.api.AnthropicService")
     def test_returns_models(self, mock_cls, auth_client):
         mock_instance = MagicMock()
         mock_instance.get_available_models.return_value = [
-            {"id": "anthropic/claude-haiku-4.5", "name": "Claude Haiku"},
+            {"id": "claude-haiku-5-5", "name": "Claude Haiku"},
         ]
         mock_cls.return_value = mock_instance
 
@@ -311,15 +311,15 @@ class TestModels:
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
-        assert data[0]["id"] == "anthropic/claude-haiku-4.5"
+        assert data[0]["id"] == "claude-haiku-5-5"
 
-    @patch("apps.ai.api.OpenRouterService", side_effect=AIUnavailableError("No key"))
+    @patch("apps.ai.api.AnthropicService", side_effect=AIUnavailableError("No key"))
     def test_no_key_returns_empty(self, mock_cls, auth_client):
         response = auth_client.get("/api/ai/models")
         assert response.status_code == 200
         assert response.json() == []
 
-    @patch("apps.ai.api.OpenRouterService")
+    @patch("apps.ai.api.AnthropicService")
     def test_api_error_returns_empty(self, mock_cls, auth_client):
         mock_instance = MagicMock()
         mock_instance.get_available_models.side_effect = AIResponseError("API error")

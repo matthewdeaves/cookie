@@ -5,7 +5,7 @@ Tests the discover service at apps/ai/services/discover.py:
 - Generating suggestions for profiles with/without history
 - Caching behavior (24-hour TTL)
 - API endpoint returning 404 for non-existent profiles
-- Mocked OpenRouter API calls
+- Mocked Anthropic API calls
 """
 
 import json
@@ -55,7 +55,7 @@ def seasonal_prompt(db):
             "name": "Discover Seasonal",
             "system_prompt": "You are a helpful cooking assistant.",
             "user_prompt_template": "Suggest seasonal recipes for {date} ({season}).",
-            "model": "anthropic/claude-3.5-haiku",
+            "model": "claude-haiku-5-5",
             "is_active": True,
         },
     )
@@ -71,7 +71,7 @@ def favorites_prompt(db):
             "name": "Discover from Favorites",
             "system_prompt": "You are a helpful cooking assistant.",
             "user_prompt_template": "Based on these favorites:\n{favorites}\nSuggest similar recipes.",
-            "model": "anthropic/claude-3.5-haiku",
+            "model": "claude-haiku-5-5",
             "is_active": True,
         },
     )
@@ -87,7 +87,7 @@ def new_prompt(db):
             "name": "Discover New",
             "system_prompt": "You are a helpful cooking assistant.",
             "user_prompt_template": "Based on this history:\n{history}\nSuggest something new.",
-            "model": "anthropic/claude-3.5-haiku",
+            "model": "claude-haiku-5-5",
             "is_active": True,
         },
     )
@@ -189,7 +189,7 @@ def test_returns_cached_suggestions(profile, seasonal_prompt):
         search_query="cached recipe",
     )
 
-    with patch("apps.ai.services.discover.OpenRouterService") as mock_service:
+    with patch("apps.ai.services.discover.AnthropicService") as mock_service:
         result = get_discover_suggestions(profile.id)
 
     # AI should NOT have been called
@@ -223,7 +223,7 @@ def test_expired_cache_triggers_new_generation(profile, seasonal_prompt):
     mock_validator_instance.validate.return_value = _mock_ai_suggestions("seasonal")
 
     with (
-        patch("apps.ai.services.discover.OpenRouterService", return_value=mock_service_instance),
+        patch("apps.ai.services.discover.AnthropicService", return_value=mock_service_instance),
         patch("apps.ai.services.discover.AIResponseValidator", return_value=mock_validator_instance),
     ):
         result = get_discover_suggestions(profile.id)
@@ -249,7 +249,7 @@ def test_new_user_gets_only_seasonal(profile, seasonal_prompt):
     mock_validator_instance.validate.return_value = _mock_ai_suggestions("seasonal")
 
     with (
-        patch("apps.ai.services.discover.OpenRouterService", return_value=mock_service_instance),
+        patch("apps.ai.services.discover.AnthropicService", return_value=mock_service_instance),
         patch("apps.ai.services.discover.AIResponseValidator", return_value=mock_validator_instance),
     ):
         result = get_discover_suggestions(profile.id)
@@ -283,7 +283,7 @@ def test_user_with_history_gets_all_types(profile, all_prompts, recipe_with_hist
     mock_validator_instance.validate.side_effect = mock_validate
 
     with (
-        patch("apps.ai.services.discover.OpenRouterService", return_value=mock_service_instance),
+        patch("apps.ai.services.discover.AnthropicService", return_value=mock_service_instance),
         patch("apps.ai.services.discover.AIResponseValidator", return_value=mock_validator_instance),
     ):
         result = get_discover_suggestions(profile.id)
@@ -361,7 +361,7 @@ def test_discover_endpoint_with_mocked_ai(auth_client, profile, seasonal_prompt)
     ]
 
     with (
-        patch("apps.ai.services.discover.OpenRouterService", return_value=mock_service_instance),
+        patch("apps.ai.services.discover.AnthropicService", return_value=mock_service_instance),
         patch("apps.ai.services.discover.AIResponseValidator", return_value=mock_validator_instance),
     ):
         response = auth_client.get(f"/api/ai/discover/{profile.id}/")
@@ -378,12 +378,12 @@ def test_discover_endpoint_with_mocked_ai(auth_client, profile, seasonal_prompt)
 @pytest.mark.django_db
 def test_ai_failure_returns_empty_suggestions(profile, seasonal_prompt):
     """When AI service fails, seasonal generation returns empty list."""
-    from apps.ai.services.openrouter import AIUnavailableError
+    from apps.ai.services.anthropic_client import AIUnavailableError
 
     mock_service_instance = MagicMock()
     mock_service_instance.complete.side_effect = AIUnavailableError("No API key")
 
-    with patch("apps.ai.services.discover.OpenRouterService", return_value=mock_service_instance):
+    with patch("apps.ai.services.discover.AnthropicService", return_value=mock_service_instance):
         result = get_discover_suggestions(profile.id)
 
     assert result["suggestions"] == []

@@ -6,8 +6,8 @@ from django.test import TestCase
 
 from apps.core.models import AppSettings
 from .models import AIPrompt
-from .services.openrouter import (
-    OpenRouterService,
+from .services.anthropic_client import (
+    AnthropicService,
     AIUnavailableError,
     AIResponseError,
 )
@@ -173,9 +173,9 @@ class AIAPITests(TestCase):
     def test_ai_status_no_api_key(self):
         """Test AI status shows not configured when no API key."""
         settings = AppSettings.get()
-        settings.openrouter_api_key = ""
+        settings.anthropic_api_key = ""
         settings.save()
-        OpenRouterService.invalidate_key_cache()
+        AnthropicService.invalidate_key_cache()
 
         response = self.client.get("/api/ai/status")
         assert response.status_code == 200
@@ -186,15 +186,15 @@ class AIAPITests(TestCase):
         assert data["error_code"] == "no_api_key"
         assert "No API key configured" in data["error"]
 
-    @patch.object(OpenRouterService, "test_connection")
+    @patch.object(AnthropicService, "test_connection")
     def test_ai_status_invalid_api_key(self, mock_test_connection):
         """Test AI status shows invalid when API key fails validation."""
         mock_test_connection.return_value = (False, "Invalid API key")
 
         settings = AppSettings.get()
-        settings.openrouter_api_key = "sk-or-invalid-key"
+        settings.anthropic_api_key = "sk-ant-invalid-key"
         settings.save()
-        OpenRouterService.invalidate_key_cache()
+        AnthropicService.invalidate_key_cache()
 
         response = self.client.get("/api/ai/status")
         assert response.status_code == 200
@@ -204,15 +204,15 @@ class AIAPITests(TestCase):
         assert data["valid"] is False
         assert data["error_code"] == "invalid_api_key"
 
-    @patch.object(OpenRouterService, "test_connection")
+    @patch.object(AnthropicService, "test_connection")
     def test_ai_status_valid_api_key(self, mock_test_connection):
         """Test AI status shows valid when API key passes validation."""
         mock_test_connection.return_value = (True, "Connection successful")
 
         settings = AppSettings.get()
-        settings.openrouter_api_key = "sk-or-valid-key"
+        settings.anthropic_api_key = "sk-ant-valid-key"
         settings.save()
-        OpenRouterService.invalidate_key_cache()
+        AnthropicService.invalidate_key_cache()
 
         response = self.client.get("/api/ai/status")
         assert response.status_code == 200
@@ -230,13 +230,13 @@ class AIAPITests(TestCase):
         data = response.json()
         assert data == []  # No models without API key
 
-    @patch("apps.ai.api.OpenRouterService")
+    @patch("apps.ai.api.AnthropicService")
     def test_models_endpoint_with_api_key(self, mock_service_class):
-        """Test the models list endpoint returns models from OpenRouter."""
+        """Test the models list endpoint returns models from Anthropic."""
         mock_service = MagicMock()
         mock_service.get_available_models.return_value = [
-            {"id": "anthropic/claude-3.5-haiku", "name": "Claude 3.5 Haiku"},
-            {"id": "openai/gpt-4o", "name": "GPT-4o"},
+            {"id": "claude-haiku-5-5", "name": "Claude Haiku 5.5"},
+            {"id": "claude-sonnet-5-5", "name": "Claude Sonnet 5.5"},
         ]
         mock_service_class.return_value = mock_service
 
@@ -244,7 +244,7 @@ class AIAPITests(TestCase):
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 2
-        assert data[0]["id"] == "anthropic/claude-3.5-haiku"
+        assert data[0]["id"] == "claude-haiku-5-5"
 
     def test_prompts_endpoint(self):
         """Test the prompts list endpoint."""
@@ -269,24 +269,24 @@ class AIAPITests(TestCase):
     def test_update_prompt_endpoint(self):
         """Test updating a prompt."""
         response = self.client.put(
-            "/api/ai/prompts/recipe_remix", data={"model": "openai/gpt-4o"}, content_type="application/json"
+            "/api/ai/prompts/recipe_remix", data={"model": "claude-sonnet-5-5"}, content_type="application/json"
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["model"] == "openai/gpt-4o"
+        assert data["model"] == "claude-sonnet-5-5"
 
         # Verify persistence
         prompt = AIPrompt.objects.get(prompt_type="recipe_remix")
-        assert prompt.model == "openai/gpt-4o"
+        assert prompt.model == "claude-sonnet-5-5"
 
-    @patch("apps.ai.api.OpenRouterService")
+    @patch("apps.ai.api.AnthropicService")
     def test_update_prompt_invalid_model(self, mock_service_class):
         """Test updating a prompt with invalid model returns 422."""
         # Mock get_available_models to return a list that doesn't include the invalid model
         mock_service = MagicMock()
         mock_service.get_available_models.return_value = [
-            {"id": "anthropic/claude-3.5-haiku", "name": "Claude 3.5 Haiku"},
-            {"id": "openai/gpt-4o", "name": "GPT-4o"},
+            {"id": "claude-haiku-5-5", "name": "Claude Haiku 5.5"},
+            {"id": "claude-sonnet-5-5", "name": "Claude Sonnet 5.5"},
         ]
         mock_service_class.return_value = mock_service
 
@@ -308,13 +308,13 @@ class AIAPITests(TestCase):
         )
         assert response.status_code == 400
 
-    @patch.object(OpenRouterService, "test_connection")
+    @patch.object(AnthropicService, "test_connection")
     def test_save_api_key_invalidates_cache(self, mock_test_connection):
         """Test that saving API key invalidates the validation cache."""
         mock_test_connection.return_value = (True, "Connection successful")
 
         # Pre-populate the cache
-        OpenRouterService._key_validation_cache[hash("old-key")] = (True, 0)
+        AnthropicService._key_validation_cache[hash("old-key")] = (True, 0)
 
         response = self.client.post(
             "/api/ai/save-api-key",
@@ -325,108 +325,108 @@ class AIAPITests(TestCase):
         assert response.status_code == 200
 
         # Cache should be cleared
-        assert len(OpenRouterService._key_validation_cache) == 0
+        assert len(AnthropicService._key_validation_cache) == 0
 
 
-class OpenRouterServiceTests(TestCase):
-    """Tests for the OpenRouter service."""
+class AnthropicServiceTests(TestCase):
+    """Tests for the Anthropic service."""
 
     def test_init_requires_api_key(self):
         """Test that service requires an API key."""
         # Clear the API key from settings
         settings = AppSettings.get()
-        settings.openrouter_api_key = ""
+        settings.anthropic_api_key = ""
         settings.save()
 
         with pytest.raises(AIUnavailableError) as exc_info:
-            OpenRouterService()
+            AnthropicService()
         assert "not configured" in str(exc_info.value)
 
     def test_init_with_explicit_key(self):
         """Test initializing with an explicit API key."""
-        service = OpenRouterService(api_key="test-key-123")
+        service = AnthropicService(api_key="test-key-123")
         assert service.api_key == "test-key-123"
 
     def test_is_available_without_key(self):
         """Test is_available returns False without API key."""
         settings = AppSettings.get()
-        settings.openrouter_api_key = ""
+        settings.anthropic_api_key = ""
         settings.save()
 
-        assert OpenRouterService.is_available() is False
+        assert AnthropicService.is_available() is False
 
     def test_is_available_with_key(self):
         """Test is_available returns True with API key."""
         settings = AppSettings.get()
-        settings.openrouter_api_key = "test-key-123"
+        settings.anthropic_api_key = "test-key-123"
         settings.save()
 
-        assert OpenRouterService.is_available() is True
+        assert AnthropicService.is_available() is True
 
-    @patch.object(OpenRouterService, "test_connection")
+    @patch.object(AnthropicService, "test_connection")
     def test_validate_key_cached_caches_result(self, mock_test_connection):
         """Test that validate_key_cached caches validation results."""
         mock_test_connection.return_value = (True, "Connection successful")
-        OpenRouterService.invalidate_key_cache()
+        AnthropicService.invalidate_key_cache()
 
         # First call should hit the API
-        is_valid1, error1 = OpenRouterService.validate_key_cached("test-key")
+        is_valid1, error1 = AnthropicService.validate_key_cached("test-key")
         assert is_valid1 is True
         assert error1 is None
         assert mock_test_connection.call_count == 1
 
         # Second call should use cache
-        is_valid2, error2 = OpenRouterService.validate_key_cached("test-key")
+        is_valid2, error2 = AnthropicService.validate_key_cached("test-key")
         assert is_valid2 is True
         assert error2 is None
         assert mock_test_connection.call_count == 1  # Still 1, not called again
 
-    @patch.object(OpenRouterService, "test_connection")
+    @patch.object(AnthropicService, "test_connection")
     def test_validate_key_cached_caches_invalid_result(self, mock_test_connection):
         """Test that validate_key_cached caches invalid validation results."""
         mock_test_connection.return_value = (False, "Invalid API key")
-        OpenRouterService.invalidate_key_cache()
+        AnthropicService.invalidate_key_cache()
 
         # First call should hit the API
-        is_valid1, error1 = OpenRouterService.validate_key_cached("bad-key")
+        is_valid1, error1 = AnthropicService.validate_key_cached("bad-key")
         assert is_valid1 is False
         assert error1 is not None
         assert mock_test_connection.call_count == 1
 
         # Second call should use cache
-        is_valid2, error2 = OpenRouterService.validate_key_cached("bad-key")
+        is_valid2, error2 = AnthropicService.validate_key_cached("bad-key")
         assert is_valid2 is False
         assert mock_test_connection.call_count == 1  # Still 1, not called again
 
     def test_validate_key_cached_no_key(self):
         """Test that validate_key_cached handles missing key."""
-        OpenRouterService.invalidate_key_cache()
-        is_valid, error = OpenRouterService.validate_key_cached("")
+        AnthropicService.invalidate_key_cache()
+        is_valid, error = AnthropicService.validate_key_cached("")
         assert is_valid is False
         assert "No API key configured" in error
 
     def test_invalidate_key_cache(self):
         """Test that invalidate_key_cache clears the cache."""
-        OpenRouterService._key_validation_cache["test"] = (True, 0)
-        assert len(OpenRouterService._key_validation_cache) > 0
+        AnthropicService._key_validation_cache["test"] = (True, 0)
+        assert len(AnthropicService._key_validation_cache) > 0
 
-        OpenRouterService.invalidate_key_cache()
-        assert len(OpenRouterService._key_validation_cache) == 0
+        AnthropicService.invalidate_key_cache()
+        assert len(AnthropicService._key_validation_cache) == 0
 
-    @patch("apps.ai.services.openrouter.OpenRouter")
-    def test_complete_success(self, mock_openrouter_class):
+    @patch("apps.ai.services.anthropic_client.anthropic.Anthropic")
+    def test_complete_success(self, mock_anthropic_class):
         """Test successful completion request."""
         # Setup mock
         mock_client = MagicMock()
-        mock_openrouter_class.return_value.__enter__ = Mock(return_value=mock_client)
-        mock_openrouter_class.return_value.__exit__ = Mock(return_value=False)
+        mock_anthropic_class.return_value.__enter__ = Mock(return_value=mock_client)
+        mock_anthropic_class.return_value.__exit__ = Mock(return_value=False)
 
         mock_response = Mock()
-        mock_response.choices = [Mock(message=Mock(content='{"status": "ok"}'))]
-        mock_client.chat.send.return_value = mock_response
+        mock_response.content = [Mock(type="text", text='{"status": "ok"}')]
+        mock_client.messages.create.return_value = mock_response
 
         # Test
-        service = OpenRouterService(api_key="test-key")
+        service = AnthropicService(api_key="test-key")
         result = service.complete(
             system_prompt="Test system",
             user_prompt="Test user",
@@ -434,20 +434,20 @@ class OpenRouterServiceTests(TestCase):
         )
 
         assert result == {"status": "ok"}
-        mock_client.chat.send.assert_called_once()
+        mock_client.messages.create.assert_called_once()
 
-    @patch("apps.ai.services.openrouter.OpenRouter")
-    def test_complete_handles_code_block_json(self, mock_openrouter_class):
+    @patch("apps.ai.services.anthropic_client.anthropic.Anthropic")
+    def test_complete_handles_code_block_json(self, mock_anthropic_class):
         """Test completion handles JSON wrapped in code blocks."""
         mock_client = MagicMock()
-        mock_openrouter_class.return_value.__enter__ = Mock(return_value=mock_client)
-        mock_openrouter_class.return_value.__exit__ = Mock(return_value=False)
+        mock_anthropic_class.return_value.__enter__ = Mock(return_value=mock_client)
+        mock_anthropic_class.return_value.__exit__ = Mock(return_value=False)
 
         mock_response = Mock()
-        mock_response.choices = [Mock(message=Mock(content='```json\n{"title": "Test Recipe"}\n```'))]
-        mock_client.chat.send.return_value = mock_response
+        mock_response.content = [Mock(type="text", text='```json\n{"title": "Test Recipe"}\n```')]
+        mock_client.messages.create.return_value = mock_response
 
-        service = OpenRouterService(api_key="test-key")
+        service = AnthropicService(api_key="test-key")
         result = service.complete(
             system_prompt="Test",
             user_prompt="Test",
@@ -456,18 +456,18 @@ class OpenRouterServiceTests(TestCase):
 
         assert result == {"title": "Test Recipe"}
 
-    @patch("apps.ai.services.openrouter.OpenRouter")
-    def test_complete_invalid_json(self, mock_openrouter_class):
+    @patch("apps.ai.services.anthropic_client.anthropic.Anthropic")
+    def test_complete_invalid_json(self, mock_anthropic_class):
         """Test completion raises error for invalid JSON."""
         mock_client = MagicMock()
-        mock_openrouter_class.return_value.__enter__ = Mock(return_value=mock_client)
-        mock_openrouter_class.return_value.__exit__ = Mock(return_value=False)
+        mock_anthropic_class.return_value.__enter__ = Mock(return_value=mock_client)
+        mock_anthropic_class.return_value.__exit__ = Mock(return_value=False)
 
         mock_response = Mock()
-        mock_response.choices = [Mock(message=Mock(content="not valid json"))]
-        mock_client.chat.send.return_value = mock_response
+        mock_response.content = [Mock(type="text", text="not valid json")]
+        mock_client.messages.create.return_value = mock_response
 
-        service = OpenRouterService(api_key="test-key")
+        service = AnthropicService(api_key="test-key")
         with pytest.raises(AIResponseError) as exc_info:
             service.complete(
                 system_prompt="Test",
@@ -476,37 +476,37 @@ class OpenRouterServiceTests(TestCase):
             )
         assert "Invalid JSON" in str(exc_info.value)
 
-    @patch("apps.ai.services.openrouter.OpenRouter")
-    def test_complete_no_choices(self, mock_openrouter_class):
-        """Test completion raises error when no choices returned."""
+    @patch("apps.ai.services.anthropic_client.anthropic.Anthropic")
+    def test_complete_no_content(self, mock_anthropic_class):
+        """Test completion raises error when no content returned."""
         mock_client = MagicMock()
-        mock_openrouter_class.return_value.__enter__ = Mock(return_value=mock_client)
-        mock_openrouter_class.return_value.__exit__ = Mock(return_value=False)
+        mock_anthropic_class.return_value.__enter__ = Mock(return_value=mock_client)
+        mock_anthropic_class.return_value.__exit__ = Mock(return_value=False)
 
         mock_response = Mock()
-        mock_response.choices = []
-        mock_client.chat.send.return_value = mock_response
+        mock_response.content = []
+        mock_client.messages.create.return_value = mock_response
 
-        service = OpenRouterService(api_key="test-key")
+        service = AnthropicService(api_key="test-key")
         with pytest.raises(AIResponseError) as exc_info:
             service.complete(
                 system_prompt="Test",
                 user_prompt="Test",
             )
-        assert "No choices" in str(exc_info.value)
+        assert "No content" in str(exc_info.value)
 
-    @patch("apps.ai.services.openrouter.OpenRouter")
-    def test_complete_raw_text_response(self, mock_openrouter_class):
+    @patch("apps.ai.services.anthropic_client.anthropic.Anthropic")
+    def test_complete_raw_text_response(self, mock_anthropic_class):
         """Test completion with json_response=False returns raw content."""
         mock_client = MagicMock()
-        mock_openrouter_class.return_value.__enter__ = Mock(return_value=mock_client)
-        mock_openrouter_class.return_value.__exit__ = Mock(return_value=False)
+        mock_anthropic_class.return_value.__enter__ = Mock(return_value=mock_client)
+        mock_anthropic_class.return_value.__exit__ = Mock(return_value=False)
 
         mock_response = Mock()
-        mock_response.choices = [Mock(message=Mock(content="Hello, world!"))]
-        mock_client.chat.send.return_value = mock_response
+        mock_response.content = [Mock(type="text", text="Hello, world!")]
+        mock_client.messages.create.return_value = mock_response
 
-        service = OpenRouterService(api_key="test-key")
+        service = AnthropicService(api_key="test-key")
         result = service.complete(
             system_prompt="Test",
             user_prompt="Test",
@@ -515,75 +515,75 @@ class OpenRouterServiceTests(TestCase):
 
         assert result == {"content": "Hello, world!"}
 
-    @patch("apps.ai.services.openrouter.OpenRouter")
-    def test_test_connection_success(self, mock_openrouter_class):
+    @patch("apps.ai.services.anthropic_client.anthropic.Anthropic")
+    def test_test_connection_success(self, mock_anthropic_class):
         """Test successful connection test."""
         mock_client = MagicMock()
-        mock_openrouter_class.return_value.__enter__ = Mock(return_value=mock_client)
-        mock_openrouter_class.return_value.__exit__ = Mock(return_value=False)
+        mock_anthropic_class.return_value.__enter__ = Mock(return_value=mock_client)
+        mock_anthropic_class.return_value.__exit__ = Mock(return_value=False)
 
         mock_response = Mock()
-        mock_response.choices = [Mock(message=Mock(content='{"status": "ok"}'))]
-        mock_client.chat.send.return_value = mock_response
+        mock_response.content = [Mock(type="text", text='{"status": "ok"}')]
+        mock_client.messages.create.return_value = mock_response
 
-        success, message = OpenRouterService.test_connection("test-key")
+        success, message = AnthropicService.test_connection("test-key")
         assert success is True
         assert message == "Connection successful"
 
     def test_test_connection_no_key(self):
         """Test connection test with empty key."""
-        success, message = OpenRouterService.test_connection("")
+        success, message = AnthropicService.test_connection("")
         assert success is False
         assert "not provided" in message or "not configured" in message
 
-    @patch("apps.ai.services.openrouter.OpenRouter")
-    def test_get_available_models_success(self, mock_openrouter_class):
-        """Test getting available models from OpenRouter, sorted alphabetically."""
+    @patch("apps.ai.services.anthropic_client.anthropic.Anthropic")
+    def test_get_available_models_success(self, mock_anthropic_class):
+        """Test getting available models from Anthropic, sorted alphabetically."""
         mock_client = MagicMock()
-        mock_openrouter_class.return_value.__enter__ = Mock(return_value=mock_client)
-        mock_openrouter_class.return_value.__exit__ = Mock(return_value=False)
+        mock_anthropic_class.return_value.__enter__ = Mock(return_value=mock_client)
+        mock_anthropic_class.return_value.__exit__ = Mock(return_value=False)
 
         # Mock response with model data in non-alphabetical order
         mock_model1 = MagicMock()
-        mock_model1.id = "openai/gpt-4o"
-        mock_model1.name = "GPT-4o"
+        mock_model1.id = "claude-sonnet-5-5"
+        mock_model1.display_name = "Claude Sonnet 5.5"
         mock_model2 = MagicMock()
-        mock_model2.id = "anthropic/claude-3.5-haiku"
-        mock_model2.name = "Claude 3.5 Haiku"
+        mock_model2.id = "claude-haiku-5-5"
+        mock_model2.display_name = "Claude Haiku 5.5"
         mock_response = Mock()
-        mock_response.data = [mock_model1, mock_model2]  # GPT first, Claude second
+        mock_response.data = [mock_model1, mock_model2]  # Sonnet first, Haiku second
         mock_client.models.list.return_value = mock_response
 
-        service = OpenRouterService(api_key="test-key")
+        service = AnthropicService(api_key="test-key")
         models = service.get_available_models()
 
         assert len(models) == 2
         # Should be sorted alphabetically by name
-        assert models[0]["name"] == "Claude 3.5 Haiku"
-        assert models[1]["name"] == "GPT-4o"
+        assert models[0]["name"] == "Claude Haiku 5.5"
+        assert models[1]["name"] == "Claude Sonnet 5.5"
 
 
 @pytest.mark.asyncio
-class OpenRouterServiceAsyncTests(TestCase):
-    """Async tests for the OpenRouter service."""
+class AnthropicServiceAsyncTests(TestCase):
+    """Async tests for the Anthropic service."""
 
-    @patch("apps.ai.services.openrouter.OpenRouter")
-    async def test_complete_async_success(self, mock_openrouter_class):
+    @patch("apps.ai.services.anthropic_client.anthropic.AsyncAnthropic")
+    async def test_complete_async_success(self, mock_anthropic_class):
         """Test successful async completion request."""
         from unittest.mock import AsyncMock
 
         mock_response = Mock()
-        mock_response.choices = [Mock(message=Mock(content='{"result": "success"}'))]
+        mock_response.content = [Mock(type="text", text='{"result": "success"}')]
 
         # Create a mock client with async context manager support
         mock_client = MagicMock()
-        mock_client.chat.send_async = AsyncMock(return_value=mock_response)
+        mock_client.messages.create = AsyncMock(return_value=mock_response)
 
         # Mock the async context manager
-        mock_openrouter_class.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_openrouter_class.return_value.__aexit__ = AsyncMock(return_value=None)
+        mock_anthropic_class.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_anthropic_class.return_value.__aexit__ = AsyncMock(return_value=None)
 
-        service = OpenRouterService(api_key="test-key")
+        service = AnthropicService(api_key="test-key")
         result = await service.complete_async(
             system_prompt="Test",
             user_prompt="Test",
@@ -602,7 +602,7 @@ class TimerNamingServiceTests(TestCase):
 
         cache.clear()
 
-    @patch("apps.ai.services.timer.OpenRouterService")
+    @patch("apps.ai.services.timer.AnthropicService")
     def test_generate_timer_name_success(self, mock_service_class):
         """Test successful timer name generation."""
         from apps.ai.services.timer import generate_timer_name
@@ -616,7 +616,7 @@ class TimerNamingServiceTests(TestCase):
         assert result["label"] == "Simmer until reduced"
         mock_service.complete.assert_called_once()
 
-    @patch("apps.ai.services.timer.OpenRouterService")
+    @patch("apps.ai.services.timer.AnthropicService")
     def test_generate_timer_name_truncates_long_labels(self, mock_service_class):
         """Test that long labels are truncated to 30 characters."""
         from apps.ai.services.timer import generate_timer_name
@@ -632,7 +632,7 @@ class TimerNamingServiceTests(TestCase):
         assert len(result["label"]) == 30
         assert result["label"].endswith("...")
 
-    @patch("apps.ai.services.timer.OpenRouterService")
+    @patch("apps.ai.services.timer.AnthropicService")
     def test_generate_timer_name_formats_duration(self, mock_service_class):
         """Test that duration is formatted correctly in the prompt."""
         from apps.ai.services.timer import generate_timer_name
@@ -731,7 +731,7 @@ class SelectorRepairServiceTests(TestCase):
             consecutive_failures=3,
         )
 
-    @patch("apps.ai.services.selector.OpenRouterService")
+    @patch("apps.ai.services.selector.AnthropicService")
     def test_repair_selector_success(self, mock_service_class):
         """Test successful selector repair."""
         from apps.ai.services.selector import repair_selector
@@ -761,7 +761,7 @@ class SelectorRepairServiceTests(TestCase):
         assert self.source.result_selector == ".recipe-card"
         assert self.source.needs_attention is False
 
-    @patch("apps.ai.services.selector.OpenRouterService")
+    @patch("apps.ai.services.selector.AnthropicService")
     def test_repair_selector_low_confidence_no_update(self, mock_service_class):
         """Test selector repair with low confidence doesn't auto-update."""
         from apps.ai.services.selector import repair_selector
@@ -786,7 +786,7 @@ class SelectorRepairServiceTests(TestCase):
         assert self.source.result_selector == ".old-selector"
         assert self.source.needs_attention is True
 
-    @patch("apps.ai.services.selector.OpenRouterService")
+    @patch("apps.ai.services.selector.AnthropicService")
     def test_repair_selector_auto_update_disabled(self, mock_service_class):
         """Test selector repair with auto_update=False."""
         from apps.ai.services.selector import repair_selector
@@ -810,7 +810,7 @@ class SelectorRepairServiceTests(TestCase):
         self.source.refresh_from_db()
         assert self.source.result_selector == ".old-selector"
 
-    @patch("apps.ai.services.selector.OpenRouterService")
+    @patch("apps.ai.services.selector.AnthropicService")
     def test_repair_selector_truncates_html(self, mock_service_class):
         """Test that HTML sample is truncated to 50KB."""
         from apps.ai.services.selector import repair_selector
@@ -1055,9 +1055,9 @@ class AIFeatureFallbackTests(TestCase):
     def test_ai_status_shows_unavailable_without_key(self):
         """Test AI status endpoint shows unavailable when no API key."""
         settings = AppSettings.get()
-        settings.openrouter_api_key = ""
+        settings.anthropic_api_key = ""
         settings.save()
-        OpenRouterService.invalidate_key_cache()
+        AnthropicService.invalidate_key_cache()
 
         response = self.client.get("/api/ai/status")
         assert response.status_code == 200
@@ -1065,14 +1065,14 @@ class AIFeatureFallbackTests(TestCase):
         assert data["available"] is False
         assert data["configured"] is False
 
-    @patch.object(OpenRouterService, "test_connection")
+    @patch.object(AnthropicService, "test_connection")
     def test_ai_status_shows_available_with_key(self, mock_test_connection):
         """Test AI status endpoint shows available with valid API key."""
         mock_test_connection.return_value = (True, "Connection successful")
         settings = AppSettings.get()
-        settings.openrouter_api_key = "test-key-123"
+        settings.anthropic_api_key = "test-key-123"
         settings.save()
-        OpenRouterService.invalidate_key_cache()
+        AnthropicService.invalidate_key_cache()
 
         response = self.client.get("/api/ai/status")
         assert response.status_code == 200
@@ -1137,7 +1137,7 @@ class AIFeatureFallbackTests(TestCase):
         data = response.json()
         assert data["error"] == "ai_unavailable"
 
-    @patch("apps.ai.services.tips.OpenRouterService")
+    @patch("apps.ai.services.tips.AnthropicService")
     def test_tips_service_raises_when_no_key(self, mock_service_class):
         """Test tips service raises AIUnavailableError when no API key."""
         from apps.ai.services.tips import generate_tips
@@ -1147,7 +1147,7 @@ class AIFeatureFallbackTests(TestCase):
         with pytest.raises(AIUnavailableError):
             generate_tips(self.recipe.id)
 
-    @patch("apps.ai.services.remix.OpenRouterService")
+    @patch("apps.ai.services.remix.AnthropicService")
     def test_remix_service_raises_when_no_key(self, mock_service_class):
         """Test remix service raises AIUnavailableError when no API key."""
         from apps.ai.services.remix import get_remix_suggestions
@@ -1160,7 +1160,7 @@ class AIFeatureFallbackTests(TestCase):
     def test_models_endpoint_returns_empty_list_without_key(self):
         """Test models endpoint returns empty list when AI unavailable."""
         settings = AppSettings.get()
-        settings.openrouter_api_key = ""
+        settings.anthropic_api_key = ""
         settings.save()
 
         response = self.client.get("/api/ai/models")
@@ -1627,7 +1627,7 @@ class RemixServiceTests(TestCase):
         assert _parse_servings("") is None
         assert _parse_servings("many") is None
 
-    @patch("apps.ai.services.remix.OpenRouterService")
+    @patch("apps.ai.services.remix.AnthropicService")
     def test_get_remix_suggestions_success(self, mock_service_class):
         """Test get_remix_suggestions returns validated suggestions."""
         from apps.ai.services.remix import get_remix_suggestions
@@ -1649,7 +1649,7 @@ class RemixServiceTests(TestCase):
         assert len(result) == 6
         assert "vegan" in result[0].lower()
 
-    @patch("apps.ai.services.remix.OpenRouterService")
+    @patch("apps.ai.services.remix.AnthropicService")
     def test_get_remix_suggestions_validation_error(self, mock_service_class):
         """Test get_remix_suggestions raises ValidationError on invalid response."""
         from apps.ai.services.remix import get_remix_suggestions

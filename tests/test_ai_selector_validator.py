@@ -16,7 +16,7 @@ from apps.ai.services.selector import (
     get_sources_needing_attention,
     DEFAULT_CONFIDENCE_THRESHOLD,
 )
-from apps.ai.services.openrouter import AIUnavailableError
+from apps.ai.services.anthropic_client import AIUnavailableError
 from apps.ai.services.validator import AIResponseValidator, ValidationError, RESPONSE_SCHEMAS
 from apps.recipes.models import SearchSource
 
@@ -30,7 +30,7 @@ def selector_prompt(db):
             "name": "Selector Repair",
             "system_prompt": "You are a CSS selector repair assistant.",
             "user_prompt_template": ("Fix this selector: {selector}\nTarget: {target}\nHTML:\n{html_sample}"),
-            "model": "anthropic/claude-3.5-haiku",
+            "model": "claude-haiku-5-5",
             "is_active": True,
         },
     )
@@ -82,7 +82,7 @@ def test_repair_selector_high_confidence_auto_updates(selector_prompt, search_so
 
     with (
         patch(
-            "apps.ai.services.selector.OpenRouterService",
+            "apps.ai.services.selector.AnthropicService",
             return_value=mock_service_instance,
         ),
         patch(
@@ -120,7 +120,7 @@ def test_repair_selector_low_confidence_no_update(selector_prompt, search_source
 
     with (
         patch(
-            "apps.ai.services.selector.OpenRouterService",
+            "apps.ai.services.selector.AnthropicService",
             return_value=mock_service_instance,
         ),
         patch(
@@ -157,7 +157,7 @@ def test_repair_selector_auto_update_disabled(selector_prompt, search_source, ht
 
     with (
         patch(
-            "apps.ai.services.selector.OpenRouterService",
+            "apps.ai.services.selector.AnthropicService",
             return_value=mock_service_instance,
         ),
         patch(
@@ -188,7 +188,7 @@ def test_repair_selector_empty_suggestions(selector_prompt, search_source, html_
 
     with (
         patch(
-            "apps.ai.services.selector.OpenRouterService",
+            "apps.ai.services.selector.AnthropicService",
             return_value=mock_service_instance,
         ),
         patch(
@@ -218,7 +218,7 @@ def test_repair_selector_custom_threshold(selector_prompt, search_source, html_s
 
     with (
         patch(
-            "apps.ai.services.selector.OpenRouterService",
+            "apps.ai.services.selector.AnthropicService",
             return_value=mock_service_instance,
         ),
         patch(

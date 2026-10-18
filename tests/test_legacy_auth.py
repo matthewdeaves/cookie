@@ -258,23 +258,23 @@ class TestLegacyDevicePair:
 class TestLegacyAIAvailability:
     """Tests for _is_ai_available helper."""
 
-    @patch("apps.legacy.views.OpenRouterService.validate_key_cached", return_value=(True, None))
+    @patch("apps.legacy.views.AnthropicService.validate_key_cached", return_value=(True, None))
     @patch("apps.legacy.views.AppSettings.get")
     def test_is_ai_available_with_valid_key(self, mock_settings, mock_validate):
         """_is_ai_available returns True when key is configured and valid."""
         from apps.legacy.views import _is_ai_available
 
-        mock_settings.return_value.openrouter_api_key = "sk-test-key"  # pragma: allowlist secret
+        mock_settings.return_value.anthropic_api_key = "sk-test-key"  # pragma: allowlist secret
         assert _is_ai_available() is True
         mock_validate.assert_called_once()
 
-    @patch("apps.legacy.views.OpenRouterService.validate_key_cached", return_value=(False, "invalid"))
+    @patch("apps.legacy.views.AnthropicService.validate_key_cached", return_value=(False, "invalid"))
     @patch("apps.legacy.views.AppSettings.get")
     def test_is_ai_available_with_invalid_key(self, mock_settings, mock_validate):
         """_is_ai_available returns False when key is invalid."""
         from apps.legacy.views import _is_ai_available
 
-        mock_settings.return_value.openrouter_api_key = "sk-bad-key"  # pragma: allowlist secret
+        mock_settings.return_value.anthropic_api_key = "sk-bad-key"  # pragma: allowlist secret
         assert _is_ai_available() is False
 
 
@@ -282,11 +282,11 @@ class TestLegacyAIAvailability:
 class TestLegacySettingsEdgeCases:
     """Tests for edge cases in the settings view."""
 
-    @patch("apps.legacy.views.OpenRouterService")
+    @patch("apps.legacy.views.AnthropicService")
     @patch("apps.legacy.views._is_ai_available", return_value=True)
     def test_settings_handles_ai_error(self, mock_ai, mock_service_cls, client):
         """Settings view renders with empty models list when AI service errors."""
-        from apps.ai.services.openrouter import AIUnavailableError
+        from apps.ai.services.anthropic_client import AIUnavailableError
 
         mock_service_cls.return_value.get_available_models.side_effect = AIUnavailableError("No key")
 

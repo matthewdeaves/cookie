@@ -20,7 +20,7 @@ from apps.ai.services.remix import (
     _parse_time,
     _parse_servings,
 )
-from apps.ai.services.openrouter import AIUnavailableError, AIResponseError
+from apps.ai.services.anthropic_client import AIUnavailableError, AIResponseError
 from apps.profiles.models import Profile
 from apps.recipes.models import Recipe
 
@@ -64,7 +64,7 @@ def remix_suggestions_prompt(db):
                 "Cuisine: {cuisine}\nCategory: {category}\n"
                 "Ingredients:\n{ingredients}"
             ),
-            "model": "anthropic/claude-3.5-haiku",
+            "model": "claude-haiku-5-5",
             "is_active": True,
         },
     )
@@ -87,7 +87,7 @@ def recipe_remix_prompt(db):
                 "Ingredients:\n{ingredients}\n"
                 "Instructions:\n{instructions}"
             ),
-            "model": "anthropic/claude-3.5-haiku",
+            "model": "claude-haiku-5-5",
             "is_active": True,
         },
     )
@@ -112,7 +112,7 @@ def nutrition_estimate_prompt(db):
                 "New servings: {new_servings}\n"
                 "Modification: {modification}"
             ),
-            "model": "anthropic/claude-3.5-haiku",
+            "model": "claude-haiku-5-5",
             "is_active": True,
         },
     )
@@ -176,7 +176,7 @@ class TestGetRemixSuggestions:
     """Tests for get_remix_suggestions()."""
 
     @patch("apps.ai.services.remix.AIResponseValidator")
-    @patch("apps.ai.services.remix.OpenRouterService")
+    @patch("apps.ai.services.remix.AnthropicService")
     def test_valid_recipe(self, mock_service_cls, mock_validator_cls, recipe, remix_suggestions_prompt):
         mock_service_instance = MagicMock()
         mock_service_cls.return_value = mock_service_instance
@@ -219,7 +219,7 @@ class TestGetRemixSuggestions:
             get_remix_suggestions(99999)
 
     @patch("apps.ai.services.remix.AIResponseValidator")
-    @patch("apps.ai.services.remix.OpenRouterService")
+    @patch("apps.ai.services.remix.AnthropicService")
     def test_ai_unavailable(self, mock_service_cls, mock_validator_cls, recipe, remix_suggestions_prompt):
         mock_service_cls.return_value = MagicMock()
         mock_service_cls.return_value.complete.side_effect = AIUnavailableError("No API key")
@@ -241,7 +241,7 @@ class TestCreateRemix:
 
     @patch("apps.ai.services.remix._generate_tips_background")
     @patch("apps.ai.services.remix.AIResponseValidator")
-    @patch("apps.ai.services.remix.OpenRouterService")
+    @patch("apps.ai.services.remix.AnthropicService")
     def test_creates_remix_recipe(
         self,
         mock_service_cls,
@@ -289,7 +289,7 @@ class TestCreateRemix:
 
     @patch("apps.ai.services.remix._generate_tips_background")
     @patch("apps.ai.services.remix.AIResponseValidator")
-    @patch("apps.ai.services.remix.OpenRouterService")
+    @patch("apps.ai.services.remix.AnthropicService")
     def test_remix_with_nutrition_estimation(
         self,
         mock_service_cls,
@@ -339,7 +339,7 @@ class TestCreateRemix:
 
     @patch("apps.ai.services.remix._generate_tips_background")
     @patch("apps.ai.services.remix.AIResponseValidator")
-    @patch("apps.ai.services.remix.OpenRouterService")
+    @patch("apps.ai.services.remix.AnthropicService")
     def test_remix_without_times(
         self,
         mock_service_cls,
@@ -380,7 +380,7 @@ class TestEstimateNutrition:
     """Tests for estimate_nutrition()."""
 
     @patch("apps.ai.services.remix.AIResponseValidator")
-    @patch("apps.ai.services.remix.OpenRouterService")
+    @patch("apps.ai.services.remix.AnthropicService")
     def test_returns_validated_nutrition(self, mock_service_cls, mock_validator_cls, recipe, nutrition_estimate_prompt):
         mock_service_instance = MagicMock()
         mock_service_cls.return_value = mock_service_instance

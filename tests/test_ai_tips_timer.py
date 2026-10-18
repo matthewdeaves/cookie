@@ -13,7 +13,7 @@ import pytest
 from apps.ai.models import AIPrompt
 from apps.ai.services.tips import generate_tips, clear_tips
 from apps.ai.services.timer import generate_timer_name
-from apps.ai.services.openrouter import AIUnavailableError, AIResponseError
+from apps.ai.services.anthropic_client import AIUnavailableError, AIResponseError
 from apps.ai.services.validator import ValidationError
 from apps.profiles.models import Profile
 from apps.recipes.models import Recipe
@@ -72,7 +72,7 @@ def tips_prompt(db):
             "user_prompt_template": (
                 "Generate tips for '{title}'.\nIngredients:\n{ingredients}\nInstructions:\n{instructions}"
             ),
-            "model": "anthropic/claude-3.5-haiku",
+            "model": "claude-haiku-5-5",
             "is_active": True,
         },
     )
@@ -88,7 +88,7 @@ def timer_prompt(db):
             "name": "Timer Naming",
             "system_prompt": "You are a timer naming assistant.",
             "user_prompt_template": ("Name this timer:\nInstruction: {instruction}\nDuration: {duration}"),
-            "model": "anthropic/claude-3.5-haiku",
+            "model": "claude-haiku-5-5",
             "is_active": True,
         },
     )
@@ -101,7 +101,7 @@ def timer_prompt(db):
 @pytest.mark.django_db
 def test_generate_tips_returns_cached(recipe_with_cached_tips):
     """Cached tips are returned without calling AI."""
-    with patch("apps.ai.services.tips.OpenRouterService") as mock_svc:
+    with patch("apps.ai.services.tips.AnthropicService") as mock_svc:
         result = generate_tips(recipe_with_cached_tips.id)
 
     mock_svc.assert_not_called()
@@ -130,7 +130,7 @@ def test_generate_tips_calls_ai_when_uncached(recipe, tips_prompt):
 
     with (
         patch(
-            "apps.ai.services.tips.OpenRouterService",
+            "apps.ai.services.tips.AnthropicService",
             return_value=mock_service_instance,
         ),
         patch(
@@ -170,7 +170,7 @@ def test_generate_tips_with_string_instructions(profile, tips_prompt):
 
     with (
         patch(
-            "apps.ai.services.tips.OpenRouterService",
+            "apps.ai.services.tips.AnthropicService",
             return_value=mock_service_instance,
         ),
         patch(
@@ -198,7 +198,7 @@ def test_generate_tips_ai_unavailable(recipe, tips_prompt):
     mock_service_instance.complete.side_effect = AIUnavailableError("No key")
 
     with patch(
-        "apps.ai.services.tips.OpenRouterService",
+        "apps.ai.services.tips.AnthropicService",
         return_value=mock_service_instance,
     ):
         with pytest.raises(AIUnavailableError):
@@ -246,7 +246,7 @@ def test_generate_timer_name_short_duration(timer_prompt):
 
     with (
         patch(
-            "apps.ai.services.timer.OpenRouterService",
+            "apps.ai.services.timer.AnthropicService",
             return_value=mock_service_instance,
         ),
         patch(
@@ -272,7 +272,7 @@ def test_generate_timer_name_long_duration(timer_prompt):
 
     with (
         patch(
-            "apps.ai.services.timer.OpenRouterService",
+            "apps.ai.services.timer.AnthropicService",
             return_value=mock_service_instance,
         ),
         patch(
@@ -300,7 +300,7 @@ def test_generate_timer_name_truncates_long_label(timer_prompt):
 
     with (
         patch(
-            "apps.ai.services.timer.OpenRouterService",
+            "apps.ai.services.timer.AnthropicService",
             return_value=mock_service_instance,
         ),
         patch(
@@ -339,7 +339,7 @@ def test_generate_timer_name_one_hour_exact(timer_prompt):
 
     with (
         patch(
-            "apps.ai.services.timer.OpenRouterService",
+            "apps.ai.services.timer.AnthropicService",
             return_value=mock_service_instance,
         ),
         patch(
@@ -366,7 +366,7 @@ def test_generate_timer_name_one_minute(timer_prompt):
 
     with (
         patch(
-            "apps.ai.services.timer.OpenRouterService",
+            "apps.ai.services.timer.AnthropicService",
             return_value=mock_service_instance,
         ),
         patch(
