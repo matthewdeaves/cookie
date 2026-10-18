@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
+import { toast } from 'sonner'
 import { api } from '../api/client'
+import { SESSION_LOST_EVENT } from '../api/request'
 import type { AuthProfile, PasskeyUser } from '../api/types'
 
 interface AuthContextType {
@@ -44,6 +46,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       .finally(() => setIsLoading(false))
   }, [])
+
+  // The passkey session expired mid-use: drop to the login screen instead of
+  // leaving every action on the page failing with 401.
+  const signedIn = user !== null
+  useEffect(() => {
+    if (!signedIn) return
+    const onSessionLost = () => {
+      toast.error('Your session expired. Please sign in again.')
+      setUser(null)
+      setProfile(null)
+    }
+    window.addEventListener(SESSION_LOST_EVENT, onSessionLost)
+    return () => window.removeEventListener(SESSION_LOST_EVENT, onSessionLost)
+  }, [signedIn])
 
   const refreshSession = useCallback(async () => {
     try {

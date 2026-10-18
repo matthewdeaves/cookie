@@ -7,6 +7,7 @@ import { useAIStatus } from '../contexts/AIStatusContext'
 import { useHomeData } from '../hooks/useHomeData'
 import { useDiscoverTab } from '../hooks/useDiscoverTab'
 import NavHeader from '../components/NavHeader'
+import ErrorState from '../components/ErrorState'
 import { RecipeGridSkeleton } from '../components/Skeletons'
 import { cn } from '../lib/utils'
 import FavoritesTab from './FavoritesTab'
@@ -24,9 +25,11 @@ function TabToggle({ activeTab, onFavoritesClick, onDiscoverClick }: {
     <div className="mb-6 flex justify-center">
       <div className="inline-flex rounded-lg bg-muted p-1">
         <button
+          type="button"
+          aria-pressed={activeTab === 'favorites'}
           onClick={onFavoritesClick}
           className={cn(
-            'rounded-md px-4 py-2 text-sm font-medium transition-colors',
+            'min-h-11 rounded-md px-4 py-2 text-sm font-medium transition-colors',
             activeTab === 'favorites'
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground'
@@ -35,9 +38,11 @@ function TabToggle({ activeTab, onFavoritesClick, onDiscoverClick }: {
           My Favorites
         </button>
         <button
+          type="button"
+          aria-pressed={activeTab === 'discover'}
           onClick={onDiscoverClick}
           className={cn(
-            'rounded-md px-4 py-2 text-sm font-medium transition-colors',
+            'min-h-11 rounded-md px-4 py-2 text-sm font-medium transition-colors',
             activeTab === 'discover'
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground'
@@ -58,7 +63,7 @@ export default function Home() {
   const [importing, setImporting] = useState(false)
   const [activeTab, setActiveTab] = useState<Tab>('favorites')
 
-  const { favorites, history, recipesCount, loading, favoriteIds, handleRecipeClick, handleToggleFavorite } = useHomeData()
+  const { favorites, history, recipesCount, loading, loadError, reload, favoriteIds, handleRecipeClick, handleToggleFavorite } = useHomeData()
 
   const discoverAvailable = aiStatus.isFeatureAvailable('discover')
 
@@ -105,14 +110,19 @@ export default function Home() {
         <div className="mx-auto max-w-4xl">
           <form onSubmit={handleSearchSubmit} className="mb-6">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
               <input
-                type="text"
+                type="search"
+                inputMode="search"
+                enterKeyHint="search"
+                autoCapitalize="none"
+                autoCorrect="off"
+                aria-label="Search recipes or paste a recipe URL"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search recipes or paste a URL..."
                 disabled={importing}
-                className="w-full rounded-xl border border-border bg-input-background py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60"
+                className="min-h-12 w-full rounded-xl border border-border bg-input-background py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60"
               />
             </div>
           </form>
@@ -127,6 +137,12 @@ export default function Home() {
 
           {loading ? (
             <RecipeGridSkeleton count={6} />
+          ) : showFavorites && loadError ? (
+            <ErrorState
+              title="Could not load your recipes"
+              message="Check your connection and try again."
+              onRetry={reload}
+            />
           ) : showFavorites ? (
             <FavoritesTab
               history={history}

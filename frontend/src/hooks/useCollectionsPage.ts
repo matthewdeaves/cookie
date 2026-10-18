@@ -12,6 +12,13 @@ export function useCollectionsPage() {
 
   const [collections, setCollections] = useState<Collection[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
+  const reload = () => {
+    setLoading(true)
+    setLoadError(false)
+    setReloadKey((k) => k + 1)
+  }
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [newCollectionName, setNewCollectionName] = useState('')
   const [creating, setCreating] = useState(false)
@@ -25,14 +32,14 @@ export function useCollectionsPage() {
       } catch (error) {
         if (!cancelled) {
           console.error('Failed to load collections:', error)
-          toast.error('Failed to load collections')
+          setLoadError(true)
         }
       } finally {
         if (!cancelled) setLoading(false)
       }
     })()
     return () => { cancelled = true }
-  }, [])
+  }, [reloadKey])
 
   const handleCreateCollection = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -88,6 +95,8 @@ export function useCollectionsPage() {
     pendingRecipeId,
     collections,
     loading,
+    loadError,
+    reload,
     showCreateForm,
     setShowCreateForm,
     newCollectionName,

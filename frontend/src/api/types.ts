@@ -274,6 +274,8 @@ export interface SearchResponse {
   page: number
   has_more: boolean
   sites: Record<string, number>
+  /** Hosts that errored or timed out; absent from older servers. */
+  failed_sources?: string[]
 }
 
 export interface Source {

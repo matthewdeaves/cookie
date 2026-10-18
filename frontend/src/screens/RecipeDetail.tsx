@@ -1,3 +1,4 @@
+import ErrorState from '../components/ErrorState'
 import NavHeader from '../components/NavHeader'
 import RemixModal from '../components/RemixModal'
 import { RecipeDetailSkeleton } from '../components/Skeletons'
@@ -10,6 +11,8 @@ export default function RecipeDetail() {
   const {
     recipe,
     loading,
+    loadFailed,
+    reload,
     activeTab,
     setActiveTab,
     metaExpanded,
@@ -42,13 +45,24 @@ export default function RecipeDetail() {
     return <RecipeDetailSkeleton />
   }
 
+  if (loadFailed) {
+    return (
+      <div className="min-h-screen bg-background">
+        <NavHeader />
+        <main className="mx-auto max-w-md px-4 py-10">
+          <ErrorState title="Could not load this recipe" message="Check your connection and try again." onRetry={reload} />
+        </main>
+      </div>
+    )
+  }
+
   if (!recipe || !profile) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background">
         <span className="mb-4 text-muted-foreground">Recipe not found</span>
         <button
           onClick={handleBack}
-          className="rounded-lg bg-primary px-4 py-2 text-primary-foreground"
+          className="min-h-11 rounded-lg bg-primary px-5 py-2 text-primary-foreground"
         >
           Go Back
         </button>

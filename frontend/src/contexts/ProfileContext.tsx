@@ -1,5 +1,7 @@
-import { createContext, useContext, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useCallback, useEffect, ReactNode } from 'react'
+import { toast } from 'sonner'
 import { api, type Profile, type RecipeDetail } from '../api/client'
+import { SESSION_LOST_EVENT } from '../api/request'
 import { useStoredProfile, saveProfileId, clearProfileId } from '../hooks/useStoredProfile'
 import { useFavorites } from '../hooks/useFavorites'
 
@@ -65,6 +67,20 @@ export function ProfileProvider({ children, authProfile, onProfileSelected }: Pr
     clearFavorites()
     clearProfileId()
   }, [setProfile, clearFavorites])
+
+  // A request came back 401 and the stored profile could not be re-selected
+  // (home mode): the session is gone, so send the user back to the picker
+  // rather than leaving them on a screen where every action fails.
+  const hasProfile = profile !== null
+  useEffect(() => {
+    if (authProfile !== undefined || !hasProfile) return
+    const onSessionLost = () => {
+      toast.error('Your session ended. Please choose your profile again.')
+      logout()
+    }
+    window.addEventListener(SESSION_LOST_EVENT, onSessionLost)
+    return () => window.removeEventListener(SESSION_LOST_EVENT, onSessionLost)
+  }, [authProfile, hasProfile, logout])
 
   const toggleTheme = useCallback(async () => {
     if (!profile) return

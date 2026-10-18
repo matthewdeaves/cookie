@@ -5,12 +5,20 @@ import { toast } from 'sonner'
 import { api, type Recipe, type Favorite } from '../api/client'
 import NavHeader from '../components/NavHeader'
 import RecipeCard from '../components/RecipeCard'
+import ErrorState from '../components/ErrorState'
 import { RecipeGridSkeleton } from '../components/Skeletons'
 
 export default function Favorites() {
   const navigate = useNavigate()
   const [favorites, setFavorites] = useState<Favorite[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
+  const reload = () => {
+    setLoading(true)
+    setLoadError(false)
+    setReloadKey((k) => k + 1)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -21,14 +29,14 @@ export default function Favorites() {
       } catch (error) {
         if (!cancelled) {
           console.error('Failed to load favorites:', error)
-          toast.error('Failed to load favorites')
+          setLoadError(true)
         }
       } finally {
         if (!cancelled) setLoading(false)
       }
     })()
     return () => { cancelled = true }
-  }, [])
+  }, [reloadKey])
 
   const handleRemoveFavorite = async (recipe: Recipe) => {
     try {
@@ -59,6 +67,12 @@ export default function Favorites() {
           <h2 className="mb-4 text-lg font-medium text-foreground">Favorites</h2>
           {loading ? (
             <RecipeGridSkeleton count={8} />
+          ) : loadError ? (
+            <ErrorState
+              title="Could not load your favorites"
+              message="Check your connection and try again."
+              onRetry={reload}
+            />
           ) : favorites.length > 0 ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
               {favorites.map((favorite) => (
@@ -85,7 +99,7 @@ export default function Favorites() {
               </p>
               <button
                 onClick={() => navigate('/home')}
-                className="rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-primary/90"
+                className="min-h-11 rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 Discover Recipes
               </button>

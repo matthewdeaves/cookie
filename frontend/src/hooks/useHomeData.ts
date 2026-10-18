@@ -9,6 +9,13 @@ export function useHomeData() {
   const [history, setHistory] = useState<HistoryItem[]>([])
   const [recipesCount, setRecipesCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
+  const reload = () => {
+    setLoading(true)
+    setLoadError(false)
+    setReloadKey((k) => k + 1)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -27,14 +34,14 @@ export function useHomeData() {
       } catch (error) {
         if (!cancelled) {
           console.error('Failed to load data:', error)
-          toast.error('Failed to load recipes')
+          setLoadError(true)
         }
       } finally {
         if (!cancelled) setLoading(false)
       }
     })()
     return () => { cancelled = true }
-  }, [])
+  }, [reloadKey])
 
   const favoriteIds = useMemo(
     () => new Set(favorites.map((f) => f.recipe.id)),
@@ -73,6 +80,8 @@ export function useHomeData() {
     history,
     recipesCount,
     loading,
+    loadError,
+    reload,
     favoriteIds,
     handleRecipeClick,
     handleToggleFavorite,

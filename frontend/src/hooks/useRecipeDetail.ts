@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { toast } from 'sonner'
 import { api, type RecipeDetail as RecipeDetailType } from '../api/client'
 import { useProfile } from '../contexts/ProfileContext'
 import { useAIStatus } from '../contexts/AIStatusContext'
@@ -18,6 +17,9 @@ export function useRecipeDetail() {
 
   const [recipe, setRecipe] = useState<RecipeDetailType | null>(null)
   const [loading, setLoading] = useState(true)
+  // true when the recipe could not be loaded for a reason other than "does not exist"
+  const [loadFailed, setLoadFailed] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
   const [activeTab, setActiveTab] = useState<Tab>('ingredients')
   const [metaExpanded, setMetaExpanded] = useState(true)
   const [showRemixModal, setShowRemixModal] = useState(false)
@@ -49,7 +51,7 @@ export function useRecipeDetail() {
       } catch (error) {
         if (!cancelled) {
           console.error('Failed to load recipe:', error)
-          toast.error('Failed to load recipe')
+          setLoadFailed((error as { status?: number })?.status !== 404)
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -57,7 +59,13 @@ export function useRecipeDetail() {
     })()
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when recipeId changes
-  }, [recipeId])
+  }, [recipeId, reloadKey])
+
+  const reload = () => {
+    setLoading(true)
+    setLoadFailed(false)
+    setReloadKey((k) => k + 1)
+  }
 
   const canShowServingAdjustment = aiStatus.isFeatureAvailable('scale') && recipe?.servings !== null
 
@@ -77,7 +85,7 @@ export function useRecipeDetail() {
   const imageUrl = recipe ? (recipe.image || recipe.image_url) : null
 
   return {
-    recipe, loading, activeTab, setActiveTab, metaExpanded, setMetaExpanded,
+    recipe, loading, loadFailed, reload, activeTab, setActiveTab, metaExpanded, setMetaExpanded,
     servings, showRemixModal, setShowRemixModal, scaledData, scalingLoading,
     tips, tipsLoading, tipsPolling, profile, aiStatus, recipeId,
     canShowServingAdjustment, recipeIsFavorite, imageUrl,

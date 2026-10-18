@@ -6,12 +6,20 @@ import { api, type Recipe } from '../api/client'
 import NavHeader from '../components/NavHeader'
 import RecipeCard from '../components/RecipeCard'
 import RecipeSearchFilter from '../components/RecipeSearchFilter'
+import ErrorState from '../components/ErrorState'
 import { RecipeGridSkeleton } from '../components/Skeletons'
 
 export default function AllRecipes() {
   const navigate = useNavigate()
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
+  const reload = () => {
+    setLoading(true)
+    setLoadError(false)
+    setReloadKey((k) => k + 1)
+  }
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
@@ -23,14 +31,14 @@ export default function AllRecipes() {
       } catch (error) {
         if (!cancelled) {
           console.error('Failed to load recipes:', error)
-          toast.error('Failed to load recipes')
+          setLoadError(true)
         }
       } finally {
         if (!cancelled) setLoading(false)
       }
     })()
     return () => { cancelled = true }
-  }, [])
+  }, [reloadKey])
 
   const handleRecipeClick = async (recipeId: number) => {
     try {
@@ -70,6 +78,12 @@ export default function AllRecipes() {
           <h2 className="mb-4 text-lg font-medium text-foreground">My Recipes</h2>
           {loading ? (
             <RecipeGridSkeleton count={8} />
+          ) : loadError ? (
+            <ErrorState
+              title="Could not load your recipes"
+              message="Check your connection and try again."
+              onRetry={reload}
+            />
           ) : recipes.length > 0 ? (
             <RecipeList
               recipes={recipes}
@@ -143,7 +157,7 @@ function EmptyRecipes({ onImport }: { onImport: () => void }) {
       </p>
       <button
         onClick={onImport}
-        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-primary/90"
+        className="flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-primary/90"
       >
         <Search className="h-4 w-4" />
         Import Recipes

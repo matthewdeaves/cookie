@@ -48,6 +48,9 @@ import type {
   QuotaLimits,
   QuotaResponse,
 } from './types'
+import { request } from './request'
+
+export type { ApiError } from './request'
 
 // Re-export all types for consumers
 export type {
@@ -99,65 +102,6 @@ export type {
   DevicePollResponse,
   QuotaLimits,
   QuotaResponse,
-}
-
-const API_BASE = '/api'
-
-function getCsrfToken(): string {
-  const value = '; ' + document.cookie
-  const parts = value.split('; csrftoken=')
-  if (parts.length === 2) return parts.pop()!.split(';').shift() || ''
-  return ''
-}
-
-async function request<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
-  const url = `${API_BASE}${endpoint}`
-
-  const method = (options.method || 'GET').toUpperCase()
-  const needsCsrf = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)
-
-  const config: RequestInit = {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(needsCsrf ? { 'X-CSRFToken': getCsrfToken() } : {}),
-      ...options.headers,
-    },
-  }
-
-  const response = await fetch(url, config)
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    let errorBody: Record<string, unknown> | null = null
-    let errorMessage: string
-
-    try {
-      errorBody = JSON.parse(errorText)
-      errorMessage = (errorBody as Record<string, string>).detail
-        || (errorBody as Record<string, string>).message
-        || `Request failed (${response.status})`
-    } catch {
-      // Non-JSON response (e.g. HTML error page) — never expose raw server
-      // output to the user as it may leak internal details.
-      errorMessage = `Request failed (${response.status})`
-    }
-
-    const error = new Error(errorMessage) as Error & { status: number; body: Record<string, unknown> | null }
-    error.status = response.status
-    error.body = errorBody
-    throw error
-  }
-
-  // Handle 204 No Content
-  if (response.status === 204) {
-    return null as T
-  }
-
-  return response.json()
 }
 
 export const api = {
@@ -377,7 +321,7 @@ export const api = {
     search: (query: string, sources?: string, page: number = 1, signal?: AbortSignal) => {
       const params = new URLSearchParams({ q: query, page: String(page) })
       if (sources) params.append('sources', sources)
-      return request<SearchResponse>(`/recipes/search/?${params}`, { signal })
+      return request<SearchResponse>(`/recipes/search/?${params}`, { signal, timeoutMs: 45000 })
     },
 
     scrape: (url: string) =>

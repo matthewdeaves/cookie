@@ -562,7 +562,54 @@ describe('API Client', () => {
     it('throws on network error', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
-      await expect(api.profiles.list()).rejects.toThrow('Network error')
+      await expect(api.profiles.list()).rejects.toThrow("Can't reach the server")
+    })
+
+    it('reports a status of 0 for network failures', async () => {
+      mockFetch.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+
+      await expect(api.profiles.list()).rejects.toMatchObject({ status: 0 })
+    })
+  })
+
+  describe('lost session (401)', () => {
+    const store: Record<string, string> = {}
+    beforeEach(() => {
+      vi.stubGlobal('localStorage', {
+        getItem: (k: string) => (k in store ? store[k] : null),
+        setItem: (k: string, v: string) => { store[k] = v },
+        removeItem: (k: string) => { delete store[k] },
+      })
+    })
+    afterEach(() => {
+      delete store['cookie_selected_profile_id']
+      vi.unstubAllGlobals()
+      globalThis.fetch = mockFetch
+    })
+
+    it('re-selects the stored profile and retries the request once', async () => {
+      localStorage.setItem('cookie_selected_profile_id', '7')
+      mockFetch
+        .mockResolvedValueOnce({ ok: false, status: 401, text: () => Promise.resolve('{"detail":"Unauthorized"}') })
+        .mockResolvedValueOnce({ ok: true, status: 200 }) // POST /profiles/7/select/
+        .mockResolvedValueOnce({ ok: true, status: 200, json: () => Promise.resolve([{ id: 1 }]) })
+
+      const result = await api.favorites.list()
+
+      expect(result).toEqual([{ id: 1 }])
+      expect(mockFetch).toHaveBeenCalledTimes(3)
+      expect(mockFetch.mock.calls[1][0]).toBe('/api/profiles/7/select/')
+    })
+
+    it('fires the session-lost event when the session cannot be restored', async () => {
+      const onLost = vi.fn()
+      window.addEventListener('cookie:session-lost', onLost)
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 401, text: () => Promise.resolve('{"detail":"Unauthorized"}') })
+
+      await expect(api.favorites.list()).rejects.toMatchObject({ status: 401 })
+
+      expect(onLost).toHaveBeenCalledTimes(1)
+      window.removeEventListener('cookie:session-lost', onLost)
     })
   })
 })

@@ -3,6 +3,7 @@ import { useCollectionsPage } from '../hooks/useCollectionsPage'
 import NavHeader from '../components/NavHeader'
 import CreateCollectionForm from '../components/CreateCollectionForm'
 import CollectionCard from '../components/CollectionCard'
+import ErrorState from '../components/ErrorState'
 import { CollectionGridSkeleton } from '../components/Skeletons'
 
 export default function Collections() {
@@ -10,6 +11,8 @@ export default function Collections() {
     pendingRecipeId,
     collections,
     loading,
+    loadError,
+    reload,
     showCreateForm,
     setShowCreateForm,
     newCollectionName,
@@ -45,6 +48,12 @@ export default function Collections() {
 
           {loading ? (
             <CollectionGridSkeleton count={8} />
+          ) : loadError ? (
+            <ErrorState
+              title="Could not load your collections"
+              message="Check your connection and try again."
+              onRetry={reload}
+            />
           ) : collections.length > 0 ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
               {collections.map((collection) => (
@@ -71,7 +80,7 @@ function CollectionsPageHeader({ onCreateClick }: { onCreateClick: () => void })
       <h2 className="text-lg font-medium text-foreground">Collections</h2>
       <button
         onClick={onCreateClick}
-        className="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        className="flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
       >
         <Plus className="h-4 w-4" />
         New

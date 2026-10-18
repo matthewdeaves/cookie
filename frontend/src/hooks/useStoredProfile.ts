@@ -64,13 +64,15 @@ export function useStoredProfile(authProfile?: AuthProfile | null): UseStoredPro
     return () => cancelAnimationFrame(id)
   }, [authProfile])
 
-  // Apply theme class to document
+  // Apply theme class to document, and keep the browser chrome in step with it
+  // (address bar / status bar colour, native form controls and scrollbars).
   useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
+    const root = document.documentElement
+    root.classList.toggle('dark', theme === 'dark')
+    root.style.colorScheme = theme
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', theme === 'dark' ? '#2a2220' : '#faf9f7')
   }, [theme])
 
   // Restore profile from localStorage (home mode only)

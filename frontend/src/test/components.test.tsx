@@ -236,6 +236,37 @@ describe('Search', () => {
     })
   })
 
+  it('shows an error with a retry button when the search fails, not "no recipes found"', async () => {
+    vi.mocked(api.recipes.search)
+      .mockRejectedValueOnce(Object.assign(new Error('Could not reach any recipe sites.'), { status: 503 }))
+      .mockResolvedValueOnce({
+        results: [{ url: 'https://example.com/r', title: 'Cookies Again', host: 'example.com', image_url: '', cached_image_url: null, description: '', rating_count: null }],
+        total: 1, page: 1, has_more: false, sites: { 'example.com': 1 },
+      })
+
+    renderSearch('cookies')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not reach any recipe sites.')
+    expect(screen.queryByText(/No recipes found/)).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /try again/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('1 result found')).toBeInTheDocument()
+    })
+  })
+
+  it('warns when some sources did not respond', async () => {
+    vi.mocked(api.recipes.search).mockResolvedValueOnce({
+      results: [{ url: 'https://example.com/r', title: 'Cookies', host: 'example.com', image_url: '', cached_image_url: null, description: '', rating_count: null }],
+      total: 1, page: 1, has_more: false, sites: { 'example.com': 1 }, failed_sources: ['blocked.example'],
+    })
+
+    renderSearch('cookies')
+
+    expect(await screen.findByText(/1 site did not respond/)).toBeInTheDocument()
+  })
+
   it('displays result count', async () => {
     vi.mocked(api.recipes.search).mockResolvedValueOnce({
       results: [{ url: 'https://example.com/recipe', title: 'Test Recipe', host: 'example.com', image_url: '', cached_image_url: null, description: '', rating_count: null }],
