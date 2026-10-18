@@ -4,6 +4,9 @@ import 'sonner/dist/styles.css'
 import './styles/index.css'
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
+import { installStaleReload } from './lib/staleReload'
+
+installStaleReload()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
