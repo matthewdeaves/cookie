@@ -344,7 +344,7 @@
     display: flex;
     -webkit-flex-wrap: wrap;
     flex-wrap: wrap;
-    margin: -0.5rem;
+    margin: -0.25rem;
 }
 
 /* Discover Card */
@@ -363,7 +363,7 @@
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
     /* Responsive grid sizing */
     width: 100%;
-    margin: 0.5rem;
+    margin: 0.25rem;
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
 }
@@ -371,14 +371,14 @@
 /* Tablet: 2 columns */
 @media (min-width: 640px) {
     .discover-card {
-        width: calc(50% - 1rem);
+        width: calc(50% - 0.5rem);
     }
 }
 
 /* Desktop: 3 columns */
 @media (min-width: 1024px) {
     .discover-card {
-        width: calc(33.333% - 1rem);
+        width: calc(33.333% - 0.5rem);
     }
 }
 
@@ -577,7 +577,7 @@
 
 .recipe-card-image {
     position: relative;
-    padding-top: 75%; /* 4:3 aspect ratio */
+    padding-top: 66.667%; /* 3:2, shorter thumbnails for small iPads */
     background-color: #e8e1d8;
     overflow: hidden;
 }
@@ -708,7 +708,7 @@
 }
 
 .recipe-card-content {
-    padding: 0.75rem;
+    padding: 0.5rem 0.625rem;
 }
 
 .recipe-card-title {
@@ -948,7 +948,7 @@
 
 .search-result-image {
     position: relative;
-    padding-top: 75%; /* 4:3 aspect ratio */
+    padding-top: 66.667%; /* 3:2, shorter thumbnails for small iPads */
     background-color: #e8e1d8;
     overflow: hidden;
 }

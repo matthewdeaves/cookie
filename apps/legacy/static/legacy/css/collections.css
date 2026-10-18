@@ -6,18 +6,24 @@
     display: flex;
     -webkit-flex-wrap: wrap;
     flex-wrap: wrap;
-    margin: -0.5rem;
+    margin: -0.25rem;
 }
 
 .collection-list > * {
     width: 50%;
-    padding: 0.5rem;
+    padding: 0.25rem;
     box-sizing: border-box;
 }
 
 @media (min-width: 640px) {
     .collection-list > * {
         width: 33.333%;
+    }
+}
+
+@media (min-width: 960px) {
+    .collection-list > * {
+        width: 25%;
     }
 }
 
