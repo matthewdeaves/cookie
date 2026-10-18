@@ -48,7 +48,7 @@ class SearchImageCache:
     # Images that failed recently are not retried on every search request.
     FAILED_RETRY_AFTER = timedelta(hours=6)
     # Browser profiles tried per image (the full list is for page fetches).
-    IMAGE_PROFILE_ATTEMPTS = 2
+    IMAGE_PROFILE_ATTEMPTS = 3
 
     async def filter_attemptable(self, urls: list) -> list:
         """Drop URLs whose download failed recently so dead images stop costing time."""
@@ -134,8 +134,7 @@ class SearchImageCache:
                 cached.image = ContentFile(converted_data, name=filename)
                 cached.status = CachedSearchImage.STATUS_SUCCESS
                 await sync_to_async(cached.save)(update_fields=["image", "status"])
-                logger.info("Cached 1 search image")
-                logger.debug("Cached image from %s", url)
+                logger.debug("Cached search image from %s", url)
 
             except Exception as e:
                 logger.error("Failed to cache search image: %s", e)

@@ -7,7 +7,7 @@ All endpoints are scoped to the current profile (from session).
 from typing import List, Optional
 
 from django.db import IntegrityError
-from django.db.models import Max
+from django.db.models import Max, Prefetch
 from django.shortcuts import get_object_or_404
 from ninja import Router, Schema, Status
 
@@ -120,11 +120,13 @@ class CollectionOut(Schema):
 
     @staticmethod
     def resolve_recipe_count(obj):
-        return obj.items.count()
+        # .all() reuses the prefetch cache (list view); .count() would query per collection.
+        return len(obj.items.all())
 
     @staticmethod
     def resolve_cover_image(obj):
-        first_item = obj.items.select_related("recipe").first()
+        items = obj.items.all()
+        first_item = items[0] if items else None
         if first_item:
             recipe = first_item.recipe
             if recipe.image:
@@ -167,7 +169,9 @@ class CollectionDetailOut(Schema):
 def list_collections(request):
     """List all collections for the current profile."""
     profile = get_current_profile(request)
-    return RecipeCollection.objects.filter(profile=profile).prefetch_related("items")
+    return RecipeCollection.objects.filter(profile=profile).prefetch_related(
+        Prefetch("items", queryset=RecipeCollectionItem.objects.select_related("recipe"))
+    )
 
 
 @collections_router.post("/", response={201: CollectionOut, 400: ErrorOut, 429: ErrorOut}, auth=SessionAuth())

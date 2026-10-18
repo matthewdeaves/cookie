@@ -634,11 +634,11 @@ class TestConcurrencyLimits:
 
     def test_max_concurrent_default(self, image_cache):
         """Test default max concurrent downloads."""
-        assert image_cache.MAX_CONCURRENT == 5
+        assert image_cache.MAX_CONCURRENT == 8
 
     def test_download_timeout_default(self, image_cache):
         """Test default download timeout."""
-        assert image_cache.DOWNLOAD_TIMEOUT == 15
+        assert image_cache.DOWNLOAD_TIMEOUT == 8
 
     @patch("apps.recipes.services.image_cache.AsyncSession")
     async def test_semaphore_limits_concurrency(self, mock_session_class, image_cache):

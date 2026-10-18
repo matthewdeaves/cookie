@@ -276,10 +276,18 @@ All API endpoints use Django Ninja and are prefixed with `/api/`.
 |--------|----------|-------------|
 | GET | `/` | List saved recipes (paginated) |
 | POST | `/scrape/` | Import recipe from URL |
-| GET | `/search/` | Search across sites |
+| GET | `/search/` | Search across sites (see below) |
 | GET | `/cache/health/` | Cache statistics |
 | GET | `/{id}/` | Get recipe |
 | DELETE | `/{id}/` | Delete recipe |
+
+Search behaviour: all enabled sources are queried concurrently with an 18-second overall deadline
+(10 s per request). Sources that error or time out are listed in `failed_sources`; if every source
+fails the endpoint returns `503` instead of an empty list, and a failed search is never cached.
+Complete results are cached for 5 days, partial ones for 5 minutes and empty ones for 1 hour.
+Only live (uncached) searches count against the 60/hour rate limit. Thumbnails are cached best-effort
+within a 4-second budget; images that fail are not retried for 6 hours and clients fall back to the
+original image URL.
 
 ### Favorites (`/api/favorites/`)
 | Method | Endpoint | Description |

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from django.conf import settings
-from django.db.models import Count, Q
+from django.db.models import Count
 from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema, Status
 
@@ -107,6 +107,39 @@ class ErrorSchema(Schema):
     message: str
 
 
+def _profile_stat_counts() -> dict:
+    """Per-profile row counts for the selector, one small grouped query per table.
+
+    Annotating Profile with several Count() joins multiplies the joined rows
+    (favorites x history x ...), which gets slow as history grows; the profile
+    picker is the first screen every device loads.
+    """
+    from apps.ai.models import AIDiscoverySuggestion
+    from apps.recipes.models import (
+        Recipe,
+        RecipeCollection,
+        RecipeCollectionItem,
+        RecipeFavorite,
+        RecipeViewHistory,
+        ServingAdjustment,
+    )
+
+    sources = {
+        "favorites": (RecipeFavorite.objects.all(), "profile_id"),
+        "collections": (RecipeCollection.objects.all(), "profile_id"),
+        "collection_items": (RecipeCollectionItem.objects.all(), "collection__profile_id"),
+        "remixes": (Recipe.objects.filter(is_remix=True, remix_profile__isnull=False), "remix_profile_id"),
+        "view_history": (RecipeViewHistory.objects.all(), "profile_id"),
+        "scaling_cache": (ServingAdjustment.objects.all(), "profile_id"),
+        "discover_cache": (AIDiscoverySuggestion.objects.all(), "profile_id"),
+    }
+    counts: dict[int, dict[str, int]] = {}
+    for stat, (queryset, group_field) in sources.items():
+        for profile_id, total in queryset.order_by().values_list(group_field).annotate(total=Count("pk")):
+            counts.setdefault(profile_id, {})[stat] = total
+    return counts
+
+
 @router.get("/", response=List[ProfileWithStatsSchema], auth=HomeOnlyAnonAuth())
 def list_profiles(request):
     """List all profiles with stats.
@@ -116,21 +149,12 @@ def list_profiles(request):
     middleware (above URL dispatch), so probes cannot distinguish this path
     from never-existed paths.
     """
-    from apps.recipes.models import RecipeCollectionItem
-
-    profiles = Profile.objects.annotate(
-        favorites_count=Count("favorites", distinct=True),
-        collections_count=Count("collections", distinct=True),
-        remixes_count=Count("remixes", filter=Q(remixes__is_remix=True), distinct=True),
-        view_history_count=Count("view_history", distinct=True),
-        scaling_cache_count=Count("serving_adjustments", distinct=True),
-        discover_cache_count=Count("ai_discovery_suggestions", distinct=True),
-    ).order_by("-created_at")
+    profiles = list(Profile.objects.order_by("-created_at"))
+    counts = _profile_stat_counts()
 
     result = []
     for p in profiles:
-        collection_items_count = RecipeCollectionItem.objects.filter(collection__profile=p).count()
-
+        stats = counts.get(p.id, {})
         result.append(
             ProfileWithStatsSchema(
                 id=p.id,
@@ -141,13 +165,13 @@ def list_profiles(request):
                 unlimited_ai=p.unlimited_ai,
                 created_at=p.created_at,
                 stats=ProfileStatsSchema(
-                    favorites=p.favorites_count,
-                    collections=p.collections_count,
-                    collection_items=collection_items_count,
-                    remixes=p.remixes_count,
-                    view_history=p.view_history_count,
-                    scaling_cache=p.scaling_cache_count,
-                    discover_cache=p.discover_cache_count,
+                    favorites=stats.get("favorites", 0),
+                    collections=stats.get("collections", 0),
+                    collection_items=stats.get("collection_items", 0),
+                    remixes=stats.get("remixes", 0),
+                    view_history=stats.get("view_history", 0),
+                    scaling_cache=stats.get("scaling_cache", 0),
+                    discover_cache=stats.get("discover_cache", 0),
                 ),
             )
         )
