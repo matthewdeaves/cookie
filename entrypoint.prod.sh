@@ -92,7 +92,13 @@ su -s /bin/bash app -c "supercronic /app/crontab" &
 SUPERCRONIC_PID=$!
 
 # Start Nginx in background (requires root for port 80)
-echo "Starting Nginx on 0.0.0.0:80..."
+# NGINX_LISTEN overrides the listen directive, e.g. "127.0.0.1:8150" when the container shares the host network
+# and another reverse proxy owns port 80. Unset = "80", as before.
+if [ -n "${NGINX_LISTEN:-}" ]; then
+    case "$NGINX_LISTEN" in *[!0-9.:]*) echo "FATAL: NGINX_LISTEN must be [addr:]port"; exit 1;; esac
+    sed -i "s/listen 80;/listen ${NGINX_LISTEN};/" /etc/nginx/nginx.conf
+fi
+echo "Starting Nginx on ${NGINX_LISTEN:-0.0.0.0:80}..."
 nginx -g 'daemon off;' &
 NGINX_PID=$!
 
