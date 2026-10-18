@@ -10,10 +10,9 @@ def get_client_ip(request):
     """Extract the real client IP for django-ratelimit.
 
     Uses rightmost X-Forwarded-For entry as the authoritative source:
-    - Cloudflare strips any client-injected X-Forwarded-For entries and
-      appends the real client IP; Traefik trusts Cloudflare's XFF via
-      forwardedHeaders.trustedIPs, so the rightmost entry is always the
-      real client IP as seen by Cloudflare.
+    - The reverse proxy in front of the container appends the address it saw
+      as the last X-Forwarded-For entry, so the rightmost entry cannot be
+      forged by the client (earlier entries can).
     - REMOTE_ADDR is the final fallback for local dev / direct traffic.
 
     CF-Connecting-IP was intentionally removed (pentest round 10, F-26):

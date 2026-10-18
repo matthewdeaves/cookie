@@ -43,14 +43,6 @@ services:
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       - LOG_FORMAT=${LOG_FORMAT:-json}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
-    # Uncomment for CloudWatch log shipping (requires IAM role with logs:* permissions)
-    # logging:
-    #   driver: awslogs
-    #   options:
-    #     awslogs-group: /cookie/web
-    #     awslogs-region: ${AWS_REGION:-eu-west-2}
-    #     awslogs-stream-prefix: web
-    #     awslogs-create-group: "true"
     depends_on:
       db:
         condition: service_healthy

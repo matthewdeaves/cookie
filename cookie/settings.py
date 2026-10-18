@@ -264,8 +264,8 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 63072000  # 2 years, matching nginx.prod.conf
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    # Default false: when behind a TLS-terminating proxy (Cloudflare, Traefik),
-    # Django sees plain HTTP and redirect-loops. The proxy enforces HTTPS at the edge.
+    # Default false: when behind a TLS-terminating proxy (e.g. the home server's nginx),
+    # Django sees plain HTTP and redirect-loops. The proxy enforces HTTPS.
     SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "false").lower() == "true"
     SECURE_REDIRECT_EXEMPT = [r"^api/system/health/$", r"^api/system/ready/$"]
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -280,7 +280,7 @@ if not DEBUG:
 
 # Rate limiting (django-ratelimit)
 # Use a callable that safely extracts the first IP from X-Forwarded-For,
-# handling multi-proxy chains (Cloudflare → Traefik → nginx → Django).
+# handling multi-proxy chains (reverse proxy → nginx → Django).
 RATELIMIT_IP_META_KEY = "apps.core.middleware.get_client_ip"
 
 # Logging configuration
