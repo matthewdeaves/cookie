@@ -17,7 +17,6 @@ Before migrating:
 
 2. **Have PostgreSQL available**
    - Docker: Use `docker-compose.prod.yml`
-   - Managed: AWS RDS, DigitalOcean, etc.
    - Local: Install PostgreSQL 14+
 
 ## Migration Steps
@@ -131,9 +130,6 @@ DATABASE_URL=postgres://cookie:password@localhost:5432/cookie  # pragma: allowli
 
 # Docker network
 DATABASE_URL=postgres://cookie:password@db:5432/cookie  # pragma: allowlist secret
-
-# AWS RDS
-DATABASE_URL=postgres://cookie:password@mydb.xxx.us-east-1.rds.amazonaws.com:5432/cookie  # pragma: allowlist secret
 
 # With SSL (managed databases)
 DATABASE_URL=postgres://cookie:password@host:5432/cookie?sslmode=require  # pragma: allowlist secret

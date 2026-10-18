@@ -1,10 +1,9 @@
 #!/bin/bash
 # Database backup script for Cookie
-# Creates a compressed PostgreSQL dump and optionally uploads to S3.
+# Creates a compressed PostgreSQL dump.
 #
 # Usage:
-#   bin/backup-db                     # Local backup only
-#   bin/backup-db --s3 s3://bucket/   # Backup + upload to S3
+#   bin/backup-db
 #
 # Environment variables:
 #   POSTGRES_HOST (default: db)
@@ -27,21 +26,6 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 FILENAME="cookie_${TIMESTAMP}.sql.gz"
 FILEPATH="${BACKUP_DIR}/${FILENAME}"
 
-# Parse arguments
-S3_TARGET=""
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --s3)
-            S3_TARGET="$2"
-            shift 2
-            ;;
-        *)
-            echo "Unknown option: $1"
-            exit 1
-            ;;
-    esac
-done
-
 # Create backup directory
 mkdir -p "${BACKUP_DIR}"
 
@@ -61,13 +45,6 @@ pg_dump \
 
 FILESIZE=$(du -h "${FILEPATH}" | cut -f1)
 echo "Backup created: ${FILEPATH} (${FILESIZE})"
-
-# Upload to S3 if configured
-if [ -n "${S3_TARGET}" ]; then
-    echo "Uploading to ${S3_TARGET}..."
-    aws s3 cp "${FILEPATH}" "${S3_TARGET}${FILENAME}"
-    echo "Upload complete."
-fi
 
 # Clean up old local backups
 if [ -d "${BACKUP_DIR}" ]; then
