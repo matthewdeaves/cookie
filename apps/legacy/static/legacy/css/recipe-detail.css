@@ -209,7 +209,7 @@
     -webkit-align-items: center;
     align-items: center;
     padding: 0.5rem 1rem;
-    background-color: #6b8e5f;
+    background-color: #55774a;
     border: none;
     border-radius: 9999px;
     color: #ffffff;
@@ -225,7 +225,7 @@
 }
 
 .cook-btn:hover {
-    background-color: #5e7f53;
+    background-color: #46663c;
 }
 
 /* Meta Section */
@@ -432,7 +432,7 @@
 }
 
 .linked-recipe-dot-original {
-    background-color: #6b8e5f;
+    background-color: #55774a;
 }
 
 .linked-recipe-dot-remix {
@@ -477,8 +477,8 @@
 }
 
 .tab.active {
-    color: #6b8e5f;
-    border-bottom-color: #6b8e5f;
+    color: #55774a;
+    border-bottom-color: #55774a;
 }
 
 /* Tab Contents */
@@ -537,7 +537,7 @@
     justify-content: center;
     width: 1.75rem;
     height: 1.75rem;
-    background-color: #6b8e5f;
+    background-color: #55774a;
     border-radius: 50%;
     font-size: 0.875rem;
     font-weight: 500;
@@ -581,7 +581,7 @@
     justify-content: center;
     width: 1.75rem;
     height: 1.75rem;
-    background-color: #6b8e5f;
+    background-color: #55774a;
     border-radius: 50%;
     font-size: 0.875rem;
     font-weight: 500;
@@ -821,7 +821,7 @@
     align-items: center;
     -webkit-justify-content: center;
     justify-content: center;
-    color: #6b8e5f;
+    color: #55774a;
     margin-right: 0.5rem;
 }
 
@@ -895,7 +895,7 @@
     width: 1.25rem;
     height: 1.25rem;
     border: 2px solid #e8e1d8;
-    border-top-color: #6b8e5f;
+    border-top-color: #55774a;
     border-radius: 50%;
     margin-right: 0.5rem;
     -webkit-animation: spin 1s linear infinite;
@@ -939,7 +939,7 @@
 }
 
 .remix-chip.active {
-    background-color: #6b8e5f;
+    background-color: #55774a;
     color: #ffffff;
 }
 
@@ -1110,7 +1110,7 @@
 }
 
 .tips-loading-icon svg {
-    color: #6b8e5f;
+    color: #55774a;
 }
 
 /* Generate Tips Button */

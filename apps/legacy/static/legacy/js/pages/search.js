@@ -35,6 +35,11 @@ Cookie.pages.search = (function() {
         loading: null,
         resultsGrid: null,
         emptyState: null,
+        errorState: null,
+        errorText: null,
+        retryBtn: null,
+        partialNotice: null,
+        loadingText: null,
         pagination: null,
         endOfResults: null,
         loadMoreBtn: null,
@@ -54,6 +59,11 @@ Cookie.pages.search = (function() {
         elements.loading = document.getElementById('loading');
         elements.resultsGrid = document.getElementById('results-grid');
         elements.emptyState = document.getElementById('empty-state');
+        elements.errorState = document.getElementById('error-state');
+        elements.errorText = document.getElementById('error-text');
+        elements.retryBtn = document.getElementById('retry-btn');
+        elements.partialNotice = document.getElementById('partial-notice');
+        elements.loadingText = document.getElementById('loading-text');
         elements.pagination = document.getElementById('pagination');
         elements.endOfResults = document.getElementById('end-of-results');
         elements.loadMoreBtn = document.getElementById('load-more-btn');
@@ -84,6 +94,13 @@ Cookie.pages.search = (function() {
                     e.preventDefault();
                     importFromUrlInput(query, searchInput);
                 }
+            });
+        }
+
+        // Retry after a failed search
+        if (elements.retryBtn) {
+            elements.retryBtn.addEventListener('click', function() {
+                searchRecipes(1, true);
             });
         }
 
@@ -149,8 +166,14 @@ Cookie.pages.search = (function() {
             Cookie.utils.showElement(elements.loading);
             Cookie.utils.hideElement(elements.resultsGrid);
             Cookie.utils.hideElement(elements.emptyState);
+            Cookie.utils.hideElement(elements.errorState);
+            Cookie.utils.hideElement(elements.partialNotice);
             Cookie.utils.hideElement(elements.pagination);
             Cookie.utils.hideElement(elements.endOfResults);
+            if (elements.searchCount) {
+                elements.searchCount.textContent = '';
+            }
+            startLoadingProgress();
         } else {
             // Show loading state on button
             if (elements.loadMoreBtn) {
@@ -168,10 +191,10 @@ Cookie.pages.search = (function() {
 
         Cookie.ajax.get(url, function(error, response) {
             state.loading = false;
+            stopLoadingProgress();
 
             if (error) {
-                Cookie.utils.hideElement(elements.loading);
-                Cookie.toast.error('Search failed. Please try again.');
+                handleSearchError(error, reset);
                 return;
             }
 
@@ -185,6 +208,7 @@ Cookie.pages.search = (function() {
 
                 state.results = response.results;
                 state.sites = response.sites;
+                showPartialNotice(response.failed_sources || []);
                 renderSourceFilters();
             } else {
                 // Append results
@@ -199,7 +223,75 @@ Cookie.pages.search = (function() {
 
             // Start image polling for uncached images
             startImagePolling(response.results, state.query, page);
-        });
+        }, { timeout: 45000 });
+    }
+
+    /**
+     * Progress text for a search that can legitimately take 10-20 seconds
+     */
+    var progressTimer = null;
+
+    function startLoadingProgress() {
+        stopLoadingProgress();
+        var started = new Date().getTime();
+        setLoadingText('Searching recipe sites...');
+        progressTimer = setInterval(function() {
+            var seconds = (new Date().getTime() - started) / 1000;
+            if (seconds >= 12) {
+                setLoadingText('Almost there. Waiting on the slowest sites...');
+            } else if (seconds >= 5) {
+                setLoadingText('Still searching. Some sites are slow to answer...');
+            }
+        }, 1000);
+    }
+
+    function stopLoadingProgress() {
+        if (progressTimer) {
+            clearInterval(progressTimer);
+            progressTimer = null;
+        }
+    }
+
+    function setLoadingText(text) {
+        if (elements.loadingText) {
+            elements.loadingText.textContent = text;
+        }
+    }
+
+    /**
+     * A failed search is shown as an error with a retry button, never as
+     * "No recipes found". Failed "load more" keeps the results already shown.
+     */
+    function handleSearchError(error, reset) {
+        Cookie.utils.hideElement(elements.loading);
+        var message = (error.status === 429 || error.status === 503 || error.status === 0)
+            ? error.message
+            : 'The search did not complete. Please try again.';
+
+        if (reset) {
+            if (elements.errorText) {
+                elements.errorText.textContent = message;
+            }
+            Cookie.utils.showElement(elements.errorState);
+            return;
+        }
+
+        Cookie.toast.error(message);
+        if (elements.loadMoreBtn) {
+            elements.loadMoreBtn.textContent = 'Load More';
+            elements.loadMoreBtn.disabled = false;
+        }
+    }
+
+    function showPartialNotice(failedSources) {
+        if (!elements.partialNotice) return;
+        if (failedSources.length === 0) {
+            Cookie.utils.hideElement(elements.partialNotice);
+            return;
+        }
+        var noun = failedSources.length === 1 ? '1 site' : failedSources.length + ' sites';
+        elements.partialNotice.textContent = noun + ' did not respond, so these results may be incomplete.';
+        Cookie.utils.showElement(elements.partialNotice);
     }
 
     /**

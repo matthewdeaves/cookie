@@ -16,11 +16,14 @@
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
                 <input
-                    type="text"
+                    type="search"
                     id="search-input"
                     name="q"
                     class="input search-input"
                     placeholder="Search recipes or paste a URL..."
+                    aria-label="Search recipes or paste a recipe URL"
+                    autocapitalize="none"
+                    autocorrect="off"
                     value="{{ query }}"
                 >
             </div>
@@ -35,10 +38,20 @@
         <div class="source-filters mb-4" id="source-filters"></div>
 
         <!-- Loading indicator -->
-        <div id="loading" class="loading">
+        <div id="loading" class="loading loading-inline" role="status" aria-live="polite">
             <div class="spinner"></div>
-            <span>Searching...</span>
+            <span id="loading-text">Searching recipe sites...</span>
         </div>
+
+        <!-- Search failed (distinct from "no recipes found") -->
+        <div id="error-state" class="empty-state hidden" role="alert">
+            <h3 class="empty-state-title">Search did not complete</h3>
+            <p class="empty-state-text" id="error-text">Please try again.</p>
+            <button type="button" id="retry-btn" class="btn btn-primary">Try again</button>
+        </div>
+
+        <!-- Some sources did not answer -->
+        <p id="partial-notice" class="search-partial-notice hidden"></p>
 
         <!-- Results grid -->
         <div id="results-grid" class="results-grid hidden"></div>
@@ -52,7 +65,7 @@
                 </svg>
             </div>
             <h3 class="empty-state-title">No recipes found</h3>
-            <p class="empty-state-text">Try a different search term</p>
+            <p class="empty-state-text">Try a simpler search term, or paste a recipe link to import it.</p>
         </div>
 
         <!-- Load more / End of results -->

@@ -160,7 +160,7 @@
 .header-title {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #6b8e5f;
+    color: #55774a;
 }
 
 .header-back {
@@ -229,7 +229,7 @@
 
 .header-nav-link-active {
     background-color: #f4ede6;
-    color: #6b8e5f;
+    color: #55774a;
 }
 
 .header-nav-link-active-accent {
@@ -431,7 +431,7 @@
 .section-link {
     font-size: 0.875rem;
     font-weight: 500;
-    color: #6b8e5f;
+    color: #55774a;
     text-decoration: none;
 }
 
