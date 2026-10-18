@@ -513,3 +513,38 @@
         width: calc(25% - 0.5rem);
     }
 }
+
+/* ---- Search results and collections (iPad) ---- */
+.results-grid {
+    margin: 0 -0.25rem;
+}
+
+.search-result-card {
+    padding: 0.25rem;
+}
+
+.search-result-content {
+    padding: 0.5rem 0.625rem;
+}
+
+.search-result-host {
+    margin-bottom: 0.25rem;
+}
+
+.search-result-description {
+    margin-bottom: 0.5rem;
+}
+
+@media (min-width: 960px) {
+    .search-result-card {
+        width: 25%;
+    }
+}
+
+.collection-card-image {
+    padding-top: 50%;
+}
+
+.collection-card-content {
+    padding: 0.5rem 0.625rem;
+}

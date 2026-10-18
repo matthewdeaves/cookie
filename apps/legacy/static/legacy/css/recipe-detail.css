@@ -1128,3 +1128,54 @@
 #regenerate-tips-btn {
     margin: 0 auto;
 }
+
+/* ---- iPad: less scrolling on the recipe page ---- */
+@media (min-width: 640px) {
+    .hero {
+        height: 14rem;
+    }
+
+    .meta-toggle {
+        padding: 0.5rem 1rem;
+    }
+
+    .meta-content {
+        padding-bottom: 0.5rem;
+    }
+
+    .tab {
+        padding: 0.5rem 1rem;
+    }
+
+    .tab-contents {
+        padding: 0.75rem 1rem;
+    }
+
+    .ingredient-item {
+        padding: 0.25rem 0;
+    }
+
+    .instruction-item {
+        padding: 0.5rem 0;
+    }
+
+    /* Ingredients in two columns */
+    .ingredient-list {
+        -webkit-column-count: 2;
+        -moz-column-count: 2;
+        column-count: 2;
+        -webkit-column-gap: 2rem;
+        column-gap: 2rem;
+    }
+
+    .ingredient-item {
+        -webkit-column-break-inside: avoid;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+}
+
+.ingredient-item > * + *,
+.instruction-item > * + * {
+    margin-left: 0.5rem;
+}
