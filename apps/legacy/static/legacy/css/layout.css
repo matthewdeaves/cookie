@@ -462,3 +462,54 @@
 .section-link:active {
     text-decoration: underline;
 }
+
+/* ---- Compact vertical spacing (iPad: less scrolling) ---- */
+.container.container-wide .mb-6 { margin-bottom: 0.75rem; }
+.container.container-wide .mb-4 { margin-bottom: 0.5rem; }
+
+.container.container-wide .section {
+    padding: 0.5rem 0;
+}
+
+.container.container-wide .section-header,
+.container.container-wide .section-title {
+    margin-bottom: 0.5rem;
+}
+
+.container.container-wide .section-header .section-title {
+    margin-bottom: 0;
+}
+
+.container.container-wide .input {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.container.container-wide .empty-state {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+}
+
+/* Discover cards: tighter, 4 across in landscape */
+.discover-card {
+    padding: 0.625rem 0.75rem;
+}
+
+.discover-card-header {
+    margin-bottom: 0.25rem;
+}
+
+.discover-card-description {
+    line-height: 1.35;
+    font-size: 0.8125rem;
+}
+
+.discover-card-search {
+    margin-top: 0.375rem;
+}
+
+@media (min-width: 960px) {
+    .discover-card {
+        width: calc(25% - 0.5rem);
+    }
+}
