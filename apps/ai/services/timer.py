@@ -4,7 +4,7 @@ import logging
 
 from ..models import AIPrompt
 from .cache import cache_ai_response, CACHE_TIMEOUT_SHORT
-from .openrouter import OpenRouterService
+from .anthropic_client import AnthropicService
 from .validator import AIResponseValidator
 
 logger = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ def generate_timer_name(step_text: str, duration_minutes: int) -> dict:
     )
 
     # Call AI service
-    service = OpenRouterService()
+    service = AnthropicService()
     response = service.complete(
         system_prompt=prompt.system_prompt,
         user_prompt=user_prompt,

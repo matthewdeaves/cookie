@@ -13,7 +13,7 @@ from apps.core.models import AppSettings
 from apps.recipes.models import Recipe
 
 from .models import AIPrompt
-from .services.openrouter import OpenRouterService, AIUnavailableError, AIResponseError
+from .services.anthropic_client import AnthropicService, AIUnavailableError, AIResponseError
 from .services.tips import generate_tips, clear_tips
 from .services.timer import generate_timer_name
 from .services.selector import repair_selector, get_sources_needing_attention
@@ -140,7 +140,7 @@ def get_ai_status(request):
     - error_code: Machine-readable error code
     """
     settings = AppSettings.get()
-    has_key = bool(settings.openrouter_api_key)
+    has_key = bool(settings.anthropic_api_key)
 
     status = {
         "available": False,
@@ -157,7 +157,7 @@ def get_ai_status(request):
         return status
 
     # Validate key using cached validation
-    is_valid, error_message = OpenRouterService.validate_key_cached()
+    is_valid, error_message = AnthropicService.validate_key_cached()
     status["valid"] = is_valid
     status["available"] = is_valid
 
@@ -183,7 +183,7 @@ def test_api_key(request, data: TestApiKeyIn):
             },
         )
 
-    success, message = OpenRouterService.test_connection(data.api_key)
+    success, message = AnthropicService.test_connection(data.api_key)
     return {
         "success": success,
         "message": message,
@@ -193,15 +193,15 @@ def test_api_key(request, data: TestApiKeyIn):
 @router.post("/save-api-key", response={200: SaveApiKeyOut, 400: ErrorOut, 429: dict}, auth=HomeOnlyAuth())
 @ratelimit(key="ip", rate="20/h", method="POST", block=False)
 def save_api_key(request, data: SaveApiKeyIn):
-    """Save the OpenRouter API key."""
+    """Save the Anthropic API key."""
     if getattr(request, "limited", False):
         return Status(429, {"detail": "Rate limit exceeded. Try again later."})
     settings = AppSettings.get()
-    settings.openrouter_api_key = data.api_key
+    settings.anthropic_api_key = data.api_key
     settings.save()
 
     # Invalidate the validation cache since key was updated
-    OpenRouterService.invalidate_key_cache()
+    AnthropicService.invalidate_key_cache()
 
     return {
         "success": True,
@@ -227,7 +227,7 @@ def _get_prompt_or_error(prompt_type: str):
 def _validate_model(model_id: str):
     """Return a (422, error dict) tuple if model is invalid, else None."""
     try:
-        valid_ids = {m["id"] for m in OpenRouterService().get_available_models()}
+        valid_ids = {m["id"] for m in AnthropicService().get_available_models()}
         if model_id not in valid_ids:
             return Status(
                 422,
@@ -277,9 +277,9 @@ def update_prompt(request, prompt_type: str, data: PromptUpdateIn):
 
 @router.get("/models", response=List[ModelOut], auth=SessionAuth())
 def list_models(request):
-    """List available AI models from OpenRouter."""
+    """List available AI models from Anthropic."""
     try:
-        service = OpenRouterService()
+        service = AnthropicService()
         return service.get_available_models()
     except AIUnavailableError:
         # No API key configured - return empty list

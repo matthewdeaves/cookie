@@ -11,7 +11,7 @@ from apps.profiles.models import Profile
 from apps.recipes.models import RecipeFavorite, RecipeViewHistory
 
 from ..models import AIPrompt, AIDiscoverySuggestion
-from .openrouter import OpenRouterService, AIUnavailableError, AIResponseError
+from .anthropic_client import AnthropicService, AIUnavailableError, AIResponseError
 from .validator import AIResponseValidator, ValidationError
 
 logger = logging.getLogger(__name__)
@@ -142,7 +142,7 @@ def _generate_seasonal_suggestions(profile: Profile) -> List[AIDiscoverySuggesti
     )
 
     try:
-        service = OpenRouterService()
+        service = AnthropicService()
         response = service.complete(
             system_prompt=prompt.system_prompt,
             user_prompt=user_prompt,
@@ -194,7 +194,7 @@ def _generate_recommended_suggestions(profile: Profile) -> List[AIDiscoverySugge
     user_prompt = prompt.format_user_prompt(favorites=history_list)
 
     try:
-        service = OpenRouterService()
+        service = AnthropicService()
         response = service.complete(
             system_prompt=prompt.system_prompt,
             user_prompt=user_prompt,
@@ -246,7 +246,7 @@ def _generate_new_suggestions(profile: Profile) -> List[AIDiscoverySuggestion]:
     user_prompt = prompt.format_user_prompt(history=recent_recipes)
 
     try:
-        service = OpenRouterService()
+        service = AnthropicService()
         response = service.complete(
             system_prompt=prompt.system_prompt,
             user_prompt=user_prompt,

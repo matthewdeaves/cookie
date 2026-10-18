@@ -9,7 +9,7 @@ from apps.profiles.models import Profile
 
 from ..models import AIPrompt
 from .cache import cache_ai_response, CACHE_TIMEOUT_MEDIUM
-from .openrouter import OpenRouterService, AIUnavailableError, AIResponseError
+from .anthropic_client import AnthropicService, AIUnavailableError, AIResponseError
 from .validator import AIResponseValidator, ValidationError
 
 logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ def get_remix_suggestions(recipe_id: int) -> list[str]:
     )
 
     # Call AI service
-    service = OpenRouterService()
+    service = AnthropicService()
     response = service.complete(
         system_prompt=prompt.system_prompt,
         user_prompt=user_prompt,
@@ -111,7 +111,7 @@ def create_remix(
     )
 
     # Call AI service
-    service = OpenRouterService()
+    service = AnthropicService()
     response = service.complete(
         system_prompt=prompt.system_prompt,
         user_prompt=user_prompt,
@@ -233,7 +233,7 @@ def estimate_nutrition(
     )
 
     # Call AI service
-    service = OpenRouterService()
+    service = AnthropicService()
     response = service.complete(
         system_prompt=prompt.system_prompt,
         user_prompt=user_prompt,
@@ -299,7 +299,7 @@ def _generate_tips_background(recipe_id: int):
 
         # Check if AI is available
         settings_obj = AppSettings.get()
-        if not settings_obj.openrouter_api_key:
+        if not settings_obj.anthropic_api_key:
             logger.debug(f"Skipping tips generation for remix {recipe_id}: No API key")
             return
 

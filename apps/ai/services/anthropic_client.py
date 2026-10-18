@@ -1,4 +1,4 @@
-"""OpenRouter API service using the official SDK."""
+"""Anthropic API service using the official SDK."""
 
 import hashlib
 import json
@@ -6,11 +6,14 @@ import logging
 import time
 from typing import Any
 
-from openrouter import OpenRouter
+import anthropic
 
 from apps.core.models import AppSettings
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_MODEL = "claude-haiku-5-5"
+MAX_TOKENS = 4096
 
 
 class AIServiceError(Exception):
@@ -31,8 +34,8 @@ class AIResponseError(AIServiceError):
     pass
 
 
-class OpenRouterService:
-    """Service for interacting with OpenRouter API."""
+class AnthropicService:
+    """Service for interacting with the Anthropic API."""
 
     # Class-level cache for API key validation: {key_hash: (is_valid, timestamp)}
     _key_validation_cache: dict[int, tuple[bool, float]] = {}
@@ -41,10 +44,10 @@ class OpenRouterService:
     def __init__(self, api_key: str | None = None):
         if api_key is None:
             settings = AppSettings.get()
-            api_key = settings.openrouter_api_key
+            api_key = settings.anthropic_api_key
 
         if not api_key:
-            raise AIUnavailableError("OpenRouter API key not configured")
+            raise AIUnavailableError("Anthropic API key not configured")
 
         self.api_key = api_key
 
@@ -68,119 +71,99 @@ class OpenRouterService:
             logger.error(f"Failed to parse AI response as JSON: {content}")
             raise AIResponseError(f"Invalid JSON in AI response: {e}")
 
+    @staticmethod
+    def _extract_text(response: Any) -> str:
+        """Concatenate the text blocks of a Messages API response."""
+        blocks = getattr(response, "content", None)
+        if not blocks:
+            raise AIResponseError("No content in Anthropic response")
+
+        text = "".join(b.text for b in blocks if getattr(b, "type", None) == "text" and isinstance(b.text, str))
+        if not text:
+            raise AIResponseError("No text content in Anthropic response")
+        return text
+
+    def _build_result(self, response: Any, json_response: bool) -> dict[str, Any]:
+        content = self._extract_text(response)
+        if json_response:
+            return self._parse_json_response(content)
+        return {"content": content}
+
     def complete(
         self,
         system_prompt: str,
         user_prompt: str,
-        model: str = "anthropic/claude-haiku-4.5",
+        model: str = DEFAULT_MODEL,
         json_response: bool = True,
         timeout: int = 30,
     ) -> dict[str, Any]:
-        """Send a completion request to OpenRouter."""
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ]
-
-        timeout_ms = timeout * 1000
-
+        """Send a completion request to the Anthropic Messages API."""
         try:
-            with OpenRouter(api_key=self.api_key) as client:
-                response = client.chat.send(
-                    messages=messages,
+            with anthropic.Anthropic(api_key=self.api_key, timeout=timeout, max_retries=1) as client:
+                response = client.messages.create(
                     model=model,
-                    stream=False,
-                    timeout_ms=timeout_ms,
+                    max_tokens=MAX_TOKENS,
+                    system=system_prompt,
+                    messages=[{"role": "user", "content": user_prompt}],
                 )
-
-            if not response or not hasattr(response, "choices"):
-                raise AIResponseError("Invalid response structure from OpenRouter")
-
-            if not response.choices:
-                raise AIResponseError("No choices in OpenRouter response")
-
-            content = response.choices[0].message.content
-
-            if json_response:
-                return self._parse_json_response(content)
-
-            return {"content": content}
+            return self._build_result(response, json_response)
 
         except AIServiceError:
             raise
         except Exception as e:
-            logger.exception("OpenRouter API error")
-            raise AIResponseError(f"OpenRouter API error: {e}")
+            logger.exception("Anthropic API error")
+            raise AIResponseError(f"Anthropic API error: {e}")
 
     async def complete_async(
         self,
         system_prompt: str,
         user_prompt: str,
-        model: str = "anthropic/claude-haiku-4.5",
+        model: str = DEFAULT_MODEL,
         json_response: bool = True,
         timeout: int = 30,
     ) -> dict[str, Any]:
         """Async version of complete()."""
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ]
-
-        timeout_ms = timeout * 1000
-
         try:
-            async with OpenRouter(api_key=self.api_key) as client:
-                response = await client.chat.send_async(
-                    messages=messages,
+            async with anthropic.AsyncAnthropic(api_key=self.api_key, timeout=timeout, max_retries=1) as client:
+                response = await client.messages.create(
                     model=model,
-                    stream=False,
-                    timeout_ms=timeout_ms,
+                    max_tokens=MAX_TOKENS,
+                    system=system_prompt,
+                    messages=[{"role": "user", "content": user_prompt}],
                 )
-
-            if not response or not hasattr(response, "choices"):
-                raise AIResponseError("Invalid response structure from OpenRouter")
-
-            if not response.choices:
-                raise AIResponseError("No choices in OpenRouter response")
-
-            content = response.choices[0].message.content
-
-            if json_response:
-                return self._parse_json_response(content)
-
-            return {"content": content}
+            return self._build_result(response, json_response)
 
         except AIServiceError:
             raise
         except Exception as e:
-            logger.exception("OpenRouter API error")
-            raise AIResponseError(f"OpenRouter API error: {e}")
+            logger.exception("Anthropic API error")
+            raise AIResponseError(f"Anthropic API error: {e}")
 
     @classmethod
     def is_available(cls) -> bool:
         """Check if AI service is available (API key configured)."""
         settings = AppSettings.get()
-        return bool(settings.openrouter_api_key)
+        return bool(settings.anthropic_api_key)
 
     def get_available_models(self) -> list[dict[str, str]]:
-        """Get list of available models from OpenRouter."""
+        """Get list of available models from the Anthropic API."""
         try:
-            with OpenRouter(api_key=self.api_key) as client:
-                response = client.models.list()
+            with anthropic.Anthropic(api_key=self.api_key, timeout=30, max_retries=1) as client:
+                page = client.models.list(limit=100)
 
-            if not response or not hasattr(response, "data"):
-                raise AIResponseError("Invalid response from OpenRouter models API")
+            if not page or not hasattr(page, "data"):
+                raise AIResponseError("Invalid response from Anthropic models API")
 
             models = [
-                {"id": model.id, "name": model.name}
-                for model in response.data
-                if hasattr(model, "id") and hasattr(model, "name")
+                {"id": model.id, "name": getattr(model, "display_name", None) or model.id}
+                for model in page.data
+                if getattr(model, "id", None)
             ]
             return sorted(models, key=lambda m: m["name"].lower())
         except AIServiceError:
             raise
         except Exception as e:
-            logger.exception("Failed to fetch OpenRouter models")
+            logger.exception("Failed to fetch Anthropic models")
             raise AIResponseError(f"Failed to fetch available models: {e}")
 
     @classmethod
@@ -191,7 +174,7 @@ class OpenRouterService:
             service.complete(
                 system_prompt='Respond with exactly: {"status": "ok"}',
                 user_prompt="Test connection",
-                model="anthropic/claude-3.5-haiku",
+                model=DEFAULT_MODEL,
                 json_response=True,
                 timeout=10,
             )
@@ -208,7 +191,7 @@ class OpenRouterService:
         """Validate API key with caching to avoid excessive API calls."""
         if api_key is None:
             settings = AppSettings.get()
-            api_key = settings.openrouter_api_key
+            api_key = settings.anthropic_api_key
 
         if not api_key:
             return False, "No API key configured"

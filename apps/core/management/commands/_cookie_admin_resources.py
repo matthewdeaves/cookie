@@ -130,9 +130,9 @@ class ResourcesMixin:
         from apps.core.models import AppSettings
         from apps.recipes.models import SearchSource
 
-        if not AppSettings.get().openrouter_api_key:
+        if not AppSettings.get().anthropic_api_key:
             self._error(
-                "sources repair requires OPENROUTER_API_KEY or AppSettings.openrouter_api_key to be set.",
+                "sources repair requires ANTHROPIC_API_KEY or AppSettings.anthropic_api_key to be set.",
                 options,
                 code=2,
             )

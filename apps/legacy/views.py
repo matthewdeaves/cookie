@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from apps.core.models import AppSettings
 from apps.profiles.models import Profile
 from apps.ai.models import AIPrompt
-from apps.ai.services.openrouter import OpenRouterService, AIUnavailableError, AIResponseError
+from apps.ai.services.anthropic_client import AnthropicService, AIUnavailableError, AIResponseError
 from apps.recipes.models import (
     Recipe,
     RecipeCollection,
@@ -70,9 +70,9 @@ def require_admin(view_func):
 def _is_ai_available() -> bool:
     """Check if AI features are available (key configured AND valid)."""
     settings = AppSettings.get()
-    if not settings.openrouter_api_key:
+    if not settings.anthropic_api_key:
         return False
-    is_valid, _ = OpenRouterService.validate_key_cached()
+    is_valid, _ = AnthropicService.validate_key_cached()
     return is_valid
 
 
@@ -404,7 +404,7 @@ def settings(request):
         ai_available = _is_ai_available()
         prompts = list(AIPrompt.objects.all().order_by("name"))
         try:
-            service = OpenRouterService()
+            service = AnthropicService()
             models = service.get_available_models()
         except (AIUnavailableError, AIResponseError):
             models = []

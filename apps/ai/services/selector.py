@@ -6,7 +6,7 @@ from typing import Optional
 from apps.recipes.models import SearchSource
 
 from ..models import AIPrompt
-from .openrouter import OpenRouterService, AIUnavailableError, AIResponseError
+from .anthropic_client import AnthropicService, AIUnavailableError, AIResponseError
 from .validator import AIResponseValidator, ValidationError
 
 logger = logging.getLogger(__name__)
@@ -63,7 +63,7 @@ def repair_selector(
     )
 
     # Call AI service
-    service = OpenRouterService()
+    service = AnthropicService()
     response = service.complete(
         system_prompt=prompt.system_prompt,
         user_prompt=user_prompt,
