@@ -25,7 +25,8 @@ export default function CreateCollectionForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+          aria-label="Cancel"
+          className="inline-flex h-11 w-11 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <X className="h-5 w-5" />
         </button>

@@ -82,8 +82,11 @@ export default function AddToCollectionDropdown({
     <div ref={dropdownRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="rounded-full bg-black/40 p-2 text-white backdrop-blur-sm transition-colors hover:text-primary"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:text-primary"
         title="Add to collection"
+        aria-label="Add to collection"
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
       >
         <FolderPlus className="h-5 w-5" />
       </button>

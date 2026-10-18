@@ -95,12 +95,14 @@ function SearchContent({ query, results, hasMore, sites, selectedSource, setSele
         {displayCount} {displayCount === 1 ? 'result' : 'results'} found
       </p>
       {failedSources.length > 0 && (
-        <p className="mb-4 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
-          {failedSources.length === 1 ? '1 site' : `${failedSources.length} sites`} did not respond, so these results may be incomplete.{' '}
+        <div className="mb-4 flex flex-col items-start rounded-lg bg-muted px-3 pt-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:gap-x-4 sm:py-1">
+          <p className="sm:py-2">
+            {failedSources.length === 1 ? '1 site' : `${failedSources.length} sites`} did not respond, so these results may be incomplete.
+          </p>
           <button type="button" onClick={retry} className="min-h-11 font-medium text-primary underline underline-offset-2">
             Search again
           </button>
-        </p>
+        </div>
       )}
       <SourceFilterChips sites={sites} selectedSource={selectedSource} onSelectSource={setSelectedSource} />
       {results.length > 0 ? (

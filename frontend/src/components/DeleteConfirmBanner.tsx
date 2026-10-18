@@ -20,14 +20,14 @@ export default function DeleteConfirmBanner({
         <div className="flex gap-2">
           <button
             onClick={onCancel}
-            className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="min-h-11 rounded-lg px-4 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={deleting}
-            className="rounded-lg bg-destructive px-3 py-1.5 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:opacity-50"
+            className="min-h-11 rounded-lg bg-destructive px-4 py-1.5 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:opacity-50"
           >
             {deleting ? 'Deleting...' : 'Delete'}
           </button>

@@ -54,7 +54,8 @@ export default function PlayMode() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    // data-no-ptr: a pull-down at the top of this screen must not reload the page and wipe running timers.
+    <div data-no-ptr className="flex min-h-screen flex-col bg-background">
       <PlayModeHeader recipe={recipe} currentStep={currentStep} totalSteps={totalSteps} progress={progress} onExit={handleExit} />
       <div className={cn('flex min-h-0 flex-1 overflow-hidden', isLandscape ? 'flex-row' : 'flex-col')}>
         <div className={cn('flex flex-col', isLandscape ? 'min-w-0 flex-[3]' : 'flex-1')}>

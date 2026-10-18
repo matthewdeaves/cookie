@@ -46,12 +46,13 @@ function FavoriteButton({ isFavorite, onClick }: {
     <button
       onClick={onClick}
       className={cn(
-        'absolute right-2 top-2 rounded-full bg-background/80 p-2 backdrop-blur-sm transition-colors',
+        'absolute right-1 top-1 inline-flex h-11 w-11 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm transition-colors',
         isFavorite
           ? 'text-accent hover:bg-background'
           : 'text-muted-foreground hover:bg-background hover:text-accent'
       )}
       aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+      aria-pressed={isFavorite}
     >
       <Heart
         className={cn('h-5 w-5', isFavorite && 'fill-current')}
@@ -86,10 +87,10 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
     <button
       onClick={handleClick}
       className={cn(
-        'absolute right-2 top-2 flex items-center gap-1.5 rounded-full backdrop-blur-sm transition-colors',
+        'absolute right-1 top-1 flex min-h-11 items-center justify-center gap-1.5 rounded-full backdrop-blur-sm transition-colors',
         confirming
-          ? 'bg-destructive px-3 py-2 text-destructive-foreground hover:bg-destructive/90'
-          : 'bg-background/80 p-2 text-muted-foreground hover:bg-background hover:text-destructive'
+          ? 'bg-destructive px-3 text-destructive-foreground hover:bg-destructive/90'
+          : 'w-11 bg-background/80 text-muted-foreground hover:bg-background hover:text-destructive'
       )}
       aria-label={confirming ? 'Tap again to confirm delete' : 'Delete recipe'}
       title={confirming ? 'Tap again to confirm' : 'Delete recipe'}
@@ -102,15 +103,15 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
 
 function RecipeMeta({ recipe }: { recipe: Recipe }) {
   return (
-    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-      <span className="truncate">{recipe.host}</span>
-      {recipe.total_time && (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+      <span className="max-w-full truncate">{recipe.host}</span>
+      {!!recipe.total_time && (
         <span className="flex shrink-0 items-center gap-1">
           <Clock className="h-3 w-3" />
           {formatTime(recipe.total_time)}
         </span>
       )}
-      {recipe.rating && (
+      {!!recipe.rating && (
         <span className="flex shrink-0 items-center gap-1">
           <Star className="h-3 w-3 fill-star text-star" />
           {recipe.rating.toFixed(1)}
@@ -145,6 +146,19 @@ export default function RecipeCard({
         onClick && 'cursor-pointer'
       )}
       onClick={() => onClick?.(recipe)}
+      // Keyboard access: the card behaves like a link. Ignore keys that bubble
+      // up from the favorite/delete buttons inside it.
+      {...(onClick ? {
+        role: 'link',
+        tabIndex: 0,
+        'aria-label': recipe.title,
+        onKeyDown: (e: React.KeyboardEvent) => {
+          if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault()
+            onClick(recipe)
+          }
+        },
+      } : {})}
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">

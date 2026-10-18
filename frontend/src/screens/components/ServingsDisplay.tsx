@@ -26,17 +26,19 @@ function AdjustableServings({
         <button
           onClick={() => onServingChange(-1)}
           disabled={servings <= 1 || scalingLoading}
-          className="rounded-md bg-muted p-1 text-foreground transition-colors hover:bg-muted/80 disabled:opacity-50"
+          aria-label="Fewer servings"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-md bg-muted text-foreground transition-colors hover:bg-muted/80 disabled:opacity-50"
         >
           <Minus className="h-4 w-4" />
         </button>
-        <span className="w-8 text-center font-medium text-foreground">
+        <span className="w-8 text-center font-medium text-foreground" aria-live="polite">
           {scalingLoading ? '...' : servings}
         </span>
         <button
           onClick={() => onServingChange(1)}
           disabled={scalingLoading}
-          className="rounded-md bg-muted p-1 text-foreground transition-colors hover:bg-muted/80 disabled:opacity-50"
+          aria-label="More servings"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-md bg-muted text-foreground transition-colors hover:bg-muted/80 disabled:opacity-50"
         >
           <Plus className="h-4 w-4" />
         </button>

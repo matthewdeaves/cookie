@@ -55,7 +55,7 @@ export default function TimerWidget({
             <button
               onClick={onToggle}
               className={cn(
-                'flex h-9 w-9 items-center justify-center rounded-full transition-colors',
+                'flex h-11 w-11 items-center justify-center rounded-full transition-colors',
                 timer.isRunning
                   ? 'bg-muted text-muted-foreground hover:bg-muted/80'
                   : 'bg-primary text-primary-foreground hover:bg-primary/90',
@@ -70,7 +70,7 @@ export default function TimerWidget({
             </button>
             <button
               onClick={onReset}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80"
               aria-label="Reset"
             >
               <RotateCcw className="h-4 w-4" />
@@ -79,7 +79,7 @@ export default function TimerWidget({
         )}
         <button
           onClick={onDelete}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
           aria-label="Delete"
         >
           <X className="h-4 w-4" />

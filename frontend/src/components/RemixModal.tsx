@@ -25,12 +25,13 @@ function RemixHeader({ onClose, disabled }: RemixHeaderProps) {
     <div className="flex items-center justify-between border-b border-border px-6 py-4">
       <div className="flex items-center gap-2">
         <Sparkles className="h-5 w-5 text-primary" />
-        <h2 className="text-lg font-semibold text-foreground">Remix This Recipe</h2>
+        <h2 id="remix-dialog-title" className="text-lg font-semibold text-foreground">Remix This Recipe</h2>
       </div>
       <button
         onClick={onClose}
         disabled={disabled}
-        className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        aria-label="Close"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       >
         <X className="h-5 w-5" />
       </button>
@@ -145,6 +146,16 @@ export default function RemixModal({
     if (value.trim()) setSelectedSuggestions([])
   }
 
+  // Escape closes the dialog (unless a remix is being created).
+  useEffect(() => {
+    if (!isOpen || creating) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [isOpen, creating, onClose])
+
   const canSubmit = !creating && (selectedSuggestions.length > 0 || customInput.trim() !== '')
 
   const handleCreateRemix = async () => {
@@ -170,8 +181,13 @@ export default function RemixModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="relative w-full max-w-md rounded-xl bg-card shadow-2xl">
+    <div data-no-ptr className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="remix-dialog-title"
+        className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl bg-card shadow-2xl"
+      >
         <RemixHeader onClose={onClose} disabled={creating} />
         <div className="px-6 py-5">
           <p className="mb-4 text-sm text-muted-foreground">

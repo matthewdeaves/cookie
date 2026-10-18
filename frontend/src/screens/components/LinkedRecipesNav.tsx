@@ -24,7 +24,7 @@ export default function LinkedRecipesNav({
             <button
               key={linked.id}
               onClick={() => navigate(`/recipe/${linked.id}`)}
-              className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted/80"
+              className="inline-flex min-h-11 items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted/80"
             >
               <span
                 className={cn(

@@ -69,7 +69,7 @@ function CollectionHeader({ name, recipeCount, onDelete }: { name: string; recip
         <h2 className="text-lg font-medium text-foreground">{name}</h2>
         <p className="text-sm text-muted-foreground">{recipeCount} recipe{recipeCount !== 1 ? 's' : ''}</p>
       </div>
-      <button onClick={onDelete} className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive" title="Delete collection">
+      <button onClick={onDelete} className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive" title="Delete collection" aria-label="Delete collection">
         <Trash2 className="h-5 w-5" />
       </button>
     </div>
@@ -92,8 +92,11 @@ function CollectionRecipeGrid({
           <RecipeCard recipe={item.recipe} onClick={() => onRecipeClick(item.recipe.id)} />
           <button
             onClick={(e) => { e.stopPropagation(); onRemoveRecipe(item.recipe) }}
-            className="absolute right-2 top-2 rounded-full bg-destructive/90 p-1.5 text-destructive-foreground transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
+            // Only hide until hover where hover exists: touch devices (iPads are wider than
+            // the sm breakpoint) would otherwise never see this button.
+            className="absolute right-1 top-1 inline-flex h-11 w-11 items-center justify-center rounded-full bg-destructive/90 text-destructive-foreground transition-opacity [@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
             title="Remove from collection"
+            aria-label={`Remove ${item.recipe.title} from collection`}
           >
             <X className="h-4 w-4" />
           </button>
