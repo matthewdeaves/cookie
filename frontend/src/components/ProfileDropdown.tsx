@@ -23,35 +23,50 @@ export default function ProfileDropdown({
 
   useEffect(() => {
     if (!dropdownOpen) return
-    const handleClick = (e: MouseEvent) => {
+    // pointerdown covers mouse, touch and pen (mousedown is unreliable for touch on some browsers).
+    const handleClick = (e: Event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false)
       }
     }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setDropdownOpen(false)
+    }
+    document.addEventListener('pointerdown', handleClick)
+    document.addEventListener('keydown', handleKey)
+    return () => {
+      document.removeEventListener('pointerdown', handleClick)
+      document.removeEventListener('keydown', handleKey)
+    }
   }, [dropdownOpen])
 
   return (
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium text-white"
-        style={{ backgroundColor: avatarColor }}
-        aria-label={profileName}
+        className="inline-flex h-11 w-11 items-center justify-center rounded-full"
+        aria-label={`${profileName} menu`}
+        aria-haspopup="menu"
+        aria-expanded={dropdownOpen}
       >
-        {mode === 'passkey' ? (
-          <User className="h-4 w-4" />
-        ) : (
-          getInitial(profileName)
-        )}
+        <span
+          className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium text-white"
+          style={{ backgroundColor: avatarColor }}
+        >
+          {mode === 'passkey' ? (
+            <User className="h-4 w-4" aria-hidden="true" />
+          ) : (
+            getInitial(profileName)
+          )}
+        </span>
       </button>
 
       {dropdownOpen && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-44 rounded-lg border border-border bg-card py-1 shadow-lg">
+        <div role="menu" className="absolute right-0 top-full z-50 mt-1 w-48 rounded-lg border border-border bg-card py-1 shadow-lg">
           <button
+            role="menuitem"
             onClick={() => { setDropdownOpen(false); onLogout() }}
-            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-card-foreground hover:bg-muted"
+            className="flex min-h-11 w-full items-center gap-2 px-3 py-2 text-sm text-card-foreground hover:bg-muted"
           >
             <LogOut className="h-4 w-4" />
             Log out

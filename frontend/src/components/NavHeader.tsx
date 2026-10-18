@@ -4,7 +4,8 @@ import { useProfile } from '../contexts/ProfileContext'
 import { useMode } from '../router'
 import ProfileDropdown from './ProfileDropdown'
 
-const NAV_BASE = 'rounded-lg p-1.5 transition-colors'
+// 44x44px hit area (Apple HIG minimum) even though the icon is 20px.
+const NAV_BASE = 'inline-flex h-11 w-11 items-center justify-center rounded-lg transition-colors'
 const NAV_INACTIVE = `${NAV_BASE} text-muted-foreground hover:bg-muted hover:text-primary`
 const NAV_ACTIVE = `${NAV_BASE} bg-muted text-primary`
 
@@ -25,15 +26,16 @@ export default function NavHeader() {
   if (!profile) return null
 
   return (
-    <header className="flex items-center justify-between border-b border-border px-4 py-3">
+    <header className="flex items-center justify-between border-b border-border px-3 py-1.5 sm:px-4">
+      {/* The wordmark is dropped on phones to make room for 44px tap targets; the Home icon covers it. */}
       <button
         onClick={() => navigate('/home')}
-        className="text-xl font-medium text-primary hover:opacity-80 transition-opacity"
+        className="hidden min-h-11 text-xl font-medium text-primary transition-opacity hover:opacity-80 sm:block"
       >
         Cookie
       </button>
 
-      <div className="flex items-center gap-1">
+      <nav aria-label="Main" className="flex w-full items-center justify-between sm:w-auto sm:justify-end sm:gap-1">
         {/* Home */}
         <button
           onClick={() => navigate('/home')}
@@ -104,7 +106,7 @@ export default function NavHeader() {
           mode={mode}
           onLogout={handleLogout}
         />
-      </div>
+      </nav>
     </header>
   )
 }
