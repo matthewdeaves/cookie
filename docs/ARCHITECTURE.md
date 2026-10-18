@@ -37,7 +37,7 @@ This document describes the system architecture, data models, and API structure.
                              │
                              ▼ (optional)
                     ┌──────────────────┐
-                    │   OpenRouter AI  │
+                    │  Anthropic API   │
                     └──────────────────┘
 ```
 
@@ -46,7 +46,7 @@ This document describes the system architecture, data models, and API structure.
 ```
 cookie/
 ├── apps/                    # Django applications
-│   ├── ai/                  # AI/OpenRouter integration
+│   ├── ai/                  # AI/Anthropic integration
 │   │   ├── api.py           # AI API endpoints
 │   │   ├── models.py        # AIPrompt, AIDiscoverySuggestion
 │   │   └── services/        # AI service implementations
@@ -189,7 +189,7 @@ AIDiscoverySuggestion
 └── created_at
 
 AppSettings (singleton)
-├── openrouter_api_key: str (Fernet encrypted)
+├── anthropic_api_key: str (Fernet encrypted)
 └── default_ai_model: str
 
 WebAuthnCredential (passkey mode)
