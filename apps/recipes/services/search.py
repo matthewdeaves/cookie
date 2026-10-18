@@ -41,6 +41,10 @@ class SearchResult:
     rating_count: Optional[int] = None
 
 
+class SearchDeadlineExceeded(Exception):
+    """A source was still running when the overall search deadline expired."""
+
+
 class RecipeSearch:
     """
     Async recipe search service that queries multiple sites concurrently.
@@ -51,8 +55,14 @@ class RecipeSearch:
     Browser profiles are centralized in fingerprint.py for maintainability.
     """
 
-    MAX_CONCURRENT = 10
-    DEFAULT_TIMEOUT = 30
+    MAX_CONCURRENT = 16
+    # Per-request network timeout. Recipe search pages answer in a couple of
+    # seconds or not at all; waiting 30s for a stalled site only delays everyone.
+    DEFAULT_TIMEOUT = 10
+    # Hard ceiling for the whole fan-out. Sources still running when it expires
+    # are abandoned and reported as failed, so one slow site cannot hold the
+    # page for minutes (3 retries x 2 timeouts used to allow ~100s).
+    TOTAL_TIMEOUT = 18
 
     def __init__(self):
         self.timeout = self.DEFAULT_TIMEOUT
@@ -80,6 +90,8 @@ class RecipeSearch:
                 - page: Current page
                 - has_more: Whether more results exist
                 - sites: Dict mapping host to result count
+                - failed_sources: Hosts that errored or timed out
+                - sources_searched: Number of sources that were queried
         """
         enabled_sources = await self._get_enabled_sources(sources)
 
@@ -87,7 +99,7 @@ class RecipeSearch:
             return self._empty_response(page)
 
         results_by_source = await self._fetch_all_sources(enabled_sources, query)
-        all_results, site_counts = await self._aggregate_results(
+        all_results, site_counts, failed_sources = await self._aggregate_results(
             enabled_sources,
             results_by_source,
         )
@@ -97,7 +109,10 @@ class RecipeSearch:
         if result_dicts:
             result_dicts = self._apply_ai_ranking(query, result_dicts)
 
-        return self._paginate(result_dicts, page, per_page, site_counts)
+        response = self._paginate(result_dicts, page, per_page, site_counts)
+        response["failed_sources"] = failed_sources
+        response["sources_searched"] = len(enabled_sources)
+        return response
 
     async def _get_enabled_sources(self, sources: Optional[list[str]] = None) -> list:
         """Load enabled search sources, optionally filtered by host name."""
@@ -118,37 +133,65 @@ class RecipeSearch:
             "page": page,
             "has_more": False,
             "sites": {},
+            "failed_sources": [],
+            "sources_searched": 0,
         }
 
     async def _fetch_all_sources(self, enabled_sources: list, query: str) -> list:
-        """Search all sources concurrently and return raw results."""
+        """Search all sources concurrently and return raw results (or exceptions).
+
+        Sources that have not finished within TOTAL_TIMEOUT are cancelled and
+        reported as SearchDeadlineExceeded so the caller can degrade gracefully.
+        """
         semaphore = asyncio.Semaphore(self.MAX_CONCURRENT)
         primary_profile = get_random_profile()
 
         async with AsyncSession(impersonate=primary_profile) as session:
-            tasks = [self._search_source(session, semaphore, source, query) for source in enabled_sources]
-            return await asyncio.gather(*tasks, return_exceptions=True)
+            tasks = [
+                asyncio.ensure_future(self._search_source(session, semaphore, source, query))
+                for source in enabled_sources
+            ]
+            _, pending = await asyncio.wait(tasks, timeout=self.TOTAL_TIMEOUT)
+            for task in pending:
+                task.cancel()
+            if pending:
+                await asyncio.gather(*pending, return_exceptions=True)
+
+            outcomes: list = []
+            for task in tasks:
+                if task in pending:
+                    outcomes.append(SearchDeadlineExceeded("Search timed out"))
+                elif task.cancelled():
+                    outcomes.append(SearchDeadlineExceeded("Search cancelled"))
+                else:
+                    outcomes.append(task.exception() or task.result())
+            return outcomes
 
     async def _aggregate_results(
         self,
         enabled_sources: list,
         results_by_source: list,
-    ) -> tuple[list["SearchResult"], dict[str, int]]:
+    ) -> tuple[list["SearchResult"], dict[str, int], list[str]]:
         """Aggregate per-source results, recording successes and failures."""
         all_results: list[SearchResult] = []
         site_counts: dict[str, int] = {}
+        failed_sources: list[str] = []
 
         for source, result in zip(enabled_sources, results_by_source):
             if isinstance(result, Exception):
                 logger.warning(f"Search failed for {source.host}: {result}")
-                await self._record_failure(source)
+                failed_sources.append(source.host)
+                # A deadline overrun says the whole search was slow, not that this
+                # particular site's selector is broken, so don't flag the source.
+                if not isinstance(result, SearchDeadlineExceeded):
+                    await self._record_failure(source)
                 continue
 
             site_counts[source.host] = len(result)
             all_results.extend(result)
             await self._record_success(source)
 
-        return all_results, site_counts
+        return all_results, site_counts, failed_sources
 
     @staticmethod
     def _deduplicate_and_convert(results: list["SearchResult"]) -> list[dict]:
@@ -227,8 +270,10 @@ class RecipeSearch:
         Uses randomized delays and retry with fallback browser profiles
         to avoid bot detection patterns.
         """
+        # Jitter first, outside the semaphore: sleeping while holding a slot
+        # would serialise sources into waves for no benefit.
+        await asyncio.sleep(get_random_delay() * 0.5)
         async with semaphore:
-            await asyncio.sleep(get_random_delay())
             search_url = source.search_url_template.replace("{query}", quote_plus(query))
             profiles_to_try = self._build_profile_list(session)
 
@@ -288,7 +333,7 @@ class RecipeSearch:
     @staticmethod
     def _should_retry_status(status_code: int) -> bool:
         """Return True if the HTTP status code is transient and worth retrying."""
-        return status_code in (403, 404, 429) or status_code >= 500
+        return status_code in (403, 429) or status_code >= 500
 
     @staticmethod
     def _should_retry_error(error: Exception) -> bool:
@@ -296,7 +341,7 @@ class RecipeSearch:
         error_str = str(error)
         if "HTTP" not in error_str:
             return True
-        return any(code in error_str for code in ("403", "404", "429", "500", "502", "503"))
+        return any(code in error_str for code in ("403", "429", "500", "502", "503"))
 
     async def _fetch_url(self, session: AsyncSession, url: str):
         """Fetch a URL with timeout handling, redirect validation, and size limits."""

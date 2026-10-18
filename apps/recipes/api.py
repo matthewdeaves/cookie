@@ -2,6 +2,7 @@
 Recipe API endpoints.
 """
 
+import asyncio
 import hashlib
 import logging
 from typing import List, Optional
@@ -150,6 +151,9 @@ class SearchOut(Schema):
     page: int
     has_more: bool
     sites: dict
+    # Hosts that errored or timed out during the live search (empty when every
+    # source answered). Lets clients say "some sites did not respond".
+    failed_sources: List[str] = []
 
 
 # Endpoints
@@ -246,21 +250,55 @@ async def scrape_recipe(request, payload: ScrapeIn):
         return Status(400, {"detail": str(e)})
 
 
-async def _get_or_fetch_results(query: str) -> list:
-    """Return cached search results, or fetch and cache them."""
+# Cache lifetimes for search results (seconds). Failures must not be cached for
+# days: a transient outage would otherwise show "no recipes found" until expiry.
+PARTIAL_SEARCH_CACHE_TIMEOUT = 300
+EMPTY_SEARCH_CACHE_TIMEOUT = 3600
+
+
+async def _get_or_fetch_results(query: str, request) -> tuple[list, list, bool]:
+    """Return (results, failed_sources, was_cached) for a query.
+
+    Cached entries are dicts ``{"results": [...], "failed": [...]}``; entries from
+    older versions (a bare list) are still accepted.
+
+    Raises HttpError(429) when the live-search rate limit is hit, and HttpError(503)
+    when every source failed so clients can tell a failed search from one that
+    genuinely found nothing. A failed search is never cached.
+    """
     normalized_query = query.lower().strip()
     query_hash = hashlib.sha256(normalized_query.encode()).hexdigest()[:16]
     cache_key = f"search_{query_hash}"
     cached_all = await sync_to_async(cache.get)(cache_key)
 
+    if isinstance(cached_all, dict):
+        return cached_all["results"], cached_all.get("failed", []), True
     if cached_all is not None:
-        return cached_all
+        return cached_all, [], True
+
+    # Only live fan-outs count against the rate limit. Cached pages (load more,
+    # source filters, the legacy UI's image polling) cost nothing external.
+    limited = await sync_to_async(is_ratelimited)(request, group="search", key="ip", rate="60/h", increment=True)
+    if limited:
+        raise HttpError(429, "Too many search requests. Please try again later.")
 
     search = RecipeSearch()
     full_results = await search.search(query=query, per_page=10000)
     all_result_dicts = full_results.get("results", [])
-    await sync_to_async(cache.set)(cache_key, all_result_dicts, settings.SEARCH_CACHE_TIMEOUT)
-    return all_result_dicts
+    failed = full_results.get("failed_sources", [])
+    searched = full_results.get("sources_searched", 0)
+
+    if searched and len(failed) >= searched:
+        raise HttpError(503, "Could not reach any recipe sites. Please try again in a moment.")
+
+    if failed:
+        timeout = PARTIAL_SEARCH_CACHE_TIMEOUT
+    elif not all_result_dicts:
+        timeout = EMPTY_SEARCH_CACHE_TIMEOUT
+    else:
+        timeout = settings.SEARCH_CACHE_TIMEOUT
+    await sync_to_async(cache.set)(cache_key, {"results": all_result_dicts, "failed": failed}, timeout)
+    return all_result_dicts, failed, False
 
 
 def _aggregate_sites(result_dicts: list) -> dict:
@@ -277,6 +315,7 @@ def _paginate_results(
     sites: dict,
     page: int,
     per_page: int,
+    failed_sources: Optional[list] = None,
 ) -> dict:
     """Filter by sources, paginate, and return a SearchOut-shaped dict."""
     filtered = all_results
@@ -293,7 +332,14 @@ def _paginate_results(
         "page": page,
         "has_more": end < total,
         "sites": sites,
+        "failed_sources": failed_sources or [],
     }
+
+
+# How long a search response may wait for result thumbnails to be downloaded and
+# converted. Whatever is not ready is served from the original URL and picked up
+# on a later request, instead of making the whole page wait on slow image hosts.
+IMAGE_CACHE_BUDGET_SECONDS = 4
 
 
 async def _cache_and_map_images(results: list) -> None:
@@ -302,9 +348,12 @@ async def _cache_and_map_images(results: list) -> None:
     image_cache = SearchImageCache()
     cached_urls = await image_cache.get_cached_urls_batch(image_urls)
 
-    uncached_urls = [url for url in image_urls if url not in cached_urls]
+    uncached_urls = await image_cache.filter_attemptable([url for url in image_urls if url not in cached_urls])
     if uncached_urls:
-        await image_cache.cache_images(uncached_urls)
+        try:
+            await asyncio.wait_for(image_cache.cache_images(uncached_urls), timeout=IMAGE_CACHE_BUDGET_SECONDS)
+        except asyncio.TimeoutError:
+            logger.info("Image caching budget exhausted; %d image(s) will be retried later", len(uncached_urls))
         new_cached = await image_cache.get_cached_urls_batch(uncached_urls)
         cached_urls.update(new_cached)
 
@@ -333,17 +382,15 @@ async def search_recipes(
     Uses cached images when available for iOS 9 compatibility.
     Use the scrape endpoint to save a recipe from the results.
     """
-    limited = await sync_to_async(is_ratelimited)(request, group="search", key="ip", rate="60/h", increment=True)
-    if limited:
-        raise HttpError(429, "Too many search requests. Please try again later.")
-
     source_list = None
     if sources:
         source_list = [s.strip() for s in sources.split(",") if s.strip()]
+    page = max(page, 1)
+    per_page = min(max(per_page, 1), 100)
 
-    all_result_dicts = await _get_or_fetch_results(q)
+    all_result_dicts, failed, _ = await _get_or_fetch_results(q, request)
     sites = _aggregate_sites(all_result_dicts)
-    results = _paginate_results(all_result_dicts, source_list, sites, page, per_page)
+    results = _paginate_results(all_result_dicts, source_list, sites, page, per_page, failed)
     await _cache_and_map_images(results["results"])
     return results
 

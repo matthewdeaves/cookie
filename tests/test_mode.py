@@ -72,18 +72,16 @@ class TestHomeModeDefaults:
         assert "version" not in data
 
     def test_session_cookie_age(self):
-        """SESSION_COOKIE_AGE is 86400 (24 hours).
+        """Home mode remembers the chosen profile for 30 days; passkey mode keeps 24 hours.
 
-        v1.73+: bumped from 12h → 24h to give iOS PWA users a wider buffer
-        before the cookie expires. iOS Safari/PWA cookie eviction
-        heuristics (storage pressure, app restarts, ITP) sometimes evict
-        cookies before SESSION_COOKIE_AGE elapses — a longer baseline
-        absorbs more of those edge cases without the side effects of
-        rolling-session save-on-every-request.
+        Home mode has no login, so a daily expiry only throws family devices
+        (e.g. a kitchen iPad) back to the profile picker. In passkey mode the
+        session is the credential, so the stricter 24h window stays.
         """
         from django.conf import settings
 
-        assert settings.SESSION_COOKIE_AGE == 86400
+        expected = 86400 * 30 if settings.AUTH_MODE == "home" else 86400
+        assert settings.SESSION_COOKIE_AGE == expected
 
 
 @pytest.mark.django_db

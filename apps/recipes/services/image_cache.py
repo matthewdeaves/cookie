@@ -9,10 +9,12 @@ import asyncio
 import hashlib
 import io
 import logging
+from datetime import timedelta
 
 from asgiref.sync import sync_to_async
 from curl_cffi.requests import AsyncSession
 from django.core.files.base import ContentFile
+from django.utils import timezone
 from PIL import Image
 
 from apps.core.validators import (
@@ -41,8 +43,31 @@ class SearchImageCache:
     Browser profiles are centralized in fingerprint.py for maintainability.
     """
 
-    MAX_CONCURRENT = 5
-    DOWNLOAD_TIMEOUT = 15
+    MAX_CONCURRENT = 8
+    DOWNLOAD_TIMEOUT = 8
+    # Images that failed recently are not retried on every search request.
+    FAILED_RETRY_AFTER = timedelta(hours=6)
+    # Browser profiles tried per image (the full list is for page fetches).
+    IMAGE_PROFILE_ATTEMPTS = 2
+
+    async def filter_attemptable(self, urls: list) -> list:
+        """Drop URLs whose download failed recently so dead images stop costing time."""
+        if not urls:
+            return []
+
+        from apps.recipes.models import CachedSearchImage
+
+        cutoff = timezone.now() - self.FAILED_RETRY_AFTER
+        recently_failed = await sync_to_async(
+            lambda: set(
+                CachedSearchImage.objects.filter(
+                    external_url__in=urls,
+                    status=CachedSearchImage.STATUS_FAILED,
+                    last_accessed_at__gte=cutoff,
+                ).values_list("external_url", flat=True)
+            )
+        )()
+        return [url for url in urls if url not in recently_failed]
 
     async def cache_images(self, image_urls: list) -> None:
         """
@@ -98,7 +123,7 @@ class SearchImageCache:
                     return
 
                 # Convert to JPEG for iOS 9 compatibility (no WebP support)
-                converted_data = self._convert_to_jpeg(image_data)
+                converted_data = await asyncio.to_thread(self._convert_to_jpeg, image_data)
                 if not converted_data:
                     cached.status = CachedSearchImage.STATUS_FAILED
                     await sync_to_async(cached.save)(update_fields=["status"])
@@ -146,7 +171,7 @@ class SearchImageCache:
             return None
 
         # Try each browser profile with manual redirect following
-        for profile in BROWSER_PROFILES:
+        for profile in BROWSER_PROFILES[: self.IMAGE_PROFILE_ATTEMPTS]:
             try:
                 content = await self._fetch_image_safe(url, profile, resolved.curl_resolve)
                 if content is not None:

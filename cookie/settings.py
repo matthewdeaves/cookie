@@ -241,7 +241,10 @@ SEARCH_CACHE_TIMEOUT = 432000  # 5 days in seconds
 # Upgrade path: switch to django.contrib.sessions.backends.cache with Redis
 # for multi-server deployments.
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
-SESSION_COOKIE_AGE = 86400  # 24 hours
+# Home mode has no login, only a remembered profile choice: expiring it daily
+# dumps every family device back to the profile picker (and fails any request in
+# flight on a tablet left open). Passkey mode keeps the strict 24-hour session.
+SESSION_COOKIE_AGE = 86400 * 30 if AUTH_MODE == "home" else 86400
 SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
