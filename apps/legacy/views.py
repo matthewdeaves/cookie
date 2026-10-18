@@ -4,6 +4,7 @@ from functools import wraps
 
 from django.conf import settings as django_settings
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from apps.core.models import AppSettings
 from apps.profiles.models import Profile
@@ -76,6 +77,7 @@ def _is_ai_available() -> bool:
     return is_valid
 
 
+@ensure_csrf_cookie
 def device_pair(request):
     """Device pairing screen for passkey mode."""
     if django_settings.AUTH_MODE != "passkey":
@@ -83,6 +85,10 @@ def device_pair(request):
     return render(request, "legacy/device_pair.html")
 
 
+# The picker runs before any API call has set the CSRF cookie, and its XHRs
+# (select / create profile) are CSRF-protected: without this a first-time device
+# gets a 403 when it taps a profile.
+@ensure_csrf_cookie
 def profile_selector(request):
     """Profile selector screen. In passkey mode, redirects to device pairing."""
     if django_settings.AUTH_MODE == "passkey":
