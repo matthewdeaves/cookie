@@ -89,6 +89,7 @@ COPY --from=python-deps /usr/local/bin/gunicorn /usr/local/bin/gunicorn
 COPY --chown=app:app apps/ apps/
 COPY --chown=app:app cookie/ cookie/
 COPY --chown=app:app manage.py .
+COPY --chown=app:app rootfiles/ rootfiles/
 
 # Copy built frontend assets from frontend-builder
 COPY --from=frontend-builder --chown=app:app /frontend/dist /app/frontend/dist
