@@ -53,7 +53,7 @@
             Cookie.utils.setHtml(clone.querySelector('[data-field="status-icon"]'), getStatusIcon(status));
 
             var failureWarning = clone.querySelector('[data-field="failure-warning"]');
-            if (source.consecutive_failures >= source.failure_threshold) {
+            if (source.consecutive_failures >= getFailureThreshold(source)) {
                 failureWarning.textContent = 'Failed ' + source.consecutive_failures + ' times - auto-disabled';
                 failureWarning.classList.remove('hidden');
             }
@@ -74,9 +74,13 @@
         selectorsList.appendChild(fragment);
     }
 
+    function getFailureThreshold(source) {
+        return source.failure_threshold != null ? source.failure_threshold : 3;
+    }
+
     function getSourceStatus(source) {
         if (!source.last_validated_at) return 'untested';
-        if (source.needs_attention || source.consecutive_failures >= source.failure_threshold) return 'broken';
+        if (source.needs_attention || source.consecutive_failures >= getFailureThreshold(source)) return 'broken';
         if (source.consecutive_failures > 0) return 'warning';
         return 'working';
     }
