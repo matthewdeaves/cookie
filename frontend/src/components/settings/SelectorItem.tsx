@@ -10,9 +10,9 @@ interface SelectorItemProps {
   sources: Source[]
 }
 
-// The backend owns the threshold (it sends `failure_threshold`); 3 only covers older payloads.
+// The backend owns the threshold (it sends `failure_threshold`).
 function overThreshold(source: Source): boolean {
-  return source.consecutive_failures >= (source.failure_threshold ?? 3)
+  return source.consecutive_failures >= source.failure_threshold
 }
 
 function getSourceStatus(source: Source): 'working' | 'warning' | 'broken' | 'untested' {

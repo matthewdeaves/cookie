@@ -289,7 +289,7 @@ export interface Source {
   last_validated_at: string | null
   consecutive_failures: number
   needs_attention: boolean
-  failure_threshold?: number
+  failure_threshold: number
 }
 
 export interface SourceTestResult {

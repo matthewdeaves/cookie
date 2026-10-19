@@ -433,6 +433,7 @@ describe('SourceItem', () => {
     logo_url: '',
     last_validated_at: null,
     consecutive_failures: 0,
+    failure_threshold: 3,
     needs_attention: false,
   }
 
@@ -464,8 +465,8 @@ describe('SourceItem', () => {
 
 describe('SettingsSources', () => {
   const sources = [
-    { id: 1, host: 'a.com', name: 'Source A', is_enabled: true, search_url_template: '', result_selector: '.r', logo_url: '', last_validated_at: null, consecutive_failures: 0, needs_attention: false },
-    { id: 2, host: 'b.com', name: 'Source B', is_enabled: false, search_url_template: '', result_selector: '.r', logo_url: '', last_validated_at: null, consecutive_failures: 0, needs_attention: false },
+    { id: 1, host: 'a.com', name: 'Source A', is_enabled: true, search_url_template: '', result_selector: '.r', logo_url: '', last_validated_at: null, consecutive_failures: 0, needs_attention: false, failure_threshold: 3 },
+    { id: 2, host: 'b.com', name: 'Source B', is_enabled: false, search_url_template: '', result_selector: '.r', logo_url: '', last_validated_at: null, consecutive_failures: 0, needs_attention: false, failure_threshold: 3 },
   ]
 
   it('shows source count', () => {
@@ -499,6 +500,7 @@ describe('SelectorItem', () => {
     logo_url: '',
     last_validated_at: '2026-03-30T10:00:00Z',
     consecutive_failures: 0,
+    failure_threshold: 3,
     needs_attention: false,
   }
 

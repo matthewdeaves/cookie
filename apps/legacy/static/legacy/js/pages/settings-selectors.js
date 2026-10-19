@@ -75,7 +75,7 @@
     }
 
     function getFailureThreshold(source) {
-        return source.failure_threshold != null ? source.failure_threshold : 3;
+        return source.failure_threshold;
     }
 
     function getSourceStatus(source) {
