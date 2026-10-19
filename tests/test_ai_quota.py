@@ -10,7 +10,6 @@ from django.core.cache import cache
 from apps.ai.services.quota import (
     check_quota,
     get_usage,
-    increment_quota,
     release_quota,
     reserve_quota,
     ALL_FEATURES,
@@ -58,7 +57,7 @@ class TestCheckAndIncrementCycle:
             allowed, info = check_quota(profile, "remix")
             assert allowed is True, f"should be allowed on call {i}"
             assert info == {}
-            increment_quota(profile, "remix")
+            reserve_quota(profile, "remix")
 
         allowed, info = check_quota(profile, "remix")
         assert allowed is False
@@ -82,7 +81,7 @@ class TestIsStaffDoesNotBypass:
         app.daily_limit_remix = 1
         app.save()
 
-        increment_quota(profile, "remix")
+        reserve_quota(profile, "remix")
 
         allowed, info = check_quota(profile, "remix")
         assert allowed is False
@@ -117,7 +116,7 @@ class TestUnlimitedBypass:
         app.save()
 
         for _ in range(5):
-            increment_quota(profile, "remix")
+            reserve_quota(profile, "remix")
 
         allowed, info = check_quota(profile, "remix")
         assert allowed is True
@@ -135,7 +134,7 @@ class TestHomeModeBypass:
         app.save()
 
         for _ in range(5):
-            increment_quota(profile, "remix")
+            reserve_quota(profile, "remix")
 
         allowed, info = check_quota(profile, "remix")
         assert allowed is True
@@ -154,7 +153,7 @@ class TestDailyReset:
 
         # Exhaust today's quota
         for _ in range(2):
-            increment_quota(profile, "tips")
+            reserve_quota(profile, "tips")
 
         allowed, _ = check_quota(profile, "tips")
         assert allowed is False
@@ -200,7 +199,7 @@ class TestIndependentFeatureCounters:
         app.daily_limit_tips = 5
         app.save()
 
-        increment_quota(profile, "remix")
+        reserve_quota(profile, "remix")
 
         allowed_remix, _ = check_quota(profile, "remix")
         assert allowed_remix is False
@@ -216,10 +215,16 @@ class TestGetUsage:
 
     def test_returns_all_features(self, passkey_mode):
         profile = _make_profile()
+        from apps.core.models import AppSettings
 
-        increment_quota(profile, "remix")
-        increment_quota(profile, "remix")
-        increment_quota(profile, "tips")
+        app = AppSettings.get()
+        app.daily_limit_remix = 5
+        app.daily_limit_tips = 5
+        app.save()
+
+        reserve_quota(profile, "remix")
+        reserve_quota(profile, "remix")
+        reserve_quota(profile, "tips")
 
         usage = get_usage(profile.pk)
         assert usage["remix"] == 2
@@ -243,8 +248,8 @@ class TestDeniedInfoDict:
         app.daily_limit_scale = 2
         app.save()
 
-        increment_quota(profile, "scale")
-        increment_quota(profile, "scale")
+        reserve_quota(profile, "scale")
+        reserve_quota(profile, "scale")
 
         allowed, info = check_quota(profile, "scale")
         assert allowed is False
@@ -281,7 +286,7 @@ class TestGetQuotasEndpoint:
     def test_get_quotas_returns_limits_and_usage(self, client, settings):
         settings.AUTH_MODE = "passkey"
         profile = _make_profile("quotauser")
-        increment_quota(profile, "remix")
+        reserve_quota(profile, "remix")
 
         _login(client, profile.user)
         response = client.get("/api/ai/quotas")
@@ -554,7 +559,7 @@ class TestTipsEndpointQuotaEnforcement:
         app.save()
 
         # Exhaust the quota
-        increment_quota(profile, "tips")
+        reserve_quota(profile, "tips")
 
         _login(client, profile.user)
         response = client.post(
@@ -599,7 +604,7 @@ class TestTimerEndpointQuotaEnforcement:
         app.daily_limit_timer = 1
         app.save()
 
-        increment_quota(profile, "timer")
+        reserve_quota(profile, "timer")
 
         _login(client, profile.user)
         response = client.post(
@@ -624,7 +629,7 @@ class TestDiscoverEndpointQuotaEnforcement:
         app.daily_limit_discover = 1
         app.save()
 
-        increment_quota(profile, "discover")
+        reserve_quota(profile, "discover")
 
         _login(client, profile.user)
         response = client.get(f"/api/ai/discover/{profile.pk}/")

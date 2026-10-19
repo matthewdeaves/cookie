@@ -92,7 +92,7 @@ export function useSearch(): UseSearchReturn {
     if (reset) {
       setResults(response.results)
       setSites(response.sites)
-      setFailedSources(response.failed_sources ?? [])
+      setFailedSources(response.failed_sources)
     } else {
       setResults((prev) => [...prev, ...response.results])
     }

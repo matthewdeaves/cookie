@@ -60,7 +60,7 @@ def check_quota(profile, feature: str) -> tuple[bool, dict]:
     contains remaining/limit/used/resets_at when denied.
 
     NOTE: For atomic enforcement under concurrent load, use
-    reserve_quota() instead of check_quota() + increment_quota().
+    reserve_quota() instead of check_quota().
     """
     if getattr(settings, "AUTH_MODE", "home") != "passkey":
         return (True, {})
@@ -177,21 +177,6 @@ def release_quota(profile, feature: str) -> None:
         # a future bookkeeping regression) must not leave the counter negative
         # — a negative counter silently bypasses the `used >= limit` check.
         cache.set(key, 0, timeout=_seconds_until_midnight_utc())
-
-
-def increment_quota(profile, feature: str) -> None:
-    """Increment the daily counter after a successful AI operation.
-
-    DEPRECATED: Use reserve_quota() / release_quota() instead for
-    atomic enforcement under concurrent load.
-    """
-    key = _cache_key(profile.pk, feature)
-    ttl = _seconds_until_midnight_utc()
-
-    try:
-        cache.incr(key)
-    except ValueError:
-        cache.set(key, 1, timeout=ttl)
 
 
 def get_usage(profile_id: int) -> dict:

@@ -338,14 +338,20 @@ class TestUsageCommand:
             assert all(v == 0 for v in u["usage"].values())
 
     def test_usage_command_with_data(self, passkey_mode):
-        from apps.ai.services.quota import increment_quota
+        from apps.ai.services.quota import reserve_quota
 
         user = _make_user("alice")
         profile = user.profile
+        from apps.core.models import AppSettings
 
-        increment_quota(profile, "remix")
-        increment_quota(profile, "remix")
-        increment_quota(profile, "tips")
+        app = AppSettings.get()
+        app.daily_limit_remix = 5
+        app.daily_limit_tips = 5
+        app.save()
+
+        reserve_quota(profile, "remix")
+        reserve_quota(profile, "remix")
+        reserve_quota(profile, "tips")
 
         _, data = _call("usage", "--username", "alice", as_json=True)
 

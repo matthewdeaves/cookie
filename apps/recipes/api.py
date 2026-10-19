@@ -259,8 +259,7 @@ EMPTY_SEARCH_CACHE_TIMEOUT = 3600
 async def _get_or_fetch_results(query: str, request) -> tuple[list, list, bool]:
     """Return (results, failed_sources, was_cached) for a query.
 
-    Cached entries are dicts ``{"results": [...], "failed": [...]}``; entries from
-    older versions (a bare list) are still accepted.
+    Cached entries are dicts ``{"results": [...], "failed": [...]}``.
 
     Raises HttpError(429) when the live-search rate limit is hit, and HttpError(503)
     when every source failed so clients can tell a failed search from one that
@@ -272,9 +271,7 @@ async def _get_or_fetch_results(query: str, request) -> tuple[list, list, bool]:
     cached_all = await sync_to_async(cache.get)(cache_key)
 
     if isinstance(cached_all, dict):
-        return cached_all["results"], cached_all.get("failed", []), True
-    if cached_all is not None:
-        return cached_all, [], True
+        return cached_all["results"], cached_all["failed"], True
 
     # Only live fan-outs count against the rate limit. Cached pages (load more,
     # source filters, the legacy UI's image polling) cost nothing external.

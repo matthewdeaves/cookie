@@ -210,7 +210,7 @@ def _generate_recommended_suggestions(profile: Profile) -> List[AIDiscoverySugge
         for item in validated:
             suggestion = AIDiscoverySuggestion.objects.create(
                 profile=profile,
-                suggestion_type="favorites",  # Keep type for frontend compatibility
+                suggestion_type="favorites",
                 search_query=item["search_query"],
                 title=item["title"],
                 description=item["description"],
