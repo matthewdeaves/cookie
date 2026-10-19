@@ -35,6 +35,7 @@ const mockSearch = vi.fn().mockResolvedValue({
   results: [],
   total: 0,
   has_more: false,
+  failed_sources: [],
   sites: {},
 })
 
@@ -68,6 +69,7 @@ describe('Search', () => {
       results: [],
       total: 0,
       has_more: false,
+      failed_sources: [],
       sites: {},
     })
   })
@@ -150,6 +152,7 @@ describe('Search', () => {
       ],
       total: 1,
       has_more: false,
+      failed_sources: [],
       sites: { 'food.com': 1 },
     })
 
@@ -166,6 +169,7 @@ describe('Search', () => {
       ],
       total: 3,
       has_more: false,
+      failed_sources: [],
       sites: { 'food.com': 2, 'allrecipes.com': 1 },
     })
 

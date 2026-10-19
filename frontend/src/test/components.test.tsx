@@ -224,6 +224,7 @@ describe('Search', () => {
       total: 2,
       page: 1,
       has_more: false,
+      failed_sources: [],
       sites: { 'example.com': 2 },
     })
 
@@ -241,7 +242,7 @@ describe('Search', () => {
       .mockRejectedValueOnce(Object.assign(new Error('Could not reach any recipe sites.'), { status: 503 }))
       .mockResolvedValueOnce({
         results: [{ url: 'https://example.com/r', title: 'Cookies Again', host: 'example.com', image_url: '', cached_image_url: null, description: '', rating_count: null }],
-        total: 1, page: 1, has_more: false, sites: { 'example.com': 1 },
+        total: 1, page: 1, has_more: false, sites: { 'example.com': 1 }, failed_sources: [],
       })
 
     renderSearch('cookies')
@@ -273,6 +274,7 @@ describe('Search', () => {
       total: 1,
       page: 1,
       has_more: false,
+      failed_sources: [],
       sites: { 'example.com': 1 },
     })
 
@@ -289,6 +291,7 @@ describe('Search', () => {
       total: 10,
       page: 1,
       has_more: false,
+      failed_sources: [],
       sites: { 'allrecipes.com': 5, 'foodnetwork.com': 5 },
     })
 
@@ -308,6 +311,7 @@ describe('Search', () => {
         total: 10,
         page: 1,
         has_more: false,
+        failed_sources: [],
         sites: { 'allrecipes.com': 5, 'foodnetwork.com': 5 },
       })
       .mockResolvedValueOnce({
@@ -315,6 +319,7 @@ describe('Search', () => {
         total: 5,
         page: 1,
         has_more: false,
+        failed_sources: [],
         sites: { 'allrecipes.com': 5 },
       })
 
@@ -337,6 +342,7 @@ describe('Search', () => {
       total: 50,
       page: 1,
       has_more: true,
+      failed_sources: [],
       sites: {},
     })
 
@@ -353,6 +359,7 @@ describe('Search', () => {
       total: 1,
       page: 1,
       has_more: false,
+      failed_sources: [],
       sites: {},
     })
 
@@ -369,6 +376,7 @@ describe('Search', () => {
       total: 0,
       page: 1,
       has_more: false,
+      failed_sources: [],
       sites: {},
     })
 
@@ -397,6 +405,7 @@ describe('Search', () => {
       total: 0,
       page: 1,
       has_more: false,
+      failed_sources: [],
       sites: {},
     })
 
