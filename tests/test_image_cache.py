@@ -11,6 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from PIL import Image
 
 from apps.recipes.services.image_cache import SearchImageCache
+from tests.streaming import stream_body
 
 
 @pytest.fixture
@@ -229,12 +230,12 @@ class TestImageCaching:
         mock_session_class.assert_not_called()
 
     @patch("apps.recipes.services.image_cache.AsyncSession")
-    async def test_fetch_image_success(self, mock_session_class, image_cache, sample_jpeg_bytes):
+    async def test_fetch_image_success(self, mock_session_class, image_cache, sample_jpeg_bytes, public_dns):
         """Test successful image fetch."""
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.headers = {"content-type": "image/jpeg"}
-        mock_response.content = sample_jpeg_bytes
+        stream_body(mock_response, sample_jpeg_bytes)
 
         mock_session = MagicMock()
         mock_session.get = AsyncMock(return_value=mock_response)
@@ -268,7 +269,7 @@ class TestImageCaching:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.headers = {"content-type": "text/html"}
-        mock_response.content = b"<html></html>"
+        stream_body(mock_response, b"<html></html>")
 
         mock_session = MagicMock()
         mock_session.get = AsyncMock(return_value=mock_response)
@@ -282,7 +283,7 @@ class TestImageCaching:
 
     @patch("apps.recipes.services.image_cache.AsyncSession")
     async def test_fetch_image_tries_multiple_profiles_on_failure(
-        self, mock_session_class, image_cache, sample_jpeg_bytes
+        self, mock_session_class, image_cache, sample_jpeg_bytes, public_dns
     ):
         """Test fetch tries multiple browser profiles if first fails."""
         call_count = 0
@@ -295,7 +296,7 @@ class TestImageCaching:
             mock_response = MagicMock()
             mock_response.status_code = 200
             mock_response.headers = {"content-type": "image/jpeg"}
-            mock_response.content = sample_jpeg_bytes
+            stream_body(mock_response, sample_jpeg_bytes)
             return mock_response
 
         mock_session = MagicMock()
@@ -312,7 +313,7 @@ class TestImageCaching:
 
     @patch("apps.recipes.services.image_cache.AsyncSession")
     async def test_download_and_save_creates_cached_record(
-        self, mock_session_class, image_cache, sample_jpeg_bytes, db
+        self, mock_session_class, image_cache, sample_jpeg_bytes, db, public_dns
     ):
         """Test download creates CachedSearchImage record."""
         import asyncio
@@ -322,7 +323,7 @@ class TestImageCaching:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.headers = {"content-type": "image/jpeg"}
-        mock_response.content = sample_jpeg_bytes
+        stream_body(mock_response, sample_jpeg_bytes)
 
         mock_session = MagicMock()
         mock_session.get = AsyncMock(return_value=mock_response)
@@ -412,7 +413,7 @@ class TestImageCaching:
 
     @patch("apps.recipes.services.image_cache.AsyncSession")
     async def test_download_and_save_retries_failed_images(
-        self, mock_session_class, image_cache, sample_jpeg_bytes, db
+        self, mock_session_class, image_cache, sample_jpeg_bytes, db, public_dns
     ):
         """Test download retries previously failed images."""
         import asyncio
@@ -434,7 +435,7 @@ class TestImageCaching:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.headers = {"content-type": "image/jpeg"}
-        mock_response.content = sample_jpeg_bytes
+        stream_body(mock_response, sample_jpeg_bytes)
 
         mock_session = MagicMock()
         mock_session.get = AsyncMock(return_value=mock_response)

@@ -39,12 +39,23 @@ def fake_dns():
         yield resolver
 
 
-def resp(status=200, headers=None, content=b"ok", text="ok"):
+def resp(status=200, headers=None, content=b"ok", text="ok", chunks=None):
     r = MagicMock()
     r.status_code = status
     r.headers = headers or {}
     r.content = content
     r.text = text
+    r.quit_now = MagicMock()
+    r.aclose = AsyncMock()
+    r.chunks_read = 0
+    parts = chunks if chunks is not None else [content]
+
+    async def aiter_content():
+        for part in parts:
+            r.chunks_read += 1
+            yield part
+
+    r.aiter_content = aiter_content
     return r
 
 
@@ -87,8 +98,8 @@ async def fetch(factory, url="https://example.com/page", **kw):
     return await safe_fetch(url, session_factory=factory, **kw)
 
 
-def pin(host):
-    return {CurlOpt.RESOLVE: [f"{host}:80:{IPS[host]}", f"{host}:443:{IPS[host]}"]}
+def pin(host, port=443):
+    return {CurlOpt.RESOLVE: [f"{host}:{port}:{IPS[host]}"]}
 
 
 class TestFirstHop:
@@ -120,6 +131,23 @@ class TestFirstHop:
         await fetch(factory, curl_resolve=["example.com:443:93.184.216.34"])
         fake_dns.assert_not_called()
         assert factory.sessions[0][1] == {CurlOpt.RESOLVE: ["example.com:443:93.184.216.34"]}
+
+
+class TestPinning:
+    async def test_non_standard_port_is_pinned_on_first_hop(self):
+        factory = FakeSessions(resp())
+        await fetch(factory, "https://example.com:8443/x")
+        assert factory.sessions == [("chrome", pin("example.com", 8443))]
+
+    async def test_non_standard_port_is_pinned_on_redirect_hop(self):
+        factory = FakeSessions(redirect("http://cdn.example.net:8080/i"), resp())
+        await fetch(factory)
+        assert [s[1] for s in factory.sessions] == [pin("example.com"), pin("cdn.example.net", 8080)]
+
+    async def test_http_default_port_is_80(self):
+        factory = FakeSessions(resp())
+        await fetch(factory, "http://example.com/x")
+        assert factory.sessions[0][1] == pin("example.com", 80)
 
 
 class TestRedirects:
@@ -177,6 +205,23 @@ class TestSizeLimits:
         with pytest.raises(ResponseTooLarge, match="too large"):
             await fetch(factory, max_size=100)
 
+    async def test_chunked_body_without_content_length_is_aborted_mid_stream(self):
+        response = resp(chunks=[b"x" * 60] * 50)
+        with pytest.raises(ResponseTooLarge, match="too large"):
+            await fetch(FakeSessions(response), max_size=100)
+        assert response.chunks_read == 2  # stopped as soon as the cap was passed
+        response.quit_now.set.assert_called_once()
+
+    async def test_streamed_body_is_assembled_for_the_caller(self):
+        result = await fetch(FakeSessions(resp(chunks=[b"ab", b"cd"])), max_size=100)
+        assert result.response.content == b"abcd"
+
+    async def test_declared_oversize_is_refused_before_reading(self):
+        response = resp(headers={"content-length": "999"}, chunks=[b"x"])
+        with pytest.raises(ResponseTooLarge):
+            await fetch(FakeSessions(response), max_size=100)
+        assert response.chunks_read == 0
+
     async def test_within_limit_and_no_limit(self):
         assert (await fetch(FakeSessions(resp(content=b"x" * 100)), max_size=100)).response.status_code == 200
         assert (await fetch(FakeSessions(resp(content=b"x" * 10_000)))).response.status_code == 200
@@ -214,7 +259,9 @@ class TestCallersUseTheSeam:
         session_class = MagicMock()
         with patch("apps.recipes.services.search.AsyncSession", session_class):
             with pytest.raises(ValueError, match="blocked IP"):
-                await RecipeSearch()._fetch_url(MagicMock(_impersonate="chrome"), "http://internal.example.com/search?q=x")
+                await RecipeSearch()._fetch_url(
+                    MagicMock(_impersonate="chrome"), "http://internal.example.com/search?q=x"
+                )
         session_class.assert_not_called()
 
     async def test_search_pins_the_first_hop_and_flags_oversized_pages(self):
@@ -274,4 +321,6 @@ class TestCallersUseTheSeam:
         with patch("apps.recipes.services.image_cache.AsyncSession", FakeSessions(good)):
             assert await SearchImageCache()._fetch_image_safe("https://example.com/a", "chrome") == b"\xff\xd8\xff"
         with patch("apps.recipes.services.scraper.AsyncSession", FakeSessions(good)):
-            assert await RecipeScraper()._fetch_image_with_redirects("https://example.com/a", "chrome") == b"\xff\xd8\xff"
+            assert (
+                await RecipeScraper()._fetch_image_with_redirects("https://example.com/a", "chrome") == b"\xff\xd8\xff"
+            )

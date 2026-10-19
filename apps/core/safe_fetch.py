@@ -26,7 +26,6 @@ from typing import Any, NamedTuple
 
 from apps.core.validators import (
     MAX_REDIRECT_HOPS,
-    check_content_size,
     check_response_size,
     validate_redirect_url,
     validate_url,
@@ -48,6 +47,33 @@ class RedirectLimitExceeded(ValueError):
 
 class ResponseTooLarge(ValueError):
     """A 200 body exceeded ``max_size`` (declared by Content-Length or actually received)."""
+
+
+async def _read_body(response: Any, max_size: int) -> bool:
+    """Stream the body into ``response.content``, stopping past ``max_size``.
+
+    Returns True when the body exceeded the cap (the download is aborted and ``content`` holds
+    what was read so far).
+    """
+    chunks: list[bytes] = []
+    received = 0
+    over = False
+    async for chunk in response.aiter_content():
+        received += len(chunk)
+        chunks.append(chunk)
+        if received > max_size:
+            over = True
+            break
+    response.content = b"".join(chunks)
+    if over:
+        quit_now = getattr(response, "quit_now", None)
+        if quit_now is not None:
+            quit_now.set()
+    try:
+        await response.aclose()
+    except Exception:  # best-effort teardown of an aborted download
+        pass
+    return over
 
 
 async def safe_fetch(
@@ -79,29 +105,31 @@ async def safe_fetch(
 
     current_url = url
     current_resolve = curl_resolve if curl_resolve is not None else validate_url(url).curl_resolve
+    stream = {"stream": True} if max_size is not None else {}
 
     for _ in range(MAX_REDIRECT_HOPS):
         curl_opts = {CurlOpt.RESOLVE: current_resolve} if current_resolve else {}
         async with session_factory(impersonate=impersonate, curl_options=curl_opts) as session:
-            request = session.get(current_url, timeout=timeout, allow_redirects=False)
+            request = session.get(current_url, timeout=timeout, allow_redirects=False, **stream)
             response = await (asyncio.wait_for(request, timeout=hard_timeout) if hard_timeout else request)
+            over = False
+            if stream and response.status_code == 200 and not check_response_size(response, max_size):
+                raise ResponseTooLarge(f"Response too large (Content-Length > {max_size})")
+            if stream and response.status_code not in REDIRECT_STATUSES:
+                body = _read_body(response, max_size)
+                over = await (asyncio.wait_for(body, timeout=hard_timeout) if hard_timeout else body)
 
         if response.status_code in REDIRECT_STATUSES:
             location = response.headers.get("location")
             if not location:
                 return Fetched(response, current_url)
-            resolved = validate_redirect_url(location)
+            current_resolve = validate_redirect_url(location).curl_resolve
             current_url = location
-            current_resolve = resolved.curl_resolve
             continue
 
         if response.status_code == 200 and max_size is not None:
-            if not check_response_size(response, max_size):
-                raise ResponseTooLarge(f"Response too large (Content-Length > {max_size})")
-            try:
-                check_content_size(response.content, max_size)
-            except ValueError as exc:
-                raise ResponseTooLarge(str(exc)) from exc
+            if over:
+                raise ResponseTooLarge(f"Response too large (limit: {max_size} bytes)")
         return Fetched(response, current_url)
 
     raise RedirectLimitExceeded(f"Too many redirects (>{MAX_REDIRECT_HOPS}) for {url}")
