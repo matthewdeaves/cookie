@@ -456,6 +456,11 @@ class TestCreateSuperuserBlocked:
 class TestCookieAdminReset:
     """Tests for the cookie_admin reset subcommand."""
 
+    @pytest.fixture(autouse=True)
+    def _temp_media_root(self, settings, tmp_path):
+        """Never let a reset test wipe the real MEDIA_ROOT."""
+        settings.MEDIA_ROOT = str(tmp_path)
+
     def test_reset_json_requires_confirm_flag(self, passkey_mode):
         """reset --json without --confirm should fail."""
         with pytest.raises(SystemExit):

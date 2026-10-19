@@ -18,6 +18,12 @@ from django.core.files.base import ContentFile
 from apps.profiles.models import Profile
 
 
+@pytest.fixture(autouse=True)
+def _temp_media_root(settings, tmp_path):
+    """Resets and image fixtures must never touch the real MEDIA_ROOT."""
+    settings.MEDIA_ROOT = str(tmp_path)
+
+
 @pytest.fixture
 def client():
     return Client()
@@ -306,7 +312,7 @@ class TestResetDatabase:
         )
         assert response.status_code == 400
 
-    @patch("apps.core.api.call_command")
+    @patch("apps.core.factory_reset.call_command")
     def test_reset_deletes_all_user_data(self, mock_call_command, auth_client, populated_database):
         """Test reset deletes all user-created data."""
         from apps.profiles.models import Profile
@@ -350,7 +356,7 @@ class TestResetDatabase:
         assert ServingAdjustment.objects.count() == 0
         assert CachedSearchImage.objects.count() == 0
 
-    @patch("apps.core.api.call_command")
+    @patch("apps.core.factory_reset.call_command")
     def test_reset_preserves_search_sources(self, mock_call_command, auth_client, db):
         """Test reset preserves SearchSource configurations."""
         from apps.recipes.models import SearchSource
@@ -387,7 +393,7 @@ class TestResetDatabase:
         assert source.needs_attention is False
         assert source.last_validated_at is None
 
-    @patch("apps.core.api.call_command")
+    @patch("apps.core.factory_reset.call_command")
     def test_reset_preserves_ai_prompts(self, mock_call_command, auth_client, db):
         """Test reset preserves AI prompt configurations."""
         from apps.ai.models import AIPrompt
@@ -419,7 +425,7 @@ class TestResetDatabase:
         assert prompt.prompt_type == "test_preserve_prompt"
         assert prompt.system_prompt == "Custom system prompt for testing"
 
-    @patch("apps.core.api.call_command")
+    @patch("apps.core.factory_reset.call_command")
     def test_reset_clears_django_cache(self, mock_call_command, auth_client, db):
         """Test reset clears Django cache."""
         from django.core.cache import cache
@@ -438,7 +444,7 @@ class TestResetDatabase:
         # Cache should be cleared
         assert cache.get("test_key") is None
 
-    @patch("apps.core.api.call_command")
+    @patch("apps.core.factory_reset.call_command")
     def test_reset_clears_sessions(self, mock_call_command, auth_client, db):
         """Test reset clears all user sessions."""
         from django.contrib.sessions.models import Session
@@ -459,7 +465,7 @@ class TestResetDatabase:
         # All sessions should be cleared
         assert Session.objects.count() == 0
 
-    @patch("apps.core.api.call_command")
+    @patch("apps.core.factory_reset.call_command")
     def test_reset_returns_actions_performed(self, mock_call_command, auth_client, db):
         """Test reset returns list of actions performed."""
         response = auth_client.post(
@@ -482,10 +488,10 @@ class TestResetDatabase:
         assert "Cleared application cache" in actions
         assert "Cleared all sessions" in actions
 
-    @patch("apps.core.api.call_command")
-    @patch("apps.core.api.shutil.rmtree")
-    @patch("apps.core.api.os.path.exists")
-    @patch("apps.core.api.os.makedirs")
+    @patch("apps.core.factory_reset.call_command")
+    @patch("apps.core.factory_reset.shutil.rmtree")
+    @patch("apps.core.factory_reset.os.path.exists")
+    @patch("apps.core.factory_reset.os.makedirs")
     def test_reset_clears_image_directories(
         self, mock_makedirs, mock_exists, mock_rmtree, mock_call_command, auth_client, db
     ):
@@ -509,7 +515,7 @@ class TestResetDatabase:
         assert any("recipe_images" in str(call) for call in makedirs_calls)
         assert any("search_images" in str(call) for call in makedirs_calls)
 
-    @patch("apps.core.api.call_command")
+    @patch("apps.core.factory_reset.call_command")
     def test_reset_runs_migrations(self, mock_call_command, auth_client, db):
         """Test reset re-runs migrations."""
         response = auth_client.post(
@@ -523,7 +529,7 @@ class TestResetDatabase:
         migrate_calls = [call for call in mock_call_command.call_args_list if call[0][0] == "migrate"]
         assert len(migrate_calls) >= 1
 
-    @patch("apps.core.api.call_command")
+    @patch("apps.core.factory_reset.call_command")
     def test_reset_attempts_seed_commands(self, mock_call_command, auth_client, db):
         """Test reset attempts to run seed commands (gracefully handles if missing)."""
         response = auth_client.post(
@@ -545,7 +551,7 @@ class TestResetDatabase:
 class TestResetDatabaseEdgeCases:
     """Edge case and error handling tests for database reset."""
 
-    @patch("apps.core.api.call_command")
+    @patch("apps.core.factory_reset.call_command")
     def test_reset_with_cascade_relationships(self, mock_call_command, auth_client, test_profile, db):
         """Test reset properly handles cascade deletions."""
         from apps.recipes.models import (
@@ -595,7 +601,7 @@ class TestResetDatabaseEdgeCases:
         assert RecipeCollectionItem.objects.count() == 0
         assert RecipeViewHistory.objects.count() == 0
 
-    @patch("apps.core.api.call_command")
+    @patch("apps.core.factory_reset.call_command")
     def test_reset_idempotent(self, mock_call_command, auth_client, db):
         """Test reset can be called multiple times safely."""
         # First reset on empty database

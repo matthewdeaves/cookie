@@ -1,33 +1,16 @@
 """System API for administrative operations like database reset."""
 
 import logging
-import os
-import shutil
 
+from django.conf import settings
 from django_ratelimit.decorators import ratelimit
+from ninja import Router, Schema, Status
+
+from apps.core import factory_reset
+from apps.core.auth import HomeOnlyAuth, SessionAuth
 
 logger = logging.getLogger(__name__)
 security_logger = logging.getLogger("security")
-
-from django.conf import settings
-from django.core.cache import cache
-from django.core.management import call_command
-from django.contrib.sessions.models import Session
-from ninja import Router, Schema, Status
-
-from apps.profiles.models import Profile
-from apps.recipes.models import (
-    Recipe,
-    RecipeFavorite,
-    RecipeCollection,
-    RecipeCollectionItem,
-    RecipeViewHistory,
-    SearchSource,
-    ServingAdjustment,
-    CachedSearchImage,
-)
-from apps.ai.models import AIDiscoverySuggestion, AIPrompt
-from apps.core.auth import HomeOnlyAuth, SessionAuth
 
 router = Router(tags=["system"])
 
@@ -115,18 +98,7 @@ class ResetSuccessSchema(Schema):
 def get_reset_preview(request):
     """Get summary of data that will be deleted on reset. Home mode only — 404 in passkey mode."""
     return {
-        "data_counts": {
-            "profiles": Profile.objects.count(),
-            "recipes": Recipe.objects.count(),
-            "recipe_images": Recipe.objects.exclude(image="").exclude(image__isnull=True).count(),
-            "favorites": RecipeFavorite.objects.count(),
-            "collections": RecipeCollection.objects.count(),
-            "collection_items": RecipeCollectionItem.objects.count(),
-            "view_history": RecipeViewHistory.objects.count(),
-            "ai_suggestions": AIDiscoverySuggestion.objects.count(),
-            "serving_adjustments": ServingAdjustment.objects.count(),
-            "cached_search_images": CachedSearchImage.objects.count(),
-        },
+        "data_counts": factory_reset.preview_counts(),
         "preserved": [
             "Search source configurations",
             "AI prompt templates",
@@ -171,60 +143,7 @@ def reset_database(request, data: ResetConfirmSchema):
     )
 
     try:
-        # 1. Clear database tables (order matters for FK constraints)
-        # Start with leaf tables that depend on others
-        AIDiscoverySuggestion.objects.all().delete()
-        ServingAdjustment.objects.all().delete()
-        RecipeViewHistory.objects.all().delete()
-        RecipeCollectionItem.objects.all().delete()
-        RecipeCollection.objects.all().delete()
-        RecipeFavorite.objects.all().delete()
-        CachedSearchImage.objects.all().delete()
-
-        # Delete all recipes (this will cascade to related items)
-        Recipe.objects.all().delete()
-
-        # Delete all profiles
-        Profile.objects.all().delete()
-
-        # Reset SearchSource failure counters (keep selectors)
-        SearchSource.objects.all().update(
-            consecutive_failures=0,
-            needs_attention=False,
-            last_validated_at=None,
-        )
-
-        # 2. Clear recipe images
-        images_dir = os.path.join(settings.MEDIA_ROOT, "recipe_images")
-        if os.path.exists(images_dir):
-            shutil.rmtree(images_dir)
-            os.makedirs(images_dir)  # Recreate empty directory
-
-        # Clear cached search images
-        search_images_dir = os.path.join(settings.MEDIA_ROOT, "search_images")
-        if os.path.exists(search_images_dir):
-            shutil.rmtree(search_images_dir)
-            os.makedirs(search_images_dir)  # Recreate empty directory
-
-        # 3. Clear Django cache
-        cache.clear()
-
-        # 4. Clear all sessions
-        Session.objects.all().delete()
-
-        # 5. Re-run migrations (ensures clean state)
-        call_command("migrate", verbosity=0)
-
-        # 6. Re-seed default data
-        try:
-            call_command("seed_search_sources", verbosity=0)
-        except Exception:
-            logger.debug("seed_search_sources command not available, skipping")
-
-        try:
-            call_command("seed_ai_prompts", verbosity=0)
-        except Exception:
-            logger.debug("seed_ai_prompts command not available, skipping")
+        factory_reset.reset_all()
 
         security_logger.warning(
             "DATABASE RESET completed successfully by %s from %s",

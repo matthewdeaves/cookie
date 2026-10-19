@@ -9,12 +9,9 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import pwd
-import shutil
 
 from django.conf import settings
-from django.contrib.auth.models import User
 
 security_logger = logging.getLogger("security")
 
@@ -27,22 +24,7 @@ class AppConfigMixin:
     # ------------------------------------------------------------------ #
 
     def _handle_reset(self, options):
-        from django.contrib.sessions.models import Session
-        from django.core.cache import cache
-        from django.core.management import call_command
-
-        from apps.ai.models import AIDiscoverySuggestion
-        from apps.profiles.models import Profile
-        from apps.recipes.models import (
-            CachedSearchImage,
-            Recipe,
-            RecipeCollection,
-            RecipeCollectionItem,
-            RecipeFavorite,
-            RecipeViewHistory,
-            SearchSource,
-            ServingAdjustment,
-        )
+        from apps.core import factory_reset
 
         if options.get("as_json"):
             if not options.get("confirm"):
@@ -58,71 +40,16 @@ class AppConfigMixin:
 
         security_logger.warning("DATABASE RESET initiated via CLI (cookie_admin reset)")
 
-        actions = []
-
-        # Delete in FK-safe order
-        AIDiscoverySuggestion.objects.all().delete()
-        ServingAdjustment.objects.all().delete()
-        RecipeViewHistory.objects.all().delete()
-        RecipeCollectionItem.objects.all().delete()
-        RecipeCollection.objects.all().delete()
-        RecipeFavorite.objects.all().delete()
-        CachedSearchImage.objects.all().delete()
-        Recipe.objects.all().delete()
-        Profile.objects.all().delete()
-        actions.extend(
-            [
-                "Deleted all profiles",
-                "Deleted all recipes",
-                "Cleared favorites, collections, view history",
-                "Cleared AI suggestions and serving adjustments",
-            ]
-        )
-
-        if settings.AUTH_MODE == "passkey":
-            from apps.core.models import DeviceCode
-
-            DeviceCode.objects.all().delete()
-            User.objects.all().delete()
-            actions.append("Deleted all user accounts and device codes")
-
-        SearchSource.objects.all().update(
-            consecutive_failures=0,
-            needs_attention=False,
-            last_validated_at=None,
-        )
-        actions.append("Reset search source counters")
-
-        # Clear media (re-chown to app user — this command runs as root via docker exec)
+        # This command runs as root via docker exec; recreate media dirs owned by the app user.
         try:
             app_pw = pwd.getpwnam("app")
-            app_uid, app_gid = app_pw.pw_uid, app_pw.pw_gid
+            owner = (app_pw.pw_uid, app_pw.pw_gid)
         except KeyError:
-            app_uid, app_gid = -1, -1
-        for subdir in ("recipe_images", "search_images"):
-            path = os.path.join(settings.MEDIA_ROOT, subdir)
-            if os.path.exists(path):
-                shutil.rmtree(path)
-            os.makedirs(path)
-            if app_uid != -1:
-                os.chown(path, app_uid, app_gid)
-        actions.append("Cleared recipe and search images")
-
-        cache.clear()
-        Session.objects.all().delete()
-        actions.extend(["Cleared application cache", "Cleared all sessions"])
-
-        call_command("migrate", verbosity=0)
-        actions.append("Re-ran migrations")
-
-        for cmd in ("seed_search_sources", "seed_ai_prompts"):
-            try:
-                call_command(cmd, verbosity=0)
-                actions.append(f"Seeded {cmd.replace('seed_', '')}")
-            except Exception as exc:
-                # Seed commands are optional (may not be installed in every deployment);
-                # log at debug level so operators can diagnose if a reset doesn't repopulate.
-                logging.getLogger(__name__).debug("seed command %s skipped: %s", cmd, exc)
+            owner = None
+        actions = factory_reset.reset_all(
+            include_accounts=settings.AUTH_MODE == "passkey",
+            media_owner=owner,
+        )
 
         security_logger.warning("DATABASE RESET completed successfully via CLI")
 
