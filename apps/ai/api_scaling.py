@@ -71,11 +71,15 @@ def scale_recipe_endpoint(request, data: ScaleIn):
         recipe = ctx.recipe
         nutrition = None
         if recipe.nutrition:
-            nutrition = calculate_nutrition(
-                recipe=recipe,
-                original_servings=recipe.servings,
-                target_servings=data.target_servings,
-            )
+            try:
+                nutrition = calculate_nutrition(
+                    recipe=recipe,
+                    original_servings=recipe.servings,
+                    target_servings=data.target_servings,
+                )
+            except Exception as exc:
+                exc.ai_called = not result.get("cached")  # the AI call already happened: no refund
+                raise
 
         return Ran(
             {

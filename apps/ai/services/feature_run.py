@@ -11,7 +11,8 @@ Interface (the test surface):
     * ``AIFeatureError(status, error, message)`` - raise from ``work`` for an expected failure;
       the reservation is refunded and the error becomes that response.
 
-Any other exception refunds the reservation and propagates (``handle_ai_errors`` on the
+Any other exception refunds the reservation and propagates (unless it carries
+``ai_called = True``: the AI was already called, so the quota stays spent) (``handle_ai_errors`` on the
 endpoint maps it). Quota is charged to the *same* profile that ownership is checked against.
 """
 
@@ -97,8 +98,8 @@ def run_charged(
         if charge:
             release_quota(profile, feature)
         return exc.response()
-    except Exception:
-        if charge:
+    except Exception as exc:
+        if charge and not getattr(exc, "ai_called", False):
             release_quota(profile, feature)
         raise
 
