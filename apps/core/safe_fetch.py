@@ -5,7 +5,7 @@ Interface (the test surface):
 
 What this module guarantees, for every caller:
     * the first hop is validated and DNS-pinned unless the caller already did that and passes
-      ``curl_resolve`` (a ``ResolvedURL.curl_resolve`` list from ``validate_url``);
+      ``curl_resolve`` (a non-empty ``ResolvedURL.curl_resolve`` list from ``validate_url``);
     * redirects are never followed by the HTTP client; each ``Location`` is validated against
       the SSRF blocklist and its resolved IP is pinned for the next request;
     * the hop count is capped (``MAX_REDIRECT_HOPS``) and, optionally, a 200 body is capped
@@ -92,7 +92,7 @@ async def safe_fetch(
         session_factory: ``AsyncSession``-compatible callable taking ``impersonate`` and
             ``curl_options`` and returning an async context manager with ``.get()``.
         curl_resolve: pinned DNS for the first hop if the caller already validated ``url``;
-            when None the first hop is validated here (raises ValueError if unsafe).
+            when None or empty the first hop is validated here (raises ValueError if unsafe).
         max_size: cap for a 200 response body; raises ``ResponseTooLarge``.
         hard_timeout: overall per-request ceiling enforced with ``asyncio.wait_for``.
 
@@ -104,7 +104,7 @@ async def safe_fetch(
     from curl_cffi import CurlOpt
 
     current_url = url
-    current_resolve = curl_resolve if curl_resolve is not None else validate_url(url).curl_resolve
+    current_resolve = curl_resolve or validate_url(url).curl_resolve
     stream = {"stream": True} if max_size is not None else {}
 
     for _ in range(MAX_REDIRECT_HOPS):

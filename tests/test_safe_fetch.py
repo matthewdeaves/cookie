@@ -149,6 +149,18 @@ class TestPinning:
         await fetch(factory, "http://example.com/x")
         assert factory.sessions[0][1] == pin("example.com", 80)
 
+    async def test_empty_pin_list_is_validated_not_trusted(self, fake_dns):
+        factory = FakeSessions(resp())
+        await fetch(factory, curl_resolve=[])
+        fake_dns.assert_called_once()
+        assert factory.sessions[0][1] == pin("example.com")
+
+    async def test_empty_pin_list_still_blocks_private_hosts(self):
+        factory = FakeSessions(resp())
+        with pytest.raises(ValueError, match="blocked IP"):
+            await fetch(factory, "https://internal.example.com/", curl_resolve=[])
+        assert factory.sessions == []
+
 
 class TestRedirects:
     async def test_each_hop_is_validated_and_pinned_to_its_own_ip(self):
