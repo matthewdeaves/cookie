@@ -466,7 +466,7 @@ def test_discover_refresh_quota_exhausted_falls_back_to_cache(auth_client, profi
 
     # Quota is exhausted
     with patch(
-        "apps.ai.api_discover.reserve_quota",
+        "apps.ai.services.feature_run.reserve_quota",
         return_value=(False, {"remaining": 0, "limit": 1}),
     ):
         response = auth_client.get(f"/api/ai/discover/{profile.id}/?refresh=true")
@@ -484,7 +484,7 @@ def test_discover_refresh_quota_exhausted_no_cache_returns_429(auth_client, prof
     # No cached suggestions — table is empty for this profile
 
     with patch(
-        "apps.ai.api_discover.reserve_quota",
+        "apps.ai.services.feature_run.reserve_quota",
         return_value=(False, {"remaining": 0, "limit": 1}),
     ):
         response = auth_client.get(f"/api/ai/discover/{profile.id}/?refresh=true")

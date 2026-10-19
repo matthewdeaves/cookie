@@ -343,7 +343,7 @@ class TestTipsEndpoint:
         )
         assert response.status_code == 401
 
-    @patch("apps.ai.api.reserve_quota", return_value=(True, {}))
+    @patch("apps.ai.services.feature_run.reserve_quota", return_value=(True, {}))
     @patch("apps.ai.api.generate_tips", return_value={"tips": ["Tip 1", "Tip 2"], "cached": False})
     def test_success(self, mock_tips, mock_quota, auth_client, recipe):
         response = auth_client.post(
@@ -356,8 +356,8 @@ class TestTipsEndpoint:
         assert data["tips"] == ["Tip 1", "Tip 2"]
         assert data["cached"] is False
 
-    @patch("apps.ai.api.reserve_quota", return_value=(True, {}))
-    @patch("apps.ai.api.release_quota")
+    @patch("apps.ai.services.feature_run.reserve_quota", return_value=(True, {}))
+    @patch("apps.ai.services.feature_run.release_quota")
     def test_recipe_not_found(self, mock_release, mock_quota, auth_client):
         response = auth_client.post(
             "/api/ai/tips",
@@ -367,8 +367,8 @@ class TestTipsEndpoint:
         assert response.status_code == 404
         mock_release.assert_called_once()
 
-    @patch("apps.ai.api.reserve_quota", return_value=(True, {}))
-    @patch("apps.ai.api.release_quota")
+    @patch("apps.ai.services.feature_run.reserve_quota", return_value=(True, {}))
+    @patch("apps.ai.services.feature_run.release_quota")
     def test_recipe_not_owned(self, mock_release, mock_quota, auth_client):
         other_profile = Profile.objects.create(name="Other", avatar_color="#000000")
         other_recipe = Recipe.objects.create(
@@ -386,7 +386,7 @@ class TestTipsEndpoint:
         assert response.status_code == 404
         mock_release.assert_called_once()
 
-    @patch("apps.ai.api.reserve_quota", return_value=(False, {"remaining": 0, "limit": 10}))
+    @patch("apps.ai.services.feature_run.reserve_quota", return_value=(False, {"remaining": 0, "limit": 10}))
     def test_quota_exceeded(self, mock_quota, auth_client, recipe):
         response = auth_client.post(
             "/api/ai/tips",
@@ -396,8 +396,8 @@ class TestTipsEndpoint:
         assert response.status_code == 429
         assert response.json()["error"] == "quota_exceeded"
 
-    @patch("apps.ai.api.reserve_quota", return_value=(True, {}))
-    @patch("apps.ai.api.release_quota")
+    @patch("apps.ai.services.feature_run.reserve_quota", return_value=(True, {}))
+    @patch("apps.ai.services.feature_run.release_quota")
     @patch("apps.ai.api.generate_tips", side_effect=AIUnavailableError("No key"))
     def test_ai_unavailable(self, mock_tips, mock_release, mock_quota, auth_client, recipe):
         response = auth_client.post(
@@ -409,8 +409,8 @@ class TestTipsEndpoint:
         assert response.json()["error"] == "ai_unavailable"
         mock_release.assert_called_once()
 
-    @patch("apps.ai.api.reserve_quota", return_value=(True, {}))
-    @patch("apps.ai.api.release_quota")
+    @patch("apps.ai.services.feature_run.reserve_quota", return_value=(True, {}))
+    @patch("apps.ai.services.feature_run.release_quota")
     @patch("apps.ai.api.generate_tips", side_effect=AIResponseError("Bad response"))
     def test_ai_response_error(self, mock_tips, mock_release, mock_quota, auth_client, recipe):
         response = auth_client.post(
@@ -422,8 +422,8 @@ class TestTipsEndpoint:
         assert response.json()["error"] == "ai_error"
         mock_release.assert_called_once()
 
-    @patch("apps.ai.api.reserve_quota", return_value=(True, {}))
-    @patch("apps.ai.api.release_quota")
+    @patch("apps.ai.services.feature_run.reserve_quota", return_value=(True, {}))
+    @patch("apps.ai.services.feature_run.release_quota")
     @patch("apps.ai.api.generate_tips", return_value={"tips": ["Cached tip"], "cached": True})
     @patch("apps.ai.api.is_ai_cache_hit", return_value=False)
     def test_cached_result_releases_quota(self, mock_cache, mock_tips, mock_release, mock_quota, auth_client, recipe):
@@ -450,7 +450,7 @@ class TestTimerNameEndpoint:
         assert response.status_code == 401
 
     @patch("apps.ai.api.is_ai_cache_hit", return_value=False)
-    @patch("apps.ai.api.reserve_quota", return_value=(True, {}))
+    @patch("apps.ai.services.feature_run.reserve_quota", return_value=(True, {}))
     @patch("apps.ai.api.generate_timer_name", return_value={"label": "Boil Pasta"})
     def test_success(self, mock_timer, mock_quota, mock_cache, auth_client):
         response = auth_client.post(
@@ -461,8 +461,8 @@ class TestTimerNameEndpoint:
         assert response.status_code == 200
         assert response.json()["label"] == "Boil Pasta"
 
-    @patch("apps.ai.api.reserve_quota", return_value=(True, {}))
-    @patch("apps.ai.api.release_quota")
+    @patch("apps.ai.services.feature_run.reserve_quota", return_value=(True, {}))
+    @patch("apps.ai.services.feature_run.release_quota")
     def test_empty_step_text(self, mock_release, mock_quota, auth_client):
         response = auth_client.post(
             "/api/ai/timer-name",
@@ -473,8 +473,8 @@ class TestTimerNameEndpoint:
         assert response.json()["error"] == "validation_error"
         mock_release.assert_called_once()
 
-    @patch("apps.ai.api.reserve_quota", return_value=(True, {}))
-    @patch("apps.ai.api.release_quota")
+    @patch("apps.ai.services.feature_run.reserve_quota", return_value=(True, {}))
+    @patch("apps.ai.services.feature_run.release_quota")
     def test_whitespace_step_text(self, mock_release, mock_quota, auth_client):
         for bad in ("   ", "\t\n", "\x00\x01"):
             response = auth_client.post(
@@ -485,8 +485,8 @@ class TestTimerNameEndpoint:
             assert response.status_code == 400, f"expected 400 for {bad!r}"
             assert response.json()["error"] == "validation_error"
 
-    @patch("apps.ai.api.reserve_quota", return_value=(True, {}))
-    @patch("apps.ai.api.release_quota")
+    @patch("apps.ai.services.feature_run.reserve_quota", return_value=(True, {}))
+    @patch("apps.ai.services.feature_run.release_quota")
     def test_negative_duration(self, mock_release, mock_quota, auth_client):
         response = auth_client.post(
             "/api/ai/timer-name",
@@ -497,7 +497,7 @@ class TestTimerNameEndpoint:
         assert response.json()["error"] == "validation_error"
         mock_release.assert_called_once()
 
-    @patch("apps.ai.api.reserve_quota", return_value=(False, {"remaining": 0, "limit": 20}))
+    @patch("apps.ai.services.feature_run.reserve_quota", return_value=(False, {"remaining": 0, "limit": 20}))
     def test_quota_exceeded(self, mock_quota, auth_client):
         response = auth_client.post(
             "/api/ai/timer-name",
@@ -508,8 +508,8 @@ class TestTimerNameEndpoint:
         assert response.json()["error"] == "quota_exceeded"
 
     @patch("apps.ai.api.is_ai_cache_hit", return_value=False)
-    @patch("apps.ai.api.reserve_quota", return_value=(True, {}))
-    @patch("apps.ai.api.release_quota")
+    @patch("apps.ai.services.feature_run.reserve_quota", return_value=(True, {}))
+    @patch("apps.ai.services.feature_run.release_quota")
     @patch("apps.ai.api.generate_timer_name", side_effect=AIUnavailableError("No key"))
     def test_ai_unavailable(self, mock_timer, mock_release, mock_quota, mock_cache, auth_client):
         response = auth_client.post(

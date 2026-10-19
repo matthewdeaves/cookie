@@ -19,7 +19,7 @@ from .services.timer import generate_timer_name
 from .services.selector import repair_selector, get_sources_needing_attention
 from .services.validator import ValidationError
 from .services.cache import is_ai_cache_hit
-from .services.quota import release_quota, reserve_quota
+from .services.feature_run import AIFeatureError, Ran, run_ai_feature
 from apps.core.auth import HomeOnlyAuth, SessionAuth
 
 security_logger = logging.getLogger("security")
@@ -316,52 +316,15 @@ def tips_endpoint(request, data: TipsIn):
     Pass regenerate=True to clear existing tips and generate fresh ones.
     Only works for recipes owned by the requesting profile.
     """
-    if getattr(request, "limited", False):
-        security_logger.warning("Rate limit hit: /ai/tips from %s", request.META.get("REMOTE_ADDR"))
-        return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
 
-    allowed, info = reserve_quota(request.auth, "tips")
-    if not allowed:
-        return Status(429, {"error": "quota_exceeded", "message": "Daily limit reached for tips", **info})
-
-    from apps.profiles.utils import get_current_profile_or_none
-
-    profile = get_current_profile_or_none(request)
-
-    try:
-        recipe = Recipe.objects.get(id=data.recipe_id)
-    except Recipe.DoesNotExist:
-        release_quota(request.auth, "tips")
-        return Status(
-            404,
-            {
-                "error": "not_found",
-                "message": f"Recipe {data.recipe_id} not found",
-            },
-        )
-
-    if not profile or recipe.profile_id != profile.id:
-        release_quota(request.auth, "tips")
-        return Status(
-            404,
-            {
-                "error": "not_found",
-                "message": f"Recipe {data.recipe_id} not found",
-            },
-        )
-
-    # Clear existing tips if regenerate requested
-    if data.regenerate:
-        clear_tips(data.recipe_id)
-
-    try:
+    def work(ctx):
+        # Clear existing tips if regenerate requested
+        if data.regenerate:
+            clear_tips(data.recipe_id)
         result = generate_tips(data.recipe_id)
-    except Exception:
-        release_quota(request.auth, "tips")
-        raise
-    if result.get("cached"):
-        release_quota(request.auth, "tips")
-    return result
+        return Ran(result, called_ai=not result.get("cached"))
+
+    return run_ai_feature(request, "tips", work, recipe_id=data.recipe_id)
 
 
 # Timer Naming Schemas
@@ -387,47 +350,19 @@ def timer_name_endpoint(request, data: TimerNameIn):
 
     Takes a cooking instruction and duration, returns a short label.
     """
-    if getattr(request, "limited", False):
-        security_logger.warning("Rate limit hit: /ai/timer-name from %s", request.META.get("REMOTE_ADDR"))
-        return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
 
-    allowed, info = reserve_quota(request.auth, "timer")
-    if not allowed:
-        return Status(429, {"error": "quota_exceeded", "message": "Daily limit reached for timer", **info})
+    def work(ctx):
+        step_text_clean = "".join(ch for ch in data.step_text if ch >= " " or ch in "\t\n\r").strip()
+        if not step_text_clean:
+            raise AIFeatureError(400, "validation_error", "Step text is required")
+        if data.duration_minutes <= 0:
+            raise AIFeatureError(400, "validation_error", "Duration must be positive")
 
-    step_text_clean = "".join(ch for ch in data.step_text if ch >= " " or ch in "\t\n\r").strip()
-    if not step_text_clean:
-        release_quota(request.auth, "timer")
-        return Status(
-            400,
-            {
-                "error": "validation_error",
-                "message": "Step text is required",
-            },
-        )
+        was_cached = is_ai_cache_hit("timer_name", step_text=step_text_clean, duration_minutes=data.duration_minutes)
+        result = generate_timer_name(step_text=step_text_clean, duration_minutes=data.duration_minutes)
+        return Ran(result, called_ai=not was_cached)
 
-    if data.duration_minutes <= 0:
-        release_quota(request.auth, "timer")
-        return Status(
-            400,
-            {
-                "error": "validation_error",
-                "message": "Duration must be positive",
-            },
-        )
-
-    was_cached = is_ai_cache_hit("timer_name", step_text=step_text_clean, duration_minutes=data.duration_minutes)
-    try:
-        result = generate_timer_name(
-            step_text=step_text_clean,
-            duration_minutes=data.duration_minutes,
-        )
-    except Exception:
-        release_quota(request.auth, "timer")
-        raise
-    if was_cached:
-        release_quota(request.auth, "timer")
-    return result
+    return run_ai_feature(request, "timer", work)
 
 
 # Selector Repair Schemas

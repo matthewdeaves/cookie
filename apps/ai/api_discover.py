@@ -1,9 +1,10 @@
 """AI discover suggestions API endpoints."""
 
-import logging
+from datetime import timedelta
 from typing import List
 
 from django.conf import settings
+from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
 from ninja import Router, Schema, Status
 
@@ -12,10 +13,8 @@ from apps.profiles.models import Profile
 
 from .api import ErrorOut, handle_ai_errors
 from .models import AIDiscoverySuggestion
-from .services.quota import release_quota, reserve_quota
 from .services.discover import get_discover_suggestions, CACHE_DURATION_HOURS
-
-security_logger = logging.getLogger("security")
+from .services.feature_run import AIFeatureError, Ran, rate_limited_response, run_charged
 
 router = Router(tags=["ai"])
 
@@ -52,15 +51,13 @@ def discover_endpoint(request, profile_id: int, refresh: bool = False):
     For new users (no favorites), only seasonal suggestions are returned.
     Pass ?refresh=true to force regeneration.
     """
-    if getattr(request, "limited", False):
-        security_logger.warning("Rate limit hit: /ai/discover from %s", request.META.get("REMOTE_ADDR"))
-        return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
+    limited = rate_limited_response(request)
+    if limited is not None:
+        return limited
 
-    # In passkey mode, verify profile ownership
-    if settings.AUTH_MODE != "home":
-        session_profile_id = request.session.get("profile_id")
-        if session_profile_id != profile_id:
-            return Status(404, {"error": "not_found", "message": "Not found"})
+    # In passkey mode, a profile may only read its own suggestions
+    if settings.AUTH_MODE != "home" and request.auth.id != profile_id:
+        return Status(404, {"error": "not_found", "message": "Not found"})
 
     try:
         profile = Profile.objects.select_related("user").get(pk=profile_id)
@@ -68,39 +65,18 @@ def discover_endpoint(request, profile_id: int, refresh: bool = False):
         return Status(404, {"error": "not_found", "message": f"Profile {profile_id} not found"})
 
     # Only count against quota when Anthropic is actually called (not cache hits)
-    from datetime import timedelta
-
-    from django.utils import timezone
-
     cache_cutoff = timezone.now() - timedelta(hours=CACHE_DURATION_HOURS)
-    has_cached = (
-        not refresh and AIDiscoverySuggestion.objects.filter(profile=profile, created_at__gte=cache_cutoff).exists()
-    )
+    recent = AIDiscoverySuggestion.objects.filter(profile=profile, created_at__gte=cache_cutoff)
+    has_cached = not refresh and recent.exists()
 
-    if not has_cached:
-        allowed, info = reserve_quota(profile, "discover")
-        if not allowed:
-            # Quota exhausted — fall back to cached suggestions if available (e.g. refresh requested but already refreshed today)
-            fallback = AIDiscoverySuggestion.objects.filter(profile=profile, created_at__gte=cache_cutoff).exists()
-            if fallback:
-                result = get_discover_suggestions(profile_id, force_refresh=False)
-                return result
-            return Status(429, {"error": "quota_exceeded", "message": "Daily limit reached for discover", **info})
+    def work():
+        try:
+            return Ran(get_discover_suggestions(profile_id, force_refresh=refresh), called_ai=not has_cached)
+        except Profile.DoesNotExist as exc:
+            raise AIFeatureError(404, "not_found", f"Profile {profile_id} not found") from exc
 
-    try:
-        result = get_discover_suggestions(profile_id, force_refresh=refresh)
-        return result
-    except Profile.DoesNotExist:
-        if not has_cached:
-            release_quota(profile, "discover")
-        return Status(
-            404,
-            {
-                "error": "not_found",
-                "message": f"Profile {profile_id} not found",
-            },
-        )
-    except Exception:
-        if not has_cached:
-            release_quota(profile, "discover")
-        raise
+    def stale_fallback():
+        # Quota exhausted: serve cached suggestions if any (e.g. refresh requested but already refreshed today)
+        return get_discover_suggestions(profile_id, force_refresh=False) if recent.exists() else None
+
+    return run_charged(profile, "discover", work, charge=not has_cached, fallback=stale_fallback)

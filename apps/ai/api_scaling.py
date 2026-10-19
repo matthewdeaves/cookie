@@ -1,19 +1,15 @@
 """AI recipe scaling API endpoints."""
 
-import logging
 from typing import List, Optional
 
 from django_ratelimit.decorators import ratelimit
-from ninja import Router, Schema, Status
+from ninja import Router, Schema
 
 from apps.core.auth import SessionAuth
-from apps.recipes.models import Recipe
 
 from .api import ErrorOut, handle_ai_errors
-from .services.quota import release_quota, reserve_quota
+from .services.feature_run import AIFeatureError, Ran, run_ai_feature
 from .services.scaling import scale_recipe, calculate_nutrition
-
-security_logger = logging.getLogger("security")
 
 router = Router(tags=["ai"])
 
@@ -59,101 +55,42 @@ def scale_recipe_endpoint(request, data: ScaleIn):
 
     Only works for recipes owned by the requesting profile.
     """
-    if getattr(request, "limited", False):
-        security_logger.warning("Rate limit hit: /ai/scale from %s", request.META.get("REMOTE_ADDR"))
-        return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
 
-    allowed, info = reserve_quota(request.auth, "scale")
-    if not allowed:
-        return Status(429, {"error": "quota_exceeded", "message": "Daily limit reached for scale", **info})
+    def work(ctx):
+        try:
+            result = scale_recipe(
+                recipe_id=data.recipe_id,
+                target_servings=data.target_servings,
+                profile=ctx.profile,
+                unit_system=data.unit_system,
+            )
+        except ValueError as e:
+            raise AIFeatureError(400, "validation_error", str(e)) from e
 
-    from apps.profiles.utils import get_current_profile_or_none
+        # Calculate nutrition if available
+        recipe = ctx.recipe
+        nutrition = None
+        if recipe.nutrition:
+            nutrition = calculate_nutrition(
+                recipe=recipe,
+                original_servings=recipe.servings,
+                target_servings=data.target_servings,
+            )
 
-    profile = get_current_profile_or_none(request)
-
-    if not profile:
-        release_quota(request.auth, "scale")
-        return Status(
-            404,
+        return Ran(
             {
-                "error": "not_found",
-                "message": "Profile not found",
+                "target_servings": result["target_servings"],
+                "original_servings": result["original_servings"],
+                "ingredients": result["ingredients"],
+                "instructions": result.get("instructions", []),  # QA-031
+                "notes": result["notes"],
+                "prep_time_adjusted": result.get("prep_time_adjusted"),  # QA-032
+                "cook_time_adjusted": result.get("cook_time_adjusted"),  # QA-032
+                "total_time_adjusted": result.get("total_time_adjusted"),  # QA-032
+                "nutrition": nutrition,
+                "cached": result["cached"],
             },
+            called_ai=not result.get("cached"),
         )
 
-    # Verify the profile_id in the request matches the session profile
-    if data.profile_id != profile.id:
-        release_quota(request.auth, "scale")
-        return Status(
-            404,
-            {
-                "error": "not_found",
-                "message": f"Profile {data.profile_id} not found",
-            },
-        )
-
-    try:
-        recipe = Recipe.objects.get(id=data.recipe_id)
-    except Recipe.DoesNotExist:
-        release_quota(request.auth, "scale")
-        return Status(
-            404,
-            {
-                "error": "not_found",
-                "message": f"Recipe {data.recipe_id} not found",
-            },
-        )
-
-    if recipe.profile_id != profile.id:
-        release_quota(request.auth, "scale")
-        return Status(
-            404,
-            {
-                "error": "not_found",
-                "message": f"Recipe {data.recipe_id} not found",
-            },
-        )
-
-    try:
-        result = scale_recipe(
-            recipe_id=data.recipe_id,
-            target_servings=data.target_servings,
-            profile=profile,
-            unit_system=data.unit_system,
-        )
-    except ValueError as e:
-        release_quota(request.auth, "scale")
-        return Status(
-            400,
-            {
-                "error": "validation_error",
-                "message": str(e),
-            },
-        )
-    except Exception:
-        release_quota(request.auth, "scale")
-        raise
-
-    # Calculate nutrition if available
-    nutrition = None
-    if recipe.nutrition:
-        nutrition = calculate_nutrition(
-            recipe=recipe,
-            original_servings=recipe.servings,
-            target_servings=data.target_servings,
-        )
-
-    if result.get("cached"):
-        release_quota(request.auth, "scale")
-    return {
-        "target_servings": result["target_servings"],
-        "original_servings": result["original_servings"],
-        "ingredients": result["ingredients"],
-        "instructions": result.get("instructions", []),  # QA-031
-        "notes": result["notes"],
-        "prep_time_adjusted": result.get("prep_time_adjusted"),  # QA-032
-        "cook_time_adjusted": result.get("cook_time_adjusted"),  # QA-032
-        "total_time_adjusted": result.get("total_time_adjusted"),  # QA-032
-        "nutrition": nutrition,
-        "cached": result["cached"],
-    }
+    return run_ai_feature(request, "scale", work, recipe_id=data.recipe_id, claimed_profile_id=data.profile_id)

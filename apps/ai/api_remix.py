@@ -1,20 +1,16 @@
 """AI remix API endpoints."""
 
-import logging
 from typing import List, Optional
 
 from django_ratelimit.decorators import ratelimit
-from ninja import Router, Schema, Status
+from ninja import Router, Schema
 
 from apps.core.auth import SessionAuth
-from apps.recipes.models import Recipe
 
 from .api import ErrorOut, handle_ai_errors
 from .services.cache import is_ai_cache_hit
-from .services.quota import release_quota, reserve_quota
+from .services.feature_run import Ran, run_ai_feature
 from .services.remix import get_remix_suggestions, create_remix
-
-security_logger = logging.getLogger("security")
 
 router = Router(tags=["ai"])
 
@@ -67,49 +63,12 @@ def remix_suggestions(request, data: RemixSuggestionsIn):
 
     Only works for recipes owned by the requesting profile.
     """
-    if getattr(request, "limited", False):
-        security_logger.warning("Rate limit hit: /ai/remix-suggestions from %s", request.META.get("REMOTE_ADDR"))
-        return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
 
-    allowed, info = reserve_quota(request.auth, "remix_suggestions")
-    if not allowed:
-        return Status(429, {"error": "quota_exceeded", "message": "Daily limit reached for remix_suggestions", **info})
+    def work(ctx):
+        was_cached = is_ai_cache_hit("remix_suggestions", data.recipe_id)
+        return Ran({"suggestions": get_remix_suggestions(data.recipe_id)}, called_ai=not was_cached)
 
-    from apps.profiles.utils import get_current_profile_or_none
-
-    profile = get_current_profile_or_none(request)
-
-    try:
-        recipe = Recipe.objects.get(id=data.recipe_id)
-    except Recipe.DoesNotExist:
-        release_quota(request.auth, "remix_suggestions")
-        return Status(
-            404,
-            {
-                "error": "not_found",
-                "message": f"Recipe {data.recipe_id} not found",
-            },
-        )
-
-    if not profile or recipe.profile_id != profile.id:
-        release_quota(request.auth, "remix_suggestions")
-        return Status(
-            404,
-            {
-                "error": "not_found",
-                "message": f"Recipe {data.recipe_id} not found",
-            },
-        )
-
-    was_cached = is_ai_cache_hit("remix_suggestions", data.recipe_id)
-    try:
-        suggestions = get_remix_suggestions(data.recipe_id)
-    except Exception:
-        release_quota(request.auth, "remix_suggestions")
-        raise
-    if was_cached:
-        release_quota(request.auth, "remix_suggestions")
-    return {"suggestions": suggestions}
+    return run_ai_feature(request, "remix_suggestions", work, recipe_id=data.recipe_id)
 
 
 @router.post(
@@ -123,82 +82,27 @@ def create_remix_endpoint(request, data: CreateRemixIn):
     Only works for recipes owned by the requesting profile.
     The remix will be owned by the same profile.
     """
-    if getattr(request, "limited", False):
-        security_logger.warning("Rate limit hit: /ai/remix from %s", request.META.get("REMOTE_ADDR"))
-        return Status(429, {"error": "rate_limited", "message": "Too many requests. Please try again later."})
 
-    allowed, info = reserve_quota(request.auth, "remix")
-    if not allowed:
-        return Status(429, {"error": "quota_exceeded", "message": "Daily limit reached for remix", **info})
-
-    from apps.profiles.utils import get_current_profile_or_none
-
-    profile = get_current_profile_or_none(request)
-
-    if not profile:
-        release_quota(request.auth, "remix")
-        return Status(
-            404,
+    def work(ctx):
+        remix = create_remix(recipe_id=data.recipe_id, modification=data.modification, profile=ctx.profile)
+        return Ran(
             {
-                "error": "not_found",
-                "message": "Profile not found",
-            },
+                "id": remix.id,
+                "title": remix.title,
+                "description": remix.description,
+                "ingredients": remix.ingredients,
+                "instructions": remix.instructions,
+                "host": remix.host,
+                "site_name": remix.site_name,
+                "is_remix": remix.is_remix,
+                "prep_time": remix.prep_time,
+                "cook_time": remix.cook_time,
+                "total_time": remix.total_time,
+                "yields": remix.yields,
+                "servings": remix.servings,
+            }
         )
 
-    # Verify the profile_id in the request matches the session profile
-    if data.profile_id != profile.id:
-        release_quota(request.auth, "remix")
-        return Status(
-            404,
-            {
-                "error": "not_found",
-                "message": f"Profile {data.profile_id} not found",
-            },
-        )
-
-    try:
-        recipe = Recipe.objects.get(id=data.recipe_id)
-    except Recipe.DoesNotExist:
-        release_quota(request.auth, "remix")
-        return Status(
-            404,
-            {
-                "error": "not_found",
-                "message": f"Recipe {data.recipe_id} not found",
-            },
-        )
-
-    if recipe.profile_id != profile.id:
-        release_quota(request.auth, "remix")
-        return Status(
-            404,
-            {
-                "error": "not_found",
-                "message": f"Recipe {data.recipe_id} not found",
-            },
-        )
-
-    try:
-        remix = create_remix(
-            recipe_id=data.recipe_id,
-            modification=data.modification,
-            profile=profile,
-        )
-    except Exception:
-        release_quota(request.auth, "remix")
-        raise
-    return {
-        "id": remix.id,
-        "title": remix.title,
-        "description": remix.description,
-        "ingredients": remix.ingredients,
-        "instructions": remix.instructions,
-        "host": remix.host,
-        "site_name": remix.site_name,
-        "is_remix": remix.is_remix,
-        "prep_time": remix.prep_time,
-        "cook_time": remix.cook_time,
-        "total_time": remix.total_time,
-        "yields": remix.yields,
-        "servings": remix.servings,
-    }
+    return run_ai_feature(
+        request, "remix", work, recipe_id=data.recipe_id, claimed_profile_id=data.profile_id
+    )
