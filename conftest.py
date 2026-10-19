@@ -34,3 +34,12 @@ def temp_media_root(settings, tmp_path):
     """Point MEDIA_ROOT at a temp dir so tests that write or wipe media never touch the real one."""
     settings.MEDIA_ROOT = str(tmp_path)
     return tmp_path
+
+
+@pytest.fixture
+def public_dns():
+    """Resolve every hostname to a public IP so fetch tests never touch real DNS."""
+    from unittest.mock import patch
+
+    with patch("apps.core.validators.resolve_hostname", return_value="93.184.216.34") as resolver:
+        yield resolver

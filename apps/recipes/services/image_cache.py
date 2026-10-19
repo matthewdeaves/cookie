@@ -17,13 +17,8 @@ from django.core.files.base import ContentFile
 from django.utils import timezone
 from PIL import Image
 
-from apps.core.validators import (
-    MAX_IMAGE_SIZE,
-    MAX_REDIRECT_HOPS,
-    check_response_size,
-    validate_redirect_url,
-    validate_url,
-)
+from apps.core.safe_fetch import RedirectLimitExceeded, ResponseTooLarge, safe_fetch
+from apps.core.validators import MAX_IMAGE_SIZE, validate_url
 from apps.recipes.services.fingerprint import BROWSER_PROFILES
 
 # Limit decompression bomb attacks via PIL
@@ -182,50 +177,30 @@ class SearchImageCache:
         return None
 
     async def _fetch_image_safe(self, url, profile, curl_resolve=None):
-        """Fetch image following redirects with per-hop SSRF validation and DNS pinning."""
-        from curl_cffi import CurlOpt
+        """Fetch an image via the SSRF-safe fetcher; None for anything unusable."""
+        try:
+            response, final_url = await safe_fetch(
+                url,
+                session_factory=AsyncSession,
+                impersonate=profile,
+                timeout=self.DOWNLOAD_TIMEOUT,
+                curl_resolve=curl_resolve,
+                max_size=MAX_IMAGE_SIZE,
+            )
+        except RedirectLimitExceeded:
+            logger.warning("Too many redirects for image: %s", url)
+            return None
+        except ResponseTooLarge:
+            logger.warning("Image too large: %s", url)
+            return None
+        except ValueError:
+            return None  # redirect to a blocked or unresolvable URL
 
-        current_url = url
-        current_resolve = curl_resolve or []
-        for _ in range(MAX_REDIRECT_HOPS):
-            curl_opts = {CurlOpt.RESOLVE: current_resolve} if current_resolve else {}
-            async with AsyncSession(impersonate=profile, curl_options=curl_opts) as session:
-                response = await session.get(
-                    current_url,
-                    timeout=self.DOWNLOAD_TIMEOUT,
-                    allow_redirects=False,
-                )
-
-                if response.status_code in (301, 302, 303, 307, 308):
-                    location = response.headers.get("location")
-                    if not location:
-                        return None
-                    try:
-                        resolved = validate_redirect_url(location)
-                    except ValueError:
-                        return None
-                    current_url = location
-                    current_resolve = resolved.curl_resolve
-                    continue
-
-                if response.status_code in (404, 410):
-                    return None
-
-                if response.status_code == 200 and response.content:
-                    if not check_response_size(response, MAX_IMAGE_SIZE):
-                        logger.warning("Image too large: %s", current_url)
-                        return None
-                    if len(response.content) > MAX_IMAGE_SIZE:
-                        return None
-                    content_type = response.headers.get("content-type", "")
-                    if "image" in content_type:
-                        return response.content
-                    if self._looks_like_image(response.content):
-                        return response.content
-
-                return None
-
-        logger.warning("Too many redirects for image: %s", url)
+        if response.status_code != 200 or not response.content:
+            return None
+        if "image" in response.headers.get("content-type", "") or self._looks_like_image(response.content):
+            return response.content
+        logger.debug("Not an image: %s", final_url)
         return None
 
     @staticmethod

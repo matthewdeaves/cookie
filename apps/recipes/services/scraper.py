@@ -18,14 +18,12 @@ from django.utils import timezone
 from curl_cffi.requests import AsyncSession
 from recipe_scrapers import scrape_html
 
+from apps.core.safe_fetch import REDIRECT_STATUSES, RedirectLimitExceeded, ResponseTooLarge, safe_fetch
 from apps.core.validators import (
     MAX_HTML_SIZE,
     MAX_IMAGE_SIZE,
     MAX_REDIRECT_HOPS,
-    check_content_size,
-    check_response_size,
     validate_url,
-    validate_redirect_url,
 )
 from apps.recipes.services.fingerprint import BROWSER_PROFILES
 
@@ -216,43 +214,28 @@ class RecipeScraper:
         raise FetchError(f"Failed to fetch {url}: {'; '.join(errors)}")
 
     async def _fetch_with_redirects(self, url, profile, max_size, curl_resolve=None):
-        """Fetch URL following redirects with per-hop SSRF validation and DNS pinning."""
-        from curl_cffi import CurlOpt
+        """Fetch URL via the SSRF-safe fetcher, mapping the response to scraper errors."""
+        try:
+            response, _final_url = await safe_fetch(
+                url,
+                session_factory=AsyncSession,
+                impersonate=profile,
+                timeout=self.timeout,
+                curl_resolve=curl_resolve,
+                max_size=max_size,
+            )
+        except RedirectLimitExceeded:
+            raise FetchError(f"Too many redirects (>{MAX_REDIRECT_HOPS})")
 
-        current_url = url
-        current_resolve = curl_resolve or []
-        for _ in range(MAX_REDIRECT_HOPS):
-            curl_opts = {CurlOpt.RESOLVE: current_resolve} if current_resolve else {}
-            async with AsyncSession(impersonate=profile, curl_options=curl_opts) as session:
-                response = await session.get(
-                    current_url,
-                    timeout=self.timeout,
-                    allow_redirects=False,
-                )
-
-                if response.status_code in (301, 302, 303, 307, 308):
-                    location = response.headers.get("location")
-                    if not location:
-                        raise FetchError("Redirect without Location header")
-                    resolved = validate_redirect_url(location)
-                    current_url = location
-                    current_resolve = resolved.curl_resolve
-                    continue
-
-                if response.status_code == 200:
-                    if not check_response_size(response, max_size):
-                        raise FetchError(f"Response too large (Content-Length > {max_size})")
-                    content = response.text
-                    check_content_size(content.encode("utf-8", errors="replace"), max_size)
-                    return content
-
-                if response.status_code == 404:
-                    raise FetchError("Recipe page not found at that URL")
-                if response.status_code == 429:
-                    raise FetchError("Recipe site is temporarily rate-limiting — try again shortly")
-                return None  # 403/5xx: let other browser profiles try
-
-        raise FetchError(f"Too many redirects (>{MAX_REDIRECT_HOPS})")
+        if response.status_code in REDIRECT_STATUSES:
+            raise FetchError("Redirect without Location header")
+        if response.status_code == 200:
+            return response.text
+        if response.status_code == 404:
+            raise FetchError("Recipe page not found at that URL")
+        if response.status_code == 429:
+            raise FetchError("Recipe site is temporarily rate-limiting — try again shortly")
+        return None  # 403/5xx: let other browser profiles try
 
     def _parse_recipe(self, html: str, url: str) -> dict:
         """
@@ -408,49 +391,31 @@ class RecipeScraper:
         return None
 
     async def _fetch_image_with_redirects(self, url, profile, curl_resolve=None):
-        """Fetch image following redirects with per-hop SSRF validation and DNS pinning."""
-        from curl_cffi import CurlOpt
+        """Fetch an image via the SSRF-safe fetcher; None for anything unusable."""
+        try:
+            response, final_url = await safe_fetch(
+                url,
+                session_factory=AsyncSession,
+                impersonate=profile,
+                timeout=self.timeout,
+                curl_resolve=curl_resolve,
+                max_size=MAX_IMAGE_SIZE,
+            )
+        except RedirectLimitExceeded:
+            logger.warning("Too many redirects for image: %s", url)
+            return None
+        except ResponseTooLarge:
+            logger.warning("Image too large: %s", url)
+            return None
+        except ValueError:
+            return None  # redirect to a blocked or unresolvable URL
 
-        current_url = url
-        current_resolve = curl_resolve or []
-        for _ in range(MAX_REDIRECT_HOPS):
-            curl_opts = {CurlOpt.RESOLVE: current_resolve} if current_resolve else {}
-            async with AsyncSession(impersonate=profile, curl_options=curl_opts) as session:
-                response = await session.get(
-                    current_url,
-                    timeout=self.timeout,
-                    allow_redirects=False,
-                )
-
-                if response.status_code in (301, 302, 303, 307, 308):
-                    location = response.headers.get("location")
-                    if not location:
-                        return None
-                    try:
-                        resolved = validate_redirect_url(location)
-                    except ValueError:
-                        return None
-                    current_url = location
-                    current_resolve = resolved.curl_resolve
-                    continue
-
-                if response.status_code == 200:
-                    content_type = response.headers.get("content-type", "")
-                    if "image" not in content_type and not self._is_image_url(current_url):
-                        return None
-                    if not check_response_size(response, MAX_IMAGE_SIZE):
-                        logger.warning("Image too large: %s", current_url)
-                        return None
-                    content = response.content
-                    if len(content) > MAX_IMAGE_SIZE:
-                        logger.warning("Image content too large: %s", current_url)
-                        return None
-                    return content
-
-                return None
-
-        logger.warning("Too many redirects for image: %s", url)
-        return None
+        if response.status_code != 200:
+            return None
+        content_type = response.headers.get("content-type", "")
+        if "image" not in content_type and not self._is_image_url(final_url):
+            return None
+        return response.content
 
     def _convert_webp_to_jpeg(self, content: bytes) -> bytes:
         """Convert WebP images to JPEG for iOS 9 compatibility.

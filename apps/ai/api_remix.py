@@ -103,6 +103,4 @@ def create_remix_endpoint(request, data: CreateRemixIn):
             }
         )
 
-    return run_ai_feature(
-        request, "remix", work, recipe_id=data.recipe_id, claimed_profile_id=data.profile_id
-    )
+    return run_ai_feature(request, "remix", work, recipe_id=data.recipe_id, claimed_profile_id=data.profile_id)

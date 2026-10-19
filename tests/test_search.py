@@ -6,6 +6,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from apps.recipes.services.search import RecipeSearch, SearchResult
 from apps.recipes.services.search_parsers import extract_result_from_element
 
+pytestmark = pytest.mark.usefixtures("public_dns")  # the first hop is SSRF-validated, so no real DNS
+
 
 class TestSearchResultDataclass:
     """Tests for SearchResult dataclass."""

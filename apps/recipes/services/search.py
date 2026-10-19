@@ -12,13 +12,8 @@ from asgiref.sync import sync_to_async
 from bs4 import BeautifulSoup
 from curl_cffi.requests import AsyncSession
 
-from apps.core.validators import (
-    MAX_HTML_SIZE,
-    MAX_REDIRECT_HOPS,
-    check_content_size,
-    check_response_size,
-    validate_redirect_url,
-)
+from apps.core.safe_fetch import ResponseTooLarge, safe_fetch
+from apps.core.validators import MAX_HTML_SIZE
 from apps.recipes.services.fingerprint import (
     get_fallback_profiles,
     get_random_delay,
@@ -352,39 +347,19 @@ class RecipeSearch:
         return any(code in error_str for code in ("403", "429", "500", "502", "503"))
 
     async def _fetch_url(self, session: AsyncSession, url: str):
-        """Fetch a URL with timeout handling, redirect validation, and size limits."""
-        from curl_cffi import CurlOpt
-
-        current_url = url
-        current_resolve: list[str] = []
-        for _ in range(MAX_REDIRECT_HOPS):
-            curl_opts = {CurlOpt.RESOLVE: current_resolve} if current_resolve else {}
-            async with AsyncSession(
+        """Fetch a search page via the SSRF-safe fetcher (first hop included) with a size limit."""
+        try:
+            response, _final_url = await safe_fetch(
+                url,
+                session_factory=AsyncSession,
                 impersonate=session._impersonate if hasattr(session, "_impersonate") else "chrome",
-                curl_options=curl_opts,
-            ) as pin_session:
-                response = await asyncio.wait_for(
-                    pin_session.get(current_url, timeout=self.timeout, allow_redirects=False),
-                    timeout=self.timeout + 5,
-                )
-
-            if response.status_code in (301, 302, 303, 307, 308):
-                location = response.headers.get("location")
-                if not location:
-                    return response
-                resolved = validate_redirect_url(location)
-                current_url = location
-                current_resolve = resolved.curl_resolve
-                continue
-
-            if response.status_code == 200:
-                if not check_response_size(response, MAX_HTML_SIZE):
-                    raise ValueError(f"Search response too large for {url}")
-                check_content_size(response.content, MAX_HTML_SIZE)
-
-            return response
-
-        raise ValueError(f"Too many redirects (>{MAX_REDIRECT_HOPS}) for {url}")
+                timeout=self.timeout,
+                max_size=MAX_HTML_SIZE,
+                hard_timeout=self.timeout + 5,
+            )
+        except ResponseTooLarge as exc:
+            raise ValueError(f"Search response too large for {url}") from exc
+        return response
 
     def _parse_search_results(
         self,
