@@ -81,6 +81,7 @@ class ResolvedURL:
     url: str
     hostname: str
     ip: str
+    port: int = 443
 
     def __str__(self):
         return self.url
@@ -88,7 +89,7 @@ class ResolvedURL:
     @property
     def curl_resolve(self):
         """Resolve list for curl_cffi (maps to libcurl CURLOPT_RESOLVE)."""
-        return [f"{self.hostname}:80:{self.ip}", f"{self.hostname}:443:{self.ip}"]
+        return [f"{self.hostname}:{self.port}:{self.ip}"]
 
 
 def validate_url(url):
@@ -107,7 +108,11 @@ def validate_url(url):
     if is_blocked_ip(ip_str):
         raise ValueError("URL not allowed: resolves to blocked IP range.")
 
-    return ResolvedURL(url=url, hostname=hostname, ip=ip_str)
+    try:
+        port = parsed.port or (80 if parsed.scheme == "http" else 443)
+    except ValueError as exc:
+        raise ValueError("URL has an invalid port") from exc
+    return ResolvedURL(url=url, hostname=hostname, ip=ip_str, port=port)
 
 
 def validate_redirect_url(url):

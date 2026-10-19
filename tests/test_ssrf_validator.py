@@ -196,3 +196,17 @@ class TestValidateUrl:
         with pytest.raises(ValueError, match="Could not resolve hostname"):
             validate_url("https://definitely-not-real.invalid/page")
 
+
+class TestResolvePortPinning:
+    @pytest.mark.parametrize(
+        "url,port",
+        [
+            ("https://example.com/", 443),
+            ("http://example.com/", 80),
+            ("https://example.com:8443/x", 8443),
+            ("http://example.com:8080/", 8080),
+        ],
+    )
+    def test_pin_covers_the_port_actually_used(self, url, port):
+        with patch("apps.core.validators.resolve_hostname", return_value="93.184.216.34"):
+            assert validate_url(url).curl_resolve == [f"example.com:{port}:93.184.216.34"]
