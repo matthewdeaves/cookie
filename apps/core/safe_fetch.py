@@ -49,6 +49,15 @@ class ResponseTooLarge(ValueError):
     """A 200 body exceeded ``max_size`` (declared by Content-Length or actually received)."""
 
 
+async def _validated(url: str) -> list[str]:
+    """Validate ``url`` off the event loop (DNS lookup blocks) and return its pinning list."""
+    return (await asyncio.to_thread(validate_url, url)).curl_resolve
+
+
+async def _redirect_resolve(url: str) -> list[str]:
+    return (await asyncio.to_thread(validate_redirect_url, url)).curl_resolve
+
+
 async def _read_body(response: Any, max_size: int) -> bool:
     """Stream the body into ``response.content``, stopping past ``max_size``.
 
@@ -104,7 +113,7 @@ async def safe_fetch(
     from curl_cffi import CurlOpt
 
     current_url = url
-    current_resolve = curl_resolve or validate_url(url).curl_resolve
+    current_resolve = curl_resolve or await _validated(url)
     stream = {"stream": True} if max_size is not None else {}
 
     for _ in range(MAX_REDIRECT_HOPS):
@@ -123,7 +132,7 @@ async def safe_fetch(
             location = response.headers.get("location")
             if not location:
                 return Fetched(response, current_url)
-            current_resolve = validate_redirect_url(location).curl_resolve
+            current_resolve = await _redirect_resolve(location)
             current_url = location
             continue
 
