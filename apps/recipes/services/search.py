@@ -11,7 +11,6 @@ from urllib.parse import quote_plus
 from asgiref.sync import sync_to_async
 from bs4 import BeautifulSoup
 from curl_cffi.requests import AsyncSession
-from django.utils import timezone
 
 from apps.core.validators import (
     MAX_HTML_SIZE,
@@ -73,6 +72,7 @@ class RecipeSearch:
         sources: Optional[list[str]] = None,
         page: int = 1,
         per_page: int = 20,
+        record_health: bool = True,
     ) -> dict:
         """
         Search for recipes across multiple sites.
@@ -82,6 +82,8 @@ class RecipeSearch:
             sources: Optional list of hosts to search (None = all enabled)
             page: Page number (1-indexed)
             per_page: Results per page
+            record_health: Report per-source outcomes to source_health. The explicit
+                source check passes False and records its own single outcome.
 
         Returns:
             dict with keys:
@@ -102,6 +104,7 @@ class RecipeSearch:
         all_results, site_counts, failed_sources = await self._aggregate_results(
             enabled_sources,
             results_by_source,
+            record_health,
         )
 
         result_dicts = self._deduplicate_and_convert(all_results)
@@ -171,8 +174,12 @@ class RecipeSearch:
         self,
         enabled_sources: list,
         results_by_source: list,
+        record_health: bool = True,
     ) -> tuple[list["SearchResult"], dict[str, int], list[str]]:
         """Aggregate per-source results, recording successes and failures."""
+        # Imported here: source_health imports this module for its check operation.
+        from apps.recipes.services.source_health import arecord_outcome
+
         all_results: list[SearchResult] = []
         site_counts: dict[str, int] = {}
         failed_sources: list[str] = []
@@ -183,13 +190,14 @@ class RecipeSearch:
                 failed_sources.append(source.host)
                 # A deadline overrun says the whole search was slow, not that this
                 # particular site's selector is broken, so don't flag the source.
-                if not isinstance(result, SearchDeadlineExceeded):
-                    await self._record_failure(source)
+                if record_health and not isinstance(result, SearchDeadlineExceeded):
+                    await arecord_outcome(source, False)
                 continue
 
             site_counts[source.host] = len(result)
             all_results.extend(result)
-            await self._record_success(source)
+            if record_health:
+                await arecord_outcome(source, True)
 
         return all_results, site_counts, failed_sources
 
@@ -412,33 +420,3 @@ class RecipeSearch:
         # Fallback: Look for common recipe link patterns
         results = fallback_parse(soup, host, base_url)
         return results[:20]  # Limit per site
-
-    async def _record_failure(self, source) -> None:
-        """Record a search failure for maintenance tracking."""
-
-        @sync_to_async
-        def update():
-            source.consecutive_failures += 1
-            if source.consecutive_failures >= 2:
-                source.needs_attention = True
-            source.save(update_fields=["consecutive_failures", "needs_attention"])
-
-        await update()
-
-    async def _record_success(self, source) -> None:
-        """Record a successful search."""
-
-        @sync_to_async
-        def update():
-            source.consecutive_failures = 0
-            source.needs_attention = False
-            source.last_validated_at = timezone.now()
-            source.save(
-                update_fields=[
-                    "consecutive_failures",
-                    "needs_attention",
-                    "last_validated_at",
-                ]
-            )
-
-        await update()

@@ -10,9 +10,14 @@ interface SelectorItemProps {
   sources: Source[]
 }
 
+// The backend owns the threshold (it sends `failure_threshold`); 3 only covers older payloads.
+function overThreshold(source: Source): boolean {
+  return source.consecutive_failures >= (source.failure_threshold ?? 3)
+}
+
 function getSourceStatus(source: Source): 'working' | 'warning' | 'broken' | 'untested' {
   if (!source.last_validated_at) return 'untested'
-  if (source.needs_attention || source.consecutive_failures >= 3) return 'broken'
+  if (source.needs_attention || overThreshold(source)) return 'broken'
   if (source.consecutive_failures > 0) return 'warning'
   return 'working'
 }
@@ -59,7 +64,7 @@ function SelectorItemHeader({
           <StatusIcon status={status} />
         </div>
         <p className="text-sm text-muted-foreground">{source.host}</p>
-        {source.consecutive_failures >= 3 && (
+        {overThreshold(source) && (
           <p className="mt-1 text-xs text-red-500">
             Failed {source.consecutive_failures} times - auto-disabled
           </p>

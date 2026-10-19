@@ -427,7 +427,7 @@ async def test_test_source_success():
         }
     )
 
-    with patch("apps.recipes.sources_api.RecipeSearch", return_value=mock_search):
+    with patch("apps.recipes.services.source_health.RecipeSearch", return_value=mock_search):
         response = await async_client.post(f"/api/sources/{source.id}/test/")
 
     assert response.status_code == 200
@@ -450,7 +450,7 @@ async def test_test_source_no_results():
     mock_search = MagicMock()
     mock_search.search = AsyncMock(return_value={"results": []})
 
-    with patch("apps.recipes.sources_api.RecipeSearch", return_value=mock_search):
+    with patch("apps.recipes.services.source_health.RecipeSearch", return_value=mock_search):
         response = await async_client.post(f"/api/sources/{source.id}/test/")
 
     assert response.status_code == 200
@@ -481,7 +481,7 @@ async def test_test_source_exception():
     mock_search = MagicMock()
     mock_search.search = AsyncMock(side_effect=Exception("Connection timeout"))
 
-    with patch("apps.recipes.sources_api.RecipeSearch", return_value=mock_search):
+    with patch("apps.recipes.services.source_health.RecipeSearch", return_value=mock_search):
         response = await async_client.post(f"/api/sources/{source.id}/test/")
 
     assert response.status_code == 500

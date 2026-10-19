@@ -154,15 +154,13 @@ class TestSearchServiceDeadline:
                 await asyncio.sleep(30)
             return [SearchResult(url="https://fast.com/r/1", title="Fast Cookies", host="fast.com")]
 
-        record_failure = AsyncMock()
-        record_success = AsyncMock()
+        record = AsyncMock()
         with (
             patch.object(
                 search, "_get_enabled_sources", AsyncMock(return_value=[_source("fast.com"), _source("slow.com")])
             ),
             patch.object(search, "_search_source", fake_search_source),
-            patch.object(search, "_record_failure", record_failure),
-            patch.object(search, "_record_success", record_success),
+            patch("apps.recipes.services.source_health.arecord_outcome", record),
             _patched_session() as session_class,
         ):
             session_class.return_value.__aenter__ = AsyncMock(return_value=MagicMock())
@@ -173,15 +171,14 @@ class TestSearchServiceDeadline:
         assert results["sources_searched"] == 2
         assert [r["title"] for r in results["results"]] == ["Fast Cookies"]
         # A deadline overrun is not evidence that the site's selector is broken.
-        record_failure.assert_not_awaited()
-        record_success.assert_awaited_once()
+        assert [c.args[1] for c in record.await_args_list] == [True]
 
     async def test_http_errors_are_listed_as_failed_sources(self):
         search = RecipeSearch()
         with (
             patch.object(search, "_get_enabled_sources", AsyncMock(return_value=[_source("blocked.com")])),
             patch.object(search, "_search_source", AsyncMock(side_effect=Exception("HTTP 403"))),
-            patch.object(search, "_record_failure", AsyncMock()) as record_failure,
+            patch("apps.recipes.services.source_health.arecord_outcome", AsyncMock()) as record,
             _patched_session() as session_class,
         ):
             session_class.return_value.__aenter__ = AsyncMock(return_value=MagicMock())
@@ -190,7 +187,8 @@ class TestSearchServiceDeadline:
 
         assert results["failed_sources"] == ["blocked.com"]
         assert results["results"] == []
-        record_failure.assert_awaited_once()
+        record.assert_awaited_once()
+        assert record.await_args.args[1] is False
 
     def test_404_is_not_retried_but_403_is(self):
         assert RecipeSearch._should_retry_status(403) is True

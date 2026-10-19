@@ -18,19 +18,13 @@ from django.core.files.base import ContentFile
 from apps.profiles.models import Profile
 
 
-@pytest.fixture(autouse=True)
-def _temp_media_root(settings, tmp_path):
-    """Resets and image fixtures must never touch the real MEDIA_ROOT."""
-    settings.MEDIA_ROOT = str(tmp_path)
-
-
 @pytest.fixture
 def client():
     return Client()
 
 
 @pytest.fixture
-def test_profile(db):
+def test_profile(db, temp_media_root):
     """Create a test profile."""
     from apps.profiles.models import Profile
 

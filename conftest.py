@@ -27,3 +27,10 @@ def client():
     from django.test import Client
 
     return Client()
+
+
+@pytest.fixture
+def temp_media_root(settings, tmp_path):
+    """Point MEDIA_ROOT at a temp dir so tests that write or wipe media never touch the real one."""
+    settings.MEDIA_ROOT = str(tmp_path)
+    return tmp_path

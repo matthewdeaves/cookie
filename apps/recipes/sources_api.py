@@ -2,16 +2,15 @@
 SearchSource management API endpoints.
 """
 
-import asyncio
 from typing import List, Optional
 
-from django.utils import timezone
+from asgiref.sync import sync_to_async
 from ninja import Router, Schema, Status
 
 from apps.core.auth import HomeOnlyAuth, SessionAuth
 
 from .models import SearchSource
-from .services.search import RecipeSearch
+from .services import source_health
 
 router = Router(tags=["sources"])
 
@@ -30,6 +29,11 @@ class SourceOut(Schema):
     last_validated_at: Optional[str] = None
     consecutive_failures: int
     needs_attention: bool
+    failure_threshold: int
+
+    @staticmethod
+    def resolve_failure_threshold(obj):
+        return source_health.FAILURE_THRESHOLD
 
     @staticmethod
     def resolve_last_validated_at(obj):
@@ -114,77 +118,19 @@ async def test_all_sources(request):
 
     This may take a while as it tests each source sequentially.
     """
-    from asgiref.sync import sync_to_async
-
     sources = await sync_to_async(list)(SearchSource.objects.filter(is_enabled=True))
 
-    results = {
-        "tested": 0,
-        "passed": 0,
-        "failed": 0,
-        "details": [],
-    }
-
-    search = RecipeSearch()
-    test_query = "chicken"
-
+    results = {"tested": 0, "passed": 0, "failed": 0, "details": []}
     for source in sources:
-        try:
-            search_results = await search.search(
-                query=test_query,
-                sources=[source.host],
-                page=1,
-                per_page=3,
-            )
-
-            result_count = len(search_results.get("results", []))
-            success = result_count > 0
-
-            # Update source status
-            if success:
-                source.consecutive_failures = 0
-                source.needs_attention = False
-            else:
-                source.consecutive_failures += 1
-                source.needs_attention = source.consecutive_failures >= 3
-
-            source.last_validated_at = timezone.now()
-            await sync_to_async(source.save)()
-
-            results["tested"] += 1
-            if success:
-                results["passed"] += 1
-            else:
-                results["failed"] += 1
-
-            results["details"].append(
-                {
-                    "id": source.id,
-                    "name": source.name,
-                    "host": source.host,
-                    "success": success,
-                    "results_count": result_count,
-                }
-            )
-
-        except Exception as e:
-            source.consecutive_failures += 1
-            source.needs_attention = source.consecutive_failures >= 3
-            source.last_validated_at = timezone.now()
-            await sync_to_async(source.save)()
-
-            results["tested"] += 1
-            results["failed"] += 1
-            results["details"].append(
-                {
-                    "id": source.id,
-                    "name": source.name,
-                    "host": source.host,
-                    "success": False,
-                    "error": str(e),
-                }
-            )
-
+        check = await source_health.run_check(source)
+        detail = {"id": source.id, "name": source.name, "host": source.host, "success": check.ok}
+        if check.error is not None:
+            detail["error"] = check.error
+        else:
+            detail["results_count"] = check.results_count
+        results["tested"] += 1
+        results["passed" if check.ok else "failed"] += 1
+        results["details"].append(detail)
     return results
 
 
@@ -253,8 +199,6 @@ async def test_source(request, source_id: int):
     Uses "chicken" as a test query and checks if results are returned.
     Updates the source's validation status based on the result.
     """
-    from asgiref.sync import sync_to_async
-
     try:
         source = await sync_to_async(SearchSource.objects.get)(id=source_id)
     except SearchSource.DoesNotExist:
@@ -266,59 +210,21 @@ async def test_source(request, source_id: int):
             },
         )
 
-    # Test with a common search query
-    test_query = "chicken"
-    search = RecipeSearch()
+    check = await source_health.run_check(source, per_page=5)
+    query = source_health.TEST_QUERY
 
-    try:
-        # Search only this specific source
-        results = await search.search(
-            query=test_query,
-            sources=[source.host],
-            page=1,
-            per_page=5,
-        )
-
-        result_count = len(results.get("results", []))
-        sample_titles = [r.get("title", "")[:50] for r in results.get("results", [])[:3]]
-
-        # Update source validation status
-        if result_count > 0:
-            source.consecutive_failures = 0
-            source.needs_attention = False
-            source.last_validated_at = timezone.now()
-            await sync_to_async(source.save)()
-
-            return {
-                "success": True,
-                "message": f'Found {result_count} results for "{test_query}"',
-                "results_count": result_count,
-                "sample_results": sample_titles,
-            }
-        else:
-            source.consecutive_failures += 1
-            source.needs_attention = source.consecutive_failures >= 3
-            source.last_validated_at = timezone.now()
-            await sync_to_async(source.save)()
-
-            return {
-                "success": False,
-                "message": f'No results found for "{test_query}". The selector may need updating.',
-                "results_count": 0,
-                "sample_results": [],
-            }
-
-    except Exception as e:
-        # Update failure count
-        source.consecutive_failures += 1
-        source.needs_attention = source.consecutive_failures >= 3
-        source.last_validated_at = timezone.now()
-        await sync_to_async(source.save)()
-
-        return Status(
-            500,
-            {
-                "error": "test_failed",
-                "message": f"Test failed: {str(e)}",
-            },
-        )
+    if check.error is not None:
+        return Status(500, {"error": "test_failed", "message": f"Test failed: {check.error}"})
+    if check.ok:
+        return {
+            "success": True,
+            "message": f'Found {check.results_count} results for "{query}"',
+            "results_count": check.results_count,
+            "sample_results": [t[:50] for t in check.titles[:3]],
+        }
+    return {
+        "success": False,
+        "message": f'No results found for "{query}". The selector may need updating.',
+        "results_count": 0,
+        "sample_results": [],
+    }
