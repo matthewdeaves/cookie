@@ -26,13 +26,37 @@ MAX_IMAGE_SIZE = 50 * 1024 * 1024  # 50 MB
 MAX_REDIRECT_HOPS = 5
 
 
+NAT64_WELL_KNOWN = ipaddress.ip_network("64:ff9b::/96")
+
+
+def _embedded_ipv4(addr):
+    """Return the IPv4 address hidden inside an IPv6 one (mapped, compatible, NAT64), else None."""
+    if addr.version != 6:
+        return None
+    if addr.ipv4_mapped is not None:
+        return addr.ipv4_mapped
+    packed = addr.packed
+    if addr in NAT64_WELL_KNOWN or not any(packed[:12]):
+        return ipaddress.IPv4Address(packed[12:])
+    return None
+
+
 def is_blocked_ip(ip_str):
-    """Check if an IP address falls within any blocked range."""
+    """Check if an IP address is not a safe public destination.
+
+    Blocks the listed private ranges and anything that is not globally routable (CGNAT,
+    reserved, multicast, unspecified...), and re-checks IPv4 embedded in IPv6 forms.
+    """
     try:
         addr = ipaddress.ip_address(ip_str)
     except ValueError:
         return True
-    return any(addr in network for network in BLOCKED_NETWORKS)
+    embedded = _embedded_ipv4(addr)
+    if embedded is not None:
+        return is_blocked_ip(str(embedded))
+    if any(addr in network for network in BLOCKED_NETWORKS):
+        return True
+    return not addr.is_global or addr.is_multicast or addr.is_reserved or addr.is_unspecified
 
 
 def resolve_hostname(hostname):

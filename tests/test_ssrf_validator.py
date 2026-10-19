@@ -13,12 +13,41 @@ import pytest
 from apps.core.validators import is_blocked_ip, resolve_hostname, validate_url
 
 
+class TestPublicAddressesStillAllowed:
+    @pytest.mark.parametrize(
+        "ip",
+        [
+            "93.184.216.34",
+            "8.8.8.8",
+            "2606:2800:220:1:248:1893:25c8:1946",
+            "2001:4860:4860::8888",
+            "::ffff:8.8.8.8",
+            "64:ff9b::808:808",
+        ],
+    )
+    def test_public_ips_pass(self, ip):
+        assert is_blocked_ip(ip) is False
+
+
 class TestIsBlockedIp:
     """Tests for is_blocked_ip function."""
 
     @pytest.mark.parametrize(
         "ip",
         [
+            "::ffff:127.0.0.1",
+            "::ffff:169.254.169.254",
+            "::ffff:10.0.0.1",
+            "::",
+            "::127.0.0.1",
+            "::169.254.169.254",
+            "64:ff9b::a9fe:a9fe",  # NAT64 embedding of 169.254.169.254
+            "64:ff9b::7f00:1",
+            "100.64.0.1",  # CGNAT / Tailscale
+            "100.127.255.254",
+            "ff02::1",  # multicast
+            "224.0.0.1",
+            "240.0.0.1",
             "127.0.0.1",
             "127.0.0.2",
             "10.0.0.1",
@@ -166,3 +195,4 @@ class TestValidateUrl:
         mock_getaddrinfo.side_effect = socket.gaierror("Name resolution failed")
         with pytest.raises(ValueError, match="Could not resolve hostname"):
             validate_url("https://definitely-not-real.invalid/page")
+
