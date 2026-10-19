@@ -229,6 +229,7 @@ class TestScraperIntegration:
         """
 
     @patch("apps.recipes.services.scraper.AsyncSession")
+    @pytest.mark.usefixtures("public_dns")
     async def test_scrape_url_creates_recipe(self, mock_session_class, mock_html_response, test_profile):
         """Test that scraping a URL creates a Recipe record."""
         from apps.recipes.models import Recipe
@@ -263,6 +264,7 @@ class TestScraperIntegration:
         assert recipe.total_time == 27
 
     @patch("apps.recipes.services.scraper.AsyncSession")
+    @pytest.mark.usefixtures("public_dns")
     async def test_scrape_url_fetch_failure(self, mock_session_class, test_profile):
         """Test that fetch failure raises FetchError."""
         mock_session = MagicMock()
@@ -277,6 +279,7 @@ class TestScraperIntegration:
             await scraper.scrape_url("https://example.com/recipe", test_profile)
 
     @patch("apps.recipes.services.scraper.AsyncSession")
+    @pytest.mark.usefixtures("public_dns")
     async def test_scrape_url_with_image_download(self, mock_session_class, mock_html_response, test_profile):
         """Test that recipe images are downloaded and saved."""
         from apps.recipes.models import Recipe

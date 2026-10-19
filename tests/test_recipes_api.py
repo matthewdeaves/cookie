@@ -811,7 +811,9 @@ class TestRecipeScrapeCreatesNewRecords:
 
     @patch("apps.recipes.services.scraper.threading")
     @patch("apps.recipes.services.scraper.AsyncSession")
-    async def test_scrape_same_url_twice_creates_two_records(self, mock_session_class, mock_threading, test_profile):
+    async def test_scrape_same_url_twice_creates_two_records(
+        self, mock_session_class, mock_threading, test_profile, public_dns
+    ):
         """Test that scraping same URL twice creates two recipes."""
         from apps.recipes.models import Recipe
         from apps.recipes.services.scraper import RecipeScraper
